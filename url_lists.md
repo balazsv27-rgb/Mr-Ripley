@@ -1,0 +1,13 @@
+| Reuters – Precious Metals        | [https://www.reuters.com/finance/markets/commodities](https://www.reuters.com/finance/markets/commodities) | arany, commodities, economy     | 1         |
+| Reuters – World News             | [https://www.reuters.com/rssFeed/worldNews](https://www.reuters.com/rssFeed/worldNews)                     | geopolitika, economy, gold      | 2         |
+| Bloomberg – Markets              | [https://www.bloomberg.com/markets](https://www.bloomberg.com/markets)                                     | economy, gold, interest rates   | 1         |
+| CNBC – Markets                   | [https://www.cnbc.com/world/?region=world](https://www.cnbc.com/world/?region=world)                       | economy, gold, macro            | 2         |
+| MarketWatch – Commodities        | [https://www.marketwatch.com/investing/future/gold](https://www.marketwatch.com/investing/future/gold)     | gold, commodities, price        | 1         |
+| Investing.com – Gold News RSS    | [https://www.investing.com/rss/news.rss](https://www.investing.com/rss/news.rss)                           | gold, commodities, macro        | 1         |
+| Kitco – Gold News                | [https://www.kitco.com/news/rss](https://www.kitco.com/news/rss)                                           | gold, metals, commodities       | 1         |
+| World Gold Council – News        | [https://www.gold.org/news-and-events/feed](https://www.gold.org/news-and-events/feed)                     | gold, investment, market trends | 1         |
+| ZeroHedge – Markets              | [https://www.zerohedge.com/markets/feed](https://www.zerohedge.com/markets/feed)                           | macro, geopolitics, gold        | 2         |
+| Trading Economics – News         | [https://tradingeconomics.com/feed/news](https://tradingeconomics.com/feed/news)                           | macro, interest rates, economy  | 2         |
+| Federal Reserve – Press Releases | [https://www.federalreserve.gov/feeds/press.xml](https://www.federalreserve.gov/feeds/press.xml)           | central bank, rates, policy     | 1         |
+| ECB – Press Releases             | [https://www.ecb.europa.eu/press/pr/date/rss.xml](https://www.ecb.europa.eu/press/pr/date/rss.xml)         | central bank, rates, policy     | 1         |
+| Bank of England – News           | [https://www.bankofengland.co.uk/news/rss](https://www.bankofengland.co.uk/news/rss)                       | central bank, rates, economy    | 1         |
