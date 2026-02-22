@@ -1,0 +1,80 @@
+{
+    "categories": [
+        {
+            "id": 33833,
+            "name": "Banking and Monetary Statistics, 1914-1941",
+            "parent_id": 33060,
+            "notes": "This data is from the Board of Governors' Banking and Monetary Statistics 1914-1941 publication."
+        },
+        {
+            "id": 33951,
+            "name": "Daily Federal Funds Rate, 1928-54",
+            "parent_id": 33060
+        },
+        {
+            "id": 33825,
+            "name": "Data on the nominal term structure model from Kim and Wright",
+            "parent_id": 33060
+        },
+        {
+            "id": 33891,
+            "name": "Historical Federal Reserve Data",
+            "parent_id": 33060
+        },
+        {
+            "id": 33061,
+            "name": "NBER Macrohistory Database",
+            "parent_id": 33060
+        },
+        {
+            "id": 33100,
+            "name": "Penn World Table 7.1",
+            "parent_id": 33060
+        },
+        {
+            "id": 33402,
+            "name": "Penn World Table 11.0",
+            "parent_id": 33060
+        },
+        {
+            "id": 33120,
+            "name": "Recession Probabilities",
+            "parent_id": 33060
+        },
+        {
+            "id": 33123,
+            "name": "Weekly U.S. and State Bond Prices, 1855-1865",
+            "parent_id": 33060
+        },
+        {
+            "id": 33201,
+            "name": "Economic Policy Uncertainty",
+            "parent_id": 33060
+        },
+        {
+            "id": 33442,
+            "name": "Sticky Wages and Comovement",
+            "parent_id": 33060
+        },
+        {
+            "id": 33839,
+            "name": "A Millennium of Macroeconomic Data for the UK",
+            "parent_id": 33060
+        },
+        {
+            "id": 33934,
+            "name": "New England Textile Industry, 1815-1860",
+            "parent_id": 33060
+        },
+        {
+            "id": 34000,
+            "name": "The Effects of the 1930s HOLC \"Redlining\" Maps",
+            "parent_id": 33060
+        },
+        {
+            "id": 34309,
+            "name": "U.S. Survey of Working Arrangements and Attitudes",
+            "parent_id": 33060
+        }
+    ]
+}
