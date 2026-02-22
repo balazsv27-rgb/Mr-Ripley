@@ -1,44 +1,26 @@
 {
     "categories": [
         {
-            "id": 32991,
-            "name": "Money, Banking, & Finance",
-            "parent_id": 0
+            "id": 32264,
+            "name": "Countries",
+            "parent_id": 32263
         },
         {
-            "id": 10,
-            "name": "Population, Employment, & Labor Markets",
-            "parent_id": 0
+            "id": 32955,
+            "name": "Geography",
+            "parent_id": 32263,
+            "notes": "This category contains both data aggregated for a specific geographic region and a way to find country categories based upon geographic region."
         },
         {
-            "id": 32992,
-            "name": "National Accounts",
-            "parent_id": 0
+            "id": 32265,
+            "name": "Indicators",
+            "parent_id": 32263
         },
         {
-            "id": 1,
-            "name": "Production & Business Activity",
-            "parent_id": 0
-        },
-        {
-            "id": 32455,
-            "name": "Prices",
-            "parent_id": 0
-        },
-        {
-            "id": 32263,
-            "name": "International Data",
-            "parent_id": 0
-        },
-        {
-            "id": 3008,
-            "name": "U.S. Regional Data",
-            "parent_id": 0
-        },
-        {
-            "id": 33060,
-            "name": "Academic Data",
-            "parent_id": 0
+            "id": 32956,
+            "name": "Institutions",
+            "parent_id": 32263,
+            "notes": "This category contains data aggregated for multinational institutions and a way to find country series by membership to institutions."
         }
     ]
 }
