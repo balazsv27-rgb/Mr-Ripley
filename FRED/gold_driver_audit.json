@@ -1,0 +1,94 @@
+{
+  "covered_factors": [
+    {
+      "factor": "Real Interest Rates",
+      "series_found": ["DGS10", "DFII10", "T10YIE"],
+      "coverage_level": "Full"
+    },
+    {
+      "factor": "Monetary Policy",
+      "series_found": ["FEDFUNDS", "WALCL"],
+      "coverage_level": "Full"
+    },
+    {
+      "factor": "US Dollar Strength",
+      "series_found": ["DTWEXBGS", "DTWEXAFEGS", "DTWEXEMEGS", "DEXUSEU"],
+      "coverage_level": "Full"
+    },
+    {
+      "factor": "Inflation",
+      "series_found": ["PCEPI", "CPILFESL", "CPILFENS", "CPILEGSL"],
+      "coverage_level": "Full"
+    },
+    {
+      "factor": "Economic Growth",
+      "series_found": ["PAYEMS", "UNRATE", "ICSA"],
+      "coverage_level": "Full"
+    },
+    {
+      "factor": "Market Volatility (VIX)",
+      "series_found": ["VIXCLS"],
+      "coverage_level": "Full"
+    },
+    {
+      "factor": "Risk Appetite (S&P 500)",
+      "series_found": ["SP500"],
+      "coverage_level": "Full"
+    },
+    {
+      "factor": "Trade Tensions / Economic Policy Uncertainty",
+      "series_found": ["USEPUINDXM", "USEPUINDXD", "CHNMAINLANDTPU", "USEPUNEWSINDXM", "EPUMONETARY"],
+      "coverage_level": "Full"
+    }
+  ],
+  "partial_factors": [
+    {
+      "factor": "Central Bank Gold Reserves",
+      "series_found": ["RAGGCGCA", "RAGGCTGGC", "RAGGCGCC", "RAGGCHEFRN", "RAGGCTGFR"],
+      "coverage_level": "Partial",
+      "missing_components": "US Fed gold certificate reserves only; no global central bank gold holdings or official sector accumulation. FRED does not provide World Gold Council–type central bank buying data."
+    },
+  ],
+  "missing_factors": [
+    {
+      "factor": "Gold ETF Holdings",
+      "reason": "No total gold ETF holdings series (e.g. GLD, IAU) found in dataset. FRED may host limited ETF data; commodities/precious-metals categories may be outside fetch scope."
+    },
+    {
+      "factor": "Gold Spot Price",
+      "reason": "No gold spot price series (e.g. GOLDAMGBD228NLBM, GOLDPMGBD228) found in all_series_merged.json. FRED hosts LBMA Gold Price series; commodities/precious-metals category may not be included in the fetch scope."
+    },
+    {
+      "factor": "Mining Production",
+      "reason": "No US gold production or global mining proxy series found. If available in FRED, the relevant category was not included in the merged dataset."
+    },
+    {
+      "factor": "Jewelry / Industrial Demand",
+      "reason": "Not covered by FRED. World Gold Council and similar sources required; structurally unavailable."
+    }
+  ],
+  "data_quality_issues": [
+    {
+      "issue_type": "Critical Missing Series",
+      "series": "GOLDAMGBD228NLBM (or equivalent)",
+      "description": "Gold spot price is mandatory for gold analysis. Its absence prevents computing gold returns and limits dependent analysis."
+    },
+    {
+      "issue_type": "CPI Coverage",
+      "series": "CPIAUCSL",
+      "description": "CPIAUCSL (headline CPI All Items, monthly SA) referenced in notes of other series but not present as a direct series in the merged file. PCEPI and CPILFESL provide alternative inflation measures."
+    },
+    {
+      "issue_type": "GDP Coverage",
+      "series": "GDPC1, A191RL1",
+      "description": "Real GDP (GDPC1) and real GDP growth (A191RL1) not found. GDP-related series present are deflators and sum-of-pieces; CGDPESUSA666NRUG provides Penn World Table real GDP (annual)."
+    },
+    {
+      "issue_type": "Series Duplication",
+      "series": "Multiple series (e.g. DEXUSEU, DTWEXBGS)",
+      "description": "Some series appear in multiple category files (e.g. exchange rates in both by_country and trade_weighted_indexes). Merge may contain duplicates; deduplication by id recommended."
+    }
+  ],
+  "overall_dataset_quality_score": "Medium",
+  "conclusion": "The dataset covers most macroeconomic and risk-sentiment proxies required for gold driver analysis: real yields (DGS10, DFII10, T10YIE), monetary policy (FEDFUNDS, WALCL), USD (DTWEXBGS), inflation (PCEPI, CPILFESL), employment (PAYEMS, UNRATE), VIX, S&P 500, and economic policy uncertainty. Critical gaps: (1) Gold spot price is absent—mandatory for gold analysis and disqualifies a High score. (2) GDPC1/A191RL1 not present. (3) Central bank gold and ETF holdings are partial or unavailable. (4) Mining and jewelry demand are outside FRED’s scope. To reach High suitability: add GOLDAMGBD228NLBM (or equivalent), GDPC1, and A191RL1. Score: Medium (≈62% factors covered fully or partially; 8 full, 1 partial, 4 missing)."
+}

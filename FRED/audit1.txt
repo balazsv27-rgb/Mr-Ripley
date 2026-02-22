@@ -1,0 +1,24 @@
+Summary of findings
+Covered factors (8)
+Real interest rates – DGS10, DFII10, T10YIE
+Monetary policy – FEDFUNDS, WALCL (Fed balance sheet)
+US dollar strength – DTWEXBGS, DTWEXAFEGS, DTWEXEMEGS, DEXUSEU
+Inflation – PCEPI, CPILFESL, CPILFENS, CPILEGSL
+Economic growth – PAYEMS, UNRATE, ICSA
+Market volatility (VIX) – VIXCLS
+Risk appetite (S&P 500) – SP500
+Trade / economic policy uncertainty – USEPUINDXM, USEPUINDXD, CHNMAINLANDTPU, USEPUNEWSINDXM, EPUMONETARY
+Partial factors (1)
+Central bank gold reserves – RAGGCGCA, RAGGCTGGC, etc. (US Fed gold certificates only; no global central bank buying data)
+Missing factors (4)
+Gold spot price – No LBMA/spot series (e.g. GOLDAMGBD228NLBM)
+Gold ETF holdings – No GLD/IAU holdings series
+Mining production – No US gold production or global mining proxy
+Jewelry / industrial demand – Outside FRED’s scope
+Data quality issues
+Gold price series is missing and is mandatory for gold analysis.
+CPIAUCSL (headline CPI) is absent; PCEPI and CPILFESL are used instead.
+GDPC1 and A191RL1 (real GDP and growth) not found.
+Possible duplicate series across category files.
+Overall dataset quality score: Medium (69% of factors covered fully or partially)
+Gold spot price is missing, so the score cannot be “High” even with good macro coverage. To raise suitability, add GOLDAMGBD228NLBM (or equivalent), GDPC1, and A191RL1, and consider extending the FRED fetch to the commodities/precious-metals category.

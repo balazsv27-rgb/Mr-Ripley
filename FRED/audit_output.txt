@@ -1,0 +1,3 @@
+Dict keys: ['generated_at_utc', 'root_dir', 'series', 'files_seen', 'files_used', 'empty_series_files', 'files_failed', 'series_count']
+  generated_at_utc type: str
+  root_dir type: str
