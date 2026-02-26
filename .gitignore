@@ -1,0 +1,4 @@
+﻿# Large generated files (do not commit)
+FRED/all_series_merged.json
+FRED/all_series_merged.*
+audit_out/
