@@ -1,0 +1,203 @@
+This is the strategic integration of the data stack into layers and milestones, aligned with:
+
+Architecture v3.3 governance model 
+
+architecture4.md
+
+The three-vertical-layer structure 
+
+architetcture2
+
+Gold-first. Deterministic. Fail-closed.
+
+🏗 FULL STRATEGIC INTEGRATION
+🔵 LAYER 2 – TRUTH LAYER
+
+(Macro + Market Data, versioned, point-in-time correct)
+
+This is the backbone. No narratives here. Only numbers.
+
+🎯 Core Driver Block (Mandatory for M0)
+Data Series	Role
+DFII10	Real yield state
+DGS10	Nominal yield
+T10YIE	Inflation expectation component
+DFF	Policy regime
+DTWEXBGS	USD pressure
+Gold (XAUUSD / GC)	Primary asset state
+What this enables:
+
+Real Yield Regime
+
+Inflation Regime
+
+Policy Regime
+
+USD Regime
+
+Trend State
+
+Volatility State
+
+This is the first deterministic state machine.
+
+🟡 Stress & Correlation Block (M1)
+Data Series	Role
+VIX	Equity stress
+MOVE	Rate volatility stress
+SP500	Risk proxy + correlation reference
+What this enables:
+
+StressIndex
+
+CorrBreakIndex
+
+DriftIndex (rolling beta shifts)
+
+This is where the system becomes “world-state aware.”
+
+🟢 Structural / Validation Block (M2)
+Data Series	Role
+CPI	Inflation confirmation
+T5YIFR	Forward inflation regime
+GLD holdings	Flow confirmation
+Mining production	Structural overlay
+
+These are not core trading drivers.
+They validate regime stability.
+
+🟣 LAYER 3 – DECISION LAYER
+
+Layer 2 data → Feature Builder → Index Suite → RegimeGate → Supervisor → DecisionPacket 
+
+architecture4.md
+
+Now in milestone structure:
+
+🥇 M0 – Deterministic Macro Engine
+
+Data:
+DFII10, DGS10, T10YIE, DFF, USD, Gold
+
+Goal:
+
+Regime labels
+
+Trend labels
+
+Volatility labels
+
+Basic confidence / uncertainty skeleton
+
+Output:
+DecisionPacket (BUY / SELL / NOTHING — paper only)
+
+By the end of M0:
+✔ deterministic replay works
+✔ version lock active
+✔ fail-closed enforced
+
+🥈 M1 – Stress & Drift-Aware Engine
+
+Additional Data:
+VIX, MOVE, SP500
+
+New Components:
+
+StressIndex (0–100)
+
+DriftIndex
+
+CorrBreakIndex
+
+DataFreshnessPenalty
+
+New Governance Behavior:
+UnknownMode activation
+Soft position shrink logic
+
+By the end of M1:
+✔ system does not only trade
+✔ it can explicitly choose NOT to trade
+
+That is survival-level maturity.
+
+🥉 M2 – Calibration & Harness Phase
+
+Full dataset active.
+
+Requirements:
+
+≥ 100 decision ticks
+
+≥ 30 paper trades
+
+Brier score calculation
+
+Reliability curve
+
+Regime breakdown
+
+CVaR measurement
+
+C_min and U_max thresholds can only be frozen here.
+
+This is where the system stops being experimental.
+
+🧠 LAYER 1 – OPTIONAL (Later Phase)
+
+Narrative layer is penalty-only.
+
+It:
+
+cannot generate direction
+
+cannot flip signals
+
+can only increase uncertainty or trigger cooldown
+
+Only introduced after M3 stability.
+
+📍 STRATEGIC TIMELINE
+
+Phase 1 – Pure Numerical Backbone
+Only macro + gold.
+
+Phase 2 – Stress & Correlation Break Detection
+System becomes instability-aware.
+
+Phase 3 – Calibration Freeze
+Confidence and uncertainty thresholds locked.
+
+Phase 4 – Execution Harness
+Strict orchestration pipeline.
+
+Phase 5 – Portfolio Extension (crypto later)
+
+🎯 What this really is
+
+You no longer have a data list.
+
+You now have:
+
+Macro state space
+→ Feature space
+→ Regime space
+→ Governance space
+→ Deterministic decision contract
+
+This is engineered decision infrastructure.
+
+The next logical step is not adding more data.
+
+It is defining:
+
+Lookback horizons
+
+Normalization method
+
+Regime threshold logic
+
+Initial uncertainty formula
+
+That is where concept becomes mathematics — and mathematics becomes survival.
