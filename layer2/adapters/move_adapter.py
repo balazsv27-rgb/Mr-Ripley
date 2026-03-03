@@ -1,14 +1,15 @@
+"""
 Layer-2 ingestion adapter for the MOVE Index (Merrill Lynch Option Volatility Estimate).
 
 Role in architecture:
-    Tier-1 daily series — rates-vol / bond-stress sensor.
+    Tier-1 daily series - rates-vol / bond-stress sensor.
     Feeds StressIndex, UnknownMode, and position-shrink governance in Layer-3.
-    A missing or stale MOVE observation sets data_ok=False → NO snapshot published.
+    A missing or stale MOVE observation sets data_ok=False -> NO snapshot published.
 
 Source strategy (priority order):
-    1. Stooq CSV download  — ticker: ^MOVE  (free, reliable, T+1 EOD)
-    2. Yahoo Finance        — ticker: ^MOVE  (fallback; check for gaps)
-    3. Manual CSV drop      — place file at MOVE_MANUAL_CSV_PATH (emergency override)
+    1. Stooq CSV download  - ticker: ^MOVE  (free, reliable, T+1 EOD)
+    2. Yahoo Finance        - ticker: ^MOVE  (fallback; check for gaps)
+    3. Manual CSV drop      - place file at MOVE_MANUAL_CSV_PATH (emergency override)
 
 Storage contract:
     Writes to the shared `observations` table:
@@ -112,11 +113,11 @@ def upsert_observations(
     dry_run: bool = False,
 ) -> int:
     if not rows:
-        log.warning("upsert_observations called with empty rows — nothing to write.")
+        log.warning("upsert_observations called with empty rows - nothing to write.")
         return 0
 
     if dry_run:
-        log.info("[DRY-RUN] Would write %d observation(s) — skipping DB write.", len(rows))
+        log.info("[DRY-RUN] Would write %d observation(s) - skipping DB write.", len(rows))
         for r in rows:
             log.debug("  %s | %s | value=%.4f | source=%s", r[0], r[1], r[3], r[5])
         return len(rows)
@@ -184,7 +185,7 @@ def _parse_stooq_csv(raw: str) -> List[Tuple[date, float, str]]:
             continue
     if not results:
         raise ValueError("Stooq CSV yielded no valid MOVE rows.")
-    log.info("Stooq: parsed %d MOVE rows (%s → %s).", len(results), results[0][0], results[-1][0])
+    log.info("Stooq: parsed %d MOVE rows (%s -> %s).", len(results), results[0][0], results[-1][0])
     return results
 
 
@@ -197,7 +198,7 @@ def fetch_yahoo(start: date, end: date) -> List[Tuple[date, float, str]]:
         import yfinance as yf
     except ImportError:
         raise RuntimeError("yfinance not installed. Run: pip install yfinance")
-    log.debug("Fetching MOVE from Yahoo Finance (%s → %s).", start, end)
+    log.debug("Fetching MOVE from Yahoo Finance (%s -> %s).", start, end)
     ticker = yf.Ticker(YAHOO_TICKER)
     df = ticker.history(
         start=start.isoformat(),
@@ -359,9 +360,9 @@ def main() -> int:
     else:
         start = end - timedelta(days=max(0, args.backfill_days - 1))
     if start > end:
-        log.error("start_date %s is after end_date %s — aborting.", start, end)
+        log.error("start_date %s is after end_date %s - aborting.", start, end)
         return 1
-    log.info("MOVE adapter starting | range: %s → %s | dry_run: %s", start, end, args.dry_run)
+    log.info("MOVE adapter starting | range: %s -> %s | dry_run: %s", start, end, args.dry_run)
     priority = [args.source] if args.source else DEFAULT_SOURCE_PRIORITY
     try:
         raw = fetch_move(start, end, priority, manual_csv_path=args.csv_path)
@@ -369,7 +370,7 @@ def main() -> int:
         log.error("MOVE fetch failed: %s", exc)
         return 2
     if not raw:
-        log.error("Fetch returned zero rows — aborting.")
+        log.error("Fetch returned zero rows - aborting.")
         return 3
     ingestion_ts = datetime.now(tz=timezone.utc)
     rows = build_obs_rows(raw, ingestion_ts)
@@ -382,7 +383,7 @@ def main() -> int:
     log.info("Staleness [%s]: latest=%s, staleness=%sd, reason=%s",
              status, quality["latest_obs_ts"], quality["staleness_days"], quality["reason"])
     if not quality["data_ok"]:
-        log.warning("MOVE is STALE — snapshot publishing will be blocked.")
+        log.warning("MOVE is STALE - snapshot publishing will be blocked.")
         return 4
     log.info("MOVE adapter completed. Rows written: %d.", written)
     return 0
