@@ -1,0 +1,26 @@
+{
+  "version": "1.0",
+  "engine": "Mr-Ripley",
+  "series": [
+    {
+      "series_id": "rates_vol_stress_move",
+      "description": "MOVE Index - ICE BofAML rates vol / bond stress",
+      "source_type": "stooq",
+      "stooq_ticker": "^move",
+      "tier": 1,
+      "frequency": "daily",
+      "required_for": ["M1"],
+      "source_stability": "unofficial_redistributor"
+    },
+    {
+      "series_id": "gld_holdings_flow_confirm",
+      "description": "GLD Trust - ounces of gold held",
+      "source_type": "spdr",
+      "url": "https://www.spdrgoldshares.com/assets/dynamic/GLD/GLD_US_archive_EN.csv",
+      "tier": 2,
+      "frequency": "daily",
+      "required_for": ["M2"],
+      "source_stability": "authoritative"
+    }
+  ]
+}
