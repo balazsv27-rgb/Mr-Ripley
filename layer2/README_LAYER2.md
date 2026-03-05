@@ -319,7 +319,10 @@ python layer2\adapters\quality_gate.py --report-path reports\quality.json
 | GLD holdings adapter | ✅ DONE | - |
 | FRED loader (20 series) | ✅ DONE | - |
 | Quality gate | ✅ DONE | - |
-| Snapshot publisher (`snapshot_publisher.py`) | NOT STARTED | High |
+| Snapshot publisher (`snapshot_publisher.py`) | NOT STARTED | **High — blocks Layer-3** |
+| Centralize staleness registry (one config feeds gate + adapters) | NOT STARTED | Medium |
+| `--full-reload` CLI help text update (behavior changed under `INSERT OR IGNORE`) | NOT STARTED | Medium |
+| Revision writer (`revision_seq=1` path for FRED corrections) | NOT STARTED | Medium |
 | Daily scheduler (Windows Task Scheduler) | NOT STARTED | Medium |
 | Extend gold history to 2005 | NOT STARTED | Medium |
 | Fix SP500 history (use SPY via Yahoo) | NOT STARTED | Medium |
@@ -327,6 +330,30 @@ python layer2\adapters\quality_gate.py --report-path reports\quality.json
 | Feature Builder (Layer-3) | NOT STARTED | After snapshots |
 | Index Suite (Layer-3) | NOT STARTED | After Feature Builder |
 | Decision Engine (Layer-3) | NOT STARTED | After Index Suite |
+
+---
+
+## 10a. "Layer-3 Ready" Checklist
+
+Layer-3 must never read "latest" data directly. This checklist defines what "ready" means:
+
+```
+Step 1: quality_gate.py runs
+        -> VERDICT: PASS (15/15 Tier-1 fresh)
+
+Step 2: snapshot_publisher.py runs   <- NOT BUILT YET
+        -> Reads DB at fixed clock_ts
+        -> Writes snapshot_id (hash of series values + clock_ts)
+        -> Stores snapshot to snapshots table
+
+Step 3: Layer-3 reads snapshot_id    <- NOT BUILT YET
+        -> Never reads observations directly
+        -> Consumes only the published snapshot
+        -> If no snapshot_id exists -> outputs nothing
+
+Current state: Step 1 complete. Steps 2 and 3 not yet built.
+Layer-3 is NOT yet ready to consume data.
+```
 
 ---
 
@@ -417,9 +444,11 @@ Reviewer identified four issues in all adapters:
 **Result:** All 4 issues resolved. Quality gate confirmed PASS 15/15 after fixes. No DeprecationWarning.
 
 **Known remaining items from audit:**
-- Centralized staleness registry (one config feeds both gate + adapters) — not yet built
-- `--full-reload` flag now silently skips existing rows (due to `INSERT OR IGNORE`) — behavior change not yet documented in CLI help text
-- Revision writer (`revision_seq=1` path) — not yet built
+
+- **Centralized staleness registry** — one config feeds both gate + adapters. Currently thresholds are hardcoded in two places and can drift. Not yet built.
+- **`--full-reload` behavioral change** — this flag previously re-wrote all rows via `INSERT OR REPLACE`. After the fix it now silently skips existing rows via `INSERT OR IGNORE`. The flag name implies a full reload but no longer delivers one. CLI help text needs updating. Until fixed, use `--full-reload` only for backfilling missing date ranges, not for correcting existing values.
+- **Revision writer (`revision_seq=1`)** — if FRED revises a historical value, the current system ignores the revision silently (INSERT OR IGNORE drops it). A revision writer needs to detect value changes and write `revision_seq=1` rows instead. Rule when implemented: if `value differs AND (series_id, obs_ts, rev=0) already exists` → write `(series_id, obs_ts, current_as_of_ts, new_value, rev=1, source)`.
+- **System is currently rev-0 only** — all historical corrections are silently dropped until the revision writer is built. This is acceptable for now as FRED rarely revises, but must be noted clearly.
 
 ---
 
