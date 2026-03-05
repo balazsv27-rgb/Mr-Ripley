@@ -65,7 +65,7 @@ log = logging.getLogger(__name__)
 # ---------------------------------------------------------------------------
 
 def get_connection(db_path: str) -> sqlite3.Connection:
-    conn = sqlite3.connect(db_path, detect_types=sqlite3.PARSE_DECLTYPES)
+    conn = sqlite3.connect(db_path)  # no detect_types — date parsing handled manually
     conn.row_factory = sqlite3.Row
     conn.execute("PRAGMA journal_mode=WAL;")
     conn.execute("PRAGMA foreign_keys=ON;")
@@ -99,7 +99,12 @@ def latest_obs_date(conn: sqlite3.Connection) -> Optional[date]:
         (SERIES_ID,)
     ).fetchone()
     if row and row["d"]:
-        return date.fromisoformat(row["d"])
+        d = row["d"]
+        if isinstance(d, str):
+            return date.fromisoformat(d)
+        if hasattr(d, "date"):
+            return d.date()
+        return d
     return None
 
 
@@ -130,7 +135,7 @@ def upsert_observations(
 
     conn.executemany(
         """
-        INSERT OR REPLACE INTO observations
+        INSERT OR IGNORE INTO observations
             (series_id, obs_ts, as_of_ts, value, revision_seq, source)
         VALUES (?, ?, ?, ?, ?, ?)
         """,
@@ -145,11 +150,13 @@ def upsert_observations(
 
 
 def filter_new_rows(conn: sqlite3.Connection, rows: List[Tuple]) -> List[Tuple]:
-    existing = set(
-        row[0] for row in conn.execute(
+    # Normalize to strings to avoid str vs date object comparison bugs
+    existing = {
+        r[0].isoformat() if hasattr(r[0], "isoformat") else str(r[0])
+        for r in conn.execute(
             "SELECT obs_ts FROM observations WHERE series_id = ?", (SERIES_ID,)
         ).fetchall()
-    )
+    }
     new = [r for r in rows if r[1].isoformat() not in existing]
     log.info("Incremental filter: %d total, %d already in DB, %d new.",
              len(rows), len(existing), len(new))

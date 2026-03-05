@@ -205,7 +205,7 @@ MONTHLY_SERIES = [s for s, c in SERIES_CONFIG.items() if c["frequency"] == "M"]
 # ---------------------------------------------------------------------------
 
 def get_connection(db_path: str) -> sqlite3.Connection:
-    conn = sqlite3.connect(db_path, detect_types=sqlite3.PARSE_DECLTYPES)
+    conn = sqlite3.connect(db_path)  # no detect_types — we handle date parsing manually
     conn.row_factory = sqlite3.Row
     conn.execute("PRAGMA journal_mode=WAL;")
     conn.execute("PRAGMA foreign_keys=ON;")
@@ -239,7 +239,12 @@ def latest_obs_date(conn: sqlite3.Connection, series_id: str) -> Optional[date]:
         (series_id,)
     ).fetchone()
     if row and row["d"]:
-        return date.fromisoformat(row["d"])
+        d = row["d"]
+        if isinstance(d, str):
+            return date.fromisoformat(d)
+        if hasattr(d, "date"):
+            return d.date()
+        return d
     return None
 
 
@@ -256,7 +261,11 @@ def get_existing_dates(conn: sqlite3.Connection, series_id: str) -> set:
         "SELECT obs_ts FROM observations WHERE series_id = ?",
         (series_id,)
     ).fetchall()
-    return {row[0] for row in rows}
+    # Always normalize to string (YYYY-MM-DD) regardless of sqlite return type
+    return {
+        r[0].isoformat() if hasattr(r[0], "isoformat") else str(r[0])
+        for r in rows
+    }
 
 
 def upsert_observations(
@@ -264,6 +273,11 @@ def upsert_observations(
     rows: List[Tuple],
     dry_run: bool = False,
 ) -> int:
+    """
+    Truth-safe write: INSERT OR IGNORE for revision_seq=0 rows.
+    This preserves the original value — reruns never overwrite history.
+    If a value genuinely changed, a new revision_seq must be passed explicitly.
+    """
     if not rows:
         return 0
     if dry_run:
@@ -271,7 +285,7 @@ def upsert_observations(
         return len(rows)
     conn.executemany(
         """
-        INSERT OR REPLACE INTO observations
+        INSERT OR IGNORE INTO observations
             (series_id, obs_ts, as_of_ts, value, revision_seq, source)
         VALUES (?, ?, ?, ?, ?, ?)
         """,
@@ -363,6 +377,7 @@ def build_obs_rows(
 ) -> List[Tuple]:
     rows = []
     for obs_date, value in raw:
+        # existing_dates is normalized to strings — compare as string
         if not full_reload and obs_date.isoformat() in existing_dates:
             continue
         as_of = datetime(

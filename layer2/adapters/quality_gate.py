@@ -237,7 +237,7 @@ def get_connection(db_path: str) -> sqlite3.Connection:
             f"DB not found: {db_path}. "
             f"Run the adapters first to create it."
         )
-    conn = sqlite3.connect(db_path, detect_types=sqlite3.PARSE_DECLTYPES)
+    conn = sqlite3.connect(db_path)  # no detect_types — date parsing handled manually
     conn.row_factory = sqlite3.Row
     return conn
 
