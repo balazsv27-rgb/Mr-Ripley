@@ -207,7 +207,12 @@ CREATE TABLE snapshot_values (
 );
 ```
 
-> **Layer-3 contract:** query `snapshots` by `snapshot_id`, then join `snapshot_values`. Never query `observations` directly.
+> **Layer-3 contract — two valid interfaces, one forbidden:**
+> - **DB interface:** query `snapshots` by `snapshot_id`, then join `snapshot_values` for series values
+> - **File interface:** read `latest_snapshot.json` (stable top-level fields: `snapshot_id`, `clock_ts`, `verdict`, `tier1_series`, `tier2_series`, `missing_series`)
+> - **Forbidden:** querying `observations` directly — Layer-3 must never do this
+>
+> Both DB and file interfaces are valid. Choose one consistently per consumer.
 
 ---
 
@@ -430,7 +435,7 @@ Why this order: `snapshot_publisher.py` defines what Layer-3 sees — if its ser
 
 ---
 
-## 10a. "Layer-3 Ready" Checklist
+## 11. "Layer-3 Ready" Checklist
 
 Layer-3 must never read "latest" data directly. This checklist defines what "ready" means:
 
@@ -459,7 +464,7 @@ Registry is built and validated. Three adapters not yet wired to it.
 
 ---
 
-## 11. How to Set Up Locally (for your friend)
+## 12. How to Set Up Locally (for your friend)
 
 ### Prerequisites
 - Python 3.10+ installed
@@ -511,7 +516,7 @@ python layer2\adapters\snapshot_publisher.py             # publish for real
 
 ---
 
-## 12. Key Decisions & Why
+## 13. Key Decisions & Why
 
 | Decision | Why |
 |---|---|
@@ -542,7 +547,7 @@ python layer2\adapters\snapshot_publisher.py             # publish for real
 
 ---
 
-## 13. Code Integrity Log
+## 14. Code Integrity Log
 
 This section records formal audits and fixes applied to the codebase.
 
@@ -581,7 +586,7 @@ Reviewer identified six issues in `snapshot_publisher.py` and one structural gap
 | Tier-1 list could drift between gate and publisher silently | Medium | Hard fail added: if Tier-1 count in snapshot < expected → snapshot blocked |
 | Staleness rules split across `quality_gate.py`, `fred_loader.py`, `snapshot_publisher.py` — can drift | High | `series_registry.json` created as single source of truth. `registry.py` loader + validator built. Three adapters not yet wired (planned next session). |
 
-**Result:** All 6 issues resolved. First real snapshot published successfully:
+**Result:** All 6 issues addressed. First real snapshot published successfully. Note: registry introduced as structural fix — consumer wiring (`snapshot_publisher.py`, `quality_gate.py`, `fred_loader.py`) still pending next session.
 ```
 snapshot_id: feb94eb7dc719c0e2779456964f74d0454cbbcfcab64ad6f5665f4f0972b204d
 clock_ts:    2026-03-06T21:00:00+00:00
@@ -623,7 +628,7 @@ Two issues found that survived previous audits:
 
 ---
 
-## 14. Useful Links
+## 15. Useful Links
 
 | Resource | URL |
 |---|---|
@@ -638,7 +643,7 @@ Two issues found that survived previous audits:
 
 ---
 
-## 15. Contact & Collaboration
+## 16. Contact & Collaboration
 
 - **Mr. Ripley repo owner:** @balazsv27-rgb
 - **Architecture decisions:** Documented in `architecture4.md.txt`, `architeture.md`
