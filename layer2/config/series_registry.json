@@ -222,12 +222,12 @@
       "staleness_days": 5,
       "blocks_snapshot": false,
       "group": "flow",
-      "source": "yahoo_gld_estimate",
+      "source": "spdr_gld_archive",
       "full_history_start": "2021-03-08",
       "discontinued": false,
       "is_estimate": true,
       "include_in_snapshot": true,
-      "notes": "Yahoo gives today's shares_outstanding only. Applied uniformly to past dates via ounces = shares x 0.09585. Approximation — not true historical data."
+      "notes": "Fetched from SPDR State Street archive CSV. ounces = shares_outstanding x 0.09585. Yahoo shares_outstanding applied uniformly to past dates — approximation, not true historical. is_estimate=true flags this for Layer-3."
     },
     {
       "series_id": "CPILFESL",

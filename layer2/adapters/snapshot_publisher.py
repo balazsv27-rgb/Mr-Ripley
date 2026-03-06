@@ -567,34 +567,33 @@ def main() -> int:
         log.info("Use --dry-run to preview or choose a different --clock-date.")
         return 0
 
-    # Step 1: Quality gate
+    # Step 1: Quality gate — always runs, even with --force
     forced = args.force
-    if forced:
-        log.warning("--force flag set: SKIPPING quality gate. FOR TESTING ONLY.")
-        log.warning("Snapshot will be marked forced=True in DB and JSON.")
-        quality = {
-            "snapshot_ok": True,
-            "blocking_failures": [],
-            "tier2_warnings": [],
-            "summary": {
-                "tier1_total": 15, "tier1_pass": 15,
-                "tier1_fail": 0, "tier2_total": 5, "tier2_warn": 0
-            }
-        }
-    else:
-        log.info("Running quality gate...")
-        quality = run_quality_gate_inline(conn, clock_date)
+    log.info("Running quality gate...")
+    quality = run_quality_gate_inline(conn, clock_date)
 
-        if not quality["snapshot_ok"]:
+    if not quality["snapshot_ok"]:
+        if forced:
+            log.warning(
+                "--force flag set: quality gate FAILED but proceeding anyway. "
+                "Snapshot will be marked forced=True in DB and JSON. FOR TESTING ONLY."
+            )
+            for f in quality["blocking_failures"]:
+                log.warning("  WOULD BLOCK: %s — %s", f["series_id"], f["reason"])
+        else:
             log.error("Quality gate FAILED — snapshot BLOCKED.")
             for f in quality["blocking_failures"]:
                 log.error("  BLOCKING: %s — %s", f["series_id"], f["reason"])
             log.error("Fix the failing series and re-run.")
             return 1
-
-        log.info("Quality gate PASSED — %d/%d Tier-1 series fresh.",
-                 quality["summary"]["tier1_pass"],
-                 quality["summary"]["tier1_total"])
+    else:
+        log.info(
+            "Quality gate PASSED — %d/%d Tier-1 series fresh.",
+            quality["summary"]["tier1_pass"],
+            quality["summary"]["tier1_total"],
+        )
+        if forced:
+            log.warning("--force flag set but gate passed — snapshot marked forced=True anyway.")
 
     # Step 2: Read point-in-time values
     log.info("Reading point-in-time values as of %s...", clock_date)
