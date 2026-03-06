@@ -115,7 +115,8 @@ def _ensure_schema(conn: sqlite3.Connection) -> None:
             tier2_series    INTEGER   NOT NULL,
             tier2_warn      INTEGER   NOT NULL,
             series_count    INTEGER   NOT NULL,
-            dry_run         INTEGER   NOT NULL DEFAULT 0
+            dry_run         INTEGER   NOT NULL DEFAULT 0,
+            forced          INTEGER   NOT NULL DEFAULT 0
         )
     """)
     conn.execute("""
@@ -186,13 +187,14 @@ def write_snapshot(
     quality_summary: dict,
     values: List[dict],
     dry_run: bool = False,
+    forced: bool = False,
 ) -> None:
     conn.execute(
         """
         INSERT OR IGNORE INTO snapshots
             (snapshot_id, clock_ts, verdict, tier1_series, tier1_pass,
-             tier1_fail, tier2_series, tier2_warn, series_count, dry_run)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+             tier1_fail, tier2_series, tier2_warn, series_count, dry_run, forced)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
         (
             snapshot_id,
@@ -205,6 +207,7 @@ def write_snapshot(
             quality_summary["summary"]["tier2_warn"],
             len(values),
             1 if dry_run else 0,
+            1 if forced else 0,
         )
     )
     conn.executemany(
@@ -235,7 +238,7 @@ def list_snapshots(conn: sqlite3.Connection, limit: int = 10) -> None:
     rows = conn.execute(
         """
         SELECT snapshot_id, clock_ts, verdict, tier1_pass, tier1_fail,
-               series_count, dry_run, created_at
+               series_count, dry_run, forced, created_at
         FROM snapshots
         ORDER BY clock_ts DESC
         LIMIT ?
@@ -252,6 +255,8 @@ def list_snapshots(conn: sqlite3.Connection, limit: int = 10) -> None:
         flags = ""
         if r["dry_run"]:
             flags += " [DRY-RUN]"
+        if r["forced"]:
+            flags += " [FORCED]"
         log.info(
             "  %s | %s | %s | T1: %d/%d | series: %d%s",
             r["snapshot_id"],  # full 64-char hash
@@ -626,7 +631,7 @@ def main() -> int:
     if args.dry_run:
         log.info("[DRY-RUN] Skipping DB write and JSON write.")
     else:
-        write_snapshot(conn, snapshot_id, clock_ts, quality, values, dry_run=False)
+        write_snapshot(conn, snapshot_id, clock_ts, quality, values, dry_run=False, forced=forced)
         log.info("Snapshot written to DB.")
 
         write_snapshot_json(

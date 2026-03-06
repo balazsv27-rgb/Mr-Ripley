@@ -429,7 +429,7 @@ def compute_batch_hash(rows: List[Tuple]) -> str:
         f"{r[1]}:{r[3]:.6f}"  # obs_ts:value
         for r in sorted(rows, key=lambda x: x[1])
     ).encode("utf-8")
-    return hashlib.sha256(payload).hexdigest()[:16]
+    return hashlib.sha256(payload).hexdigest()  # full 64-char hash
 
 
 # ---------------------------------------------------------------------------
@@ -513,7 +513,7 @@ def main() -> int:
     ingestion_ts = datetime.now(tz=timezone.utc)
     rows = build_obs_rows(raw, ingestion_ts)
     batch_hash = compute_batch_hash(rows)
-    log.info("Batch hash (first 16 chars of SHA-256): %s | rows: %d", batch_hash, len(rows))
+    log.info("Batch hash (SHA-256): %s | rows: %d", batch_hash, len(rows))
 
     # Write
     conn = get_connection(args.db)

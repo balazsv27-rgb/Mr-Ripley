@@ -425,7 +425,7 @@ def compute_batch_hash(rows: List[Tuple]) -> str:
         f"{r[1]}:{r[3]:.2f}"
         for r in sorted(rows, key=lambda x: x[1])
     ).encode("utf-8")
-    return hashlib.sha256(payload).hexdigest()[:16]
+    return hashlib.sha256(payload).hexdigest()  # full 64-char hash
 
 
 # ---------------------------------------------------------------------------
