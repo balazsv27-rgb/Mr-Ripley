@@ -245,22 +245,24 @@ def list_snapshots(conn: sqlite3.Connection, limit: int = 10) -> None:
     if not rows:
         log.info("No snapshots found in DB.")
         return
-    log.info("=" * 72)
+    log.info("=" * 80)
     log.info("Recent Snapshots (last %d)", limit)
-    log.info("=" * 72)
+    log.info("=" * 80)
     for r in rows:
-        dry = " [DRY-RUN]" if r["dry_run"] else ""
+        flags = ""
+        if r["dry_run"]:
+            flags += " [DRY-RUN]"
         log.info(
             "  %s | %s | %s | T1: %d/%d | series: %d%s",
-            r["snapshot_id"][:16],
+            r["snapshot_id"],  # full 64-char hash
             r["clock_ts"][:19],
             r["verdict"],
             r["tier1_pass"],
             r["tier1_pass"] + r["tier1_fail"],
             r["series_count"],
-            dry,
+            flags,
         )
-    log.info("=" * 72)
+    log.info("=" * 80)
 
 
 # ---------------------------------------------------------------------------
@@ -322,13 +324,14 @@ def _minimal_quality_check(conn: sqlite3.Connection, clock_date: date) -> dict:
 
 def compute_snapshot_id(clock_ts: datetime, values: List[dict]) -> str:
     """
-    Deterministic snapshot_id: sha256 of clock_ts + sorted series values.
+    Deterministic snapshot_id: full sha256 of clock_ts + sorted series values.
     Same inputs always produce the same snapshot_id.
+    Full 64-char hex stored — never truncated.
     """
     payload = f"clock_ts={clock_ts.isoformat()}\n"
     for v in sorted(values, key=lambda x: x["series_id"]):
         payload += f"{v['series_id']}={v['obs_ts']}:{v['value']:.6f}\n"
-    return hashlib.sha256(payload.encode("utf-8")).hexdigest()[:32]
+    return hashlib.sha256(payload.encode("utf-8")).hexdigest()  # full 64 chars
 
 
 # ---------------------------------------------------------------------------
@@ -379,29 +382,60 @@ def write_snapshot_json(
     path: str,
     snapshot_id: str,
     clock_ts: datetime,
+    run_ts: datetime,
     quality: dict,
     values: List[dict],
+    missing: List[str],
     dry_run: bool = False,
+    forced: bool = False,
 ) -> None:
-    """Write latest_snapshot.json for Layer-3 consumption."""
+    """Write latest_snapshot.json for Layer-3 consumption.
+
+    Stable API contract — Layer-3 should only read these top-level fields:
+        snapshot_id, clock_ts, clock_date, verdict, values, tier1_series,
+        tier2_series, missing_series, forced, dry_run
+    """
     p = Path(path)
     p.parent.mkdir(parents=True, exist_ok=True)
 
-    # Organize values by group for readability
+    tier1_values = [v for v in values if v["tier"] == 1]
+    tier2_values = [v for v in values if v["tier"] == 2]
+
+    # Organize by group for readability
     by_group: Dict[str, list] = {}
     for v in values:
         by_group.setdefault(v["group"], []).append(v)
 
     output = {
+        # --- Stable API fields (Layer-3 contract) ---
         "snapshot_id": snapshot_id,
         "clock_ts": clock_ts.isoformat(),
         "clock_date": clock_ts.date().isoformat(),
-        "published_at": datetime.now(tz=timezone.utc).isoformat(),
-        "dry_run": dry_run,
         "verdict": "PASS" if quality["snapshot_ok"] else "FAIL",
-        "quality_summary": quality["summary"],
+        "forced": forced,
+        "dry_run": dry_run,
+        "tier1_series": {v["series_id"]: {
+            "obs_ts": v["obs_ts"],
+            "value": v["value"],
+            "staleness_days": v["staleness_days"],
+            "source": v["source"],
+            "group": v["group"],
+        } for v in tier1_values},
+        "tier2_series": {v["series_id"]: {
+            "obs_ts": v["obs_ts"],
+            "value": v["value"],
+            "staleness_days": v["staleness_days"],
+            "source": v["source"],
+            "group": v["group"],
+        } for v in tier2_values},
+        "missing_series": missing,
+        # --- Metadata (informational, may change) ---
+        "run_ts": run_ts.isoformat(),
+        "published_at": run_ts.isoformat(),  # alias for back-compat
         "series_count": len(values),
+        "quality_summary": quality["summary"],
         "values_by_group": by_group,
+        # --- Flat values dict (convenience, all tiers) ---
         "values": {v["series_id"]: {
             "obs_ts": v["obs_ts"],
             "value": v["value"],
@@ -506,6 +540,7 @@ def main() -> int:
         return 0
 
     # Clock
+    run_ts = datetime.now(tz=timezone.utc)  # execution time — separate from engine clock
     clock_date = (
         date.fromisoformat(args.clock_date)
         if args.clock_date else date.today()
@@ -515,8 +550,10 @@ def main() -> int:
         CLOCK_HOUR_UTC, 0, 0, tzinfo=timezone.utc
     )
 
-    log.info("Snapshot publisher starting | clock_ts=%s | dry_run=%s | force=%s",
-             clock_ts.isoformat(), args.dry_run, args.force)
+    log.info(
+        "Snapshot publisher starting | run_ts=%s | clock_ts=%s | dry_run=%s | force=%s",
+        run_ts.isoformat(), clock_ts.isoformat(), args.dry_run, args.force
+    )
 
     # Check for existing snapshot
     existing_id = snapshot_exists(conn, clock_ts)
@@ -526,8 +563,10 @@ def main() -> int:
         return 0
 
     # Step 1: Quality gate
-    if args.force:
+    forced = args.force
+    if forced:
         log.warning("--force flag set: SKIPPING quality gate. FOR TESTING ONLY.")
+        log.warning("Snapshot will be marked forced=True in DB and JSON.")
         quality = {
             "snapshot_ok": True,
             "blocking_failures": [],
@@ -563,6 +602,19 @@ def main() -> int:
         log.error("No values read — cannot publish empty snapshot.")
         return 1
 
+    # Fix 1: Tier-1 completeness hard fail
+    tier1_expected = [s["series_id"] for s in SNAPSHOT_SERIES if s["tier"] == 1]
+    tier1_got = [v["series_id"] for v in values if v["tier"] == 1]
+    tier1_missing = [s for s in tier1_expected if s not in tier1_got]
+    if tier1_missing and not forced:
+        log.error(
+            "Tier-1 completeness FAIL — %d Tier-1 series missing from snapshot: %s",
+            len(tier1_missing), tier1_missing
+        )
+        log.error("This means the publisher and quality gate series lists have drifted.")
+        log.error("Snapshot BLOCKED.")
+        return 1
+
     # Step 3: Compute snapshot_id
     snapshot_id = compute_snapshot_id(clock_ts, values)
     log.info("snapshot_id: %s", snapshot_id)
@@ -579,14 +631,17 @@ def main() -> int:
 
         write_snapshot_json(
             args.snapshot_path, snapshot_id, clock_ts,
-            quality, values, dry_run=False
+            run_ts, quality, values, missing,
+            dry_run=False, forced=forced
         )
 
     log.info("=" * 50)
     log.info("Snapshot publisher complete.")
     log.info("  snapshot_id: %s", snapshot_id)
+    log.info("  run_ts:      %s", run_ts.isoformat())
     log.info("  clock_ts:    %s", clock_ts.isoformat())
     log.info("  series:      %d", len(values))
+    log.info("  forced:      %s", forced)
     if not args.dry_run:
         log.info("  DB:          written")
         log.info("  JSON:        %s", args.snapshot_path)
