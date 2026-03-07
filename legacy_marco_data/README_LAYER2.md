@@ -3,7 +3,7 @@
 
 > **For:** Friend / collaborator reading this on GitHub  
 > **Repo:** https://github.com/balazsv27-rgb/Mr-Ripley  
-> **Last updated:** 2026-03-07
+> **Last updated:** 2026-03-06
 
 ---
 
@@ -12,20 +12,15 @@
 Layer-2 is the **data ingestion and truth store** for the Gold-First Market State Engine (Mr. Ripley).
 
 ```
-Layer-1  ->  Event Tagger / Narrative Risk Modifiers (optional, disabled by default)
+Layer-1  ->  Raw data sources (FRED, Yahoo, Stooq, State Street)
 Layer-2  ->  Ingestion + validation + immutable snapshots  <- YOU ARE HERE
-Layer-3  ->  Regime Gate + Index Suite + Supervisor Engine (DecisionPacket output)
-Layer-4  ->  Execution orchestration (intentionally unwired until validation complete)
+Layer-3  ->  Feature builder + index suite + decision engine
 ```
 
 **The golden rule of Layer-2:**  
 Layer-3 is NEVER allowed to read "latest" data directly. It can ONLY consume a published
 `snapshot_id`. If data is missing or stale -> no snapshot is published -> Layer-3 outputs
 nothing. This is called **fail-closed** behavior.
-
-> **Layer-1 note:** The Event Tagger is architecturally defined but **disabled by default**.
-> When enabled it may only raise uncertainty, trigger cooldowns, or add research tags.
-> It cannot generate BUY/SELL signals, flip direction, or override Layer-2/3 decisions.
 
 ---
 
@@ -54,9 +49,7 @@ Mr-Ripley/
 │   │   ├── __init__.py                # Makes config a Python package
 │   │   ├── series_registry.json       # ★ Single source of truth for all series metadata
 │   │   └── registry.py               # Registry loader + validator (run: python -m layer2.config.registry --validate)
-│   ├── run_backfill.py                # Orchestrator: runs all adapters in dependency order
 │   └── README_LAYER2.md               # This file
-├── query_db.py                        # DB inspector: --status, --counts, --freshness, --registry, --export-all
 ├── layer2_truth.db                    # SQLite DB (local only — gitignored)
 ├── layer2_quality_report.json         # Quality gate output (local only — gitignored)
 ├── latest_snapshot.json               # Latest published snapshot (local only — gitignored)
@@ -75,22 +68,22 @@ observations table — ~85,703 rows across 23 series
 
 series_id                   rows    date range                    tier  status
 ────────────────────────────────────────────────────────────────────────────────
-gold_price_proxy            3,137   2014-01-02 -> 2026-03-06     T1    PASS
-rates_vol_stress_move       1,247   2021-03-08 -> 2026-03-06     T1    PASS
-DFII10                      5,794   2003-01-02 -> 2026-03-05     T1    PASS
-DFII5                       5,794   2003-01-02 -> 2026-03-05     T1    PASS
-DGS10                       5,294   2005-01-03 -> 2026-03-05     T1    PASS
-DGS2                        5,294   2005-01-03 -> 2026-03-05     T1    PASS
-DGS5                        5,294   2005-01-03 -> 2026-03-05     T1    PASS
-T10YIE                      5,795   2003-01-02 -> 2026-03-06     T1    PASS
-T5YIE                       5,795   2003-01-02 -> 2026-03-06     T1    PASS
-T5YIFR                      5,795   2003-01-02 -> 2026-03-06     T1    PASS
-DFF                         7,730   2005-01-03 -> 2026-03-05     T1    PASS
-EFFR                        5,315   2005-01-03 -> 2026-03-05     T1    PASS
+gold_price_proxy            3,141   2014-01-02 -> 2026-03-05     T1    PASS
+rates_vol_stress_move       1,245   2021-03-06 -> 2026-03-04     T1    PASS
+DFII10                      5,794   2003-01-02 -> 2026-03-03     T1    PASS
+DFII5                       5,794   2003-01-02 -> 2026-03-03     T1    PASS
+DGS10                       5,294   2005-01-03 -> 2026-03-03     T1    PASS
+DGS2                        5,294   2005-01-03 -> 2026-03-03     T1    PASS
+DGS5                        5,294   2005-01-03 -> 2026-03-03     T1    PASS
+T10YIE                      5,795   2003-01-02 -> 2026-03-04     T1    PASS
+T5YIE                       5,795   2003-01-02 -> 2026-03-04     T1    PASS
+T5YIFR                      5,795   2003-01-02 -> 2026-03-04     T1    PASS
+DFF                         7,730   2005-01-03 -> 2026-03-03     T1    PASS
+EFFR                        5,315   2005-01-03 -> 2026-03-04     T1    PASS
 DTWEXBGS                    5,052   2006-01-02 -> 2026-02-27     T1    PASS*
-VIXCLS                      5,354   2005-01-03 -> 2026-03-05     T1    PASS
-SP500                       2,513   2016-02-22 -> 2026-03-06     T1    PASS**
-gld_holdings_flow_confirm   1,552   2020-01-02 -> 2026-03-06     T2    PASS
+VIXCLS                      5,354   2005-01-03 -> 2026-03-04     T1    PASS
+SP500                       2,513   2016-02-22 -> 2026-03-04     T1    PASS**
+gld_holdings_flow_confirm   1,254   2021-03-08 -> 2026-03-04     T2    PASS
 CPILFESL                      252   2005-01-01 -> 2026-01-01     T2    WARN***
 FEDFUNDS                      254   2005-01-01 -> 2026-02-01     T2    PASS
 PCEPI                         252   2005-01-01 -> 2025-12-01     T2    WARN***
@@ -105,7 +98,7 @@ TWEXB                         783   2005-01-03 -> 2020-01-01     --    discontin
 **** PCU2122212122210: Discontinued 2017. Staleness check disabled (threshold=9999d).
 ```
 
-**Quality gate verdict as of 2026-03-07: ✅ PASS — 15/15 Tier-1 series fresh**
+**Quality gate verdict as of 2026-03-06: ✅ PASS — 15/15 Tier-1 series fresh**
 
 ---
 
@@ -115,7 +108,7 @@ TWEXB                         783   2005-01-03 -> 2020-01-01     --    discontin
 
 | series_id | Description | Source | Threshold | History |
 |---|---|---|---|---|
-| `gold_price_proxy` | Gold spot XAUUSD | gold-api.com → Yahoo (GC=F) → Stooq | 3 days | 2014-present |
+| `gold_price_proxy` | Gold spot XAUUSD | Stooq JSON + Yahoo | 3 days | 2014-present |
 | `rates_vol_stress_move` | MOVE Index bond stress | Yahoo (`^MOVE`) | 3 days | 2021-present |
 | `DFII10` | 10Y TIPS real yield | FRED API | 3 days | 2003-present |
 | `DFII5` | 5Y TIPS real yield | FRED API | 3 days | 2003-present |
@@ -135,13 +128,13 @@ TWEXB                         783   2005-01-03 -> 2020-01-01     --    discontin
 
 | series_id | Description | Source | Threshold | History |
 |---|---|---|---|---|
-| `gld_holdings_flow_confirm` | GLD Trust ounces held | Yahoo Finance (yfinance) | 5 days | 2020-present |
+| `gld_holdings_flow_confirm` | GLD Trust ounces held | SPDR archive CSV | 5 days | 2021-present |
 | `CPILFESL` | Core CPI | FRED API | 45 days | 2005-present |
 | `FEDFUNDS` | Fed funds rate monthly avg | FRED API | 45 days | 2005-present |
 | `PCEPI` | Headline PCE | FRED API | 45 days | 2005-present |
 | `PCU2122212122210` | PPI: Gold ore mining | FRED API | disabled | 2005-2017 |
 
-> **GLD note:** Source is Yahoo Finance via yfinance (`source="yahoo_gld_proxy"`). The original SPDR State Street archive URL (`https://www.spdrgoldshares.com/assets/dynamic/GLD/GLD_US_archive_EN.csv`) now returns a PDF and is no longer used. Formula: `ounces = sharesOutstanding(GLD) × 0.09585`. Verified March 2026: 260,300,000 × 0.09585 = 24,949,755 oz = 776.0 tonnes. This is an approximation — `sharesOutstanding` is the current value applied uniformly to all dates in a given run, not true historical per-day data. `is_estimate=true` in registry. Label clearly in any backtest output.
+> **GLD note:** Source is the SPDR State Street archive CSV (`source="spdr_gld_archive"`). Formula: `ounces = shares_outstanding x 0.09585`. Verified March 2026: 260,300,000 × 0.09585 = 24,949,755 oz = 776.0 tonnes. This is an approximation — shares_outstanding applied uniformly to past dates, not true historical per-day data. `is_estimate=true` in registry. Label clearly in any backtest output.
 
 ---
 
@@ -154,7 +147,7 @@ TWEXB                         783   2005-01-03 -> 2020-01-01     --    discontin
 | DTWEXO | Discontinued 2019, in DB | Bridge with DTWEXBGS or drop |
 | TWEXB | Discontinued 2020, weekly | Bridge with DTWEXBGS or drop |
 | Gold history | Starts 2014, target is 2005 | Extend backfill via Stooq |
-| GLD history | Approximation only (current sharesOutstanding applied to all dates) | Accept or find paid source |
+| GLD history | Approximation only | Accept or find paid source |
 | AlphaVantage | `alphavangtage.json` unused | Wire into observations table |
 
 **Backtest start date:** `2014-01-02` — limited by gold JSON.  
@@ -223,13 +216,13 @@ CREATE TABLE snapshot_values (
 
 ---
 
-## 7. The Seven Adapters
+## 7. The Six Adapters
 
 ### A. Gold Adapter (`gold_adapter.py`) — Tier-1, M0
 
 **Primary asset state. Missing or stale = NO snapshot published.**
 
-Source priority: Local JSON → gold-api.com (free, no key, stdlib only) → Yahoo Finance (GC=F) → Stooq
+Source: Local JSON -> Stooq live -> Yahoo Finance (GC=F)
 
 ```bash
 # First-time setup
@@ -248,7 +241,7 @@ python layer2\adapters\gold_adapter.py --staleness-check-only
 
 **Rates-vol / bond-stress sensor. Missing = NO snapshot published.**
 
-Source priority: Stooq → Yahoo Finance (`^MOVE`) → manual CSV. Stooq is unreliable on weekends — use `--source yahoo` for daily jobs.
+Source: Yahoo Finance (`^MOVE`). Stooq unreliable on weekends.
 
 ```bash
 # Daily EOD job
@@ -267,18 +260,18 @@ python layer2\adapters\move_adapter.py --staleness-check
 
 **Flow confirmation only. Never blocks snapshot.**
 
-Source: Yahoo Finance via yfinance (`source="yahoo_gld_proxy"`). Stores `is_estimate=true`. The SPDR archive CSV URL was replaced in March 2026 after it began returning a PDF.
+Source: SPDR State Street archive CSV (`source="spdr_gld_archive"`). Stores `is_estimate=true`.
 
-Formula: `ounces = sharesOutstanding(GLD) × 0.09585`  
-Verified March 2026: 260,300,000 × 0.09585 = 24,949,755 oz = 776.0 tonnes  
-⚠️ Approximation — current `sharesOutstanding` applied uniformly to all dates in a given run, not true historical per-day data.
+Formula: `ounces = shares_outstanding x 0.09585`  
+Verified March 2026: 260,300,000 x 0.09585 = 24,949,755 oz = 776.0 tonnes  
+⚠️ Approximation — shares_outstanding applied uniformly to past dates, not true historical per-day data.
 
 ```bash
 # Daily EOD job
 python layer2\adapters\gld_holdings_adapter.py
 
-# Backfill from a specific start date
-python layer2\adapters\gld_holdings_adapter.py --start-date 2020-01-01
+# Backfill 5 years (run once after setup)
+python layer2\adapters\gld_holdings_adapter.py --backfill-days 1825
 
 # Staleness check
 python layer2\adapters\gld_holdings_adapter.py --staleness-check-only
@@ -313,7 +306,7 @@ python layer2\adapters\fred_loader.py --backfill-days 5 --dry-run
 
 ### E. Quality Gate (`quality_gate.py`) — Snapshot gatekeeper
 
-**Checks all 20 snapshot-included series, computes verdict, saves JSON report.**  
+**Checks all 23 series, computes verdict, saves JSON report.**  
 Run before any snapshot is published. Exit code: 0 = PASS, 1 = FAIL.
 
 ```bash
@@ -360,7 +353,7 @@ python layer2\adapters\snapshot_publisher.py --clock-date 2026-03-05
 # List recent snapshots
 python layer2\adapters\snapshot_publisher.py --list
 
-# Force publish despite gate FAIL (TESTING ONLY — gate still runs; snapshot flagged forced=True)
+# Skip quality gate (TESTING ONLY — snapshot flagged forced=True)
 python layer2\adapters\snapshot_publisher.py --force
 ```
 
@@ -387,36 +380,6 @@ python layer2\adapters\snapshot_publisher.py --force
 
 ---
 
-### G. Backfill Orchestrator (`run_backfill.py`) — Daily EOD job runner
-
-**Runs all four data adapters in dependency order with a single command.**
-
-Adapter execution order (dependency-safe): gold → move → gld → fred. Exit code: 0 = all passed, 1 = any Tier-1 adapter failed.
-
-```bash
-# Daily EOD top-up (last 5 days, safe to run repeatedly)
-python layer2\run_backfill.py
-
-# Full history — first-time setup or complete rebuild
-python layer2\run_backfill.py --full-history --gold-json FRED\2014GOLD\gold_xauusd_stooq_2014_yesterday.json
-
-# Dry-run preview (no DB writes)
-python layer2\run_backfill.py --dry-run
-
-# Repair specific date window
-python layer2\run_backfill.py --start-date 2026-01-01 --end-date 2026-02-28
-
-# Skip specific adapter (e.g. no FRED key yet)
-python layer2\run_backfill.py --skip fred
-
-# Run only specific adapters (registry order preserved)
-python layer2\run_backfill.py --only gold move
-```
-
-> `--dry-run` is passed through to all adapters. Exit code 4 from an adapter (stale Tier-2) is treated as a warning, not a failure.
-
----
-
 ## 8. Engine Clock & Alignment Rules
 
 - **One clock per day:** 21:00 UTC (NYSE close + FRED EOD release window)
@@ -424,8 +387,6 @@ python layer2\run_backfill.py --only gold move
 - **Tie-break:** highest `revision_seq` wins. Equal -> latest `ingested_at` wins.
 - **Clock never goes backwards** — replays always use original `clock_ts`
 - **Weekend behavior:** clock ticks daily; staleness window absorbs weekend gaps
-
-> **Vintage / as-of discipline:** Macro data may be revised. Backtests and replays must use point-in-time correct values. If a vintage is unavailable, mark `revision_risk=true` and penalize confidence/raise uncertainty in Layer-3. The current system is rev-0 only — see revision writer item in Section 10.
 
 ---
 
@@ -438,8 +399,6 @@ python layer2\run_backfill.py --only gold move
 
 **Fail-closed:** any Tier-1 FAIL -> publish NOTHING -> Layer-3 outputs nothing.
 
-> This maps directly to the `guards.data_ok` hard veto in the Supervisor Engine. When `data_ok == false`, the DecisionPacket will have `supervisor_veto = true` and execution is unconditionally prohibited regardless of any other signal.
-
 ---
 
 ## 10. What Still Needs to Be Built
@@ -448,37 +407,31 @@ python layer2\run_backfill.py --only gold move
 |---|---|---|
 | Gold adapter | ✅ DONE | - |
 | MOVE adapter | ✅ DONE | - |
-| GLD holdings adapter | ✅ DONE (source: yfinance) | - |
+| GLD holdings adapter | ✅ DONE | - |
 | FRED loader (20 series) | ✅ DONE | - |
 | Quality gate | ✅ DONE | - |
 | Snapshot publisher (`snapshot_publisher.py`) | ✅ DONE | - |
 | Series registry JSON (`series_registry.json`) | ✅ DONE | - |
 | Registry loader + validator (`registry.py`) | ✅ DONE | - |
-| Wire all adapters → registry | ✅ DONE | - |
-| Backfill orchestrator (`run_backfill.py`) | ✅ DONE | - |
-| DB inspector (`query_db.py`) | ✅ DONE | - |
+| Wire `snapshot_publisher.py` → registry | ⬜ NEXT — do first | **High** |
+| Wire `quality_gate.py` → registry | ⬜ NEXT | **High** |
+| Wire `fred_loader.py` → registry | ⬜ NEXT | **High** |
 | `--full-reload` CLI help text update (behavior changed under `INSERT OR IGNORE`) | ⬜ TODO | Medium |
 | Revision writer (`revision_seq=1` path for FRED corrections) | ⬜ TODO | Medium |
 | Daily scheduler (Windows Task Scheduler) | ⬜ TODO | Medium |
 | Extend gold history to 2005 | ⬜ TODO | Medium |
 | Fix SP500 history (use SPY via Yahoo) | ⬜ TODO | Medium |
 | Fix/replace discontinued USD series | ⬜ TODO | Low |
-| Feature Builder (Layer-3) | ⬜ TODO | **Next** |
-| Index Suite — StressIndex, DriftIndex, CorrBreakIndex, DataFreshnessPenalty | ⬜ TODO | After Feature Builder |
-| Regime Gate (Layer-3) | ⬜ TODO | After Index Suite |
-| Supervisor Engine + DecisionPacket | ⬜ TODO | After Regime Gate |
-| Zapier-style validation harness | ⬜ TODO | After DecisionPacket frozen |
-| Calibration protocol (≥100–300 ticks, reliability curve, Brier score) | ⬜ TODO | After harness |
-| Layer-4 execution | ⬜ TODO | After calibration gates met |
+| Feature Builder (Layer-3) | ⬜ TODO | After registry wiring done |
+| Index Suite (Layer-3) | ⬜ TODO | After Feature Builder |
+| Decision Engine (Layer-3) | ⬜ TODO | After Index Suite |
 
-### Layer-3 build order (from architecture):
-1. **Feature Builder** — standardised multi-horizon features, point-in-time correct, staleness-penalised
-2. **Index Suite** — StressIndex (0–100), DriftIndex (0–100), CorrBreakIndex (0–100), DataFreshnessPenalty (0–100). Not frozen until calibrated. Null indices must degrade confidence in the Supervisor.
-3. **Regime Gate** — conditional world model. `UnknownMode` activates when regime confidence < configurable threshold (placeholder default: 60%) OR regime signals conflict materially. In `UnknownMode`: confidence floored to 0, uncertainty forced ≥ U_max, directional execution prohibited.
-4. **Supervisor Engine** — hard veto (data_ok, idempotent_ok, UnknownMode, uncertainty > U_max) + soft shrink (stress/drift/corrbreak high). Produces deterministic `DecisionPacket` with `engine_version` + `config_version` for replay.
-5. **Zapier-style harness** — mandatory validation pipeline before live execution is permitted. Gate logic is version-locked to `engine_version`. C_min / U_max thresholds are configurable and frozen only after calibration criteria are met.
+### Next session — do in this exact order:
+1. **`snapshot_publisher.py`** — wire to registry first (it is the contract boundary toward Layer-3 — most important to get right)
+2. **`quality_gate.py`** — replace `SERIES_CHECKS` with registry
+3. **`fred_loader.py`** — replace `SERIES_CONFIG` with registry
 
-Why this order: the DecisionPacket is the execution contract. Nothing downstream of Layer-2 may be wired to execution until the math is frozen, deterministic replay passes, calibration is proven (reliability curve + Brier score + drawdown/CVaR + regime breakdown), and harness exit criteria are met. PnL alone is insufficient. Execution can always be added later.
+Why this order: `snapshot_publisher.py` defines what Layer-3 sees — if its series list is wrong, Layer-3 gets wrong data. Registry bugs are caught by `python -m layer2.config.registry --validate` before any wiring. The gate and loader are wired second and third because they are internal components that feed the publisher, not the boundary itself.
 
 ---
 
@@ -506,7 +459,7 @@ Step 3: Layer-3 reads snapshot_id                    ⬜ NOT BUILT YET
         -> If no snapshot_id exists -> Layer-3 outputs nothing
 
 Current state: Steps 1 and 2 complete. Step 3 not yet built.
-All adapters wired to registry. Backfill orchestrator operational.
+Registry is built and validated. Three adapters not yet wired to it.
 ```
 
 ---
@@ -537,36 +490,29 @@ pip install yfinance
 mkdir .secrets
 echo your_fred_api_key_here > .secrets\fred_api_key.txt
 
-# Step 5: Full history backfill — single command (recommended)
-python layer2\run_backfill.py --full-history --gold-json FRED\2014GOLD\gold_xauusd_stooq_2014_yesterday.json
+# Step 5: Load gold backfill (first time only)
+python layer2\adapters\gold_adapter.py --load-json FRED\2014GOLD\gold_xauusd_stooq_2014_yesterday.json --live
 
-# Step 6: Verify everything
+# Step 6: Load MOVE and GLD (5 year backfill)
+python layer2\adapters\move_adapter.py --source yahoo --backfill-days 1825
+python layer2\adapters\gld_holdings_adapter.py --backfill-days 1825
+
+# Step 7: Load all 20 FRED series (full history — ~20 seconds)
+python layer2\adapters\fred_loader.py --full-history
+
+# Step 8: Verify everything
 python layer2\adapters\quality_gate.py
 
-# Step 7: Validate the series registry
+# Step 9: Validate the series registry
 python -m layer2.config.registry --validate
 
-# Step 8: Publish first snapshot
+# Step 10: Publish first snapshot
 python layer2\adapters\snapshot_publisher.py --dry-run   # preview first
 python layer2\adapters\snapshot_publisher.py             # publish for real
 ```
 
 **You should see: `VERDICT: ✓ PASS — snapshot may be published`**  
 **Then: `snapshot_id: <64-char hash>` and `latest_snapshot.json` written.**
-
-> Alternatively you can run adapters individually for more control. Instead of Step 5, run:
-
-```bash
-# Step 5a: Load gold bulk history + live top-up
-python layer2\adapters\gold_adapter.py --load-json FRED\2014GOLD\gold_xauusd_stooq_2014_yesterday.json --live
-
-# Step 5b: Load MOVE (5 year backfill) and GLD holdings
-python layer2\adapters\move_adapter.py --source yahoo --backfill-days 1825
-python layer2\adapters\gld_holdings_adapter.py --start-date 2020-01-01
-
-# Step 5c: Load all 20 FRED series (full history — ~20 seconds)
-python layer2\adapters\fred_loader.py --full-history
-```
 
 ---
 
@@ -576,15 +522,14 @@ python layer2\adapters\fred_loader.py --full-history
 |---|---|
 | SQLite for DB | Simple, portable, no server. Can migrate to Postgres later. |
 | Yahoo for MOVE | Stooq `^move` returns "No data" on weekends. Yahoo confirmed working. |
-| GLD via yfinance, not SPDR CSV | SPDR archive URL now returns a PDF. yfinance `sharesOutstanding` is reliable and free. Formula unchanged. |
-| GLD source = `yahoo_gld_proxy` | Reflects the actual fetch source post-March 2026. `is_estimate=true` because current `sharesOutstanding` applied uniformly to past dates — not true per-day historical. Registry, adapter, and README are consistent. |
-| gold-api.com as primary live gold source | Free, no API key, stdlib only (no yfinance required). Yahoo GC=F and Stooq are fallbacks in that order. |
+| GLD ounces = shares x 0.09585 | State Street CSV broke (returns PDF). Formula verified: 776 tonnes. |
+| GLD source = `spdr_gld_archive` | SPDR State Street archive CSV is the actual fetch source. `is_estimate=true` because shares_outstanding applied uniformly to past dates — not true per-day historical. Registry, adapter, and README now consistent. |
 | Gold from JSON + live top-up | Avoids Stooq rate limits for 12 years of history. |
 | FRED for 20 series | Single API, free, full history for all target series. |
 | DTWEXBGS threshold = 10 days | Structural ~1 week FRED publish lag. Not a data error. |
 | PCU2122212122210 disabled | Discontinued 2017. Staleness check meaningless. |
 | Tier-1 staleness = 3 days | Covers weekends (2 days) + 1 day FRED release lag. |
-| Fail-closed snapshots | Prevents Layer-3 deciding on stale or incomplete data. Maps directly to `guards.data_ok` hard veto in the Supervisor Engine. |
+| Fail-closed snapshots | Prevents Layer-3 deciding on stale or incomplete data. |
 | Backtest start = 2014-01-02 | Limited by gold JSON. Extend to 2005 when possible. |
 | .secrets/ gitignored | API keys must never be committed to GitHub. |
 | layer2_truth.db gitignored | Local DB. Each developer rebuilds from adapters. |
@@ -592,14 +537,13 @@ python layer2\adapters\fred_loader.py --full-history
 | `INSERT OR IGNORE` not `INSERT OR REPLACE` | Truth-layer discipline: once written, a rev-0 row is immutable. Reruns never silently overwrite history. |
 | No `detect_types` in sqlite3.connect() | Deprecated in Python 3.12+. All date parsing is now handled explicitly and consistently. |
 | Incremental filters normalized to strings | Prevents silent str-vs-date type mismatch bugs that could cause repeated overwrites or missed dedup. |
-| `revision_seq` reserved for future revisions | If FRED revises a historical value, it gets written as `revision_seq=1` — not an overwrite of `rev=0`. Not yet implemented but schema supports it. Required for the vintage/as-of discipline mandated by the architecture. |
-| `series_registry.json` as single source of truth | Prevents staleness thresholds, tier assignments, and snapshot inclusion rules from drifting across files. All adapters now wired to it. |
+| `revision_seq` reserved for future revisions | If FRED revises a historical value, it gets written as `revision_seq=1` — not an overwrite of `rev=0`. Not yet implemented but schema supports it. |
+| `series_registry.json` as single source of truth | Prevents staleness thresholds, tier assignments, and snapshot inclusion rules from drifting across three separate files. |
 | Registry validates on load (fail-fast) | Invalid entries (duplicate IDs, wrong types, Tier-1 as estimate, discontinued as blocker) are caught immediately — not silently ignored. |
 | `snapshot_id` is full 64-char sha256 | Truncating hashes creates unnecessary collision risk. Full hash stored everywhere. |
 | `run_ts` separate from `clock_ts` in snapshots | `clock_ts` = engine point-in-time (21:00 UTC). `run_ts` = when the code actually executed. These are different and must not be confused. |
-| `forced=True` flag in snapshot DB + JSON | Snapshots created with `--force` (gate still runs — FAIL does not block) are permanently marked so they can be filtered out of backtests. |
+| `forced=True` flag in snapshot DB + JSON | Snapshots created with `--force` (skipping quality gate) are permanently marked so they can be filtered out of backtests. |
 | Tier-1 completeness hard fail in publisher | If publisher's series list drifts from gate's list, the snapshot is blocked rather than silently publishing an incomplete view. |
-| Layer-4 execution intentionally unwired | Architecture requirement: decision math must be frozen, deterministic replay must pass, calibration proven, and Zapier harness exit criteria met before execution is wired. |
 
 ---
 
@@ -637,18 +581,22 @@ Reviewer identified six issues in `snapshot_publisher.py` and one structural gap
 |---|---|---|
 | `snapshot_id` truncated to 32 chars — unnecessary collision risk | Medium | Now full 64-char sha256 stored everywhere |
 | `run_ts` (execution time) not logged separately from `clock_ts` (engine time) | Medium | `run_ts` added to logs and JSON output (not stored in DB — DB uses `created_at`) |
-| `--force` flag produces misleading "valid-looking" snapshots | Medium | `forced=True` flag stored in DB and JSON permanently. Gate still runs on every call — see Audit 4. |
+| `--force` flag produces misleading "valid-looking" snapshots | Medium | `forced=True` flag stored in DB and JSON permanently. ⚠️ Gate still skipped in this version — see Audit 4. |
 | JSON missing stable API fields — Layer-3 would need to query DB | Medium | Added `tier1_series`, `tier2_series`, `missing_series` as stable top-level fields |
 | Tier-1 list could drift between gate and publisher silently | Medium | Hard fail added: if Tier-1 count in snapshot < expected → snapshot blocked |
-| Staleness rules split across `quality_gate.py`, `fred_loader.py`, `snapshot_publisher.py` — can drift | High | `series_registry.json` created as single source of truth. `registry.py` loader + validator built. All three adapters subsequently wired — see Audit 5. |
+| Staleness rules split across `quality_gate.py`, `fred_loader.py`, `snapshot_publisher.py` — can drift | High | `series_registry.json` created as single source of truth. `registry.py` loader + validator built. Three adapters not yet wired (planned next session). |
 
-**Result:** All 6 issues addressed. First real snapshot published successfully.
+**Result:** All 6 issues addressed. First real snapshot published successfully. Note: registry introduced as structural fix — consumer wiring (`snapshot_publisher.py`, `quality_gate.py`, `fred_loader.py`) still pending next session.
 ```
 snapshot_id: feb94eb7dc719c0e2779456964f74d0454cbbcfcab64ad6f5665f4f0972b204d
 clock_ts:    2026-03-06T21:00:00+00:00
 series:      20
 verdict:     PASS
 ```
+
+**Known remaining items from audit:**
+- Registry wiring — `snapshot_publisher.py`, `quality_gate.py`, `fred_loader.py` not yet reading from registry. Planned next session in that order.
+- `registry_version` should be included in snapshot metadata so each snapshot records the exact config state used to produce it. Not yet implemented.
 
 ---
 
@@ -660,7 +608,7 @@ Internal review of all output files against actual terminal output found three i
 |---|---|---|
 | `forced` flag claimed stored in DB but `snapshots` table had no `forced` column | High | Added `forced INTEGER NOT NULL DEFAULT 0` to schema + `write_snapshot()` + `list_snapshots()`. One-time DB migration run: `ALTER TABLE snapshots ADD COLUMN forced`. |
 | Batch hash truncated `[:16]` in `move_adapter.py`, `gold_adapter.py`, `gld_holdings_adapter.py` | Medium | All batch hashes now full 64-char sha256, consistent with `snapshot_publisher.py` |
-| Section 7 titled "The Five Adapters" but contained six (A–F) | Minor | Renamed to "The Six Adapters" (now Seven — see Audit 5) |
+| Section 7 titled "The Five Adapters" but contained six (A–F) | Minor | Renamed to "The Six Adapters" |
 | DB schema section only showed `observations` table — `snapshots` and `snapshot_values` missing | Minor | Both tables added to schema documentation with full column list |
 
 **Result:** All 4 issues fixed. `--list` confirmed working with `forced` column post-migration.
@@ -674,26 +622,9 @@ Two issues found that survived previous audits:
 | Issue | Severity | Fix applied |
 |---|---|---|
 | `--force` path fabricated a hardcoded summary (`tier1_total: 15`, `tier2_total: 5`) instead of running the real gate and merely bypassing blocking | High | Quality gate now always runs. With `--force`, a FAIL verdict logs `WOULD BLOCK` warnings but does not abort. Real gate numbers always stored in DB and JSON. Hardcoded summary eliminated. |
-| GLD source inconsistency: README said Yahoo, registry said `yahoo_gld_estimate`, adapter stores `spdr_gld_archive` | Medium | Source label inconsistency resolved. See Audit 5 for the definitive final state after the SPDR URL broke completely. |
+| GLD source inconsistency: README said Yahoo, registry said `yahoo_gld_estimate`, adapter stores `spdr_gld_archive` | Medium | Registry `source` corrected to `spdr_gld_archive`. README Tier-2 table, GLD note, Section C, and Key Decisions all updated to match. All three now consistent. |
 
-**Result:** Both issues fixed. `--force` now runs a real gate on every call.
-
----
-
-### Audit 5 — 2026-03-07 (Post-session review)
-
-Six issues identified and resolved:
-
-| Issue | Severity | Fix applied |
-|---|---|---|
-| SPDR archive URL (`GLD_US_archive_EN.csv`) now returns a PDF — `gld_holdings_adapter.py` completely broken | Critical | Replaced SPDR fetch with yfinance `sharesOutstanding`. Source label updated to `yahoo_gld_proxy`. Formula unchanged. |
-| README GLD source references throughout still said `spdr_gld_archive` / "SPDR archive CSV" | High | All GLD source references updated across Section 4 (Tier-2 table, GLD note), Section 7C, and Section 13. |
-| No orchestrator script — adapters had to be run manually in sequence | High | `run_backfill.py` built and operational. Confirmed: 4 adapters, 0 failures, 24.8s total on 2026-03-07. |
-| README missing `run_backfill.py` and `query_db.py` from folder structure, adapter list, setup steps, and build table | Medium | Section 2 folder structure updated. Section 7 expanded to seven adapters (G added). Section 10 build table updated. Section 12 setup steps updated to use orchestrator as primary path. |
-| Section 10 "What Still Needs to Be Built" showed three registry-wiring items as ⬜ NEXT and had outdated "Next session" instructions | Medium | Registry-wiring items and orchestrator/DB-inspector marked ✅ DONE. "Next session" block replaced with Layer-3 build sequence aligned to architecture v3.3. |
-| Section 11 "Layer-3 Ready" checklist said "Three adapters not yet wired to it" | Medium | Updated to reflect current state: all adapters wired, backfill orchestrator operational. |
-
-**Result:** All issues resolved. DB state and quality gate verdict updated to 2026-03-07.
+**Result:** Both issues fixed. `--force` now runs a real gate on every call. GLD source label consistent across registry, adapter, and README.
 
 ---
 
@@ -707,7 +638,6 @@ Six issues identified and resolved:
 | Yahoo Finance (MOVE) | https://finance.yahoo.com/quote/%5EMOVE |
 | Yahoo Finance (GLD) | https://finance.yahoo.com/quote/GLD |
 | Yahoo Finance (Gold futures) | https://finance.yahoo.com/quote/GC%3DF |
-| gold-api.com (spot gold, no key) | https://api.gold-api.com/price/XAU |
 | GLD Trust Info | https://www.spdrgoldshares.com |
 | yfinance docs | https://ranaroussi.github.io/yfinance |
 
@@ -716,9 +646,10 @@ Six issues identified and resolved:
 ## 16. Contact & Collaboration
 
 - **Mr. Ripley repo owner:** @balazsv27-rgb
-- **Architecture decisions:** Documented in `architecture4.md`
+- **Architecture decisions:** Documented in `architecture4.md.txt`, `architeture.md`
 - **Questions:** Open a GitHub Issue on the repo
 
 ---
 
 *Read this before touching any code. For questions open a GitHub Issue on the repo.*
+
