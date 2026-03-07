@@ -1,0 +1,74 @@
+{
+"covered_factors": [
+{
+"factor": "Gold Spot Price",
+"series_found": ["XAUUSD"],
+"coverage_level": "Full"
+}
+],
+"partial_factors": [],
+"missing_factors": [
+{
+"factor": "Real Interest Rates",
+"reason": "FRED series identifiers exist in all_series_merged.json (e.g., DGS10, DFII10, T10YIE) but the file contains no observation/value time series data, so real-rate analysis cannot be performed from the provided dataset."
+},
+{
+"factor": "Monetary Policy",
+"reason": "FRED series identifiers exist (e.g., FEDFUNDS, WALCL) but all_series_merged.json contains metadata only (no values), so monetary policy driver series are not usable."
+},
+{
+"factor": "US Dollar Strength",
+"reason": "FRED series identifiers exist (e.g., DTWEXBGS, DTWEXM, DTWEXAFEGS) but all_series_merged.json contains no observation/value data."
+},
+{
+"factor": "Inflation",
+"reason": "FRED series identifiers exist (e.g., PCEPI, PCEPILFE, CPILFESL) but all_series_merged.json contains no observation/value data."
+},
+{
+"factor": "Economic Growth",
+"reason": "FRED series identifiers exist for labor indicators (e.g., PAYEMS, UNRATE) but all_series_merged.json contains no observation/value data; additionally, no GDP series was verified as present among common GDP ids (GDP/GDPC1) during the audit."
+},
+{
+"factor": "Market Volatility",
+"reason": "FRED series identifier exists (VIXCLS) but all_series_merged.json contains no observation/value data."
+},
+{
+"factor": "Risk Appetite",
+"reason": "FRED series identifier exists (SP500) but all_series_merged.json contains no observation/value data."
+},
+{
+"factor": "Trade Tensions Proxy (if available)",
+"reason": "FRED series identifiers exist (e.g., USEPUINDXD, GEPUCURRENT and other EPU variants) but all_series_merged.json contains no observation/value data."
+},
+{
+"factor": "Central Bank Gold Reserves",
+"reason": "No gold-reserves series was found in the provided JSON, and comprehensive central-bank gold reserve totals are not reliably covered as standard FRED time series; this factor is structurally unavailable from the provided dataset."
+},
+{
+"factor": "Mining Production",
+"reason": "Some generic mining-related series identifiers exist (e.g., USMINE, USMINEXOILGASNGSP) but all_series_merged.json contains no observation/value data and does not provide a gold-specific production/supply series."
+},
+{
+"factor": "Jewelry / Industrial Demand",
+"reason": "No jewelry/industrial gold demand series was found in the provided JSON; this is generally not covered directly via standard FRED series and is structurally unavailable from the provided dataset."
+},
+{
+"factor": "Gold ETF Holdings",
+"reason": "No gold-ETF-holdings series was found in the provided JSON. ETF-related series present are not gold-specific (e.g., ETFDSA, ETFTCMAHDFS, QPRHLDETFINDHOLDINGSUSNO), so this factor is not covered."
+}
+],
+"data_quality_issues": [
+{
+"issue_type": "Missing Time Series Values",
+"series": "all_series_merged.json",
+"description": "The file contains FRED series metadata (ids/titles/frequencies) but no observation/value arrays (no \"observations\", \"date\", or \"value\" keys found). This prevents computing returns, YoY inflation, real rates, correlations, or regressions for gold drivers."
+},
+{
+"issue_type": "Missing Values",
+"series": "XAUUSD",
+"description": "In gold_xauusd_stooq_2014_yesterday.json, the \"volume\" field is null for all 3132 rows; OHLC fields are complete."
+}
+],
+"overall_dataset_quality_score": "Low",
+"conclusion": "Gold spot price history (XAUUSD) is present and usable, but the FRED dataset provided is metadata-only and lacks the observation values required to analyze macro drivers (real yields, USD, inflation, policy, risk proxies). As provided, the dataset is not sufficient for gold price driver analysis; you must include/download the actual FRED observations for the relevant series (e.g., DGS10/DFII10, FEDFUNDS/WALCL, DTWEXBGS, PCEPI, VIXCLS, SP500, UNRATE/PAYEMS, USEPUINDXD)."
+}

@@ -10,9 +10,8 @@ Role in architecture:
 
 Source strategy (priority order):
     1. Local JSON file (gold_xauusd_stooq_2014_yesterday.json) — bulk history
-    2. gold-api.com (XAU/USD spot) — primary live source, free, no API key, stdlib only
-    3. Yahoo Finance (GC=F gold futures) — fallback, requires yfinance
-    4. Stooq (^xauusd) — last-resort fallback
+    2. Stooq live fetch (^XAUUSD) — new daily rows after the JSON ends
+    3. Yahoo Finance (GC=F gold futures) — fallback
 
 Schema, connection, and upsert all come from layer2.db.
 Series metadata (staleness threshold, tier, group) comes from layer2.config.registry.
@@ -59,8 +58,7 @@ from layer2.config.registry import get_registry  # noqa: E402
 DB_PATH: str = os.getenv("L2_DB_PATH", "layer2_truth.db")
 SERIES_ID: str = "gold_price_proxy"
 STOOQ_TICKER: str = "^xauusd"
-YAHOO_TICKER: str = "GC=F"        # gold futures — fallback only
-GOLD_API_URL: str = "https://api.gold-api.com/price/XAU"  # free, no key, real-time spot
+YAHOO_TICKER: str = "GC=F"
 LOG_LEVEL: str = os.getenv("L2_LOG_LEVEL", "INFO")
 
 logging.basicConfig(
@@ -121,89 +119,7 @@ def load_from_json(json_path: str) -> List[Tuple[date, float, str]]:
 
 
 # ---------------------------------------------------------------------------
-# Source B: gold-api.com (free, no key, real-time spot)
-# ---------------------------------------------------------------------------
-
-def fetch_goldapi_live(start: date, end: date) -> List[Tuple[date, float, str]]:
-    """
-    Fetch today's spot price from gold-api.com.
-    This endpoint returns only the current price — not a date range —
-    so it is used to fill in dates from start to end (inclusive of today).
-    Only called when the date range includes today or yesterday.
-    """
-    log.debug("Fetching spot gold from gold-api.com ...")
-    try:
-        req = urllib.request.Request(
-            GOLD_API_URL,
-            headers={"User-Agent": "Mr-Ripley-L2/1.0"},
-        )
-        with urllib.request.urlopen(req, timeout=20) as resp:
-            data = json.load(resp)
-    except Exception as exc:
-        raise RuntimeError(f"gold-api.com fetch failed: {exc}") from exc
-
-    price = data.get("price")
-    if not price or float(price) <= 0:
-        raise ValueError(f"gold-api.com returned no valid price: {data!r}")
-
-    price = float(price)
-
-    # The API returns today's live price. We assign it to every missing
-    # trading date in [start, end] — typically just yesterday / today.
-    results = []
-    current = start
-    today = date.today()
-    while current <= min(end, today):
-        if current.weekday() < 5:  # Mon-Fri only
-            results.append((current, price, "goldapi_com"))
-        current += timedelta(days=1)
-
-    if not results:
-        raise ValueError("gold-api.com: no weekdays in requested range.")
-
-    log.info("gold-api.com: price=%.2f, assigned to %d date(s) (%s -> %s).",
-             price, len(results), results[0][0], results[-1][0])
-    return results
-
-
-# ---------------------------------------------------------------------------
-# Source C: Yahoo Finance GC=F futures (fallback)
-# ---------------------------------------------------------------------------
-
-def fetch_yahoo_live(start: date, end: date) -> List[Tuple[date, float, str]]:
-    """Fetch gold futures (GC=F) from Yahoo Finance. Fallback only."""
-    try:
-        import yfinance as yf
-    except ImportError:
-        raise RuntimeError("yfinance not installed. Run: pip install yfinance")
-
-    log.debug("Fetching gold from Yahoo Finance %s (%s -> %s).", YAHOO_TICKER, start, end)
-    ticker = yf.Ticker(YAHOO_TICKER)
-    df = ticker.history(
-        start=start.isoformat(),
-        end=(end + timedelta(days=1)).isoformat(),
-        interval="1d",
-        auto_adjust=True,
-    )
-    if df.empty:
-        raise ValueError(f"Yahoo Finance returned empty DataFrame for {YAHOO_TICKER}.")
-
-    results = []
-    for idx, row in df.iterrows():
-        obs_date = idx.date() if hasattr(idx, "date") else date.fromisoformat(str(idx)[:10])
-        close_val = float(row["Close"])
-        if close_val > 0:
-            results.append((obs_date, close_val, "yahoo_gcf"))
-
-    if not results:
-        raise ValueError("Yahoo Finance yielded no valid gold rows.")
-    log.info("Yahoo GC=F: fetched %d gold rows (%s -> %s).",
-             len(results), results[0][0], results[-1][0])
-    return results
-
-
-# ---------------------------------------------------------------------------
-# Source D: Stooq (last-resort fallback)
+# Source B: Stooq live fetch
 # ---------------------------------------------------------------------------
 
 def fetch_stooq_live(start: date, end: date) -> List[Tuple[date, float, str]]:
@@ -230,14 +146,14 @@ def fetch_stooq_live(start: date, end: date) -> List[Tuple[date, float, str]]:
     if "date" not in header or "close" not in header:
         raise ValueError(f"Unexpected Stooq header: {lines[0]!r}")
 
-    date_idx  = header.index("date")
+    date_idx = header.index("date")
     close_idx = header.index("close")
 
     results = []
     for line in lines[1:]:
         parts = line.split(",")
         try:
-            obs_date  = date.fromisoformat(parts[date_idx])
+            obs_date = date.fromisoformat(parts[date_idx])
             close_val = float(parts[close_idx])
             if close_val > 0:
                 results.append((obs_date, close_val, "stooq_live"))
@@ -247,6 +163,41 @@ def fetch_stooq_live(start: date, end: date) -> List[Tuple[date, float, str]]:
     if not results:
         raise ValueError("Stooq live fetch yielded no valid gold rows.")
     log.info("Stooq live: fetched %d rows (%s -> %s).",
+             len(results), results[0][0], results[-1][0])
+    return results
+
+
+# ---------------------------------------------------------------------------
+# Source C: Yahoo Finance fallback
+# ---------------------------------------------------------------------------
+
+def fetch_yahoo_live(start: date, end: date) -> List[Tuple[date, float, str]]:
+    try:
+        import yfinance as yf
+    except ImportError:
+        raise RuntimeError("yfinance not installed. Run: pip install yfinance")
+
+    log.debug("Fetching gold from Yahoo Finance GC=F (%s -> %s).", start, end)
+    ticker = yf.Ticker(YAHOO_TICKER)
+    df = ticker.history(
+        start=start.isoformat(),
+        end=(end + timedelta(days=1)).isoformat(),
+        interval="1d",
+        auto_adjust=True,
+    )
+    if df.empty:
+        raise ValueError("Yahoo Finance returned empty DataFrame for GC=F.")
+
+    results = []
+    for idx, row in df.iterrows():
+        obs_date = idx.date() if hasattr(idx, "date") else date.fromisoformat(str(idx)[:10])
+        close_val = float(row["Close"])
+        if close_val > 0:
+            results.append((obs_date, close_val, "yahoo_gcf"))
+
+    if not results:
+        raise ValueError("Yahoo Finance yielded no valid gold rows.")
+    log.info("Yahoo: fetched %d gold rows (%s -> %s).",
              len(results), results[0][0], results[-1][0])
     return results
 
@@ -362,31 +313,21 @@ def main() -> int:
             log.error("JSON load failed: %s", exc)
             return 2
 
-    # Step 2: Live fetch — three-source cascade (no API key required for primary)
-    #   B: gold-api.com spot (free, no key, stdlib only)  ← primary
-    #   C: Yahoo Finance GC=F (requires yfinance)         ← fallback 1
-    #   D: Stooq ^xauusd                                  ← fallback 2
+    # Step 2: Live fetch
     if args.live:
         end = yesterday
         start = end - timedelta(days=max(0, args.backfill_days - 1))
-        live_raw: List[Tuple[date, float, str]] = []
-        last_exc: Optional[Exception] = None
-
-        for fetch_fn, label in [
-            (lambda s, e: fetch_goldapi_live(s, e),  "gold-api.com"),
-            (lambda s, e: fetch_yahoo_live(s, e),    "Yahoo GC=F"),
-            (lambda s, e: fetch_stooq_live(s, e),    "Stooq"),
-        ]:
+        try:
+            live_raw = fetch_stooq_live(start, end)
+        except Exception as stooq_exc:
+            log.warning("Stooq live failed: %s — trying Yahoo.", stooq_exc)
             try:
-                live_raw = fetch_fn(start, end)
-                break
-            except Exception as exc:
-                log.warning("%s failed: %s", label, exc)
-                last_exc = exc
-
-        if not live_raw:
-            log.error("All live sources failed. Last error: %s", last_exc)
-        else:
+                live_raw = fetch_yahoo_live(start, end)
+            except Exception as yahoo_exc:
+                log.error("All live sources failed. Stooq: %s | Yahoo: %s",
+                          stooq_exc, yahoo_exc)
+                live_raw = []
+        if live_raw:
             all_raw.extend(live_raw)
             log.info("Live fetch added %d rows.", len(live_raw))
 

@@ -9,57 +9,47 @@ Role in architecture:
     Used in M2 validation overlay. Does NOT block snapshot publishing if missing/stale.
     Layer-3 consumes this as a confirmation input only (never a primary driver).
 
-Source:
-    State Street / SPDR authoritative archive CSV:
+Source (CHANGED — see note below):
+    Yahoo Finance via yfinance — sharesOutstanding(GLD) × GLD_OZ_PER_SHARE (0.09585)
+
+    WHY THE SOURCE CHANGED:
+    The SPDR authoritative archive URL previously used:
         https://www.spdrgoldshares.com/assets/dynamic/GLD/GLD_US_archive_EN.csv
+    now returns a PDF (Content-Type: application/pdf) rather than a CSV file.
+    The adapter logged: "Header: %PDF-1.5" and correctly produced zero rows.
+    Until SPDR restores the CSV endpoint, yfinance is the reliable alternative:
+      - sharesOutstanding is updated daily after market close
+      - price history gives us the trading-day calendar for the requested window
+      - ounces = sharesOutstanding × 0.09585 (fixed ratio, never changes per GLD prospectus)
 
-    This is the primary published record. No login required. Updated each business day.
-    Full history back to 18-Nov-2004.
-
-CSV columns (0-indexed):
-    0  Date                          YYYY-MM-DD (or M/D/YYYY in some rows)
-    1  GLD Close
-    2  NAV per GLD in Gold
-    3  NAV/share at 10.30 a.m. NYT
-    4  Indicative Price of GLD at 4.15 p.m. NYT
-    5  Mid point of bid/ask spread at 4.15 p.m. NYT
-    6  Premium/Discount
-    7  Daily Share Volume
-    8  Total Net Asset Value Ounces in the Trust as at 4.15 p.m. NYT  ← TARGET
-    9  Total Net Asset Value Tonnes in the Trust as at 4.15 p.m. NYT
-    10 Total Net Asset Value in the Trust
+    NOTE ON HISTORICAL ACCURACY:
+    Yahoo returns *current* sharesOutstanding only — not historical daily values.
+    This means all rows in a given run carry the same ounces figure.
+    This is an accepted approximation for a Tier-2 confirmation signal
+    (GLD shares outstanding changes slowly; large deviations are the signal,
+    not the daily micro-movements). This matches the logic in run_gld_holdings.py.
 
 Stored value:
-    Ounces of gold held in GLD Trust (column 8).
+    Ounces of gold held in GLD Trust.
     Unit: troy ounces.
-    as_of_ts: 4:15 p.m. NYT on obs_ts (published same business day, after NYSE close).
+    source field: "yahoo_gld_proxy"
+    as_of_ts: market close on obs_ts, approximated as 21:15 UTC year-round.
 
-Storage contract:
-    Same `observations` table used by all Layer-2 adapters:
-
-        CREATE TABLE IF NOT EXISTS observations (
-            series_id       TEXT      NOT NULL,
-            obs_ts          DATE      NOT NULL,
-            as_of_ts        TIMESTAMP NOT NULL,
-            value           REAL      NOT NULL,
-            revision_seq    INTEGER   NOT NULL DEFAULT 0,
-            source          TEXT      NOT NULL,
-            ingested_at     TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-            PRIMARY KEY (series_id, obs_ts, revision_seq)
-        );
+Schema, connection, and upsert all come from layer2.db.
+Series metadata (tier, staleness threshold, blocks_snapshot) comes from layer2.config.registry.
 
 Usage:
-    # Daily EOD job (fetches full archive, upserts new rows only)
-    python gld_holdings_adapter.py
+    # Daily EOD job (last 30 days, upserts new rows only)
+    python layer2/adapters/gld_holdings_adapter.py
 
     # Backfill from a specific start date
-    python gld_holdings_adapter.py --start-date 2020-01-01
+    python layer2/adapters/gld_holdings_adapter.py --start-date 2020-01-01
 
     # Dry-run (fetch + validate, no DB write)
-    python gld_holdings_adapter.py --dry-run
+    python layer2/adapters/gld_holdings_adapter.py --dry-run
 
     # Print staleness report only (no fetch)
-    python gld_holdings_adapter.py --staleness-check-only
+    python layer2/adapters/gld_holdings_adapter.py --staleness-check-only
 """
 
 from __future__ import annotations
@@ -68,12 +58,27 @@ import argparse
 import hashlib
 import logging
 import os
-import re
-import sqlite3
 import sys
-import urllib.request
 from datetime import date, datetime, timedelta, timezone
+from pathlib import Path
 from typing import List, Optional, Tuple
+
+# ---------------------------------------------------------------------------
+# Layer-2 shared modules — path bootstrap identical to other adapters
+# ---------------------------------------------------------------------------
+
+_HERE = Path(__file__).resolve().parent
+for _candidate in [_HERE.parent.parent, _HERE.parent]:
+    if (_candidate / "layer2" / "db.py").exists() or (_candidate / "db.py").exists():
+        if str(_candidate) not in sys.path:
+            sys.path.insert(0, str(_candidate))
+        break
+
+from layer2.db import (  # noqa: E402
+    get_connection, upsert_observations, filter_new_rows,
+    latest_obs_date, count_rows,
+)
+from layer2.config.registry import get_registry  # noqa: E402
 
 # ---------------------------------------------------------------------------
 # Configuration
@@ -81,11 +86,11 @@ from typing import List, Optional, Tuple
 
 DB_PATH: str = os.getenv("L2_DB_PATH", "layer2_truth.db")
 SERIES_ID: str = "gld_holdings_flow_confirm"
-GLD_ARCHIVE_URL: str = (
-    "https://www.spdrgoldshares.com/assets/dynamic/GLD/GLD_US_archive_EN.csv"
-)
-# Tier-2: staleness warning threshold (does not block snapshot, but logged)
-MAX_STALENESS_DAYS: int = 5
+GLD_TICKER: str = "GLD"
+GLD_OZ_PER_SHARE: float = 0.09585       # Fixed per GLD prospectus — never changes
+SOURCE_LABEL: str = "yahoo_gld_proxy"   # Distinguishes from legacy spdr_gld_archive rows
+DEFAULT_BACKFILL_DAYS: int = 30
+
 LOG_LEVEL: str = os.getenv("L2_LOG_LEVEL", "INFO")
 
 logging.basicConfig(
@@ -96,236 +101,84 @@ logging.basicConfig(
 log = logging.getLogger(__name__)
 
 
-# ---------------------------------------------------------------------------
-# DB helpers
-# ---------------------------------------------------------------------------
-
-def get_connection(db_path: str) -> sqlite3.Connection:
-    conn = sqlite3.connect(db_path)  # no detect_types — date parsing handled manually
-    conn.row_factory = sqlite3.Row
-    conn.execute("PRAGMA journal_mode=WAL;")
-    conn.execute("PRAGMA foreign_keys=ON;")
-    _ensure_schema(conn)
-    return conn
-
-
-def _ensure_schema(conn: sqlite3.Connection) -> None:
-    conn.execute("""
-        CREATE TABLE IF NOT EXISTS observations (
-            series_id       TEXT      NOT NULL,
-            obs_ts          DATE      NOT NULL,
-            as_of_ts        TIMESTAMP NOT NULL,
-            value           REAL      NOT NULL,
-            revision_seq    INTEGER   NOT NULL DEFAULT 0,
-            source          TEXT      NOT NULL,
-            ingested_at     TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-            PRIMARY KEY (series_id, obs_ts, revision_seq)
+def _series_cfg() -> dict:
+    """Return the registry entry for gld_holdings_flow_confirm."""
+    cfg = get_registry().get(SERIES_ID)
+    if cfg is None:
+        raise KeyError(
+            f"series_id {SERIES_ID!r} not found in series_registry.json. "
+            "Ensure the registry entry exists before running this adapter."
         )
-    """)
-    conn.execute("""
-        CREATE INDEX IF NOT EXISTS idx_obs_series_date
-        ON observations (series_id, obs_ts DESC)
-    """)
-    conn.commit()
+    return cfg
 
 
-def latest_obs_date(conn: sqlite3.Connection) -> Optional[date]:
-    row = conn.execute(
-        "SELECT MAX(obs_ts) AS d FROM observations WHERE series_id = ?",
-        (SERIES_ID,)
-    ).fetchone()
-    if row and row["d"]:
-        d = row["d"]
-        if isinstance(d, str):
-            return date.fromisoformat(d)
-        if hasattr(d, "date"):
-            return d.date()
-        return d
-    return None
+# ---------------------------------------------------------------------------
+# Fetch — yfinance replaces the broken SPDR CSV URL
+# ---------------------------------------------------------------------------
 
+def fetch_gld_via_yfinance(
+    start: Optional[date],
+    end: date,
+) -> Tuple[List[str], int]:
+    """
+    Fetch GLD trading days and current sharesOutstanding from Yahoo Finance.
 
-def count_existing(conn: sqlite3.Connection) -> int:
-    row = conn.execute(
-        "SELECT COUNT(*) AS n FROM observations WHERE series_id = ?",
-        (SERIES_ID,)
-    ).fetchone()
-    return row["n"] if row else 0
+    Args:
+        start: First date of window (inclusive). None → use DEFAULT_BACKFILL_DAYS.
+        end:   Last date of window (inclusive).
 
+    Returns:
+        trading_dates:     List of YYYY-MM-DD strings for each trading day in [start, end].
+        shares_outstanding: Current sharesOutstanding as an integer.
 
-def upsert_observations(
-    conn: sqlite3.Connection,
-    rows: List[Tuple],
-    dry_run: bool = False,
-) -> int:
-    if not rows:
-        log.warning("No rows to write.")
-        return 0
+    Raises:
+        RuntimeError: If yfinance is not installed, or Yahoo returns unusable data.
+    """
+    try:
+        import yfinance as yf  # type: ignore
+    except ImportError as exc:
+        raise RuntimeError(
+            "yfinance is not installed. Run: pip install yfinance"
+        ) from exc
 
-    if dry_run:
-        log.info("[DRY-RUN] Would write %d observation(s) — skipping DB write.", len(rows))
-        for r in rows[:5]:
-            log.debug("  %s | %s | ounces=%.2f | source=%s", r[0], r[1], r[3], r[5])
-        if len(rows) > 5:
-            log.debug("  ... and %d more rows.", len(rows) - 5)
-        return len(rows)
+    ticker = yf.Ticker(GLD_TICKER)
 
-    conn.executemany(
-        """
-        INSERT OR IGNORE INTO observations
-            (series_id, obs_ts, as_of_ts, value, revision_seq, source)
-        VALUES (?, ?, ?, ?, ?, ?)
-        """,
-        [
-            (str(r[0]), r[1].isoformat(), r[2].isoformat(), float(r[3]), int(r[4]), str(r[5]))
-            for r in rows
-        ],
+    # --- shares outstanding ---
+    info = ticker.info or {}
+    shares = info.get("sharesOutstanding")
+    if not shares or int(shares) <= 0:
+        raise RuntimeError(
+            f"Yahoo returned invalid sharesOutstanding={shares!r} for {GLD_TICKER}. "
+            "The ticker may be temporarily unavailable."
+        )
+    shares = int(shares)
+
+    # --- trading-day calendar from price history ---
+    # yfinance end is exclusive, so add one day
+    fetch_start = start or (end - timedelta(days=DEFAULT_BACKFILL_DAYS - 1))
+    hist = ticker.history(
+        start=fetch_start.isoformat(),
+        end=(end + timedelta(days=1)).isoformat(),
+        interval="1d",
+        auto_adjust=True,
     )
-    conn.commit()
-    log.info("Wrote %d GLD holdings observation(s) to DB.", len(rows))
-    return len(rows)
-
-
-# ---------------------------------------------------------------------------
-# Fetch + parse
-# ---------------------------------------------------------------------------
-
-def fetch_gld_archive() -> str:
-    """Download the full GLD archive CSV from State Street."""
-    log.debug("Fetching GLD archive from: %s", GLD_ARCHIVE_URL)
-    try:
-        req = urllib.request.Request(
-            GLD_ARCHIVE_URL,
-            headers={"User-Agent": "L2-GLD-Holdings-Adapter/1.0"}
-        )
-        with urllib.request.urlopen(req, timeout=30) as resp:
-            raw = resp.read().decode("utf-8", errors="replace")
-    except Exception as exc:
-        raise RuntimeError(f"GLD archive fetch failed: {exc}") from exc
-
-    if not raw.strip():
-        raise ValueError("GLD archive returned empty response.")
-
-    log.info("GLD archive fetched: %d bytes.", len(raw))
-    return raw
-
-
-def _parse_date(raw: str) -> Optional[date]:
-    """
-    Parse date from GLD CSV. Handles:
-      - ISO: 2024-01-15
-      - US format: 1/15/2024 or 01/15/2024
-      - Short: 15-Jan-2024
-    """
-    raw = raw.strip().strip('"')
-    # ISO
-    if re.match(r"^\d{4}-\d{2}-\d{2}$", raw):
-        return date.fromisoformat(raw)
-    # M/D/YYYY or MM/DD/YYYY
-    m = re.match(r"^(\d{1,2})/(\d{1,2})/(\d{4})$", raw)
-    if m:
-        return date(int(m.group(3)), int(m.group(1)), int(m.group(2)))
-    # DD-Mon-YYYY
-    try:
-        return datetime.strptime(raw, "%d-%b-%Y").date()
-    except ValueError:
-        pass
-    return None
-
-
-def _parse_ounces(raw: str) -> Optional[float]:
-    """Parse ounces value — strip $, commas, percent signs, whitespace."""
-    clean = raw.strip().strip('"').replace(",", "").replace("$", "").replace("%", "").strip()
-    if not clean or clean in ("-", "N/A", ""):
-        return None
-    try:
-        val = float(clean)
-        return val if val > 0 else None
-    except ValueError:
-        return None
-
-
-def parse_gld_csv(
-    raw: str,
-    start: Optional[date] = None,
-    end: Optional[date] = None,
-) -> List[Tuple[date, float]]:
-    """
-    Parse GLD archive CSV and extract (obs_date, ounces_held) pairs.
-
-    Column 8 (0-indexed): "Total Net Asset Value Ounces in the Trust as at 4.15 p.m. NYT"
-    Column 0: Date
-
-    Filters to [start, end] if provided.
-    """
-    lines = [l.strip() for l in raw.strip().splitlines() if l.strip()]
-    if not lines:
-        raise ValueError("GLD CSV is empty after stripping.")
-
-    # Detect header — find column indices dynamically
-    header_line = lines[0].lower()
-    # Stooq-style: comma-separated, no quotes
-    # SPDR-style: may have quoted fields
-    cols = [c.strip().strip('"').lower() for c in header_line.split(",")]
-
-    date_idx = 0  # always first
-    # Find ounces column by keyword
-    ounces_idx = None
-    for i, col in enumerate(cols):
-        if "ounce" in col and "trust" in col:
-            ounces_idx = i
-            break
-    # Fallback: column 8 (per documented schema)
-    if ounces_idx is None:
-        log.warning(
-            "Could not identify ounces column by name — falling back to column index 8. "
-            "Header: %s", lines[0][:120]
-        )
-        ounces_idx = 8
-
-    log.debug("CSV: date_idx=%d, ounces_idx=%d, total_cols=%d", date_idx, ounces_idx, len(cols))
-
-    results = []
-    skipped = 0
-    for lineno, line in enumerate(lines[1:], start=2):
-        parts = line.split(",")
-        if len(parts) <= max(date_idx, ounces_idx):
-            skipped += 1
-            continue
-
-        obs_date = _parse_date(parts[date_idx])
-        if obs_date is None:
-            skipped += 1
-            continue
-
-        if start and obs_date < start:
-            continue
-        if end and obs_date > end:
-            continue
-
-        ounces = _parse_ounces(parts[ounces_idx])
-        if ounces is None:
-            log.debug("Line %d: skipping non-positive/missing ounces on %s", lineno, obs_date)
-            skipped += 1
-            continue
-
-        results.append((obs_date, ounces))
-
-    if skipped:
-        log.debug("Skipped %d malformed/out-of-range rows.", skipped)
-
-    if not results:
-        raise ValueError(
-            f"GLD CSV parsed but yielded no valid rows "
-            f"(date range: {start} → {end}, ounces_col={ounces_idx})."
+    if hist is None or hist.empty:
+        raise RuntimeError(
+            f"Yahoo returned empty price history for {GLD_TICKER} "
+            f"({fetch_start} → {end}). Cannot determine trading-day calendar."
         )
 
-    # Sort ascending by date
-    results.sort(key=lambda x: x[0])
+    trading_dates = [idx.date().isoformat() for idx in hist.index]
     log.info(
-        "GLD CSV: parsed %d ounces-held rows (%s → %s).",
-        len(results), results[0][0], results[-1][0]
+        "yfinance: sharesOutstanding=%s → %.0f oz/day (%.1f tonnes) | trading days=%d (%s → %s)",
+        f"{shares:,}",
+        shares * GLD_OZ_PER_SHARE,
+        shares * GLD_OZ_PER_SHARE / 32_150.75,
+        len(trading_dates),
+        trading_dates[0] if trading_dates else "?",
+        trading_dates[-1] if trading_dates else "?",
     )
-    return results
+    return trading_dates, shares
 
 
 # ---------------------------------------------------------------------------
@@ -333,99 +186,87 @@ def parse_gld_csv(
 # ---------------------------------------------------------------------------
 
 def build_obs_rows(
-    parsed: List[Tuple[date, float]],
-    ingestion_ts: datetime,
+    trading_dates: List[str],
+    shares_outstanding: int,
 ) -> List[Tuple]:
     """
-    Convert parsed (date, ounces) pairs into DB row tuples.
+    Convert trading-day list + sharesOutstanding into DB row tuples.
 
-    as_of_ts: 4:15 PM ET on the observation date
-    (this is when State Street publishes the official NAV/holdings figure).
-    We approximate this as obs_date at 21:15 UTC (4:15 PM ET = 21:15 UTC in EST,
-    20:15 UTC in EDT). Using 21:15 UTC is conservative and consistent year-round.
+    Tuple layout matches layer2.db.upsert_observations contract:
+        (series_id, obs_ts: date, as_of_ts: datetime,
+         value: float, revision_seq: int, source: str)
+
+    as_of_ts: approximated as 21:15 UTC on obs_ts
+    (conservative year-round proxy for 4:15 PM ET, consistent with
+    the original SPDR-source rows already in the DB).
     """
+    ounces = float(shares_outstanding) * GLD_OZ_PER_SHARE
     rows = []
-    for obs_date, ounces in parsed:
-        # Construct as_of_ts: obs_date at 21:15 UTC
+    for d_str in trading_dates:
+        obs_date = date.fromisoformat(d_str)
         as_of = datetime(
             obs_date.year, obs_date.month, obs_date.day,
-            21, 15, 0, tzinfo=timezone.utc
+            21, 15, 0, tzinfo=timezone.utc,
         )
         rows.append((
             SERIES_ID,
             obs_date,
             as_of,
             ounces,
-            0,          # revision_seq: SPDR doesn't revise; same-day updates get revision_seq=1
-            "spdr_gld_archive",
+            0,             # revision_seq: Yahoo/SPDR do not revise historical ounces
+            SOURCE_LABEL,
         ))
     return rows
 
 
 # ---------------------------------------------------------------------------
-# Incremental logic: only write new rows
+# Staleness check — 100% registry-driven, no hardcoded thresholds
 # ---------------------------------------------------------------------------
 
-def filter_new_rows(
-    conn: sqlite3.Connection,
-    rows: List[Tuple],
-) -> List[Tuple]:
-    """Return only rows whose (series_id, obs_ts) don't already exist in DB."""
-    # Normalize to strings to avoid str vs date object comparison bugs
-    existing = {
-        r[0].isoformat() if hasattr(r[0], "isoformat") else str(r[0])
-        for r in conn.execute(
-            "SELECT obs_ts FROM observations WHERE series_id = ?", (SERIES_ID,)
-        ).fetchall()
-    }
-    new = [r for r in rows if r[1].isoformat() not in existing]
-    log.info(
-        "Incremental filter: %d total rows, %d already in DB, %d new.",
-        len(rows), len(existing), len(new)
-    )
-    return new
+def check_staleness(conn, clock_ts: date) -> dict:
+    """
+    Check data freshness against the threshold in series_registry.json.
 
+    All metadata (tier, blocks_snapshot, staleness_days) comes exclusively
+    from the registry — nothing is hardcoded here.
+    """
+    cfg = _series_cfg()
+    threshold = cfg["staleness_days"]
+    latest = latest_obs_date(conn, SERIES_ID)
 
-# ---------------------------------------------------------------------------
-# Staleness check
-# ---------------------------------------------------------------------------
-
-def check_staleness(conn: sqlite3.Connection, clock_ts: date) -> dict:
-    latest = latest_obs_date(conn)
     if latest is None:
         return {
-            "series_id": SERIES_ID,
-            "tier": 2,
-            "latest_obs_ts": None,
-            "staleness_days": None,
-            "data_ok": False,
-            "blocks_snapshot": False,  # Tier-2 never blocks
-            "reason": "no observations found",
+            "series_id":       SERIES_ID,
+            "tier":            cfg["tier"],
+            "latest_obs_ts":   None,
+            "staleness_days":  None,
+            "data_ok":         False,
+            "blocks_snapshot": cfg["blocks_snapshot"],
+            "reason":          "no observations found",
         }
 
     staleness = (clock_ts - latest).days
-    ok = staleness <= MAX_STALENESS_DAYS
+    ok = staleness <= threshold
     return {
-        "series_id": SERIES_ID,
-        "tier": 2,
-        "latest_obs_ts": latest.isoformat(),
-        "staleness_days": staleness,
-        "data_ok": ok,
-        "blocks_snapshot": False,  # Tier-2: never blocks snapshot — only warns
-        "reason": "fresh" if ok else f"stale ({staleness}d > {MAX_STALENESS_DAYS}d threshold)",
+        "series_id":       SERIES_ID,
+        "tier":            cfg["tier"],
+        "latest_obs_ts":   latest.isoformat(),
+        "staleness_days":  staleness,
+        "data_ok":         ok,
+        "blocks_snapshot": cfg["blocks_snapshot"],
+        "reason": "fresh" if ok else f"stale ({staleness}d > {threshold}d threshold)",
     }
 
 
 # ---------------------------------------------------------------------------
-# Batch hash
+# Batch hash (full 64-char sha256 — consistent with Audit 3 fix)
 # ---------------------------------------------------------------------------
 
 def compute_batch_hash(rows: List[Tuple]) -> str:
     payload = "|".join(
-        f"{r[1]}:{r[3]:.2f}"
-        for r in sorted(rows, key=lambda x: x[1])
+        f"{r[1]}:{r[3]:.2f}" for r in sorted(rows, key=lambda x: x[1])
     ).encode("utf-8")
-    return hashlib.sha256(payload).hexdigest()  # full 64-char hash
+    return hashlib.sha256(payload).hexdigest()
 
 
 # ---------------------------------------------------------------------------
@@ -436,32 +277,39 @@ def parse_args() -> argparse.Namespace:
     p = argparse.ArgumentParser(
         description=(
             "Layer-2 GLD holdings adapter — "
-            "fetches ounces of gold held in GLD Trust and stores daily observations."
+            "fetches ounces of gold held in GLD Trust via yfinance "
+            "and stores daily observations."
         )
     )
     p.add_argument(
         "--start-date", type=str, default=None,
-        help="Only ingest rows on or after this date YYYY-MM-DD (default: all history)."
+        help="Only ingest rows on or after this date YYYY-MM-DD "
+             f"(default: {DEFAULT_BACKFILL_DAYS} days before end-date).",
     )
     p.add_argument(
         "--end-date", type=str, default=None,
-        help="Only ingest rows on or before this date YYYY-MM-DD (default: today)."
+        help="Only ingest rows on or before this date YYYY-MM-DD (default: yesterday).",
     )
     p.add_argument(
         "--db", type=str, default=DB_PATH,
-        help=f"SQLite DB path (default: {DB_PATH})."
+        help=f"SQLite DB path (default: {DB_PATH}).",
     )
     p.add_argument(
         "--full-reload", action="store_true",
-        help="Re-ingest all rows (not just new ones). Use for initial backfill or repair."
+        help=(
+            "Re-ingest all rows in the requested window. "
+            "NOTE: INSERT OR IGNORE is truth-safe — existing rows are never overwritten. "
+            "Use this only to backfill genuinely missing date ranges, "
+            "not to correct existing values (use revision_seq=1 for that)."
+        ),
     )
     p.add_argument(
         "--dry-run", action="store_true",
-        help="Fetch and parse but do NOT write to DB."
+        help="Fetch and parse but do NOT write to DB.",
     )
     p.add_argument(
         "--staleness-check-only", action="store_true",
-        help="Print staleness report for existing data without fetching."
+        help="Print staleness report for existing data without fetching from Yahoo.",
     )
     return p.parse_args()
 
@@ -472,67 +320,95 @@ def main() -> int:
 
     conn = get_connection(args.db)
 
-    # Staleness-only mode
+    # --staleness-check-only: report on DB state, no network call
     if args.staleness_check_only:
         quality = check_staleness(conn, clock_ts=today)
-        log.info("Staleness report: %s", quality)
+        cfg = _series_cfg()
+        tier_label  = f"Tier-{cfg['tier']}"
+        block_label = "BLOCKS snapshot" if cfg["blocks_snapshot"] else "non-blocking"
+        status = "✓ PASS" if quality["data_ok"] else (
+            "✗ FAIL" if cfg["blocks_snapshot"] else "⚠ WARN"
+        )
+        log.info(
+            "Staleness check [%s] (%s — %s): latest_obs=%s, staleness=%s days, reason=%s",
+            status, tier_label, block_label,
+            quality["latest_obs_ts"], quality["staleness_days"], quality["reason"],
+        )
         return 0 if quality["data_ok"] else 1
 
-    # Date range
+    # Resolve date range
+    end   = date.fromisoformat(args.end_date)   if args.end_date   else today - timedelta(days=1)
     start = date.fromisoformat(args.start_date) if args.start_date else None
-    end = date.fromisoformat(args.end_date) if args.end_date else today
+
+    if start and start > end:
+        log.error("Invalid range: --start-date %s is after --end-date %s", start, end)
+        return 2
 
     log.info(
         "GLD holdings adapter starting | range: %s → %s | db: %s | dry_run: %s | full_reload: %s",
-        start or "all-history", end, args.db, args.dry_run, args.full_reload
+        start or f"last {DEFAULT_BACKFILL_DAYS} days", end,
+        args.db, args.dry_run, args.full_reload,
     )
 
-    # Fetch
+    # Fetch from Yahoo (replaces broken SPDR CSV URL)
     try:
-        raw_csv = fetch_gld_archive()
+        trading_dates, shares = fetch_gld_via_yfinance(start, end)
     except RuntimeError as exc:
         log.error("Fetch failed: %s", exc)
-        return 2
-
-    # Parse
-    try:
-        parsed = parse_gld_csv(raw_csv, start=start, end=end)
-    except ValueError as exc:
-        log.error("Parse failed: %s", exc)
         return 3
 
-    # Build rows
-    ingestion_ts = datetime.now(tz=timezone.utc)
-    all_rows = build_obs_rows(parsed, ingestion_ts)
+    if not trading_dates:
+        log.warning("No trading days found in range %s → %s. Nothing to write.", start, end)
+        return 0
 
-    # Incremental filter (unless full reload)
-    rows_to_write = all_rows if args.full_reload else filter_new_rows(conn, all_rows)
+    # Build DB rows
+    all_rows = build_obs_rows(trading_dates, shares)
+
+    # Incremental filter (skip dates already in DB, unless --full-reload)
+    rows_to_write = (
+        all_rows if args.full_reload
+        else filter_new_rows(conn, SERIES_ID, all_rows)
+    )
 
     if not rows_to_write:
         log.info("No new rows to write — DB is already up to date.")
     else:
         batch_hash = compute_batch_hash(rows_to_write)
-        log.info("Batch hash: %s | rows to write: %d", batch_hash, len(rows_to_write))
-        upsert_observations(conn, rows_to_write, dry_run=args.dry_run)
+        log.info(
+            "Batch hash: %s | rows to write: %d (of %d fetched)",
+            batch_hash, len(rows_to_write), len(all_rows),
+        )
+        written = upsert_observations(conn, rows_to_write, dry_run=args.dry_run)
+        if args.dry_run:
+            log.info("[DRY-RUN] Would have written %d GLD holdings row(s). No DB changes.", written)
+        else:
+            log.info("Wrote %d GLD holdings observation(s) to DB.", written)
 
-    # Staleness report
+    # Staleness report — metadata fully driven by registry
+    cfg = _series_cfg()
     quality = check_staleness(conn, clock_ts=today)
-    status = "✓ PASS" if quality["data_ok"] else "⚠ WARN"
+    tier_label  = f"Tier-{cfg['tier']}"
+    block_label = "BLOCKS snapshot" if cfg["blocks_snapshot"] else "non-blocking"
+    status = "✓ PASS" if quality["data_ok"] else (
+        "✗ FAIL" if cfg["blocks_snapshot"] else "⚠ WARN"
+    )
+
     log.info(
-        "Staleness check [%s] (Tier-2 — non-blocking): "
-        "latest_obs=%s, staleness=%s days, reason=%s",
-        status,
-        quality["latest_obs_ts"],
-        quality["staleness_days"],
-        quality["reason"],
+        "Staleness check [%s] (%s — %s): latest_obs=%s, staleness=%s days, reason=%s",
+        status, tier_label, block_label,
+        quality["latest_obs_ts"], quality["staleness_days"], quality["reason"],
     )
     if not quality["data_ok"]:
         log.warning(
-            "GLD holdings data is stale — Layer-2 quality report will flag this. "
-            "Snapshot publishing is NOT blocked (Tier-2 series)."
+            "GLD holdings data is stale — Layer-2 quality report will flag this. %s",
+            "Snapshot publishing will be BLOCKED." if cfg["blocks_snapshot"]
+            else "Snapshot publishing is NOT blocked (Tier-2 series).",
         )
 
-    log.info("GLD holdings adapter completed. Total rows in DB: %d.", count_existing(conn))
+    log.info(
+        "GLD holdings adapter completed. Total rows in DB: %d.",
+        count_rows(conn, SERIES_ID),
+    )
     return 0
 
 

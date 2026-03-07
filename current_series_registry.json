@@ -1,0 +1,116 @@
+{
+  "engine_version": "gold-v3.x",
+  "config_version": "cfg-current-series",
+  "milestones": {
+    "M0": {
+      "description": "Deterministic Macro Engine Backbone",
+      "series": {
+        "gold_price_proxy": {
+          "ids": ["XAUUSD", "GOLDAMGBD228NLBM", "GOLDPMGBD228NLBM"],
+          "primary": "XAUUSD",
+          "role": "Primary asset state"
+        },
+        "real_yield_regime": {
+          "ids": ["DFII10", "DGS10", "T10YIE"],
+          "primary": "DFII10",
+          "derived_logic": "DFII10 OR (DGS10 - T10YIE)",
+          "role": "Real yield regime driver"
+        },
+        "monetary_policy_regime": {
+          "ids": ["DFF", "FEDFUNDS"],
+          "primary": "DFF",
+          "role": "Policy regime proxy"
+        },
+        "usd_pressure_regime": {
+          "ids": ["DTWEXBGS"],
+          "primary": "DTWEXBGS",
+          "role": "Dollar strength regime"
+        }
+      }
+    },
+    "M1": {
+      "description": "Stress & Drift Awareness",
+      "series": {
+        "equity_stress_proxy": {
+          "ids": ["VIXCLS"],
+          "primary": "VIXCLS",
+          "role": "Equity volatility stress"
+        },
+        "risk_proxy": {
+          "ids": ["SP500", "NASDAQCOM"],
+          "primary": "SP500",
+          "secondary": ["NASDAQCOM"],
+          "role": "Risk-on / risk-off correlation reference"
+        },
+        "gold_volatility_proxy": {
+          "ids": ["GVZCLS"],
+          "primary": "GVZCLS",
+          "role": "Gold-specific volatility/stress proxy (useful substitute dimension when MOVE absent)"
+        }
+      },
+      "missing": {
+        "rates_vol_stress_move": {
+          "expected_id": "MOVE",
+          "status": "not_present",
+          "notes": "If MOVE remains unavailable, consider constructed realized-rate-vol proxy from DGS10."
+        }
+      }
+    },
+    "M2": {
+      "description": "Structural & Confirmation Layer",
+      "series": {
+        "inflation_confirmation": {
+          "ids": ["CPIAUCSL", "CPILFESL", "PCEPI"],
+          "primary": "CPIAUCSL",
+          "role": "Inflation confirmation"
+        },
+        "forward_inflation_expectation": {
+          "ids": ["T5YIFR", "T5YIE", "T10YIE"],
+          "primary": "T5YIFR",
+          "fallback": ["T5YIE", "T10YIE"],
+          "role": "Forward inflation regime"
+        },
+        "official_gold_reserves": {
+          "ids": ["FRVGBSV", "FRVGBSAM", "FRDGBSV", "FRDGBSAM"],
+          "role": "Official gold stock (structural confirmation)"
+        },
+        "monetary_gold_stock_us": {
+          "ids": ["M1476BUSM027NNBR"],
+          "primary": "M1476BUSM027NNBR",
+          "role": "Monetary gold stock structural proxy (context/validation)"
+        },
+        "mining_equity_proxy": {
+          "ids": ["NASDAQNQUSB55103025"],
+          "primary": "NASDAQNQUSB55103025",
+          "role": "Gold mining equity proxy (supply-side/sector overlay)"
+        },
+        "gold_flow_proxy_index": {
+          "ids": ["NASDAQQGLDI"],
+          "primary": "NASDAQQGLDI",
+          "role": "Gold flows proxy index (NOT GLD holdings; supplementary)"
+        },
+        "nonmonetary_gold_exports": {
+          "ids": ["IEAXGG"],
+          "primary": "IEAXGG",
+          "role": "Gold trade flow proxy (structural/validation)"
+        }
+      },
+      "missing": {
+        "gld_holdings_flow_confirm": {
+          "expected_ids": ["GLD_HOLDINGS", "GLD_SHARES_OUTSTANDING"],
+          "status": "not_present",
+          "notes": "NASDAQQGLDI is a flow proxy index but does not satisfy 'GLD holdings' requirement."
+        }
+      }
+    }
+  },
+  "coverage_summary": {
+    "M0_complete": true,
+    "M1_complete": false,
+    "M2_complete": false,
+    "critical_missing": [
+      "MOVE",
+      "GLD ETF holdings/flow series"
+    ]
+  }
+}

@@ -100,7 +100,7 @@ def load_api_key(path: str) -> str:
             f"FRED API key not found at {path}. "
             f"Create it with your key from https://fredaccount.stlouisfed.org/apikeys"
         )
-    key = p.read_text(encoding="utf-8-sig").strip()
+    key = p.read_text(encoding="utf-8").strip()
     if not key or len(key) < 20:
         raise ValueError(f"FRED API key at {path} looks invalid: {key!r}")
     return key

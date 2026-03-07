@@ -10004,3 +10004,32 @@ A rendszer most már nem csak **elemző**, hanem:
 4. **Kutató** (rendhagyó minták keresése)
 
 **Következő lépés:** Specifikus implementációs részletek, vagy első fázis prioritások?
+
+**Summary (what this sheet is really saying)**
+Layer 2 should run **daily end-of-day** for anything that moves markets fast and drives gold regimes (real yields, nominal yields, USD, stress/risk). **Monthly** series (CPI/PCE/PPI) are **validation/structure inputs**, not daily gating. The three custom series complete the “gold-first” loop: **gold price state**, **rates-vol stress (MOVE)**, and **flow confirmation (GLD holdings)**.
+
+| Indicator                 | Meaning (real name)                               | Recommended L2 frequency  | Reason                                                                             |
+| ------------------------- | ------------------------------------------------- | ------------------------- | ---------------------------------------------------------------------------------- |
+| CPILFESL                  | Core CPI (CPI less food & energy)                 | Monthly                   | Structural inflation confirmation; can be revised → validation, not daily gating.  |
+| DFF                       | Effective fed funds rate (daily series)           | Daily (EOD batch)         | Policy regime proxy; missing a day can distort regime classification.              |
+| DFII10                    | 10Y TIPS real yield                               | Daily (EOD batch)         | Core real-rate driver for gold; needs daily continuity for regime/shift detection. |
+| DFII5                     | 5Y TIPS real yield                                | Daily (EOD batch)         | Shorter real-rate regime + curve shape; complements DFII10.                        |
+| DGS10                     | 10Y Treasury nominal yield                        | Daily (EOD batch)         | Nominal rate regime + term structure; needed for real/breakeven decomposition.     |
+| DGS2                      | 2Y Treasury nominal yield                         | Daily (EOD batch)         | Front-end policy expectations; detects tightening/inversion regimes.               |
+| DGS5                      | 5Y Treasury nominal yield                         | Daily (EOD batch)         | Mid-curve anchor improves curve-shape features and stability.                      |
+| DTWEXBGS                  | Broad trade-weighted USD index (goods)            | Daily (EOD batch)         | USD pressure is a primary gold driver; needed for regime context.                  |
+| DTWEXM                    | USD vs major currencies index (goods)             | Daily (EOD batch)         | Separates “major FX” USD strength from broader USD moves.                          |
+| DTWEXO                    | USD vs other important partners index (goods)     | Daily (EOD batch)         | Captures USD vs non-majors/EM basket; complements DTWEXM.                          |
+| EFFR                      | Effective fed funds rate (NY Fed)                 | Daily (EOD batch)         | High-quality policy-rate truth; cross-check vs DFF/FEDFUNDS.                       |
+| FEDFUNDS                  | Fed funds rate (monthly average)                  | Monthly                   | Slow policy summary for long-horizon features; not daily gating.                   |
+| PCEPI                     | Headline PCE price index                          | Monthly                   | Fed-preferred inflation gauge; confirmation/validation layer.                      |
+| PCU2122212122210          | PPI: Gold ore & silver ore mining (gold ores)     | Monthly                   | Structural supply/cost proxy; long-horizon overlay (not gating).                   |
+| SP500                     | S&P 500 index                                     | Daily (close/EOD)         | Risk-on/off proxy; baseline for correlation-break monitoring.                      |
+| T10YIE                    | 10Y breakeven inflation                           | Daily (EOD batch)         | Inflation expectations regime input; moderately volatile.                          |
+| T5YIE                     | 5Y breakeven inflation                            | Daily (EOD batch)         | Shorter-horizon inflation expectations; improves regime resolution.                |
+| T5YIFR                    | 5Y, 5Y forward inflation expectation              | Daily (EOD batch)         | Forward inflation regime consistency check; supportive, not primary.               |
+| TWEXB                     | Broad trade-weighted USD index (goods + services) | Daily (EOD batch)         | Alternate broad USD measure; redundancy improves robustness.                       |
+| VIXCLS                    | VIX (equity implied volatility)                   | Daily (close/EOD)         | Equity stress sensor feeding Stress/CorrBreak governance (not directional).        |
+| gold_price_proxy          | Gold price proxy (XAUUSD / GC / GLD price)        | Daily (close/EOD minimum) | Primary asset state; mandatory input for gold-first MarketState.                   |
+| rates_vol_stress_move     | MOVE index (rates volatility / bond stress)       | Daily (close/EOD)         | Tier-1 rates stress sensor; drives stress/UnknownMode/shrink logic.                |
+| gld_holdings_flow_confirm | GLD holdings / flows                              | Daily (when published)    | Flow confirmation overlay; validation only (don’t gate direction).                 |

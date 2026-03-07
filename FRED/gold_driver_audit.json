@@ -47,7 +47,7 @@
       "series_found": ["RAGGCGCA", "RAGGCTGGC", "RAGGCGCC", "RAGGCHEFRN", "RAGGCTGFR"],
       "coverage_level": "Partial",
       "missing_components": "US Fed gold certificate reserves only; no global central bank gold holdings or official sector accumulation. FRED does not provide World Gold Council–type central bank buying data."
-    },
+    }
   ],
   "missing_factors": [
     {

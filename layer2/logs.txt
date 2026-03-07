@@ -1,0 +1,151 @@
+PS C:\Code\Mr-Ripley> python layer2/run_backfill.py
+2026-03-07T17:43:26Z [INFO] run_backfill: ============================================================
+2026-03-07T17:43:26Z [INFO] run_backfill: Mr. Ripley — Layer-2 Backfill Orchestrator
+2026-03-07T17:43:26Z [INFO] run_backfill: ============================================================
+2026-03-07T17:43:26Z [INFO] run_backfill: Mode:      DAILY
+2026-03-07T17:43:26Z [INFO] run_backfill: DB:        layer2_truth.db
+2026-03-07T17:43:26Z [INFO] run_backfill: Dry-run:   False
+2026-03-07T17:43:26Z [INFO] run_backfill: Adapters:  ['gold', 'move', 'gld', 'fred']
+2026-03-07T17:43:26Z [INFO] run_backfill:
+2026-03-07T17:43:26Z [INFO] run_backfill: ============================================================
+2026-03-07T17:43:26Z [INFO] run_backfill: Adapter [GOLD]: Gold price (XAUUSD)
+2026-03-07T17:43:26Z [INFO] run_backfill: ============================================================
+2026-03-07T17:43:26Z [INFO] run_backfill:   CMD: C:\Users\jozse\AppData\Local\Programs\Python\Python310\python.exe layer2/adapters/gold_adapter.py --db layer2_truth.db --live --backfill-days 5
+2026-03-07T17:43:27Z [INFO] gold_adapter: gold-api.com: price=5174.00, assigned to 5 date(s) (2026-03-02 -> 2026-03-06).
+2026-03-07T17:43:27Z [INFO] gold_adapter: Live fetch added 5 rows.
+2026-03-07T17:43:27Z [INFO] gold_adapter: After dedup: 5 unique gold rows (2026-03-02 -> 2026-03-06).
+2026-03-07T17:43:27Z [INFO] gold_adapter: No new rows to write — DB is already up to date.
+2026-03-07T17:43:27Z [INFO] gold_adapter: Staleness [PASS] (Tier-1 BLOCKS snapshot if FAIL): latest=2026-03-06, staleness=1d, reason=fresh
+2026-03-07T17:43:27Z [INFO] gold_adapter: Gold adapter completed. Total rows in DB: 3137.
+2026-03-07T17:43:27Z [INFO] run_backfill:   → exit_code=0  elapsed=0.4s
+2026-03-07T17:43:28Z [INFO] run_backfill: ============================================================
+2026-03-07T17:43:28Z [INFO] run_backfill: Adapter [MOVE]: MOVE index (^MOVE)
+2026-03-07T17:43:28Z [INFO] run_backfill: ============================================================
+2026-03-07T17:43:28Z [INFO] run_backfill:   CMD: C:\Users\jozse\AppData\Local\Programs\Python\Python310\python.exe layer2/adapters/move_adapter.py --db layer2_truth.db --source yahoo --backfill-days 5
+2026-03-07T17:43:28Z [INFO] move_adapter: MOVE adapter starting | range: 2026-03-02 → 2026-03-06 | db: layer2_truth.db | dry_run: False
+2026-03-07T17:43:29Z [INFO] move_adapter: Yahoo: parsed 5 MOVE rows (2026-03-02 → 2026-03-06).
+2026-03-07T17:43:29Z [INFO] move_adapter: Batch hash (SHA-256): e8df3c0c55493472d6a4da0bd1f42d1db22c87af9dff0f9b0f8d31a5f4dfab78 | rows: 5
+2026-03-07T17:43:29Z [INFO] move_adapter: No new rows to write — DB is already up to date.
+2026-03-07T17:43:29Z [INFO] move_adapter: Staleness check [✓ PASS]: latest_obs=2026-03-06, staleness=1 days, reason=fresh
+2026-03-07T17:43:29Z [INFO] move_adapter: MOVE adapter completed. Rows in DB: 1247.
+2026-03-07T17:43:29Z [INFO] run_backfill:   → exit_code=0  elapsed=1.7s
+2026-03-07T17:43:30Z [INFO] run_backfill: ============================================================
+2026-03-07T17:43:30Z [INFO] run_backfill: Adapter [GLD]: GLD Trust holdings
+2026-03-07T17:43:30Z [INFO] run_backfill: ============================================================
+2026-03-07T17:43:30Z [INFO] run_backfill:   CMD: C:\Users\jozse\AppData\Local\Programs\Python\Python310\python.exe layer2/adapters/gld_holdings_adapter.py --db layer2_truth.db
+2026-03-07T17:43:31Z [INFO] gld_holdings_adapter: GLD holdings adapter starting | range: last 30 days → 2026-03-06 | db: layer2_truth.db | dry_run: False | full_reload: False
+2026-03-07T17:43:32Z [INFO] gld_holdings_adapter: yfinance: sharesOutstanding=260,300,000 → 24949755 oz/day (776.0 tonnes) | trading days=21 (2026-02-05 → 2026-03-06)
+2026-03-07T17:43:32Z [INFO] gld_holdings_adapter: No new rows to write — DB is already up to date.
+2026-03-07T17:43:32Z [INFO] gld_holdings_adapter: Staleness check [✓ PASS] (Tier-2 — non-blocking): latest_obs=2026-03-06, staleness=1 days, reason=fresh
+2026-03-07T17:43:32Z [INFO] gld_holdings_adapter: GLD holdings adapter completed. Total rows in DB: 1552.
+2026-03-07T17:43:32Z [INFO] run_backfill:   → exit_code=0  elapsed=2.0s
+2026-03-07T17:43:33Z [INFO] run_backfill: ============================================================
+2026-03-07T17:43:33Z [INFO] run_backfill: Adapter [FRED]: FRED loader (20 series)
+2026-03-07T17:43:33Z [INFO] run_backfill: ============================================================
+2026-03-07T17:43:33Z [INFO] run_backfill:   CMD: C:\Users\jozse\AppData\Local\Programs\Python\Python310\python.exe layer2/adapters/fred_loader.py --db layer2_truth.db --backfill-days 5
+2026-03-07T17:43:34Z [INFO] fred_loader: FRED API key loaded from .secrets/fred_api_key.txt
+2026-03-07T17:43:34Z [INFO] fred_loader: Loading 20 series | range: 2026-03-02 -> 2026-03-07 | dry_run: False
+2026-03-07T17:43:34Z [INFO] fred_loader: [1/20] Fetching DFII10 (10Y TIPS real yield) from 2026-03-02 to 2026-03-07 ...
+2026-03-07T17:43:34Z [INFO] fred_loader:   Already up to date (4 obs returned, 0 new).
+2026-03-07T17:43:35Z [INFO] fred_loader: [2/20] Fetching DFII5 (5Y TIPS real yield) from 2026-03-02 to 2026-03-07 ...
+2026-03-07T17:43:35Z [INFO] fred_loader:   Already up to date (4 obs returned, 0 new).
+2026-03-07T17:43:35Z [INFO] fred_loader: [3/20] Fetching DGS10 (10Y Treasury nominal yield) from 2026-03-02 to 2026-03-07 ...
+2026-03-07T17:43:36Z [INFO] fred_loader:   Already up to date (4 obs returned, 0 new).
+2026-03-07T17:43:36Z [INFO] fred_loader: [4/20] Fetching DGS2 (2Y Treasury nominal yield) from 2026-03-02 to 2026-03-07 ...
+2026-03-07T17:43:37Z [INFO] fred_loader:   Already up to date (4 obs returned, 0 new).
+2026-03-07T17:43:37Z [INFO] fred_loader: [5/20] Fetching DGS5 (5Y Treasury nominal yield) from 2026-03-02 to 2026-03-07 ...
+2026-03-07T17:43:38Z [INFO] fred_loader:   Already up to date (4 obs returned, 0 new).
+2026-03-07T17:43:38Z [INFO] fred_loader: [6/20] Fetching T10YIE (10Y breakeven inflation) from 2026-03-02 to 2026-03-07 ...
+2026-03-07T17:43:38Z [INFO] fred_loader:   Already up to date (5 obs returned, 0 new).
+2026-03-07T17:43:39Z [INFO] fred_loader: [7/20] Fetching T5YIE (5Y breakeven inflation) from 2026-03-02 to 2026-03-07 ...
+2026-03-07T17:43:39Z [INFO] fred_loader:   Already up to date (5 obs returned, 0 new).
+2026-03-07T17:43:40Z [INFO] fred_loader: [8/20] Fetching T5YIFR (5Y/5Y forward inflation expectation) from 2026-03-02 to 2026-03-07 ...
+2026-03-07T17:43:40Z [INFO] fred_loader:   Already up to date (5 obs returned, 0 new).
+2026-03-07T17:43:41Z [INFO] fred_loader: [9/20] Fetching DFF (Effective fed funds rate (daily)) from 2026-03-02 to 2026-03-07 ...
+2026-03-07T17:43:41Z [INFO] fred_loader:   Already up to date (4 obs returned, 0 new).
+2026-03-07T17:43:42Z [INFO] fred_loader: [10/20] Fetching EFFR (NY Fed effective fed funds rate) from 2026-03-02 to 2026-03-07 ...
+2026-03-07T17:43:42Z [INFO] fred_loader:   Already up to date (4 obs returned, 0 new).
+2026-03-07T17:43:42Z [INFO] fred_loader: [11/20] Fetching DTWEXBGS (Broad trade-weighted USD index (goods)) from 2026-03-02 to 2026-03-07 ...
+2026-03-07T17:43:43Z [INFO] fred_loader:   No observations returned (may be weekend/holiday gap).
+2026-03-07T17:43:43Z [INFO] fred_loader: [12/20] Fetching VIXCLS (VIX equity implied volatility) from 2026-03-02 to 2026-03-07 ...
+2026-03-07T17:43:44Z [INFO] fred_loader:   Already up to date (4 obs returned, 0 new).
+2026-03-07T17:43:44Z [INFO] fred_loader: [13/20] Fetching SP500 (S&P 500 index) from 2026-03-02 to 2026-03-07 ...
+2026-03-07T17:43:44Z [INFO] fred_loader:   Already up to date (5 obs returned, 0 new).
+2026-03-07T17:43:45Z [INFO] fred_loader: [14/20] Fetching CPILFESL (Core CPI (less food and energy)) from 2026-03-02 to 2026-03-07 ...
+2026-03-07T17:43:45Z [INFO] fred_loader:   No observations returned (may be weekend/holiday gap).
+2026-03-07T17:43:46Z [INFO] fred_loader: [15/20] Fetching FEDFUNDS (Fed funds rate monthly average) from 2026-03-02 to 2026-03-07 ...
+2026-03-07T17:43:46Z [INFO] fred_loader:   No observations returned (may be weekend/holiday gap).
+2026-03-07T17:43:47Z [INFO] fred_loader: [16/20] Fetching PCEPI (Headline PCE price index) from 2026-03-02 to 2026-03-07 ...
+2026-03-07T17:43:47Z [INFO] fred_loader:   No observations returned (may be weekend/holiday gap).
+2026-03-07T17:43:47Z [INFO] fred_loader: [17/20] Fetching PCU2122212122210 (PPI: Gold ore mining) from 2026-03-02 to 2026-03-07 ...
+2026-03-07T17:43:48Z [INFO] fred_loader:   No observations returned (may be weekend/holiday gap).
+2026-03-07T17:43:48Z [INFO] fred_loader: [18/20] Fetching DTWEXM (USD vs major currencies index) from 2026-03-02 to 2026-03-07 ...
+2026-03-07T17:43:49Z [INFO] fred_loader:   No observations returned (may be weekend/holiday gap).
+2026-03-07T17:43:49Z [INFO] fred_loader: [19/20] Fetching DTWEXO (USD vs other trading partners index) from 2026-03-02 to 2026-03-07 ...
+2026-03-07T17:43:50Z [INFO] fred_loader:   No observations returned (may be weekend/holiday gap).
+2026-03-07T17:43:50Z [INFO] fred_loader: [20/20] Fetching TWEXB (Broad USD index goods and services (weekly)) from 2026-03-02 to 2026-03-07 ...
+2026-03-07T17:43:51Z [INFO] fred_loader:   No observations returned (may be weekend/holiday gap).
+2026-03-07T17:43:51Z [INFO] fred_loader: ==================================================
+2026-03-07T17:43:51Z [INFO] fred_loader: FRED loader complete.
+2026-03-07T17:43:51Z [INFO] fred_loader:   Series attempted: 20
+2026-03-07T17:43:51Z [INFO] fred_loader:   Successful:       20
+2026-03-07T17:43:51Z [INFO] fred_loader:   Failed:           0
+2026-03-07T17:43:51Z [INFO] fred_loader:   New rows written: 0
+2026-03-07T17:43:51Z [INFO] fred_loader: ==================================================
+2026-03-07T17:43:51Z [INFO] run_backfill:   → exit_code=0  elapsed=17.7s
+2026-03-07T17:43:51Z [INFO] run_backfill:
+2026-03-07T17:43:51Z [INFO] run_backfill: ============================================================
+2026-03-07T17:43:51Z [INFO] run_backfill: BACKFILL SUMMARY
+2026-03-07T17:43:51Z [INFO] run_backfill: ============================================================
+2026-03-07T17:43:51Z [INFO] run_backfill:   [T1  ] Gold price (XAUUSD)            ✓ PASS
+2026-03-07T17:43:51Z [INFO] run_backfill:   [T1  ] MOVE index (^MOVE)             ✓ PASS
+2026-03-07T17:43:51Z [INFO] run_backfill:   [T2  ] GLD Trust holdings             ✓ PASS
+2026-03-07T17:43:51Z [INFO] run_backfill:   [T1+2] FRED loader (20 series)        ✓ PASS
+2026-03-07T17:43:51Z [INFO] run_backfill: ------------------------------------------------------------
+2026-03-07T17:43:51Z [INFO] run_backfill:   4 adapter(s) run | 0 failed | 0 warned | 24.8s total
+2026-03-07T17:43:51Z [INFO] run_backfill: All adapters completed successfully.
+
+PS C:\Code\Mr-Ripley> python layer2/query_db.py --status
+
+╔══════════════════════════════════════╗
+║   Layer-2 Database Health Summary    ║
+╚══════════════════════════════════════╝
+  DB path:         layer2_truth.db
+  Today:           2026-03-07
+  Series in DB:    15  (registry: 23)
+  Total rows:      5,988
+  Snapshots:       0  (last: none)
+
+  Freshness:       15 fresh  0 stale  0 missing/old
+
+  Commands: --counts | --freshness | --registry | --snapshots
+
+PS C:\Code\Mr-Ripley> python layer2/query_db.py --registry
+
+Series Registry  v1.0.0  (23 series)
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+  series_id                       tier  freq    group       stale_d   blocks   disc.    estimate  full_hist_start   source      
+  ──────────────────────────────  ────  ──────  ──────────  ────────  ───────  ───────  ────────  ────────────────  ────────────
+  gold_price_proxy       T1    D       gold        3d        yes      no       no        2014-01-02        stooq_json_yahoo
+  rates_vol_stress_move  T1    D       stress      3d        yes      no       no        2021-03-06        yahoo
+  DFII10                 T1    D       real_yields  3d        yes      no       no        2003-01-02        fred
+  DFII5                  T1    D       real_yields  3d        yes      no       no        2003-01-02        fred
+  DGS10                  T1    D       nominal_yields  3d        yes      no       no        2005-01-03        fred
+  DGS2                   T1    D       nominal_yields  3d        yes      no       no        2005-01-03        fred
+  DGS5                   T1    D       nominal_yields  3d        yes      no       no        2005-01-03        fred
+  T10YIE                 T1    D       breakeven   3d        yes      no       no        2003-01-02        fred
+  T5YIE                  T1    D       breakeven   3d        yes      no       no        2003-01-02        fred
+  T5YIFR                 T1    D       breakeven   3d        yes      no       no        2003-01-02        fred
+  DFF                    T1    D       policy_rate  3d        yes      no       no        2005-01-03        fred
+  EFFR                   T1    D       policy_rate  3d        yes      no       no        2005-01-03        fred
+  DTWEXBGS               T1    D       usd         10d       yes      no       no        2006-01-02        fred
+  VIXCLS                 T1    D       stress      3d        yes      no       no        2005-01-03        fred
+  SP500                  T1    D       risk        3d        yes      no       no        2016-02-22        fred
+  gld_holdings_flow_confirm  T2    D       flow        5d        no       no       yes       2021-03-08        spdr_gld_archive
+  CPILFESL               T2    M       inflation_monthly  45d       no       no       no        2005-01-01        fred
+  FEDFUNDS               T2    M       inflation_monthly  45d       no       no       no        2005-01-01        fred
+  PCEPI                  T2    M       inflation_monthly  45d       no       no       no        2005-01-01        fred
+  PCU2122212122210       T2    M       inflation_monthly  9999d     no       yes      no        2005-01-01        fred
+  DTWEXM                 T2    D       usd_discontinued  9999d     no       yes      no        2005-01-03        fred
+  DTWEXO                 T2    D       usd_discontinued  9999d     no       yes      no        2005-01-03        fred
+  TWEXB                  T2    W       usd_discontinued  9999d     no       yes      no        2005-01-03        fred
