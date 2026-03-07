@@ -42,6 +42,8 @@ _DDL_SNAPSHOTS = """
 CREATE TABLE IF NOT EXISTS snapshots (
     snapshot_id     TEXT      PRIMARY KEY,
     clock_ts        TIMESTAMP NOT NULL,
+    engine_version  TEXT      NOT NULL,
+    config_version  TEXT      NOT NULL,
     created_at      TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     verdict         TEXT      NOT NULL,
     tier1_series    INTEGER   NOT NULL,
@@ -58,6 +60,11 @@ CREATE TABLE IF NOT EXISTS snapshots (
 _DDL_SNAPSHOTS_INDEX = """
 CREATE INDEX IF NOT EXISTS idx_snapshots_clock
 ON snapshots (clock_ts DESC);
+"""
+
+_DDL_SNAPSHOTS_VERSION_INDEX = """
+CREATE INDEX IF NOT EXISTS idx_snapshots_clock_engine_config
+ON snapshots (clock_ts DESC, engine_version, config_version);
 """
 
 _DDL_SNAPSHOT_VALUES = """
@@ -95,9 +102,38 @@ def _ensure_observations(conn: sqlite3.Connection) -> None:
 
 def _ensure_snapshot_tables(conn: sqlite3.Connection) -> None:
     conn.execute(_DDL_SNAPSHOTS)
+    _ensure_snapshot_schema_migrations(conn)
     conn.execute(_DDL_SNAPSHOTS_INDEX)
+    conn.execute(_DDL_SNAPSHOTS_VERSION_INDEX)
     conn.execute(_DDL_SNAPSHOT_VALUES)
     conn.commit()
+
+
+def _ensure_snapshot_schema_migrations(conn: sqlite3.Connection) -> None:
+    """
+    Backfill required columns for older SQLite files.
+
+    Architecture4 requires snapshots to be version-locked by both:
+      - engine_version
+      - config_version
+
+    Existing DBs may have been created before those columns existed, so we
+    migrate in place rather than forcing a destructive rebuild.
+    """
+    existing = {
+        str(row["name"])
+        for row in conn.execute("PRAGMA table_info(snapshots)").fetchall()
+    }
+
+    if "engine_version" not in existing:
+        conn.execute(
+            "ALTER TABLE snapshots ADD COLUMN engine_version TEXT NOT NULL DEFAULT 'UNKNOWN_ENGINE_VERSION'"
+        )
+
+    if "config_version" not in existing:
+        conn.execute(
+            "ALTER TABLE snapshots ADD COLUMN config_version TEXT NOT NULL DEFAULT 'UNKNOWN_CONFIG_VERSION'"
+        )
 
 
 def upsert_observations(conn: sqlite3.Connection, rows: List[Tuple], *, dry_run: bool = False) -> int:
@@ -225,8 +261,6 @@ def filter_new_rows(conn: sqlite3.Connection, series_id: str, rows: List[Tuple])
     return [r for r in rows if r[1].isoformat() not in existing]
 
 
-
-
 def read_aligned_snapshot_rows(conn: sqlite3.Connection, required_series: List[Tuple[str, str, int, str, int]], clock_ts: datetime):
     """
     Execute the canonical set-based snapshot alignment query.
@@ -299,6 +333,8 @@ def read_aligned_snapshot_rows(conn: sqlite3.Connection, required_series: List[T
         params.extend(rs)
     params.extend([clock_ts.date().isoformat(), clock_ts.isoformat()])
     return conn.execute(sql, params).fetchall()
+
+
 def _coerce_date(value) -> date:
     if isinstance(value, date) and not isinstance(value, datetime):
         return value

@@ -34,6 +34,8 @@ from layer2.config.registry import get_registry  # noqa: E402
 DB_PATH: str = os.getenv("L2_DB_PATH", "layer2_truth.db")
 SNAPSHOT_JSON_PATH: str = os.getenv("L2_SNAPSHOT_PATH", "latest_snapshot.json")
 LOG_LEVEL: str = os.getenv("L2_LOG_LEVEL", "INFO")
+ENGINE_VERSION: str = os.getenv("L2_ENGINE_VERSION", "gold-v3.3.0")
+REGISTRY_PATH: str = os.getenv("L2_REGISTRY_PATH", "series_registry.json")
 
 CLOCK_TIMEZONE: str = os.getenv("L2_CLOCK_TIMEZONE", "UTC")
 CLOCK_CUT_HOUR: int = int(os.getenv("L2_CLOCK_CUT_HOUR", "22"))
@@ -54,18 +56,99 @@ def _tier1_required_ids() -> List[str]:
     return get_registry().tier1_required_ids()
 
 
-def _snapshot_exists(conn, clock_ts: datetime) -> Optional[str]:
+def _get_engine_version() -> str:
+    engine_version = str(ENGINE_VERSION).strip()
+    if not engine_version:
+        raise ValueError("L2_ENGINE_VERSION resolved to an empty string.")
+    return engine_version
+
+
+
+def _registry_path_candidates() -> List[Path]:
+    raw = Path(REGISTRY_PATH)
+    candidates = [raw]
+    if not raw.is_absolute():
+        candidates.extend(
+            [
+                Path.cwd() / raw,
+                _HERE / raw,
+                _HERE.parent / raw,
+                _HERE / "series_registry.json",
+            ]
+        )
+    deduped: List[Path] = []
+    seen = set()
+    for path in candidates:
+        if path in seen:
+            continue
+        seen.add(path)
+        deduped.append(path)
+    return deduped
+
+
+
+def _get_config_version() -> str:
+    registry = get_registry()
+
+    for attr in ("registry_version", "version"):
+        value = getattr(registry, attr, None)
+        if value:
+            return str(value)
+
+    for method_name in ("to_dict", "raw", "payload"):
+        method = getattr(registry, method_name, None)
+        if callable(method):
+            try:
+                payload = method()
+            except Exception:
+                payload = None
+            if isinstance(payload, dict) and payload.get("registry_version"):
+                return str(payload["registry_version"])
+
+    for path in _registry_path_candidates():
+        if not path.exists():
+            continue
+        try:
+            payload = json.loads(path.read_text(encoding="utf-8"))
+        except Exception:
+            continue
+        version = payload.get("registry_version")
+        if version:
+            return str(version)
+
+    raise RuntimeError(
+        "Could not resolve config_version from series_registry.json. "
+        "Architecture4 requires config_version to be populated from registry_version."
+    )
+
+
+
+def _snapshot_exists(
+    conn,
+    clock_ts: datetime,
+    engine_version: str,
+    config_version: str,
+) -> Optional[str]:
     row = conn.execute(
-        "SELECT snapshot_id FROM snapshots WHERE clock_ts = ?",
-        (clock_ts.isoformat(),),
+        """
+        SELECT snapshot_id
+        FROM snapshots
+        WHERE clock_ts = ?
+          AND engine_version = ?
+          AND config_version = ?
+        """,
+        (clock_ts.isoformat(), engine_version, config_version),
     ).fetchone()
     return row["snapshot_id"] if row else None
+
 
 
 def _write_snapshot(
     conn,
     snapshot_id: str,
     clock_ts: datetime,
+    engine_version: str,
+    config_version: str,
     quality_summary: dict,
     values: List[dict],
     *,
@@ -75,13 +158,16 @@ def _write_snapshot(
     conn.execute(
         """
         INSERT OR IGNORE INTO snapshots
-            (snapshot_id, clock_ts, verdict, tier1_series, tier1_pass,
-             tier1_fail, tier2_series, tier2_warn, series_count, dry_run, forced)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            (snapshot_id, clock_ts, engine_version, config_version, verdict,
+             tier1_series, tier1_pass, tier1_fail, tier2_series, tier2_warn,
+             series_count, dry_run, forced)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
         (
             snapshot_id,
             clock_ts.isoformat(),
+            engine_version,
+            config_version,
             "PASS" if quality_summary["snapshot_ok"] else "FAIL",
             quality_summary["summary"]["tier1_total"],
             quality_summary["summary"]["tier1_pass"],
@@ -118,13 +204,15 @@ def _write_snapshot(
     conn.commit()
 
 
+
 def _list_snapshots(conn, limit: int = 10) -> None:
     rows = conn.execute(
         """
-        SELECT snapshot_id, clock_ts, verdict, tier1_pass, tier1_fail,
-               series_count, dry_run, forced, created_at
+        SELECT snapshot_id, clock_ts, engine_version, config_version,
+               verdict, tier1_pass, tier1_fail, series_count,
+               dry_run, forced, created_at
         FROM snapshots
-        ORDER BY clock_ts DESC
+        ORDER BY clock_ts DESC, created_at DESC
         LIMIT ?
         """,
         (limit,),
@@ -140,9 +228,11 @@ def _list_snapshots(conn, limit: int = 10) -> None:
     for r in rows:
         flags = (" [DRY-RUN]" if r["dry_run"] else "") + (" [FORCED]" if r["forced"] else "")
         log.info(
-            "  %s | %s | %s | T1: %d/%d | series: %d%s",
+            "  %s | %s | %s | %s | %s | T1: %d/%d | series: %d%s",
             r["snapshot_id"],
             r["clock_ts"][:19],
+            r["engine_version"],
+            r["config_version"],
             r["verdict"],
             r["tier1_pass"],
             r["tier1_pass"] + r["tier1_fail"],
@@ -150,6 +240,7 @@ def _list_snapshots(conn, limit: int = 10) -> None:
             flags,
         )
     log.info("=" * 80)
+
 
 
 def _run_quality_gate(conn, clock) -> dict:
@@ -160,6 +251,7 @@ def _run_quality_gate(conn, clock) -> dict:
     except ImportError:
         log.warning("quality_gate.py not importable — running minimal inline check.")
         return _minimal_quality_check(conn, clock)
+
 
 
 def _minimal_quality_check(conn, clock) -> dict:
@@ -204,6 +296,7 @@ def _minimal_quality_check(conn, clock) -> dict:
     }
 
 
+
 def _extract_aligned_payload(conn, clock, quality: dict) -> tuple[list[dict], list[str]]:
     """
     Reuse the aligned payload from the quality report when available.
@@ -219,8 +312,18 @@ def _extract_aligned_payload(conn, clock, quality: dict) -> tuple[list[dict], li
     return build_snapshot_values_payload(aligned), aligned.missing_series
 
 
-def compute_snapshot_id(clock_ts: datetime, values: List[dict]) -> str:
-    payload = f"clock_ts={clock_ts.isoformat()}\n"
+
+def compute_snapshot_id(
+    clock_ts: datetime,
+    engine_version: str,
+    config_version: str,
+    values: List[dict],
+) -> str:
+    payload = (
+        f"clock_ts={clock_ts.isoformat()}\n"
+        f"engine_version={engine_version}\n"
+        f"config_version={config_version}\n"
+    )
     for v in sorted(values, key=lambda x: x["series_id"]):
         payload += (
             f"{v['series_id']}="
@@ -230,11 +333,14 @@ def compute_snapshot_id(clock_ts: datetime, values: List[dict]) -> str:
     return hashlib.sha256(payload.encode("utf-8")).hexdigest()
 
 
+
 def write_snapshot_json(
     path: str,
     snapshot_id: str,
     clock,
     run_ts: datetime,
+    engine_version: str,
+    config_version: str,
     quality: dict,
     values: List[dict],
     missing: List[str],
@@ -254,6 +360,8 @@ def write_snapshot_json(
 
     output = {
         "snapshot_id": snapshot_id,
+        "engine_version": engine_version,
+        "config_version": config_version,
         "clock_ts": clock.clock_ts.isoformat(),
         "clock_date": clock.clock_date.isoformat(),
         "verdict": "PASS" if quality["snapshot_ok"] else "FAIL",
@@ -311,11 +419,21 @@ def write_snapshot_json(
     log.info("Snapshot JSON written to: %s", p)
 
 
-def print_snapshot_report(snapshot_id: str, clock, values: List[dict], dry_run: bool) -> None:
+
+def print_snapshot_report(
+    snapshot_id: str,
+    clock,
+    values: List[dict],
+    dry_run: bool,
+    engine_version: str,
+    config_version: str,
+) -> None:
     log.info("=" * 68)
     log.info("SNAPSHOT REPORT%s", " [DRY-RUN]" if dry_run else "")
-    log.info("  snapshot_id: %s", snapshot_id)
-    log.info("  clock_ts:    %s", clock.clock_ts.isoformat())
+    log.info("  snapshot_id:    %s", snapshot_id)
+    log.info("  clock_ts:       %s", clock.clock_ts.isoformat())
+    log.info("  engine_version: %s", engine_version)
+    log.info("  config_version: %s", config_version)
     log.info("=" * 68)
 
     current_group = None
@@ -338,86 +456,81 @@ def print_snapshot_report(snapshot_id: str, clock, values: List[dict], dry_run: 
     log.info("  snapshot_id:     %s", snapshot_id)
     if dry_run:
         log.info("  [DRY-RUN] Nothing written to DB or JSON.")
-    log.info("=" * 68)
 
 
-def parse_args() -> argparse.Namespace:
-    p = argparse.ArgumentParser(
-        description="Layer-2 Snapshot Publisher — governed by layer2.clock and layer2.alignment."
+
+def build_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(description="Publish governed Layer-2 snapshots.")
+    parser.add_argument("--date", help="Replay run date (YYYY-MM-DD). Defaults to policy-local today.")
+    parser.add_argument("--db-path", default=DB_PATH, help=f"SQLite DB path (default: {DB_PATH})")
+    parser.add_argument(
+        "--snapshot-path",
+        default=SNAPSHOT_JSON_PATH,
+        help=f"Path to latest_snapshot.json output (default: {SNAPSHOT_JSON_PATH})",
     )
-    p.add_argument("--clock-date", type=str, default=None, help="Override clock date YYYY-MM-DD. Use for replays.")
-    p.add_argument("--dry-run", action="store_true", help="Run full pipeline but do NOT write to DB or JSON.")
-    p.add_argument("--force", action="store_true", help="Gate still runs — FAIL does not block. FOR TESTING ONLY.")
-    p.add_argument("--list", action="store_true", help="List recent snapshots and exit.")
-    p.add_argument("--db", type=str, default=DB_PATH, help=f"SQLite DB path (default: {DB_PATH}).")
-    p.add_argument("--snapshot-path", type=str, default=SNAPSHOT_JSON_PATH, help=f"JSON output path (default: {SNAPSHOT_JSON_PATH}).")
-    p.add_argument("--timezone", type=str, default=CLOCK_TIMEZONE, help=f"Clock timezone (default: {CLOCK_TIMEZONE}).")
-    p.add_argument("--cut-hour", type=int, default=CLOCK_CUT_HOUR, help=f"Clock cut hour (default: {CLOCK_CUT_HOUR}).")
-    p.add_argument("--cut-minute", type=int, default=CLOCK_CUT_MINUTE, help=f"Clock cut minute (default: {CLOCK_CUT_MINUTE}).")
-    p.add_argument("--cut-second", type=int, default=CLOCK_CUT_SECOND, help=f"Clock cut second (default: {CLOCK_CUT_SECOND}).")
-    p.add_argument("--exceptions-file", type=str, default=CLOCK_EXCEPTIONS_FILE or None, help="Optional calendar exceptions JSON file.")
-    p.add_argument("--policy-version", type=str, default=CLOCK_POLICY_VERSION, help=f"Clock policy version (default: {CLOCK_POLICY_VERSION}).")
-    return p.parse_args()
+    parser.add_argument("--dry-run", action="store_true", help="Run checks and build snapshot, but do not write DB/JSON.")
+    parser.add_argument("--force", action="store_true", help="Publish even if gate fails (still records FAIL verdict semantics via forced flag).")
+    parser.add_argument("--list", action="store_true", help="List recent snapshots and exit.")
+    return parser
 
 
-def main() -> int:
-    args = parse_args()
 
-    try:
-        conn = get_connection(args.db, with_snapshot_tables=True)
-    except FileNotFoundError as exc:
-        log.error("%s", exc)
-        return 1
+def main(argv: Optional[List[str]] = None) -> int:
+    parser = build_parser()
+    args = parser.parse_args(argv)
+
+    conn = get_connection(args.db_path, with_snapshot_tables=True)
 
     if args.list:
         _list_snapshots(conn)
         return 0
 
     policy = get_default_policy(
-        timezone_name=args.timezone,
-        cut_hour=args.cut_hour,
-        cut_minute=args.cut_minute,
-        cut_second=args.cut_second,
-        exceptions_path=args.exceptions_file,
-        policy_version=args.policy_version,
+        timezone_name=CLOCK_TIMEZONE,
+        cut_hour=CLOCK_CUT_HOUR,
+        cut_minute=CLOCK_CUT_MINUTE,
+        cut_second=CLOCK_CUT_SECOND,
+        exceptions_path=CLOCK_EXCEPTIONS_FILE or None,
+        policy_version=CLOCK_POLICY_VERSION,
     )
-    clock = get_engine_clock(args.clock_date, policy=policy)
+    clock = get_engine_clock(args.date, policy=policy)
     run_ts = datetime.now(tz=timezone.utc)
+    engine_version = _get_engine_version()
+    config_version = _get_config_version()
 
-    log.info(
-        "Snapshot publisher starting | run_ts=%s | clock_ts=%s | dry_run=%s | force=%s",
-        run_ts.isoformat(),
-        clock.clock_ts.isoformat(),
-        args.dry_run,
-        args.force,
-    )
+    log.info("=" * 50)
+    log.info("Layer-2 Snapshot Publisher")
+    log.info("  run_ts:         %s", run_ts.isoformat())
+    log.info("  clock_ts:       %s", clock.clock_ts.isoformat())
+    log.info("  engine_version: %s", engine_version)
+    log.info("  config_version: %s", config_version)
+    log.info("=" * 50)
 
-    existing_id = _snapshot_exists(conn, clock.clock_ts)
-    if existing_id and not args.dry_run:
-        log.info("Snapshot already exists for %s: %s", clock.clock_date, existing_id)
-        log.info("Use --dry-run to preview or choose a different --clock-date.")
+    existing_id = _snapshot_exists(conn, clock.clock_ts, engine_version, config_version)
+    if existing_id:
+        log.warning(
+            "Snapshot already exists for clock_ts=%s engine_version=%s config_version=%s: %s",
+            clock.clock_ts.isoformat(),
+            engine_version,
+            config_version,
+            existing_id,
+        )
         return 0
 
-    forced = args.force
-
-    log.info("Running quality gate...")
     quality = _run_quality_gate(conn, clock)
+    forced = bool(args.force)
 
     if not quality["snapshot_ok"]:
-        if forced:
-            log.warning(
-                "--force flag set: quality gate FAILED but proceeding anyway. Snapshot will be marked forced=True."
-            )
-            for f in quality["blocking_failures"]:
-                log.warning("  WOULD BLOCK: %s — %s", f["series_id"], f["reason"])
-        else:
-            log.error("Quality gate FAILED — snapshot BLOCKED.")
-            for f in quality["blocking_failures"]:
-                log.error("  BLOCKING: %s — %s", f["series_id"], f["reason"])
+        log.error("Quality gate FAILED — snapshot blocked.")
+        for failure in quality.get("blocking_failures", []):
+            log.error("  FAIL | %s | %s", failure["series_id"], failure["reason"])
+        if not forced:
+            log.error("Use --force only if you explicitly want a non-compliant snapshot recorded.")
             return 1
+        log.warning("--force set: publishing snapshot despite gate failures.")
     else:
         log.info(
-            "Quality gate PASSED — %d/%d Tier-1 series fresh.",
+            "Quality gate PASSED — Tier-1 %d/%d fresh.",
             quality["summary"]["tier1_pass"],
             quality["summary"]["tier1_total"],
         )
@@ -446,9 +559,9 @@ def main() -> int:
         )
         return 1
 
-    snapshot_id = compute_snapshot_id(clock.clock_ts, values)
+    snapshot_id = compute_snapshot_id(clock.clock_ts, engine_version, config_version, values)
     log.info("snapshot_id: %s", snapshot_id)
-    print_snapshot_report(snapshot_id, clock, values, args.dry_run)
+    print_snapshot_report(snapshot_id, clock, values, args.dry_run, engine_version, config_version)
 
     if args.dry_run:
         log.info("[DRY-RUN] Skipping DB write and JSON write.")
@@ -457,6 +570,8 @@ def main() -> int:
             conn,
             snapshot_id,
             clock.clock_ts,
+            engine_version,
+            config_version,
             quality,
             values,
             dry_run=False,
@@ -468,6 +583,8 @@ def main() -> int:
             snapshot_id,
             clock,
             run_ts,
+            engine_version,
+            config_version,
             quality,
             values,
             missing,
@@ -477,14 +594,16 @@ def main() -> int:
 
     log.info("=" * 50)
     log.info("Snapshot publisher complete.")
-    log.info("  snapshot_id: %s", snapshot_id)
-    log.info("  run_ts:      %s", run_ts.isoformat())
-    log.info("  clock_ts:    %s", clock.clock_ts.isoformat())
-    log.info("  series:      %d", len(values))
-    log.info("  forced:      %s", forced)
+    log.info("  snapshot_id:    %s", snapshot_id)
+    log.info("  run_ts:         %s", run_ts.isoformat())
+    log.info("  clock_ts:       %s", clock.clock_ts.isoformat())
+    log.info("  engine_version: %s", engine_version)
+    log.info("  config_version: %s", config_version)
+    log.info("  series:         %d", len(values))
+    log.info("  forced:         %s", forced)
     if not args.dry_run:
-        log.info("  DB:          written")
-        log.info("  JSON:        %s", args.snapshot_path)
+        log.info("  DB:             written")
+        log.info("  JSON:           %s", args.snapshot_path)
     log.info("=" * 50)
     return 0
 
