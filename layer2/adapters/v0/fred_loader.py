@@ -49,7 +49,7 @@ for _candidate in [_HERE.parent.parent, _HERE.parent]:
             sys.path.insert(0, str(_candidate))
         break
 
-from layer2.db import (  # noqa: E402
+from layer2.adapters.v0.db import (  # noqa: E402
     get_connection, upsert_observations,
     get_existing_dates, latest_obs_date, count_rows,
 )
@@ -100,7 +100,7 @@ def load_api_key(path: str) -> str:
             f"FRED API key not found at {path}. "
             f"Create it with your key from https://fredaccount.stlouisfed.org/apikeys"
         )
-    key = p.read_text(encoding="utf-8").strip()
+    key = p.read_text(encoding="utf-8-sig").strip()
     if not key or len(key) < 20:
         raise ValueError(f"FRED API key at {path} looks invalid: {key!r}")
     return key

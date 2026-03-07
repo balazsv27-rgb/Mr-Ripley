@@ -46,7 +46,7 @@ for _candidate in [_HERE.parent.parent, _HERE.parent]:
             sys.path.insert(0, str(_candidate))
         break
 
-from layer2.db import get_connection, latest_obs, count_rows  # noqa: E402
+from layer2.adapters.v0.db import get_connection, latest_obs, count_rows  # noqa: E402
 from layer2.config.registry import get_registry               # noqa: E402
 
 # ---------------------------------------------------------------------------

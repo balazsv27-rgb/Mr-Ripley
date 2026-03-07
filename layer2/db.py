@@ -17,13 +17,8 @@ All adapters import from this module.
 from __future__ import annotations
 
 import sqlite3
-from datetime import date, datetime, timezone
-from pathlib import Path
+from datetime import date, datetime
 from typing import List, Optional, Set, Tuple
-
-# ---------------------------------------------------------------------------
-# Schema — canonical DDL
-# ---------------------------------------------------------------------------
 
 _DDL_OBSERVATIONS = """
 CREATE TABLE IF NOT EXISTS observations (
@@ -80,25 +75,9 @@ CREATE TABLE IF NOT EXISTS snapshot_values (
 );
 """
 
-# ---------------------------------------------------------------------------
-# Connection factory
-# ---------------------------------------------------------------------------
 
 def get_connection(db_path: str, *, with_snapshot_tables: bool = False) -> sqlite3.Connection:
-    """
-    Open (or create) the Layer-2 SQLite DB.
-
-    Always creates the observations table.
-    Pass with_snapshot_tables=True only from snapshot_publisher.py.
-
-    Args:
-        db_path:              Path to layer2_truth.db.
-        with_snapshot_tables: If True, also creates snapshots + snapshot_values tables.
-
-    Returns:
-        sqlite3.Connection with WAL mode and foreign keys enabled.
-    """
-    conn = sqlite3.connect(db_path)  # no detect_types — all date parsing is explicit
+    conn = sqlite3.connect(db_path)
     conn.row_factory = sqlite3.Row
     conn.execute("PRAGMA journal_mode=WAL;")
     conn.execute("PRAGMA foreign_keys=ON;")
@@ -121,35 +100,11 @@ def _ensure_snapshot_tables(conn: sqlite3.Connection) -> None:
     conn.commit()
 
 
-# ---------------------------------------------------------------------------
-# Truth-safe upsert
-# ---------------------------------------------------------------------------
-
-def upsert_observations(
-    conn: sqlite3.Connection,
-    rows: List[Tuple],
-    *,
-    dry_run: bool = False,
-) -> int:
-    """
-    Write observation rows to DB using INSERT OR IGNORE (truth-safe).
-
-    First write wins. Reruns never overwrite existing rev-0 data.
-    To record a genuine FRED revision, use revision_seq=1 explicitly.
-
-    Each row must be a tuple of:
-        (series_id: str, obs_ts: date, as_of_ts: datetime,
-         value: float, revision_seq: int, source: str)
-
-    Returns:
-        Number of rows submitted (regardless of how many were new).
-    """
+def upsert_observations(conn: sqlite3.Connection, rows: List[Tuple], *, dry_run: bool = False) -> int:
     if not rows:
         return 0
-
     if dry_run:
         return len(rows)
-
     conn.executemany(
         """
         INSERT OR IGNORE INTO observations
@@ -172,12 +127,7 @@ def upsert_observations(
     return len(rows)
 
 
-# ---------------------------------------------------------------------------
-# Common query helpers
-# ---------------------------------------------------------------------------
-
 def latest_obs_date(conn: sqlite3.Connection, series_id: str) -> Optional[date]:
-    """Return the most recent obs_ts for a series, or None if no data."""
     row = conn.execute(
         "SELECT MAX(obs_ts) AS d FROM observations WHERE series_id = ?",
         (series_id,),
@@ -187,17 +137,13 @@ def latest_obs_date(conn: sqlite3.Connection, series_id: str) -> Optional[date]:
     return None
 
 
-def latest_obs(
-    conn: sqlite3.Connection,
-    series_id: str,
-) -> Tuple[Optional[date], Optional[float]]:
-    """Return (latest_date, latest_value) or (None, None) if no data."""
+def latest_obs(conn: sqlite3.Connection, series_id: str) -> Tuple[Optional[date], Optional[float]]:
     row = conn.execute(
         """
         SELECT obs_ts, value
         FROM observations
         WHERE series_id = ?
-        ORDER BY obs_ts DESC, revision_seq DESC
+        ORDER BY obs_ts DESC, as_of_ts DESC, revision_seq DESC
         LIMIT 1
         """,
         (series_id,),
@@ -207,23 +153,14 @@ def latest_obs(
     return None, None
 
 
-def read_latest_as_of(
-    conn: sqlite3.Connection,
-    series_id: str,
-    as_of_date: date,
-) -> Optional[Tuple[date, float, str]]:
-    """
-    Point-in-time read: (obs_ts, value, source) where obs_ts <= as_of_date.
-    Takes the highest revision_seq for each date. Returns None if no data.
-    Used by snapshot_publisher for deterministic reads.
-    """
+def read_latest_as_of(conn: sqlite3.Connection, series_id: str, as_of_date: date) -> Optional[Tuple[date, float, str]]:
     row = conn.execute(
         """
         SELECT obs_ts, value, source
         FROM observations
         WHERE series_id = ?
           AND obs_ts <= ?
-        ORDER BY obs_ts DESC, revision_seq DESC
+        ORDER BY obs_ts DESC, as_of_ts DESC, revision_seq DESC
         LIMIT 1
         """,
         (series_id, as_of_date.isoformat()),
@@ -233,8 +170,41 @@ def read_latest_as_of(
     return None
 
 
+def read_latest_as_of_ts(conn: sqlite3.Connection, series_id: str, as_of_ts: datetime) -> Optional[Tuple[date, float, str, datetime, int]]:
+    """
+    Point-in-time read using the full governed clock timestamp.
+
+    Select the latest observation known by `as_of_ts`, enforcing both:
+      - obs_ts <= as_of_ts.date()
+      - recorded as_of_ts <= governed clock_ts
+
+    Ties are broken deterministically by:
+      obs_ts DESC, as_of_ts DESC, revision_seq DESC
+    """
+    row = conn.execute(
+        """
+        SELECT obs_ts, value, source, as_of_ts, revision_seq
+        FROM observations
+        WHERE series_id = ?
+          AND obs_ts <= ?
+          AND as_of_ts <= ?
+        ORDER BY obs_ts DESC, as_of_ts DESC, revision_seq DESC
+        LIMIT 1
+        """,
+        (series_id, as_of_ts.date().isoformat(), as_of_ts.isoformat()),
+    ).fetchone()
+    if row:
+        return (
+            _coerce_date(row["obs_ts"]),
+            float(row["value"]),
+            str(row["source"]),
+            _coerce_datetime(row["as_of_ts"]),
+            int(row["revision_seq"]),
+        )
+    return None
+
+
 def count_rows(conn: sqlite3.Connection, series_id: str) -> int:
-    """Return total observation count for a series."""
     row = conn.execute(
         "SELECT COUNT(*) AS n FROM observations WHERE series_id = ?",
         (series_id,),
@@ -243,40 +213,93 @@ def count_rows(conn: sqlite3.Connection, series_id: str) -> int:
 
 
 def get_existing_dates(conn: sqlite3.Connection, series_id: str) -> Set[str]:
-    """
-    Return the set of existing obs_ts values (as ISO strings) for a series.
-    Always returns strings regardless of sqlite column type — safe for
-    incremental filter comparisons.
-    """
     rows = conn.execute(
         "SELECT obs_ts FROM observations WHERE series_id = ?",
         (series_id,),
     ).fetchall()
-    return {
-        r[0].isoformat() if hasattr(r[0], "isoformat") else str(r[0])
-        for r in rows
-    }
+    return {r[0].isoformat() if hasattr(r[0], "isoformat") else str(r[0]) for r in rows}
 
 
-def filter_new_rows(
-    conn: sqlite3.Connection,
-    series_id: str,
-    rows: List[Tuple],
-) -> List[Tuple]:
-    """
-    Return only rows whose obs_ts is not already in the DB for this series.
-    Compares as ISO strings to avoid date-vs-str type bugs.
-    """
+def filter_new_rows(conn: sqlite3.Connection, series_id: str, rows: List[Tuple]) -> List[Tuple]:
     existing = get_existing_dates(conn, series_id)
     return [r for r in rows if r[1].isoformat() not in existing]
 
 
-# ---------------------------------------------------------------------------
-# Internal helpers
-# ---------------------------------------------------------------------------
 
+
+def read_aligned_snapshot_rows(conn: sqlite3.Connection, required_series: List[Tuple[str, str, int, str, int]], clock_ts: datetime):
+    """
+    Execute the canonical set-based snapshot alignment query.
+
+    Parameters
+    ----------
+    required_series:
+        List of tuples: (series_id, description, tier, group_name, blocks_snapshot)
+    clock_ts:
+        Governed cut time.
+
+    Returns
+    -------
+    sqlite3.Row list with one row per required series.
+    """
+    if not required_series:
+        return []
+
+    placeholders = ",\n        ".join(["(?, ?, ?, ?, ?)"] * len(required_series))
+    sql = f"""
+    WITH required_series(series_id, description, tier, group_name, blocks_snapshot) AS (
+        VALUES
+        {placeholders}
+    ),
+    eligible AS (
+        SELECT
+            o.series_id,
+            o.obs_ts,
+            o.as_of_ts,
+            o.value,
+            o.revision_seq,
+            o.source
+        FROM observations o
+        JOIN required_series r
+          ON r.series_id = o.series_id
+        WHERE o.obs_ts <= ?
+          AND o.as_of_ts <= ?
+    ),
+    ranked AS (
+        SELECT
+            e.*,
+            ROW_NUMBER() OVER (
+                PARTITION BY e.series_id
+                ORDER BY
+                    e.obs_ts DESC,
+                    e.as_of_ts DESC,
+                    e.revision_seq DESC
+            ) AS rn
+        FROM eligible e
+    )
+    SELECT
+        r.series_id,
+        r.description,
+        r.tier,
+        r.group_name,
+        r.blocks_snapshot,
+        rk.obs_ts,
+        rk.as_of_ts,
+        rk.value,
+        rk.revision_seq,
+        rk.source
+    FROM required_series r
+    LEFT JOIN ranked rk
+      ON r.series_id = rk.series_id
+     AND rk.rn = 1
+    ORDER BY r.group_name, r.tier, r.series_id
+    """
+    params = []
+    for rs in required_series:
+        params.extend(rs)
+    params.extend([clock_ts.date().isoformat(), clock_ts.isoformat()])
+    return conn.execute(sql, params).fetchall()
 def _coerce_date(value) -> date:
-    """Normalise sqlite date return (str | datetime | date) to date."""
     if isinstance(value, date) and not isinstance(value, datetime):
         return value
     if isinstance(value, datetime):
@@ -284,3 +307,11 @@ def _coerce_date(value) -> date:
     if isinstance(value, str):
         return date.fromisoformat(value[:10])
     raise TypeError(f"Cannot coerce {type(value)!r} to date: {value!r}")
+
+
+def _coerce_datetime(value) -> datetime:
+    if isinstance(value, datetime):
+        return value
+    if isinstance(value, str):
+        return datetime.fromisoformat(value.replace("Z", "+00:00"))
+    raise TypeError(f"Cannot coerce {type(value)!r} to datetime: {value!r}")

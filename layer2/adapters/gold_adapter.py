@@ -49,8 +49,9 @@ for _candidate in [_HERE.parent.parent, _HERE.parent]:
             sys.path.insert(0, str(_candidate))
         break
 
-from layer2.db import get_connection, upsert_observations, filter_new_rows, latest_obs_date, count_rows  # noqa: E402
+from layer2.adapters.v0.db import get_connection, upsert_observations, filter_new_rows, latest_obs_date, count_rows  # noqa: E402
 from layer2.config.registry import get_registry  # noqa: E402
+from layer2.adapters.v0.clock import get_latest_completed_clock  # noqa: E402
 
 # ---------------------------------------------------------------------------
 # Configuration
@@ -337,8 +338,9 @@ def parse_args() -> argparse.Namespace:
 
 def main() -> int:
     args = parse_args()
-    today = date.today()
-    yesterday = today - timedelta(days=1)
+    clock = get_latest_completed_clock()
+    today = clock.clock_date
+    yesterday = today
 
     conn = get_connection(args.db)
 

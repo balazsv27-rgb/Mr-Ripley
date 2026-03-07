@@ -79,7 +79,6 @@ from layer2.adapters.v0.db import (  # noqa: E402
     latest_obs_date, count_rows,
 )
 from layer2.config.registry import get_registry  # noqa: E402
-from layer2.adapters.v0.clock import get_latest_completed_clock  # noqa: E402
 
 # ---------------------------------------------------------------------------
 # Configuration
@@ -317,8 +316,7 @@ def parse_args() -> argparse.Namespace:
 
 def main() -> int:
     args = parse_args()
-    clock = get_latest_completed_clock()
-    today = clock.clock_date
+    today = date.today()
 
     conn = get_connection(args.db)
 
@@ -339,7 +337,7 @@ def main() -> int:
         return 0 if quality["data_ok"] else 1
 
     # Resolve date range
-    end   = date.fromisoformat(args.end_date)   if args.end_date   else today
+    end   = date.fromisoformat(args.end_date)   if args.end_date   else today - timedelta(days=1)
     start = date.fromisoformat(args.start_date) if args.start_date else None
 
     if start and start > end:
