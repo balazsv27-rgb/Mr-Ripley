@@ -1,0 +1,39 @@
+{
+  "mcpServers": {
+    "serena": {
+      "command": "uvx",
+      "args": [
+        "--from",
+        "git+https://github.com/oraios/serena",
+        "serena",
+        "start-mcp-server"
+      ],
+      "env": {}
+    },
+    "context7": {
+      "command": "cmd",
+      "args": [
+        "/c",
+        "npx",
+        "-y",
+        "@upstash/context7-mcp"
+      ],
+      "env": {
+        "CONTEXT7_API_KEY": "ctx7sk-d0c05701-60e1-4b91-b845-cded408cf739"
+      }
+    },
+    "sqlite": {
+      "command": "cmd",
+      "args": [
+        "/c",
+        "npx",
+        "-y",
+        "@pollinations/mcp-server-sqlite",
+        "C:\\Code\\Mr-Ripley\\layer2_truth.db"
+      ],
+      "env": {
+        "SQLITE_BUSY_TIMEOUT": "5000"
+      }
+    }
+  }
+}
