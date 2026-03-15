@@ -1,7 +1,7 @@
 # Known Gaps and Approximations
 ## Mr. Ripley — Layer-2 Truth Layer
 
-> **Last updated:** 2026-03-07
+> **Last updated:** 2026-03-15
 > **Primary sources:** `README_v1.md`, `SYSTEM_TECHNICAL_HANDBOOK_v1.md`
 > **Supporting sources:** `SYSTEM_IMPLEMENTATION_RECORD_v1.md`, `SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md`
 
@@ -28,13 +28,14 @@ This document separates:
 
 ## 2. High-Priority Bootstrap Blockers
 
-These items directly block Layer-3 bootstrap. Layer-3 core development may not safely begin until they are resolved.
+These were the original Layer-3 bootstrap blockers. As of the 2026-03-15 documentation refresh, the contract-side blockers below are **implemented**. The current blocker for publishing a fresh compliant snapshot is operational data freshness, not snapshot-contract shape.
 
-| Item | Why it blocks Layer-3 | Current status | Planned fix |
+| Item | Why it mattered | Current status | Notes |
 |---|---|---|---|
-| `guards` structured object absent from snapshot JSON | Layer-3 evaluates hard veto conditions (`data_ok`, `idempotent_ok`, `cooldown_ok`, `risk_ok`, `supervisor_veto`) from this field; without it, Layer-3 cannot correctly implement the supervisor gate | ⬜ Not yet built | Add to `snapshot_publisher.py` output |
-| `reason_code` enum not defined | Layer-3 must emit only enumerated reason codes; no free text is permitted at the execution boundary; without a shared enum, free-text creep is unavoidable | ⬜ Not yet built | Create shared constants file |
-| README and code not confirmed in sync on contract behavior | A doc/code sync pass is a required handoff item per `SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md` §6; without it the snapshot contract cannot be treated as stable | ⬜ Not completed — see `SYSTEM_TECHNICAL_HANDBOOK_v1.md` §14 ("Verification Status") | Explicit sync pass required before handoff |
+| `guards` structured object in snapshot JSON | Layer-3 evaluates hard veto conditions (`data_ok`, `idempotent_ok`, `cooldown_ok`, `risk_ok`, `supervisor_veto`) from this field | ✅ Implemented | Present in `snapshot_publisher.py` output via `build_guards()` |
+| `reason_code` enum in shared constants | Layer-3 must emit only enumerated reason codes; no free text permitted at the execution boundary | ✅ Implemented | Present in `layer2/constants.py`; validation rejects free text |
+| `layer1_events: []` stub | Forward-compatible slot for future Layer-1 integration | ✅ Implemented | Present in snapshot JSON; Layer-2 always emits `[]` |
+| README / handbook / architecture contract sync | Contract must be documented consistently before handoff | ✅ Refreshed | Current v1 docs updated on 2026-03-15 to reflect observed implementation |
 
 ---
 
@@ -44,11 +45,12 @@ These items do not block Layer-3 bootstrap but materially affect calibration qua
 
 | Item | Why it matters | Affected area | Current status |
 |---|---|---|---|
+| Latest publish attempt blocked by stale Tier-1 data (2026-03-15) | Gold, MOVE, multiple FRED Tier-1 series, and VIX/SP500 were stale at the current clock boundary; no fresh compliant snapshot can be published until ingestion is refreshed | Daily operations | ⬜ Open operational blocker |
+| `DTWEXBGS` missing point-in-time value at latest dry run | Distinct from simple staleness: quality gate reported no point-in-time data available by `clock_ts` | Alignment / ingestion verification | ⬜ Open operational blocker |
 | SP500 history gap (2014–2016) | FRED data starts 2016-02-22; backtest window needs 2014-01-02; the 2015 China shock and early 2016 selloff are entirely missing from the calibration window | Calibration validity | ⬜ Not fixed — fix via SPY/Yahoo planned |
 | `revision_risk` column not in `observations` | Monthly FRED series (CPI, PCE, FEDFUNDS) carry real revision exposure that is not tracked or signaled downstream; confidence penalties that should be applied are silently omitted | Vintage correctness, downstream trust | ⬜ Not yet implemented |
 | Revision writer (`revision_seq=1`) not built | If FRED revises a historical value, the current system silently drops the correction; rev-0 is immutable but no mechanism exists to record the revision | Vintage correctness, data accuracy | ⬜ Not yet built |
 | Gold history starts 2014-01-02 | Target coverage is 2005; the 2008 financial crisis and 2011 gold peak are entirely missing from the available calibration window | Calibration validity | ⬜ Backfill via Stooq planned |
-| `layer1_events: []` stub absent from snapshot JSON | Without this forward-compatible slot, future Layer-1 event hook integration will require a breaking contract change | Snapshot interface stability | ⬜ Optional — recommended before Layer-3 starts |
 
 ---
 
@@ -146,7 +148,7 @@ These items do not block Layer-3 bootstrap. They block connecting any live execu
 
 4. **Current documented status is not independent certification.** The current-state claims in project documentation reflect the project's own audit log and review process — not an externally verified implementation matrix. A future line-by-line verification matrix would be the appropriate place to formally confirm individual claims.
 
-5. **`guards` and `reason_code` are absent.** The snapshot JSON currently does not contain a `guards` object or a `reason_code` enum. Any Layer-3 consumer that requires these fields for correct gate logic cannot safely start until they are added.
+5. **`guards`, `reason_code`, and `layer1_events` are now present in the contract.** The remaining immediate risk is not contract shape but current data freshness: a new snapshot still cannot be published while Tier-1 data is stale.
 
 6. **Revision exposure is unacknowledged in monthly macro series.** CPI, PCE, and FEDFUNDS may have been revised by FRED after ingestion. No flag in the system marks these rows as revision-exposed. Downstream confidence penalties that the architecture requires are not yet applied.
 

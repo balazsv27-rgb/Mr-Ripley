@@ -69,6 +69,21 @@ It may also include references to Layer-3 bootstrap needs and later execution bo
 
 For current-state interpretation, use the v1 document set first.
 
+
+
+## 2026-03-15 Current-State Addendum
+
+This retained implementation record preserves the long-form Layer-2 build history, but the current state advanced after the preserved v10 body:
+
+- `guards` object is now present in snapshot JSON
+- `reason_code` enum now exists in shared constants
+- `layer1_events: []` stub is now present in snapshot JSON
+- a canonical `layer2/clock.py` module now governs `clock_ts` / `clock_date` semantics
+- the latest observed publisher dry run reached the quality gate successfully, but publication was blocked by stale Tier-1 data and a missing point-in-time `DTWEXBGS` value at the current clock boundary
+
+Use the refreshed v1 documents for canonical interpretation of those items. The preserved body below remains valuable for historical build context, audits, and implementation rationale.
+
+---
 ## How to Use This Document
 
 Read this document when you need:
@@ -621,9 +636,9 @@ Forced snapshots should be filtered out of backtests.
 
 | Component | Status | Priority | Notes |
 |---|---|---|---|
-| `guards` structured object in snapshot JSON | ⬜ TODO | **High** | Required before Layer-3 gate evaluation |
-| `reason_code` enum in shared constants file | ⬜ TODO | **High** | Prevents free-text at execution boundary |
-| `layer1_events: []` stub in snapshot JSON | ⬜ TODO | Low | Optional — recommended for forward-compatible interface stability |
+| `guards` structured object in snapshot JSON | ✅ DONE | **High** | Present in current snapshot contract |
+| `reason_code` enum in shared constants file | ✅ DONE | **High** | Shared enum present in `layer2/constants.py` |
+| `layer1_events: []` stub in snapshot JSON | ✅ DONE | Low | Present for forward-compatible interface stability |
 
 ---
 
@@ -859,11 +874,10 @@ snapshot_id: <64-char hash>
 | README to-do list showed registry wiring as pending | Low | Corrected — wiring confirmed complete in code audit |
 
 **Known remaining items from Audit 5:**
-- `guards` structured object not yet in snapshot output (required before Layer-3) ⬜
-- `reason_code` enum not defined (required before Layer-3) ⬜
+- Fresh current-data publication blocked by stale Tier-1 data at latest dry run (2026-03-15) ⬜
+- `DTWEXBGS` missing point-in-time value at current clock boundary ⬜
 - SP500 history gap 2014–2016 (HIGH priority for calibration) ⬜
 - `revision_risk` column not in `observations` table ⬜
-- `layer1_events: []` stub not in snapshot JSON ⬜
 - Operational readiness (scheduler, alerting, retry, kill switch) not built ⬜
 
 ---
@@ -959,9 +973,9 @@ DB tables via `snapshot_id`. It must never read `observations` directly.
 Handoff gate checklist:
   ✅ snapshot_publisher produces engine_version + config_version
   ✅ Layer-3 contract fields are stable (snapshot_id, clock_ts, verdict, tier1/tier2_series)
-  ⬜ guards object in snapshot JSON        ← Layer-2 Milestone A item
-  ⬜ reason_code enum defined              ← Layer-2 Milestone A item
-  ⬜ layer1_events: [] stub (optional but recommended before Layer-3 starts)
+  ✅ guards object in snapshot JSON
+  ✅ reason_code enum defined
+  ✅ layer1_events: [] stub (optional item now implemented)
 ```
 
 Once the gate above is passed → Layer-3 core build may begin.
@@ -1065,17 +1079,17 @@ it requires contract stability and data integrity sufficient for Layer-3 to buil
 | Snapshot contract stable | ✅ DONE | Confirmed in code audit 2026-03-07 |
 | `engine_version` + `config_version` in snapshot outputs | ✅ DONE | `db.py` v2, `snapshot_publisher.py` v2 |
 | Quality gate and snapshot publisher contract-consistent | ✅ DONE | Registry-driven, confirmed in code audit |
-| `guards` structured object in snapshot JSON | ⬜ TODO | Required before Layer-3 gate evaluation |
-| `reason_code` enum in shared constants | ⬜ TODO | Prevents free-text at execution boundary |
-| README and code in sync on contract behavior | ⬜ TODO | Doc/code sync pass to be completed |
+| `guards` structured object in snapshot JSON | ✅ DONE | Present in current snapshot contract |
+| `reason_code` enum in shared constants | ✅ DONE | Prevents free-text at execution boundary |
+| README and code in sync on contract behavior | ✅ UPDATED | Current v1 docs refreshed on 2026-03-15 |
 
 **Strongly recommended in the same sprint:**
 
 | Item | Status | Notes |
 |---|---|---|
 | Simple orchestrator / end-to-end runner | ⬜ TODO | Single script running all adapters → gate → publish |
-| `layer1_events: []` stub in snapshot JSON | ⬜ TODO | Optional — forward-compatible interface stability |
-| Doc/code sync pass completed | ⬜ TODO | Confirm README claims match current code |
+| `layer1_events: []` stub in snapshot JSON | ✅ DONE | Forward-compatible interface stability |
+| Refresh Tier-1 data and rerun gate | ⬜ TODO | Current operational blocker to publishing a fresh compliant snapshot |
 
 ---
 
@@ -1209,6 +1223,7 @@ Live execution may be connected only when:
 | v8 | 2026-03-07 | Architecture audit | `layer1_events` inconsistency resolved: optional/required distinction now consistent across §10 Milestone A, §16 handoff gate, and §16 needs table |
 | v9 | 2026-03-07 | Architecture audit | New §17 "Roadmap Project Management" added; §17 Revision Log renumbered to §18; §18 Useful Links renumbered to §19 |
 | v10 | 2026-03-07 | Architecture audit | Minimal patch: session-aware execution policy clarification added to Live Execution Gate in §17 |
+| v11 | 2026-03-15 | Current-state refresh | Addendum added: guards / reason_code / layer1_events now implemented; canonical clock noted; latest dry run blocked by stale Tier-1 data rather than contract defects |
 
 ---
 

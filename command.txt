@@ -1,0 +1,4 @@
+cmd /c npx -y @pollinations/mcp-server-sqlite "C:\Code\Mr-Ripley\layer2_truth.db"
+[Environment]::SetEnvironmentVariable("CONTEXT7_API_KEY","your-key-here","User")
+pip install uv
+npm install -g npx
