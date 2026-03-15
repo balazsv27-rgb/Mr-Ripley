@@ -6,11 +6,21 @@
   "safe_editing": true,
   "max_patch_scope_files": 6,
   "risk_surfaces": [
+  "layer2/db.py",
+  "layer2/adapters/snapshot_publisher.py",
+  "layer2/adapters/quality_gate.py",
+  "layer2/config/series_registry.json"
+],
+"refactor_guard": {
+  "require_plan_for_files": [
     "layer2/db.py",
     "layer2/adapters/snapshot_publisher.py",
     "layer2/adapters/quality_gate.py",
     "layer2/config/series_registry.json"
   ],
+  "forbid_cross_module_refactor": true,
+  "require_verification_after_edit": true
+},
   "preferred_tools": [
     "glob",
     "grep",
@@ -23,3 +33,4 @@
     "modify schema without migration logic"
   ]
 }
+
