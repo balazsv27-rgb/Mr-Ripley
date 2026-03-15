@@ -1,7 +1,7 @@
 # Mr. Ripley — Layer-2 Truth Layer
 
 > **Repo:** [github.com/balazsv27-rgb/Mr-Ripley](https://github.com/balazsv27-rgb/Mr-Ripley)
-> **Last updated:** 2026-03-15
+> **Last updated:** 2026-03-07
 > **Architecture reference:** `SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md`
 > **Full technical handbook:** `SYSTEM_TECHNICAL_HANDBOOK_v1.md`
 
@@ -83,40 +83,35 @@ Accepted estimates — not bugs. Label explicitly in any backtest output.
 
 ## Current Status
 
-*As of 2026-03-15 — current documented / conversation-validated implementation status.*
+*As of 2026-03-07 — current documented implementation status.*
 
 | Item | Status |
 |---|---|
 | All 6 adapters | ✅ Done |
-| Registry wiring — all adapters | ✅ Done |
-| Canonical clock module (`layer2/clock.py`) | ✅ Done — publisher and alignment now share governed `clock_ts` / `clock_date` semantics |
-| Quality gate implementation | ✅ Done — fail-closed behavior working |
+| Registry wiring — all adapters | ✅ Done — confirmed code audit 2026-03-07 |
+| Quality gate | ✅ Done — 15/15 Tier-1 PASS |
 | Snapshot publisher | ✅ Done |
 | `engine_version` + `config_version` in snapshots | ✅ Done |
 | Three-way snapshot dedup | ✅ Done |
 | Auto-migration for existing DBs | ✅ Done |
-| `guards` object in snapshot JSON | ✅ Done |
-| `reason_code` enum in shared constants | ✅ Done |
-| `layer1_events: []` stub in snapshot JSON | ✅ Done |
-| README / handbook / architecture refreshed to current contract state | ✅ Updated in v1 doc set on 2026-03-15 |
-| Simple end-to-end orchestrator script | ⬜ Recommended — before routine operations |
+| `guards` object in snapshot JSON | ⬜ Required — before Layer-3 start |
+| `reason_code` enum in shared constants | ⬜ Required — before Layer-3 start |
+| README and code in sync on contract behavior | ⬜ Required — before Layer-3 start (see `SYSTEM_TECHNICAL_HANDBOOK_v1.md` §14, "Verification Status") |
+| `layer1_events: []` stub in snapshot JSON | ⬜ Optional — recommended for interface stability |
+| Simple end-to-end orchestrator script | ⬜ Recommended — before Layer-3 start |
 | Daily scheduler | ⬜ Required — before live execution only |
 | Alerting / retry / kill switch | ⬜ Required — before live execution only |
 
-**Current observed runtime state (2026-03-15):**
-- Publisher now starts successfully with `engine_version` / `config_version` resolved.
-- Quality gate runs through the canonical clock path.
-- Fresh snapshot publication is currently **blocked by stale Tier-1 data**, not by contract defects. Latest dry run failed on stale gold, MOVE, several FRED Tier-1 series, and missing point-in-time `DTWEXBGS` at the current clock boundary.
-
-*Readiness interpretation:* the **contract handoff work is effectively complete**, but the current operational data state still has to be refreshed before a compliant new snapshot can be published.
+*Self-assessed readiness: 8.86 / 10 — see §15 of `SYSTEM_IMPLEMENTATION_RECORD_v1.md` for preserved domain breakdown and methodology.*
 
 ---
+
 ## Known Gaps & Limitations
 
 | Item | Severity | Notes |
 |---|---|---|
-| Current Tier-1 data stale at latest dry run (2026-03-15) | **High** | Operational blocker for publishing a fresh compliant snapshot; not a contract-design blocker |
-| `DTWEXBGS` point-in-time value missing at latest dry run | **High** | Requires ingestion / alignment verification; distinct from simple stale-data refresh |
+| `guards` object absent from snapshot JSON | **High** | Blocks Layer-3 bootstrap start gate |
+| `reason_code` enum not defined | **High** | Blocks Layer-3 bootstrap start gate |
 | SP500 history gap (2014–2016) | **High** | Affects calibration validity — fix via SPY/Yahoo planned |
 | `revision_risk` not tracked | Medium | Monthly FRED series carry unacknowledged revision exposure |
 | Revision writer not built | Medium | `revision_seq=1` path absent; FRED corrections silently dropped |
@@ -143,7 +138,7 @@ Mr-Ripley/
 │   └── config/
 │       ├── series_registry.json       # ★ Single source of truth — must contain registry_version key
 │       └── registry.py               # Loader + validator
-├── FRED/2014GOLD/
+├── FRED/
 │   └── gold_xauusd_stooq_2014_yesterday.json   # Gold backfill (3,132 rows, 2014–present)
 ├── .secrets/fred_api_key.txt          # FRED API key — not committed
 ├── SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md   # Architecture specification
@@ -173,16 +168,14 @@ echo your_key_here > .secrets\fred_api_key.txt
 python -m layer2.config.registry --validate
 
 # First-time data load
-python layer2\adapters\gold_adapter.py --load-json FRED\2014GOLD\gold_xauusd_stooq_2014_yesterday.json --live
+python layer2\adapters\gold_adapter.py --load-json .\FRED\gold_xauusd_stooq_2014_yesterday.json --live
 python layer2\adapters\move_adapter.py --source yahoo --backfill-days 1825
 python layer2\adapters\gld_holdings_adapter.py --start-date 2021-01-01
 python layer2\adapters\fred_loader.py --full-history
 
 # Verify and publish
 python layer2\adapters\quality_gate.py
-set L2_ENGINE_VERSION=gold-v3.3.0    # Windows cmd.exe
-$env:L2_ENGINE_VERSION="gold-v3.3.0"   # PowerShell
-# export L2_ENGINE_VERSION=gold-v3.3.0   # Mac/Linux
+set L2_ENGINE_VERSION=gold-v3.3.0    # Windows / export on Mac/Linux
 python layer2\adapters\snapshot_publisher.py --dry-run
 python layer2\adapters\snapshot_publisher.py
 ```
@@ -203,11 +196,9 @@ python layer2\adapters\snapshot_publisher.py
   "clock_ts":       "<date>T22:00:00+00:00",
   "verdict":        "PASS | FAIL",
   "forced":         false,
-  "guards":         { "data_ok", "risk_ok", "cooldown_ok", "idempotent_ok", "supervisor_veto" },
   "tier1_series":   { "<series_id>": { "obs_ts", "value", "staleness_days", "source" } },
   "tier2_series":   { "<series_id>": { "obs_ts", "value", "staleness_days", "source" } },
-  "missing_series": [],
-  "layer1_events":  []
+  "missing_series": []
 }
 ```
 
@@ -222,12 +213,11 @@ python layer2\adapters\snapshot_publisher.py
 
 | Item | Why |
 |---|---|
-| `guards` object in snapshot JSON | ✅ Present in current snapshot contract |
-| `reason_code` enum defined | ✅ Present in `layer2/constants.py` |
-| `layer1_events: []` stub | ✅ Present for forward-compatible interface stability |
-| README and code in sync | ✅ Refreshed to current contract state in the v1 documents |
+| `guards` object in snapshot JSON | Layer-3 evaluates hard veto conditions (`data_ok`, `idempotent_ok`) from this |
+| `reason_code` enum defined | Prevents free-text at execution boundary |
+| README and code in sync | Confirmed doc/code sync pass required |
 
-*Recommended next operational items: refresh stale Tier-1 data, add orchestrator / scheduler, then begin Layer-3 bootstrap skeleton.*
+*Optional but recommended: `layer1_events: []` stub, simple orchestrator.*
 
 ### What does NOT block Layer-3 bootstrap
 

@@ -5,7 +5,7 @@
 > **Architecture reference:** `SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md`
 > **Limitations / approximations:** `SYSTEM_LIMITATIONS_AND_APPROXIMATIONS_v1.md`
 > **Historical implementation record:** `SYSTEM_IMPLEMENTATION_RECORD_v1.md`
-> **Last updated:** 2026-03-15
+> **Last updated:** 2026-03-07
 
 ---
 
@@ -70,13 +70,11 @@ From `SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md` §6, the contract handoff ga
 |---|---|
 | Snapshot contract stable | ✅ Done |
 | `engine_version` + `config_version` reliable in snapshot outputs | ✅ Done |
-| `guards` structured object in snapshot JSON | ✅ Done |
-| `reason_code` enum defined in shared constants | ✅ Done |
-| README and code in sync on contract behavior | ✅ Refreshed in the current v1 documents on 2026-03-15 |
+| `guards` structured object in snapshot JSON | ⬜ Not yet built |
+| `reason_code` enum defined in shared constants | ⬜ Not yet built |
+| README and code in sync on contract behavior | ⬜ Doc/code sync pass pending |
 
-Recommended but not mandatory for bootstrap start: simple orchestrator, basic scheduler.
-
-**Observed runtime note (2026-03-15):** the latest publisher dry run now resolves `engine_version` / `config_version`, uses the canonical clock path, and reaches the quality gate. Publication is currently blocked by stale Tier-1 data rather than by snapshot-contract defects.
+Recommended but not mandatory for bootstrap start: simple orchestrator, `layer1_events: []` stub, basic scheduler.
 
 ### What does not block Layer-3 bootstrap
 
@@ -447,7 +445,7 @@ For Layer-3 to trust a snapshot as deterministic and replayable, it must:
 
 ## 10. Current Implementation State
 
-*As of 2026-03-15 — current documented / conversation-validated implementation status.*
+*As of 2026-03-07 — current documented implementation status.*
 
 ### Current documented status — complete
 
@@ -455,13 +453,9 @@ For Layer-3 to trust a snapshot as deterministic and replayable, it must:
 |---|---|
 | All 6 adapters | Gold, MOVE, GLD, FRED loader, quality gate, snapshot publisher |
 | Registry wiring — all 6 adapters | Documented as complete; registry imports confirmed present in all adapter files per `SYSTEM_IMPLEMENTATION_RECORD_v1.md` §14 |
-| Canonical clock module (`layer2/clock.py`) | Present; publisher and alignment now share governed `clock_ts` / `clock_date` semantics |
-| Quality gate | Implemented; latest observed run on 2026-03-15 fail-closed blocked publication because Tier-1 data was stale |
-| Snapshot publisher | Produces versioned, deterministic snapshots; latest dry run reached the gate successfully |
-| `engine_version` + `config_version` in snapshots | Present in DB, JSON, and snapshot hash payload |
-| `guards` object in snapshot JSON | Present |
-| `reason_code` enum in shared constants | Present |
-| `layer1_events: []` stub in snapshot JSON | Present |
+| Quality gate | 15/15 Tier-1 PASS as of last documented run (2026-03-06) |
+| Snapshot publisher | Produces versioned, deterministic snapshots |
+| `engine_version` + `config_version` in snapshots | `db.py` v2, `snapshot_publisher.py` v2 |
 | Three-way snapshot dedup | `clock_ts + engine_version + config_version` |
 | Auto-migration for existing DBs | `_ensure_snapshot_schema_migrations()` |
 
@@ -469,11 +463,14 @@ For Layer-3 to trust a snapshot as deterministic and replayable, it must:
 
 | Item | Why |
 |---|---|
-| Fresh compliant snapshot at current clock boundary | Tier-1 data must be refreshed so the gate can PASS on current data |
+| `guards` structured object in snapshot JSON | Layer-3 evaluates hard veto conditions (`data_ok`, `idempotent_ok`) from this field |
+| `reason_code` enum in shared constants | Prevents free-text at the execution boundary |
+| README and code in sync on contract behavior | Confirmed doc/code sync pass required per `SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md` §6 |
 
 ### Recommended but not mandatory for bootstrap start
 
 - Simple end-to-end orchestrator script
+- `layer1_events: []` stub in snapshot JSON (forward-compatible interface slot)
 - Basic scheduler
 
 ### Required before live execution only
@@ -505,8 +502,8 @@ Label all of these explicitly in any backtest output.
 
 | Item | Severity | Notes |
 |---|---|---|
-| Current Tier-1 data stale at latest dry run (2026-03-15) | **High** | Operational blocker for publishing a fresh compliant snapshot |
-| `DTWEXBGS` point-in-time value missing at latest dry run | **High** | Requires ingestion / alignment verification |
+| `guards` object absent from snapshot JSON | **High** | Blocks Layer-3 bootstrap gate |
+| `reason_code` enum not defined | **High** | Blocks Layer-3 bootstrap gate |
 | SP500 history gap (2014–2016) | **High** | Fix via SPY/Yahoo planned |
 | `revision_risk` column not in `observations` | Medium | Architecture requires marking revision-exposed series; not yet implemented |
 | Revision writer not built | Medium | `revision_seq=1` write path absent; FRED corrections silently dropped |
@@ -535,11 +532,9 @@ Layer-3 must consume only `latest_snapshot.json` or the `snapshots` + `snapshot_
   "clock_date":     "<date>",
   "verdict":        "PASS | FAIL",
   "forced":         false,
-  "guards":         { "data_ok", "risk_ok", "cooldown_ok", "idempotent_ok", "supervisor_veto" },
   "tier1_series":   { "<series_id>": { "obs_ts", "value", "staleness_days", "source" } },
   "tier2_series":   { "<series_id>": { "obs_ts", "value", "staleness_days", "source" } },
-  "missing_series": [],
-  "layer1_events":  []
+  "missing_series": []
 }
 ```
 
@@ -554,9 +549,9 @@ Layer-3 must consume only `latest_snapshot.json` or the `snapshots` + `snapshot_
 
 | Item | Status | Why Layer-3 needs it |
 |---|---|---|
-| `guards` structured object | ✅ Present | Layer-3 can evaluate `data_ok`, `idempotent_ok`, `cooldown_ok`, `risk_ok`, `supervisor_veto` from the snapshot contract |
-| `reason_code` enum | ✅ Present | Shared enum now exists to prevent free text at the execution boundary |
-| `layer1_events: []` stub | ✅ Present | Forward-compatible slot for future Layer-1 event hooks; now emitted by Layer-2 |
+| `guards` structured object | ⬜ Not yet built | Layer-3 evaluates `data_ok`, `idempotent_ok`, `cooldown_ok`, `risk_ok`, `supervisor_veto` hard veto conditions from this |
+| `reason_code` enum | ⬜ Not yet built | Layer-3 must emit only enumerated reason codes; no free text at execution boundary |
+| `layer1_events: []` stub | ⬜ Optional | Forward-compatible slot for future Layer-1 event hooks; recommended for interface stability |
 
 ### Layer-3 bootstrap build sequence (planned — not yet started)
 
@@ -614,13 +609,15 @@ The following represent current documented technical status as recorded in `SYST
 - `INSERT OR IGNORE` immutability throughout
 - Quality gate documented to produce PASS/FAIL verdicts based on registry-governed staleness rules
 - Alignment query documented as deterministic for the same governed clock state
+- `guards` object present in snapshot JSON
+- `reason_code` enum present in shared constants
+- `layer1_events: []` present in snapshot JSON
+- A successful non-forced snapshot publication has been observed, with the snapshot written to DB and `latest_snapshot.json`
 
 ### What is forward-looking or not yet implemented
 
 The following items are documented in `SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md` as part of the target architecture but are **not yet implemented in Layer-2**:
 
-- `guards` object in snapshot JSON
-- `reason_code` enum
 - `revision_risk` tracking
 - Revision writer (`revision_seq=1` path)
 - Session-aware execution policy (belongs to Layer-4, not Layer-2)
@@ -640,7 +637,7 @@ Five audit cycles were completed between 2026-03-05 and 2026-03-07. Key resolved
 
 Full audit log: `SYSTEM_IMPLEMENTATION_RECORD_v1.md` §14.
 
-A future line-by-line implementation verification matrix would be the appropriate place to formally confirm each claim against specific file, function, and schema references.
+The current `DOCUMENTATION_VERIFICATION_MATRIX_v1.md` is the classification layer for current documentation claims. A future deeper line-by-line implementation verification artifact would still be the appropriate place to formally confirm each claim against specific file, function, and schema references.
 
 ### Verification Status
 
@@ -649,7 +646,7 @@ A future line-by-line implementation verification matrix would be the appropriat
 | Area | Scope | Date | Current result |
 |---|---|---|---|
 | Repo hygiene | Verify whether `layer2_truth.db` and related runtime artifacts are excluded from the repository as intended | 2026-03-14 | ⬜ Not yet re-verified; treat repo-hygiene status as open until explicitly checked |
-| Doc/code sync | Confirm that `README_v1.md`, `SYSTEM_TECHNICAL_HANDBOOK_v1.md`, and the documented Layer-2 → Layer-3 handoff contract remain in sync | 2026-03-15 | ✅ Refreshed to current observed contract state in the v1 documentation set; still not independent certification |
+| Doc/code sync | Confirm that `README_v1.md`, `SYSTEM_TECHNICAL_HANDBOOK_v1.md`, and the documented Layer-2 → Layer-3 handoff contract remain in sync | 2026-03-14 | ⬜ Not yet completed; remains required before Layer-3 bootstrap |
 
 ### Open repo-hygiene verification issue
 
@@ -657,4 +654,4 @@ A future line-by-line implementation verification matrix would be the appropriat
 
 ---
 
-*This handbook covers Layer-2 current state as of 2026-03-07. For architecture sequencing and Layer-3 / Layer-4 target design, see `SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md`.*
+*This handbook covers Layer-2 current state as of 2026-03-16. For architecture sequencing and Layer-3 / Layer-4 target design, see `SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md`.*

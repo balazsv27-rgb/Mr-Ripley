@@ -36,12 +36,13 @@ It is a classification document, not an architecture proposal, not a review memo
 | Fail-closed quality gate | Verified in current documentation set | README_v1.md; SYSTEM_TECHNICAL_HANDBOOK_v1.md | No material conflict in current v1 docs | Tier-1 failure blocks publication; Layer-3 receives nothing rather than stale / incomplete data. |
 | Immutable observations behavior | Verified in current documentation set | README_v1.md; SYSTEM_TECHNICAL_HANDBOOK_v1.md | No material conflict in current v1 docs | `INSERT OR IGNORE`, rev-0 rows not overwritten; revision writer remains absent. |
 | Version-locked snapshot contract | Verified in current documentation set | README_v1.md; SYSTEM_TECHNICAL_HANDBOOK_v1.md | No material conflict in current v1 docs | Snapshots carry `engine_version` and `config_version`; consumers are expected to validate them. |
+| Successful non-forced snapshot publication | Verified in current documentation set | README_v1.md; SYSTEM_TECHNICAL_HANDBOOK_v1.md; SYSTEM_IMPLEMENTATION_RECORD_v1.md | No material conflict in refreshed current docs | Current docs record an observed successful publish to DB and `latest_snapshot.json` under normal gate conditions. |
 | Snapshot-only downstream boundary | Verified in current documentation set | README_v1.md; SYSTEM_TECHNICAL_HANDBOOK_v1.md | No material conflict in current v1 docs | Layer-3 must consume published snapshots, not raw observation-table reads. |
 | No direct `observations` reads for Layer-3 | Verified in current documentation set | README_v1.md; SYSTEM_TECHNICAL_HANDBOOK_v1.md; SYSTEM_LIMITATIONS_AND_APPROXIMATIONS_v1.md | No material conflict in current v1 docs | Repeated explicitly in README, handbook, and safe interpretation rules. |
 | Canonical persisted snapshot interface (`snapshots` + `snapshot_values`) | Documented current-state claim | README_v1.md; SYSTEM_TECHNICAL_HANDBOOK_v1.md | Current docs state this clearly; independent verification is still pending | Treated as canonical DB interface for downstream consumption. |
-| Convenience handoff interface (`latest_snapshot.json`) | Documented current-state claim | README_v1.md; SYSTEM_IMPLEMENTATION_RECORD_v1.md | Historical record and README align; no current v1 conflict | Explicitly documented as convenience interface, not canonical persisted interface. |
-| `guards` object in snapshot JSON | Verified in current documentation set | README_v1.md; SYSTEM_TECHNICAL_HANDBOOK_v1.md; SYSTEM_LIMITATIONS_AND_APPROXIMATIONS_v1.md; SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md | No material conflict in refreshed current docs | Present in the current contract; Layer-2 populates `data_ok` authoritatively and emits stubs for the remaining guard fields. |
-| `reason_code` enum | Verified in current documentation set | README_v1.md; SYSTEM_TECHNICAL_HANDBOOK_v1.md; SYSTEM_LIMITATIONS_AND_APPROXIMATIONS_v1.md; SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md | No material conflict in refreshed current docs | Present in shared constants; documented as the mechanism that prevents free-text creep at the execution boundary. |
+| Convenience handoff interface (`latest_snapshot.json`) | Verified in current documentation set | README_v1.md; SYSTEM_TECHNICAL_HANDBOOK_v1.md; SYSTEM_IMPLEMENTATION_RECORD_v1.md | No material conflict in refreshed current docs | Convenience interface is now not only documented but exercised through an observed successful publish. |
+| `guards` object in snapshot JSON | Planned / target architecture | README_v1.md; SYSTEM_TECHNICAL_HANDBOOK_v1.md; SYSTEM_LIMITATIONS_AND_APPROXIMATIONS_v1.md; SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md | No conflict: all current docs say absent / required before bootstrap | Required before Layer-3 bootstrap starts; not yet implemented. |
+| `reason_code` enum | Planned / target architecture | README_v1.md; SYSTEM_TECHNICAL_HANDBOOK_v1.md; SYSTEM_LIMITATIONS_AND_APPROXIMATIONS_v1.md; SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md | No conflict: all current docs say absent / required before bootstrap | Required to prevent free-text creep at the execution boundary. |
 
 ---
 
@@ -63,12 +64,12 @@ It is a classification document, not an architecture proposal, not a review memo
 
 | Item | Classification | Primary evidence source | Conflict / ambiguity note | Notes / interpretation risk |
 |---|---|---|---|---|
-| `guards` requirement | Verified in current documentation set | README_v1.md; SYSTEM_LIMITATIONS_AND_APPROXIMATIONS_v1.md; SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md | No material conflict in refreshed current docs | Requirement is now satisfied and remains part of the stable contract. |
-| `reason_code` requirement | Verified in current documentation set | README_v1.md; SYSTEM_LIMITATIONS_AND_APPROXIMATIONS_v1.md; SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md | No material conflict in refreshed current docs | Requirement is now satisfied and remains part of the stable contract. |
+| `guards` requirement | Planned / target architecture | README_v1.md; SYSTEM_LIMITATIONS_AND_APPROXIMATIONS_v1.md; SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md | No conflict: all current docs classify as required before bootstrap | Explicit bootstrap blocker. |
+| `reason_code` requirement | Planned / target architecture | README_v1.md; SYSTEM_LIMITATIONS_AND_APPROXIMATIONS_v1.md; SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md | No conflict: all current docs classify as required before bootstrap | Explicit bootstrap blocker. |
 | Layer-2 closure for bootstrap | Documented current-state claim | README_v1.md; SYSTEM_TECHNICAL_HANDBOOK_v1.md; SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md | No material conflict; current docs consistently define closure narrowly | Closure means stable snapshot handoff, not full Layer-2 perfection. |
 | README/code sync requirement | Documented current-state claim | README_v1.md; SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md | No material conflict in current docs | Treated as required before Layer-3 bootstrap starts. |
-| Doc/code sync pass status | Documented current-state claim | README_v1.md; SYSTEM_TECHNICAL_HANDBOOK_v1.md; SYSTEM_LIMITATIONS_AND_APPROXIMATIONS_v1.md | Refreshed current docs now state the contract documentation has been updated to current observed implementation; this is still not independent certification | Treat as current documentation alignment, not external proof. |
-| `layer1_events` optionality | Verified in current documentation set | README_v1.md; SYSTEM_LIMITATIONS_AND_APPROXIMATIONS_v1.md; SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md | No material conflict in refreshed current docs | Forward-compatible interface stability item; now implemented but still not a bootstrap blocker by classification logic. |
+| Doc/code sync pass status | Cannot verify from current materials | SYSTEM_TECHNICAL_HANDBOOK_v1.md; SYSTEM_LIMITATIONS_AND_APPROXIMATIONS_v1.md | Current docs explicitly say not yet completed | Status is clearly open; current docs do not provide evidence of completion. |
+| `layer1_events` optionality | Documented current-state claim | README_v1.md; SYSTEM_LIMITATIONS_AND_APPROXIMATIONS_v1.md; SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md | No material conflict; docs consistently call it optional / recommended | Forward-compatible interface stability item, not a bootstrap blocker. |
 | Bootstrap blockers vs non-blockers | Verified in current documentation set | README_v1.md; SYSTEM_LIMITATIONS_AND_APPROXIMATIONS_v1.md; SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md | No material conflict in current v1 docs | Separation of blockers vs non-blockers is one of the clearest strengths of the docset. |
 
 ---
@@ -117,7 +118,7 @@ It is a classification document, not an architecture proposal, not a review memo
 ## 9. High-Risk Misread Areas
 
 1. **Treating planned architecture as implemented reality.**
-   `guards`, `reason_code`, `revision_risk`, revision writer, and session-aware execution policy are repeatedly documented as absent / later / not yet implemented. They must not be promoted to current implementation.
+   `revision_risk`, revision writer, session-aware execution policy, and the full Layer-3/Layer-4 stack remain absent / later / not yet implemented. `guards` and `reason_code` are now current contract items and should no longer be described as future-only features.
 
 2. **Treating bootstrap readiness as live execution readiness.**
    The current docs are explicit that bootstrap and live execution are separate gates. Conflating them would overstate project readiness.

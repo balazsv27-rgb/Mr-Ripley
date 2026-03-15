@@ -180,6 +180,17 @@ It does **not** mean:
 - paper validation is complete
 - live execution is allowed
 
+### Observed current-state note (2026-03-15 / 2026-03-16)
+
+The Layer-2 handoff gate has now been exercised successfully under normal conditions:
+
+- a non-forced snapshot publication completed successfully
+- the quality gate passed with **15/15 Tier-1 series fresh**
+- the snapshot was written to the DB and `latest_snapshot.json`
+- the published snapshot carries `engine_version`, `config_version`, `guards`, and the stable handoff fields required for Layer-3 consumption
+
+This means the contract handoff is no longer just a documented design target — it has been executed end-to-end. Layer-3 bootstrap may now begin against the published snapshot contract.
+
 ---
 
 ## 7. Current build sequence vs target architecture
@@ -195,6 +206,8 @@ This document deliberately separates:
 
 Close the contract handoff gate.
 Do not wait for every Layer-2 hardening item.
+
+**Current state:** this phase is now complete at the contract level. The handoff gate has been exercised through a successful non-forced publish. Remaining Layer-2 work continues in parallel and does not block Layer-3 core build.
 
 #### Phase B — Layer-3 Bootstrap (intentionally simple)
 
