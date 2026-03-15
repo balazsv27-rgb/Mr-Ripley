@@ -1,0 +1,741 @@
+Skyker, akkor most felvesszük a fehér kesztyűt és rendet rakunk a galaxisban. A cél egy egyértelmű “production source document”, amit később bármelyik generátorral vagy modellel használhatsz. Ha ezt jól építjük fel, onnantól tényleg csak képgenerálás + videó export marad.
+
+Nem marketing terv lesz. Inkább egy gyártási rendszer.
+
+SYNTHWAVE AMBIENT CHANNEL
+Master Production Source Document (v1)
+
+Projekt cél:
+YouTube ambient synthwave vizuális csatorna építése, ahol:
+
+Shorts → discovery / algoritmus trigger
+
+közepes videók → retention teszt
+
+long ambient → watch time + monetizáció
+
+A tartalom loopolható ambient vizuál, amely TV-n, háttérben vagy ambient videóként működik.
+
+Kulcs stílus:
+
+synthwave
+
+neon futurism
+
+premium frame art
+
+retro arcade
+
+cosmic vaporwave
+
+A CSATORNA 4 FŐ PILLÉRE
+
+A témák szándékosan vizuálisan különböznek, hogy az algoritmus külön klaszterekbe tudja tenni.
+
+1️⃣ SUNSET FRAME ART PROJECT
+
+(legnagyobb potenciál)
+
+Retro synthwave naplemente luxus króm képkeretben.
+
+Felhasználás:
+
+TV Frame Art
+
+ambient videó
+
+háttér vizuál
+
+Ez a projekt a legnagyobb piaci niche jelenleg.
+
+2️⃣ NEON PALM PROJECT
+
+Miami / synthwave palmák.
+
+hangulat:
+
+outrun
+
+retro beach
+
+neon boulevard
+
+nagyon jól működik:
+
+shorts
+
+chill ambient
+
+3️⃣ COSMIC PLAYER PROJECT
+
+Űrhajós / gamer / neon karakter.
+
+hangulat:
+
+space synthwave
+
+cosmic gaming
+
+chill player vibe
+
+4️⃣ RETRO ARCADE PROJECT
+
+neon arcade gépek.
+
+hangulat:
+
+cyber arcade
+
+neon room
+
+retro gaming
+
+GENERÁLANDÓ KÉPEK MENNYISÉGE
+
+Induláskor nem kell túltermelni.
+
+Az algoritmus inkább gyors iterationt szeret.
+
+Első hullám
+Project	képek
+Sunset	8
+Palm	4
+Cosmic	4
+Arcade	6
+
+Összesen:
+
+22 master kép
+
+VIDEÓ STRATÉGIA
+
+Minden kép háromféleképpen használható.
+
+1️⃣ SHORTS
+
+15-30 mp
+
+kép váltakozik.
+
+pl:
+
+3-4 kép
+
+fade transition
+
+2️⃣ KÖZEPES VIDEÓ
+
+3-10 perc
+
+egy kép
+
+lassú animáció:
+
+glow
+
+stars
+
+grid pulse
+
+3️⃣ LONG AMBIENT
+
+1-3 óra
+
+egy kép
+
+loop
+
+SUNSET PROJECT
+
+Ez a projekt legyen a csatorna fő identitása.
+
+Javasolt név:
+
+🌅 NEON HORIZON PROJECT
+
+mert:
+
+brandelhető
+
+futurisztikus
+
+könnyen felismerhető
+
+MASTER SCENE
+
+A mostani képed nagyon jó master.
+
+A nap mérete:
+
+✔ jó
+✔ ikonikus
+✔ horizon anchor
+
+Nem érdemes kisebbre venni.
+
+SUNSET VARIÁCIÓK
+
+8 fő variáció.
+
+1 CLASSIC SYNTHWAVE
+
+Nap
+orange pink coral
+
+Ég
+purple magenta
+
+Grid
+cyan
+
+Használat
+
+short
+közepes
+long
+
+2 CYBER ICE
+
+Nap
+pale gold
+
+Ég
+deep blue
+
+Grid
+electric cyan
+
+Használat
+
+ambient
+long video
+
+3 ROYAL NEON
+
+Nap
+pink lavender
+
+Ég
+royal purple
+
+Grid
+magenta
+
+Használat
+
+shorts
+közepes
+
+4 GOLDEN HORIZON
+
+Nap
+gold amber
+
+Ég
+violet
+
+Grid
+rose gold
+
+Használat
+
+TV frame art
+long ambient
+
+5 EMERALD DREAM
+
+Nap
+peach gold
+
+Ég
+teal
+
+Grid
+emerald
+
+Használat
+
+shorts
+
+6 NEON INFERNO
+
+Nap
+coral red
+
+Ég
+crimson
+
+Grid
+hot pink
+
+Használat
+
+shorts
+
+7 COSMIC VAPOR
+
+Nap
+pastel pink
+
+Ég
+navy
+
+Grid
+violet cyan
+
+Használat
+
+long ambient
+
+8 MIDNIGHT HORIZON
+
+Nap
+soft gold
+
+Ég
+deep navy
+
+Grid
+electric blue
+
+Használat
+
+long ambient
+
+PRIORITÁSI SORREND
+INDULÁS
+
+1 Classic Synthwave
+2 Golden Horizon
+3 Cyber Ice
+4 Royal Neon
+
+MÁSODIK HULLÁM
+
+5 Emerald Dream
+6 Neon Inferno
+7 Cosmic Vapor
+8 Midnight Horizon
+
+MAPPARENDSZER
+PROJECT
+   /SUNSET_NEON_HORIZON
+      /MASTER
+      /VARIATIONS
+      /SHORTS
+      /AMBIENT
+FÁJLNÉV RENDSZER
+NH_MASTER_v1.png
+NH_CLASSIC_SYNTHWAVE.png
+NH_CYBER_ICE.png
+NH_ROYAL_NEON.png
+NH_GOLDEN_HORIZON.png
+NH_EMERALD_DREAM.png
+NH_NEON_INFERNO.png
+NH_COSMIC_VAPOR.png
+NH_MIDNIGHT_HORIZON.png
+VIDEÓK ELNEVEZÉSE
+
+Short:
+
+Neon Horizon Synthwave Sunset
+
+Ambient:
+
+2 Hour Synthwave Sunset Ambient
+
+TV Frame:
+
+4K Neon Sunset Frame Art
+GYÁRTÁSI SORREND
+
+1 master refine
+2 classic synthwave
+3 golden horizon
+4 cyber ice
+5 royal neon
+6 emerald dream
+7 neon inferno
+8 cosmic vapor
+9 midnight horizon
+
+PROMPT SABLON
+
+Ez a master prompt, minden variáció alapja.
+
+Use the uploaded sunset master image as a strict composition reference.
+
+Preserve exactly:
+
+- 16:9 aspect ratio
+- sun position and size
+- mountain silhouettes
+- synthwave grid perspective
+- chrome frame geometry
+
+Refine the image into ultra sharp cinematic synthwave artwork.
+
+Enhance:
+
+- horizon glow
+- star sharpness
+- grid clarity
+- polished chrome reflections
+
+No blur
+No haze
+No redesign
+No new objects
+No change in composition
+
+Only adjust color palette according to the requested variation.
+FONTOS STRATÉGIAI DÖNTÉS
+
+A csatornát nem 4 projekttel indítanám.
+
+Hanem:
+
+indulás
+
+2 projekt
+
+SUNSET
+ARCADE
+
+mert:
+
+vizuálisan különböznek
+
+gaming + ambient
+
+2. hullám
+PALM
+COSMIC
+HA JÓL CSINÁLJUK
+
+22 kép
+kb
+
+20 short
+
+10 közepes videó
+
+8 long ambient
+
+ami:
+
+38 videó
+
+A VALÓDI TRÜKK
+
+A YouTube nem a képet szereti.
+
+Hanem a
+
+loopolható vizuális atmoszférát.
+
+A te képed viszont:
+
+tiszta
+
+prémium
+
+TV kompatibilis
+
+ami nagyon ritka.
+
+Ha szeretnéd, a következő lépésben meg tudom rajzolni:
+
+a teljes csatorna gyártási pipeline-ját
+
+(őszintén: ez az a rész, ahol a legtöbb YouTube projekt elvérzik).
+
+Igen
+
+Skyker, akkor most rakjuk össze a gyártási pipeline-t úgy, mintha egy kis stúdió működne – csak éppen te vagy a stúdió, és az AI a munkáscsapat. A cél: minimális gondolkodás, maximális gyártás.
+
+Az univerzum bonyolult, de a pipeline lehet elegáns.
+
+SYNTHWAVE AMBIENT CHANNEL
+Production Pipeline (v1)
+
+Ez a rendszer azt biztosítja, hogy:
+
+minden kép többször felhasználható
+
+gyorsan tudsz videókat gyártani
+
+a csatorna vizuálisan konzisztens marad
+
+A pipeline öt szintből áll.
+
+1. LAYER — MASTER ART
+
+Ez a forrás réteg.
+Itt készülnek a képek.
+
+Minden projektben van:
+
+1 master scene
+
+több color variation
+
+Sunset projekt
+
+1 master
+8 variáció
+
+Összesen:
+
+9 kép
+
+Arcade projekt
+
+6 variáció
+
+Palm projekt
+
+4 variáció
+
+Cosmic projekt
+
+4 variáció
+
+Összes generálandó kép
+Sunset 9
+Arcade 6
+Palm 4
+Cosmic 4
+----------------
+TOTAL 23
+
+Ez nagyon kezelhető mennyiség.
+
+2. LAYER — IMAGE PREP
+
+Itt történik az, amit már most csinálsz.
+
+Minden képnél:
+
+✔ 4K
+✔ 3840×2160
+✔ bicubic sharper
+✔ PNG export
+
+Ez lesz a video source.
+
+3. LAYER — VIDEO CREATION
+
+Egy kép → több videó.
+
+SHORT
+
+hossz
+
+20–30 mp
+
+használat
+
+discovery
+
+algoritmus
+
+formátum
+
+3–4 kép váltakozik.
+
+MEDIUM VIDEO
+
+3–10 perc
+
+egy kép
+
+lassú animáció
+
+pl:
+
+glow pulse
+
+star twinkle
+
+grid shimmer
+
+LONG AMBIENT
+
+1–3 óra
+
+egy kép
+
+loop
+
+4. LAYER — VIDEO EXPORT
+
+Formátum:
+
+4K
+3840x2160
+30 fps
+
+bitrate:
+
+40-60 Mbps
+
+codec:
+
+H264
+5. LAYER — PUBLISHING
+
+Upload stratégia:
+
+Shorts
+
+naponta
+1–2
+
+Medium
+
+heti
+2–3
+
+Long
+
+heti
+1
+
+MIÉRT MŰKÖDIK EZ
+
+A YouTube algoritmus két dolgot szeret:
+
+1️⃣ gyakori feltöltés
+2️⃣ watch time
+
+A short hozza az embereket.
+
+A long hozza a monetizációt.
+
+SUNSET PROJEKT PIPELINE
+
+Ez a fő projekt.
+
+Master
+NH_MASTER
+Variációk
+NH_CLASSIC_SYNTHWAVE
+NH_GOLDEN_HORIZON
+NH_CYBER_ICE
+NH_ROYAL_NEON
+NH_EMERALD_DREAM
+NH_NEON_INFERNO
+NH_COSMIC_VAPOR
+NH_MIDNIGHT_HORIZON
+VIDEO GENERÁLÁS
+SHORT
+
+3 kép
+
+pl
+
+CLASSIC
+ROYAL
+INFERNO
+MEDIUM
+
+egy kép
+
+pl
+
+CYBER ICE
+CLASSIC
+ROYAL
+LONG
+
+egy kép
+
+pl
+
+GOLDEN HORIZON
+MIDNIGHT HORIZON
+COSMIC VAPOR
+FOLDER STRUKTÚRA
+SYNTHWAVE_CHANNEL
+SUNSET_NEON_HORIZON
+   MASTER
+   VARIATIONS
+   VIDEO_SHORTS
+   VIDEO_MEDIUM
+   VIDEO_LONG
+FILE NAMING
+
+példa
+
+NH_MASTER.png
+NH_CLASSIC_SYNSET.png
+NH_GOLDEN_HORIZON.png
+
+videó
+
+NH_CLASSIC_SHORT.mp4
+NH_CLASSIC_AMBIENT.mp4
+GYÁRTÁSI SORREND
+
+a logikus pipeline:
+
+1️⃣ master refine
+
+2️⃣ classic synthwave
+
+3️⃣ golden horizon
+
+4️⃣ cyber ice
+
+5️⃣ royal neon
+
+6️⃣ emerald dream
+
+7️⃣ neon inferno
+
+8️⃣ cosmic vapor
+
+9️⃣ midnight horizon
+
+ELSŐ HETI TARTALOM
+
+Shorts
+
+6
+
+Medium
+
+3
+
+Long
+
+2
+
+Összesen:
+
+11 videó
+
+REALITÁS
+
+Ha ez működik:
+
+3 hónap alatt lehet
+
+100+ videó
+
+és ez már YouTube ambient méret.
+
+FONTOS MEGFIGYELÉS
+
+A képed, amit csináltál:
+
+nagyon tiszta
+
+nagyon "frame art"
+
+nem AI-szagú
+
+Ez a niche-ben ritka.
+
+Ezért érdemes a Sunset projektet vezető projektnek tenni.

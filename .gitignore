@@ -1,3 +1,19 @@
-layer2_quality_report.json
+# Secrets / local config
+.secrets/
+*.local
+
+# Python
+__pycache__/
+*.pyc
+pyvenv.cfg
 venv/
-# Created by venv; see https://docs.python.org/3/library/venv.html
+.venv/
+
+# Local DB / snapshots
+*.db
+*.db.local
+latest_snapshot.json
+
+# Generated / large files
+FRED/all_series_merged.json
+FRED/all_series_merged/

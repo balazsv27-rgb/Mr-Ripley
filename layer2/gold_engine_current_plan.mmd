@@ -1,0 +1,80 @@
+flowchart LR
+
+%% =========================================================
+%% Gold Decision Engine — Current Plan (March 2026)
+%% Based on architecture4.md.txt + README_LAYER2.md
+%% =========================================================
+
+classDef layer fill:#f7f7f7,stroke:#666,stroke-width:1px,color:#111;
+classDef contract fill:#eef7ff,stroke:#2b6cb0,stroke-width:2px,color:#111;
+classDef control fill:#fff7e6,stroke:#b7791f,stroke-width:1.5px,color:#111;
+classDef optional fill:#f8f3ff,stroke:#805ad5,stroke-dasharray: 5 5,color:#111;
+classDef fail fill:#fff1f0,stroke:#c53030,stroke-width:1.5px,color:#111;
+classDef data fill:#edfdf4,stroke:#2f855a,stroke-width:1.5px,color:#111;
+
+subgraph L1["Optional Layer 1 — Event Tagger / Narrative Risk Modifiers\nPenalty-only, disabled by default"]
+    E1["Structured Event\nasset\ntimestamp\ncategory\npolarity\nintensity\nconfidence\nevidence refs"]
+    E2["Allowed effects only\nraise uncertainty\ntrigger cooldown\nadd research tags\napply veto penalties"]
+    E3["Prohibited\nno BUY / SELL\nno direction flip\nno execution override"]
+    E1 --> E2
+    E2 -. constrained by .-> E3
+end
+
+subgraph L2["Layer 2 — Truth Layer\nIngestion + validation + immutable snapshots"]
+    S1["Tier-1 required sources\ngold_price_proxy\nrates_vol_stress_move\nDFII10 / DFII5\nDGS10 / DGS5 / DGS2\nT10YIE / T5YIE / T5YIFR\nDFF / EFFR\nDTWEXBGS\nVIXCLS / SP500"]
+    S2["Tier-2 warn-only sources\ngld_holdings_flow_confirm\nCPILFESL\nFEDFUNDS\nPCEPI\nPCU2122212122210"]
+    I1["Adapters + ingestion scheduler\nbackfill + incremental EOD"]
+    I2["Versioned observations store\nseries_id, obs_ts, as_of_ts\nrevision_seq, source, value"]
+    Q1["Quality gate\ncompleteness + staleness\ntrading-calendar aware\nTier-1 missing/stale => FAIL"]
+    A1["Aligned state + derived wide matrix\nhuman-readable projection only\nNOT the truth store"]
+    P1["Published immutable snapshot\nsnapshot_id\nsnapshot_hash\nclock_ts / as_of_ts\ndata_ok\nengine_version\nconfig_version"]
+    N1["No snapshot published\nfail-closed"]
+
+    S1 --> I1
+    S2 --> I1
+    I1 --> I2 --> Q1 --> A1 --> P1
+    Q1 -->|Tier-1 fail| N1
+end
+
+subgraph L3["Layer 3 — Decision Layer\nConsumes snapshot_id only"]
+    F1["Feature builder\npoint-in-time correct\nmulti-horizon features\nrevision-risk aware"]
+    X1["Index suite\nStressIndex\nDriftIndex\nCorrBreakIndex\nDataFreshnessPenalty"]
+    R1["Regime gate\nconditional world model\nUnknownMode when confidence low\nor signals conflict"]
+    M1["Analog memory engine\noptional analytical module\nscenarios / tails / analogs"]
+    SV["Supervisor constitution\nHard veto:\ndata_ok=false\nidempotent_ok=false\nUnknownMode active\nuncertainty > U_max\n\nSoft constraints:\nhigh stress / drift / corrbreak\n=> shrink or pause"]
+    D1["Deterministic DecisionPacket\naction\nqty\nconfidence\nuncertainty\nreason_code (ENUM_ONLY)\nregime.base\nregime.unknown_mode\nguards.*\nengine_version\nconfig_version"]
+    Z0["NOTHING / NO TRADE"]
+
+    F1 --> X1 --> R1 --> SV --> D1
+    F1 --> M1 --> SV
+    SV -->|hard veto| Z0
+end
+
+subgraph L4["Layer 4 — Validation / Routing Harness\nMandatory control path"]
+    H1["Trigger"]
+    H2["Fetch snapshot by snapshot_id"]
+    H3["Call engine"]
+    H4["Schema validate DecisionPacket"]
+    H5["Gate + route\nversion-locked to engine_version"]
+    H6["Paper execute / sim costs"]
+    H7["Immutable log"]
+    H8["Post-session analysis"]
+    H9["Kill switch / fail-closed controls"]
+
+    H1 --> H2 --> H3 --> H4 --> H5 --> H6 --> H7 --> H8
+    H9 -. veto .-> H5
+    H9 -. stop .-> H6
+end
+
+P1 -->|snapshot_id only| F1
+N1 -.-> Z0
+E2 -. penalty-only modifiers .-> SV
+D1 --> H4
+Z0 --> H7
+
+class L1 optional;
+class L2,L3,L4 layer;
+class P1,D1 contract;
+class Q1,SV,H4,H5,H6,H7,H8,H9 control;
+class N1,Z0 fail;
+class S1,S2,I1,I2,A1,F1,X1,R1,M1,E1,E2,E3,H1,H2,H3 data;
