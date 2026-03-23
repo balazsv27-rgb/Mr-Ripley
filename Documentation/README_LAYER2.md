@@ -3,35 +3,29 @@
 
 > **For:** Friend / collaborator reading this on GitHub
 > **Repo:** https://github.com/balazsv27-rgb/Mr-Ripley
-> **Last updated:** 2026-03-07
-> **Document version:** v5 — see Section 17 (Revision Log) for change summary
+> **Last updated:** 2026-03-22
+> **Document version:** v6 — see Section 17 (Revision Log) for change summary
 
 ---
 
-## Document Revision Summary (v4 → v5)
+## Document Revision Summary (v5 → v6)
 
 The following changes were made in this revision. All changes are traceable to
-source code audits, the readiness scorecard (2026-03-07), and the updated
-`db.py` / `snapshot_publisher.py` files uploaded on 2026-03-07.
+`ARCHITECTURE_CHANGE_MEMO_v1.md`, `DECISION_PHILOSOPHY_v0.md`, and `DECISIONPACKET_SCHEMA_v0.md`
+dated 2026-03-22.
 
 | # | Section | Change | Reason |
 |---|---|---|---|
-| 1 | §3 DB State | Marked `engine_version` / `config_version` as present in schema | `db.py` v2 confirmed |
-| 2 | §6 Schema | Added `engine_version`, `config_version` columns to `snapshots` DDL | `db.py` v2 confirmed |
-| 3 | §6 Schema | Added `_DDL_SNAPSHOTS_VERSION_INDEX` composite index | `db.py` v2 confirmed |
-| 4 | §6 Schema | Added `_ensure_snapshot_schema_migrations()` auto-migration note | `db.py` v2 confirmed |
-| 5 | §7 Publisher | Updated `compute_snapshot_id()` — now includes engine + config versions | `snapshot_publisher.py` v2 |
-| 6 | §7 Publisher | Updated `_snapshot_exists()` — three-way dedup | `snapshot_publisher.py` v2 |
-| 7 | §7 Publisher | Updated `_get_config_version()` — multi-path fallback chain documented | `snapshot_publisher.py` v2 |
-| 8 | §7 Publisher | Updated `--list` — now displays engine_version + config_version | `snapshot_publisher.py` v2 |
-| 9 | §7 Publisher | CLI flag rename: `--clock-date` → `--date`, `--db` → `--db-path` | `snapshot_publisher.py` v2 |
-| 10 | §10 To-Do | Marked registry wiring items as ✅ DONE (were incorrectly marked pending) | Code audit 2026-03-07 |
-| 11 | §10 To-Do | Added new open items from readiness scorecard (guards, reason_code, etc.) | Scorecard 2026-03-07 |
-| 12 | §13 Decisions | Added decisions for engine_version, config_version, three-way dedup | `snapshot_publisher.py` v2 |
-| 13 | §14 Audit Log | Added Audit 5 — engine/config versioning implementation | 2026-03-07 |
-| 14 | NEW §15 | Added Layer-2 Readiness Scorecard | Scorecard 2026-03-07 |
-| 15 | NEW §16 | Added Layer-3 Readiness & Dependency Map (separated from Layer-2 items) | Architecture4.md alignment |
-| 16 | All | Corrected stale to-do statuses throughout | Code audit 2026-03-07 |
+| 1 | Header | Updated last-updated date and version to v6 | 2026-03-22 philosophy freeze |
+| 2 | §1 | Updated Layer-3 diagram line to reflect state-driven / event-driven model | `DECISION_PHILOSOPHY_v0.md` |
+| 3 | §16 | Updated Layer-3 prerequisites — `guards` and `reason_code` now resolved | v1 docs confirmed |
+| 4 | §16 | Updated Layer-3 build order — bootstrap-first path now leads with DecisionPacket skeleton and `NO_TRADE` default | `ARCHITECTURE_CHANGE_MEMO_v1.md` |
+| 5 | §16 | Updated DecisionPacket example — removed `timeframe` field, expanded to v0 schema shape | `DECISIONPACKET_SCHEMA_v0.md` |
+| 6 | §16 | Added Live Market State and Event Risk Stream as governed Layer-3 inputs | `DECISION_PHILOSOPHY_v0.md` |
+| 7 | §16 | Added note that earlier DecisionPacket example (`action: BUY/SELL/NOTHING`, `timeframe: 5m`) is superseded | `DECISIONPACKET_SCHEMA_v0.md` |
+| 8 | §17 | Added v6 revision log entry | 2026-03-22 |
+
+Previous revision (v5 → v4) changes are preserved below for traceability.
 
 ---
 
@@ -42,7 +36,8 @@ Layer-2 is the **data ingestion and truth store** for the Gold-First Market Stat
 ```
 Layer-1  ->  Event Tagger / Narrative Risk Modifiers (optional, disabled by default)
 Layer-2  ->  Ingestion + validation + immutable snapshots  <- YOU ARE HERE
-Layer-3  ->  Feature builder + index suite + decision engine
+Layer-3  ->  State-driven / event-driven decision engine   (not yet built — philosophy frozen)
+Layer-4  ->  Execution orchestration                       (not yet built / intentionally unwired)
 ```
 
 **The golden rule of Layer-2:**
@@ -780,114 +775,47 @@ snapshot_id: <64-char hash>
 
 ```
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  LAYER-3 IS NOT BUILT. THIS SECTION DEFINES WHAT IS NEEDED.
+  LAYER-3 IS NOT BUILT.
+  THIS SECTION IS HISTORICAL CONTEXT ONLY.
+  FOR CURRENT LAYER-3 DESIGN AND BUILD ORDER SEE:
+    SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md
+    DECISION_PHILOSOPHY_v0.md
+    DECISIONPACKET_SCHEMA_v0.md
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
+
+### Current Layer-3 status (as of 2026-03-22)
+
+The Layer-2 → Layer-3 handoff gate is satisfied. Layer-3 bootstrap may begin.
+
+- Layer-3 decision philosophy: frozen — `DECISION_PHILOSOPHY_v0.md`
+- DecisionPacket schema v0: defined — `DECISIONPACKET_SCHEMA_v0.md`
+- Layer-3 build sequence: `SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md` sections 6–7
+- Layer-3 implementation: not yet built
 
 ### What Layer-3 receives from Layer-2 (the contract)
 
 Layer-3 must consume only `latest_snapshot.json` or the `snapshots` + `snapshot_values`
 DB tables via `snapshot_id`. It must never read `observations` directly.
 
-**Stable fields Layer-3 may depend on:**
+The stable snapshot contract is defined in `SYSTEM_TECHNICAL_HANDBOOK_v1.md` section 7.
 
-```json
-{
-  "snapshot_id":    "<64-char sha256>",
-  "engine_version": "gold-v3.3.0",
-  "config_version": "<registry_version>",
-  "clock_ts":       "2026-03-06T22:00:00+00:00",
-  "clock_date":     "2026-03-06",
-  "verdict":        "PASS | FAIL",
-  "forced":         false,
-  "tier1_series":   { "<series_id>": { "obs_ts", "value", "staleness_days", "source" } },
-  "tier2_series":   { "<series_id>": { "obs_ts", "value", "staleness_days", "source" } },
-  "missing_series": []
-}
-```
+### Previously blocked items — now resolved
 
-### What Layer-3 still needs from Layer-2 (not yet built)
+| Item | Status |
+|---|---|
+| `guards` object in snapshot | ✅ Resolved |
+| `reason_code` enum defined | ✅ Resolved |
+| `layer1_events: []` stub | ✅ Resolved |
+| Decision philosophy frozen | ✅ Resolved — `DECISION_PHILOSOPHY_v0.md` |
+| DecisionPacket schema v0 defined | ✅ Resolved — `DECISIONPACKET_SCHEMA_v0.md` |
 
-| Item | Why Layer-3 needs it | Layer-2 owner | Priority |
-|---|---|---|---|
-| `guards` object in snapshot | Layer-3 evaluates `data_ok`, `idempotent_ok` hard veto conditions from snapshot | `snapshot_publisher.py` | **High** |
-| `reason_code` enum defined | Layer-3 must emit only enumerated reason codes — no free text at execution boundary | shared constants file | **High** |
-| `layer1_events: []` stub | Layer-3 interface must have a defined (empty) slot for future Layer-1 event hooks | `snapshot_publisher.py` | Low |
-| Index Suite values in snapshot | Layer-3 `UnknownMode` evaluation requires Stress, Drift, CorrBreak index values from Layer-2 | Future Layer-2 extension | After Index Suite built |
+### Note on earlier DecisionPacket example in this document
 
-### Layer-3 build order (do not start until Layer-2 prerequisites are met)
+The DecisionPacket example that appeared in earlier versions of this section
+(`action: "BUY | SELL | NOTHING"`, `timeframe: "5m"`) is superseded.
 
-```
-prerequisite check:
-  ✅ snapshot_publisher produces engine_version + config_version
-  ✅ Layer-3 contract fields are stable
-  ⬜ guards object in snapshot       ← complete this first
-  ⬜ reason_code enum defined        ← complete this first
-
-then build in this order:
-  1. Feature Builder
-     - reads from latest_snapshot.json
-     - computes standardized multi-horizon feature vectors
-     - validates engine_version + config_version before consuming
-     - must support point-in-time reconstruction (use obs_ts, not ingest date)
-
-  2. Index Suite
-     - StressIndex (0–100)
-     - DriftIndex (0–100)
-     - CorrBreakIndex (0–100)
-     - DataFreshnessPenalty (0–100)
-     - Indices must be frozen via calibration before use in gate logic
-     - Null or unfrozen indices → supervisor degrades confidence
-
-  3. Regime Gate
-     - Consumes Feature Builder output
-     - Regime confidence < threshold → UnknownMode activated
-     - UnknownMode: confidence=0, uncertainty=U_max, cooldown++, no directional execution
-
-  4. Supervisor Engine
-     - Hard veto (non-negotiable): data_ok=false, idempotent_ok=false,
-       UnknownMode active, uncertainty > U_max → NO TRADE
-     - Soft constraints: stress/drift/corrbreak high → shrink position
-
-  5. Decision Engine → DecisionPacket (deterministic, no free text)
-     {
-       "engine_version":  "gold-v3.3.0",
-       "config_version":  "<registry_version>",
-       "action":          "BUY | SELL | NOTHING",
-       "confidence":      0.0,
-       "uncertainty":     0.0,
-       "reason_code":     "<ENUM_ONLY>",
-       "guards":          { "data_ok", "idempotent_ok", "cooldown_ok",
-                            "risk_ok", "supervisor_veto" }
-     }
-
-  6. Zapier-style validation harness
-     - Trigger → Fetch → Call Engine → Schema Validate → Gate → Route
-       → Paper Execute → Immutable Log → Post-Session Analysis
-     - Gate allows execution only if all guards pass AND
-       confidence >= C_min AND uncertainty <= U_max
-
-  7. Calibration (thresholds are not theater)
-     - ≥ 100–300 decision ticks before freezing C_min / U_max
-     - ≥ 30–100 executed paper trades
-     - Monotonic calibration: higher confidence → better outcomes
-     - Required metrics: reliability curve, Brier score, drawdown, CVaR,
-       regime breakdown, calibration error
-     - PnL alone is insufficient
-```
-
-### Layer-3 activation criteria (all must be met)
-
-```
-⬜ Feature Builder tested and stable
-⬜ Index Suite frozen and calibrated (not just built)
-⬜ ≥ 100 decision ticks in paper mode
-⬜ ≥ 30 executed paper trades with adequate sample
-⬜ Monotonic calibration holds
-⬜ DecisionPacket schema frozen (no free-text fields)
-⬜ Zapier-style harness passing end-to-end
-⬜ Kill switch tested and confirmed fail-closed
-```
+Use `DECISIONPACKET_SCHEMA_v0.md` as the authoritative reference for the v0 contract.
 
 ---
 
@@ -900,6 +828,7 @@ then build in this order:
 | v3 | 2026-03-06 | @balazsv27-rgb | Post-Audit 3: forced column, batch hash, schema docs |
 | v4 | 2026-03-06 | @balazsv27-rgb | Post-Audit 4: force flag behavior, GLD source fix |
 | v5 | 2026-03-07 | Architecture audit | Post-Audit 5: engine_version/config_version, scorecard, Layer-3 separation, stale to-do corrections |
+| v6 | 2026-03-22 | Architecture audit | Layer-3 decision philosophy frozen (state-driven / event-driven). DecisionPacket schema v0 defined. Layer-3 build order updated. Old timeframe-centric DecisionPacket example superseded. |
 
 ---
 

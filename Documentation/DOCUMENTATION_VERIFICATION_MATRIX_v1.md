@@ -14,8 +14,9 @@ Canonical document set:
 - `SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md`
 - `DOCUMENTATION_VERIFICATION_MATRIX_v1.md`
 - `SYSTEM_IMPLEMENTATION_RECORD_v1.md`
+- `README_LAYER2.md`
 
-`README_LAYER2.md` is historical only.
+These seven documents together form the canonical current-state set.
 
 ---
 
@@ -29,7 +30,7 @@ Canonical document set:
 | **Cannot verify from current materials** | Current docs do not support a stronger statement without invention |
 
 Important distinction:
-- “Verified in current documentation set” is **not** the same as independent external certification.
+- "Verified in current documentation set" is **not** the same as independent external certification.
 - This matrix classifies the current docs; it does not replace direct code inspection.
 
 ---
@@ -48,9 +49,9 @@ Important distinction:
 | `reason_code` enum in shared constants | Verified in current documentation set | Current docs now consistently treat this as implemented |
 | `layer1_events: []` stub in snapshot JSON | Verified in current documentation set | Treated as implemented forward-compatible slot |
 | Deterministic snapshot publication path | Documented current-state claim | Current docs describe this as operational, based on project-owned evidence |
-| Successful non-forced snapshot publication | Verified in current documentation set | Current docs now consistently describe one successful non-forced publication event |
-| `latest_snapshot.json` handoff file generated successfully | Verified in current documentation set | Current docs now consistently describe this as observed fact |
-| Layer-2 → Layer-3 snapshot handoff gate satisfied | Verified in current documentation set | Current docs now consistently describe contract-side gate as satisfied |
+| Successful non-forced snapshot publication | Verified in current documentation set | Current docs consistently describe one successful non-forced publication event |
+| `latest_snapshot.json` handoff file generated successfully | Verified in current documentation set | Current docs consistently describe this as observed fact |
+| Layer-2 → Layer-3 snapshot handoff gate satisfied | Verified in current documentation set | Current docs consistently describe contract-side gate as satisfied |
 
 ---
 
@@ -65,6 +66,9 @@ Important distinction:
 | Repo hygiene for runtime artifacts | Documented current-state claim | Current docs treat this as an open verification / hygiene concern |
 | Adapter usability polish (e.g. gold JSON path handling) | Documented current-state claim | Current docs treat this as non-blocking operational polish |
 | Layer-3 implementation | Verified in current documentation set | Current docs consistently say Layer-3 is not yet built |
+| SP500 history gap | Documented current-state claim | FRED SP500 from 2016 only — SPY migration planned, relevant for future Layer-3 live market inputs |
+| Live Market State adapters | Verified in current documentation set | Not built — required for Layer-3 fast trigger detection |
+| Event Risk Stream integration | Verified in current documentation set | Not built — required for Layer-3 uncertainty escalation and action restriction |
 
 ---
 
@@ -72,11 +76,15 @@ Important distinction:
 
 | Item | Classification | Notes |
 |---|---|---|
+| Layer-3 decision model | Planned / target architecture | State-driven / event-driven model. Three inputs: Snapshot Truth, Live Market State, Event Risk Stream. Frozen 2026-03-22. Full design in `SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md` section 7. |
+| DecisionPacket v0 schema | Planned / target architecture | Governed action contract. Schema frozen 2026-03-22. Full field reference in `SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md` section 7. |
 | Feature Builder | Planned / target architecture | Layer-3 component, not current Layer-2 implementation |
 | Index Suite | Planned / target architecture | Layer-3 component |
 | Regime Gate | Planned / target architecture | Layer-3 component |
 | Supervisor Engine | Planned / target architecture | Layer-3 component |
-| DecisionPacket generation | Planned / target architecture | Layer-3 component |
+| DecisionPacket generation | Planned / target architecture | Layer-3 component — v0 schema defined, implementation not yet started |
+| Live Market State adapters | Planned / target architecture | Layer-3 component — fast-changing input layer |
+| Event Risk Stream | Planned / target architecture | Layer-3 component — penalty / override / uncertainty escalation only |
 | Live execution wiring | Planned / target architecture | Later gate only |
 
 ---
@@ -93,8 +101,38 @@ This is still **not** independent external certification.
 
 ---
 
-## 7. Interpretation Rule
+## 7. Layer-3 Philosophy and Schema Classification (added 2026-03-22)
 
-If any older retained document contradicts the current v1 set, prefer the current v1 set.
+The current v1 documentation set supports the following statements:
 
-`README_LAYER2.md` must not be used as a current-state source.
+> The Layer-3 decision philosophy has been frozen: the engine is state-driven / event-driven, deciding because state changed — not because time passed.
+
+> The Layer-3 DecisionPacket v0 schema has been defined: a governed action contract carrying snapshot_id, guard fields, reason codes, allowed actions, preferred action, confidence, uncertainty, cooldown, and invalidation semantics.
+
+Both are classified as **Planned / target architecture** — the philosophy and schema are defined and frozen, but Layer-3 is not yet implemented.
+
+The previous implicit timeframe-centered DecisionPacket framing (`action: "BUY | SELL | NOTHING"`, `timeframe: "5m"`) is superseded. Any document still containing the old framing should be treated as historical.
+
+---
+
+## 8. Document Role Classification
+
+This table records the canonical role of each document to prevent role-mixing and documentation fog.
+
+| Document | Role | Contains |
+|---|---|---|
+| `README_v1.md` | Entry point summary | Current status, component list, run sequence, short-form known risks |
+| `SYSTEM_TECHNICAL_HANDBOOK_v1.md` | Current engineering reference (Layer-2) | Layer-2 stack, snapshot contract, quality gate semantics, handoff gate |
+| `SYSTEM_LIMITATIONS_AND_APPROXIMATIONS_v1.md` | Current Layer-2 gaps and open items | Known limitations, accepted approximations, Layer-2-owned open items only |
+| `SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md` | Target architecture + build sequence + design risks | Layer framing, build phases, Layer-3 model, implementation risks |
+| `SYSTEM_IMPLEMENTATION_RECORD_v1.md` | Historical build record + addendum | Build history, audit trail, schema diffs, philosophy change record |
+| `DOCUMENTATION_VERIFICATION_MATRIX_v1.md` | Classification layer | What is verified, what is claimed, what is planned, document role map |
+| `README_LAYER2.md` | Collaborator guide + living build reference | Layer-2 build detail, adapter usage, DB state, run sequence, resolved/open items — updated alongside the v1 set |
+
+---
+
+## 9. Interpretation Rule
+
+If any document contradicts the current canonical set, the conflict must be resolved — not silently preferred away. All seven documents must remain consistent with each other.
+
+For Layer-3 design decisions and DecisionPacket field reference, `SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md` section 7 is the canonical source.

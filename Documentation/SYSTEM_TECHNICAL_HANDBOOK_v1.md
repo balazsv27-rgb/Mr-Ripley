@@ -5,7 +5,7 @@
 > **Architecture reference:** `SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md`
 > **Limitations / approximations:** `SYSTEM_LIMITATIONS_AND_APPROXIMATIONS_v1.md`
 > **Historical implementation record:** `SYSTEM_IMPLEMENTATION_RECORD_v1.md`
-> **Last updated:** 2026-03-16
+> **Last updated:** 2026-03-22
 
 ---
 
@@ -36,14 +36,16 @@ Any downstream computation is Layer-3 work.
 
 ## 2. Current Architecture Position
 
-```text
+```
 Layer-1  →  Event Tagger / Narrative Risk Modifiers   (optional, disabled by default)
 Layer-2  →  Ingestion + validation + snapshot store    ← THIS DOCUMENT
-Layer-3  →  Feature builder + index suite + decision engine   (not yet built)
-Layer-4  →  Execution orchestration                   (not yet built / intentionally unwired)
+Layer-3  →  State-driven decision engine               (not yet built — philosophy frozen)
+Layer-4  →  Execution orchestration                    (not yet built / intentionally unwired)
 ```
 
 Layer-3 must consume only published snapshots. It must never query `observations` directly.
+
+Layer-3 note: as of 2026-03-22, the Layer-3 decision philosophy is frozen as of 2026-03-22. The engine will be state-driven / event-driven, consuming Snapshot Truth from Layer-2 alongside Live Market State and Event Risk Stream as additional governed inputs. Neither of those additional inputs may touch Layer-2 storage.
 
 ---
 
@@ -56,6 +58,7 @@ Layer-3 must consume only published snapshots. It must never query `observations
 | 3 | Version-locked snapshots | `engine_version`, `config_version`, and `snapshot_id` are part of the boundary |
 | 4 | Point-in-time discipline | Alignment respects governed `clock_date` / `clock_ts` boundaries |
 | 5 | Snapshot-only downstream reads | Layer-3 consumes snapshots, never raw `observations` |
+| 6 | snapshot_id as DecisionPacket anchor | Every Layer-3 DecisionPacket must carry the `snapshot_id` of its governing snapshot |
 
 ---
 
@@ -91,23 +94,12 @@ Current adapter set in documented use:
 | `guards` structured object in snapshot JSON | ✅ Done |
 | `reason_code` enum defined in shared constants | ✅ Done |
 | Current v1 docs aligned to current contract behavior | ✅ Done |
-
-Recommended but not mandatory for bootstrap start:
-
-- simple orchestrator / end-to-end runner
-- basic scheduler
+| Layer-3 decision philosophy frozen | ✅ Done |
+| Layer-3 DecisionPacket schema v0 defined | ✅ Done |
 
 ### Current gate result
 
 The contract-side Layer-2 → Layer-3 handoff gate is now satisfied.
-
-Reason:
-
-- successful non-forced snapshot publication observed
-- quality gate passed at the publication boundary
-- DB write observed
-- `latest_snapshot.json` write observed
-- required contract fields present in published output
 
 This means Layer-3 bootstrap may begin.
 
@@ -134,8 +126,6 @@ A successful publication writes:
 - `latest_snapshot.json`
 
 ### Observed successful publication example
-
-Current v1 documents now record one successful non-forced publication with:
 
 - `snapshot_id`: `a562bef5b93fa07794e9b73c17a24ddad0ce271678fd52cc939ac1d4cae32526`
 - `engine_version`: `gold-v3.3.0`
@@ -174,6 +164,17 @@ Current informational fields also included:
 
 Current published grouped / flat value views include `as_of_ts` and `revision_seq`.
 
+### snapshot_id as Layer-3 anchor
+
+The `snapshot_id` is the primary contract anchor between Layer-2 and Layer-3.
+
+Every DecisionPacket emitted by Layer-3 must carry:
+- `snapshot_id` — the governing snapshot used as truth base
+- `snapshot_clock_ts` — the clock timestamp of that snapshot
+
+This ensures every decision is replayable against a specific, immutable Layer-2 publication.
+Every DecisionPacket must carry `decision_id`, `asset_id`, `engine_version`, `config_version`, `decision_ts`, and `snapshot_id` as identity fields. State timestamps must include `snapshot_clock_ts`, `live_state_ts`, and `event_state_ts`. See the Layer-3 section of `SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md` for the full field reference.
+
 ---
 
 ## 8. Quality Gate Semantics
@@ -188,8 +189,6 @@ It exists to answer:
 
 ### Current observed publication boundary result
 
-At the observed successful publication boundary:
-
 - Tier-1 total: 15
 - Tier-1 pass: 15
 - Tier-1 fail: 0
@@ -197,6 +196,16 @@ At the observed successful publication boundary:
 - Tier-2 warnings: 2
 
 Tier-2 warnings do not block publication.
+
+### Relationship to Layer-3 guard fields
+
+The Layer-2 quality gate result maps directly to Layer-3 DecisionPacket guard fields:
+
+| Layer-2 gate result | Layer-3 guard field | Implication |
+|---|---|---|
+| Tier-1 all pass | `data_ok = true`, `freshness_ok = true` | Packet may be actionable if other guards pass |
+| Any Tier-1 fail | `data_ok = false` or `freshness_ok = false` | Packet must not recommend aggressive new entry |
+| VERDICT: FAIL (no snapshot published) | No valid snapshot → Layer-3 cannot form a packet | `NO_TRADE` is the only valid output |
 
 ---
 
@@ -213,6 +222,8 @@ The following are still not built:
 - Layer-3 Regime Gate
 - Layer-3 Supervisor
 - Layer-3 DecisionPacket generation
+- Layer-3 Live Market State adapters
+- Layer-3 Event Risk Stream integration
 - live execution wiring
 
 ---
@@ -225,6 +236,7 @@ The current v1 document set now consistently reflects:
 
 - contract-side handoff gate satisfied
 - successful non-forced Layer-2 snapshot publication observed
+- Layer-3 decision philosophy frozen
 - Layer-3 not yet built
 - live execution not ready
 
@@ -245,6 +257,8 @@ Use this handbook as the structured engineering reference for the current system
 For:
 - status classification → use `DOCUMENTATION_VERIFICATION_MATRIX_v1.md`
 - remaining risks / approximations → use `SYSTEM_LIMITATIONS_AND_APPROXIMATIONS_v1.md`
+- Layer-3 decision model → see `SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md` section 7
+- Layer-3 output contract → see `SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md` section 7 (DecisionPacket field reference)
 - long-form history → use `SYSTEM_IMPLEMENTATION_RECORD_v1.md`
 
-`README_LAYER2.md` is historical only.
+`README_LAYER2.md` is part of the canonical set — collaborator guide and living build reference.

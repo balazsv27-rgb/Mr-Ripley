@@ -1,0 +1,373 @@
+name: trading-sims-governance-orchestration
+description: >
+  Project-level orchestration manifest for the Claude-assisted governance workflow.
+  It coordinates constitution-level rules, orchestration logic, reusable skills,
+  deterministic hooks, specialist subagents, stage gates, artifacts, and status updates
+  without acting as an independent truth source.
+version: 1.0.0
+
+constitution:
+  file: CLAUDE.md
+  role: persistent_project_rules_and_context
+  responsibilities:
+    - define canonical project principles
+    - define current-vs-target architecture distinction
+    - define evidence and truth-source priorities
+    - define fail-closed operating posture
+    - define non-negotiable project conventions
+
+orchestration_manifest:
+  file: .claude/workflows/system-orchestration.yaml
+  role: workflow_blueprint_not_truth_source
+  responsibilities:
+    - coordinate workflow order
+    - declare component interactions
+    - map inputs to outputs
+    - enforce phase-aware execution logic
+    - expose blocking conditions and update paths
+
+skills:
+  - name: snapshot-contract-check
+    role: reusable_contract_validation_method
+    purpose: validate snapshot-only downstream consumption rules
+  - name: doc-truth-classification
+    role: claim_classification_method
+    purpose: classify claims as current-state, target-state, historical, or unverified
+  - name: build-sequence-compliance-check
+    role: phase_alignment_method
+    purpose: ensure requested work respects documented build order
+  - name: change-impact-audit
+    role: impact_assessment_method
+    purpose: summarize what changed and what documentation must be updated
+  - name: verification-matrix-update-method
+    role: evidence_classification_method
+    purpose: update verification status only where evidence supports it
+  - name: runtime-artifact-hygiene-check
+    role: workspace_integrity_method
+    purpose: detect runtime hygiene and local artifact issues
+
+hooks:
+  - name: snapshot-boundary-guard
+    trigger: post_edit_or_write
+    role: deterministic_enforcement
+    purpose: block forbidden downstream latest/raw-observation access patterns
+  - name: current-truth-source-guard
+    trigger: doc_edit
+    role: deterministic_enforcement
+    purpose: prevent historical docs from being treated as canonical current-state truth
+  - name: pre-pr-governance-gate
+    trigger: pre_pr_or_manual_release_check
+    role: deterministic_enforcement
+    purpose: require mandatory governance checks before milestone or PR progression
+  - name: live-readiness-claim-blocker
+    trigger: doc_edit_or_release_review
+    role: deterministic_enforcement
+    purpose: block unsupported claims of live readiness or completed downstream execution
+
+subagents:
+  - name: cross-doc-consistency-auditor
+    role: specialist_auditor
+    purpose: identify contradictions across canonical documents and recent changes
+  - name: layer3-bootstrap-auditor
+    role: specialist_auditor
+    purpose: verify that Layer-3 work stays inside permitted bootstrap scope
+  - name: architecture-sequence-auditor
+    role: specialist_auditor
+    purpose: compare requested or completed changes against the documented build sequence
+  - name: verification-matrix-auditor
+    role: specialist_auditor
+    purpose: audit evidence classifications and verification drift
+  - name: implementation-history-reconciler
+    role: specialist_auditor
+    purpose: reconcile preserved implementation history against the current v1 truth set
+
+artifacts:
+  required_inputs:
+    canonical_docs:
+      - README_v1.md
+      - SYSTEM_TECHNICAL_HANDBOOK_v1.md
+      - SYSTEM_LIMITATIONS_AND_APPROXIMATIONS_v1.md
+      - SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md
+      - DOCUMENTATION_VERIFICATION_MATRIX_v1.md
+      - SYSTEM_IMPLEMENTATION_RECORD_v1.md
+    historical_context_docs:
+      - README_LAYER2.md
+    code_context:
+      - layer2/config/series_registry.json
+      - layer2/config/registry.py
+      - layer2/clock.py
+      - layer2/alignment.py
+      - layer2/adapters/quality_gate.py
+      - layer2/adapters/snapshot_publisher.py
+      - layer2/db.py
+    runtime_context:
+      - changed_files
+      - user_request
+      - current_phase
+      - requested_phase
+  expected_outputs:
+    - active_governance_context
+    - request_classification
+    - phase_alignment_status
+    - guard_report
+    - deep_audit_summary
+    - change_impact_summary
+    - doc_update_plan
+    - verification_matrix_delta
+    - blocking_conditions_report
+    - pr_readiness_status
+
+stage_gates:
+  phase_a_layer2_closure:
+    status: complete_at_contract_boundary
+    allows:
+      - layer3_bootstrap_start
+    does_not_imply:
+      - full_layer2_hardening_complete
+      - live_execution_ready
+  phase_b_layer3_bootstrap:
+    status: allowed_not_completed
+    required_scope:
+      - snapshot_consumer
+      - feature_builder_stub
+      - deterministic_calculations_2_to_3
+      - decisionpacket_skeleton
+      - nothing_default_path
+    forbidden_scope_expansion:
+      - live_execution_wiring
+      - unfrozen_threshold_logic
+      - production_readiness_claims
+  phase_c_layer3_structured_buildout:
+    status: future
+    required_scope:
+      - feature_builder_stabilization
+      - index_suite
+      - regime_gate
+      - supervisor_engine
+      - decision_engine_hardening
+      - paper_validation
+      - calibration_threshold_freeze
+  phase_d_live_execution_gate:
+    status: blocked
+    required_preconditions:
+      - layer3_exists
+      - paper_validation_complete
+      - calibration_complete
+      - decisionpacket_schema_frozen
+      - operational_readiness_complete
+      - kill_switch_tested_fail_closed
+
+blocking_conditions:
+  - historical_source_promoted_as_current_truth
+  - unsupported_current_state_claim
+  - layer3_claimed_as_built_without_evidence
+  - live_execution_claimed_ready_before_phase_d
+  - snapshot_boundary_violation
+  - raw_observations_used_as_layer3_input
+  - contract_affecting_change_without_doc_updates
+  - verification_reclassification_without_evidence
+  - phase_jump_without_explicit_authorization
+  - missing_required_inputs
+  - failed_deterministic_guard
+
+status_ledger_updates:
+  on_substantive_change:
+    - update_change_impact_summary
+    - update_doc_update_plan
+  on_classification_change:
+    - update_DOCUMENTATION_VERIFICATION_MATRIX_v1.md
+  on_architecture_scope_change:
+    - review_SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md
+  on_current_state_change:
+    - review_README_v1.md
+    - review_SYSTEM_TECHNICAL_HANDBOOK_v1.md
+    - review_SYSTEM_LIMITATIONS_AND_APPROXIMATIONS_v1.md
+  on_historical_reconciliation:
+    - review_SYSTEM_IMPLEMENTATION_RECORD_v1.md
+    - preserve_historical_context_labels
+
+workflow:
+  - id: load-authority-context
+    component: constitution
+    status: mandatory
+    purpose: load the governing rules, canonical source hierarchy, and persistent project context
+    inputs:
+      - CLAUDE.md
+      - artifacts.required_inputs.canonical_docs
+      - artifacts.required_inputs.historical_context_docs
+    outputs:
+      - active_governance_context
+    instructions:
+      - prefer canonical current-state sources over historical context documents
+      - treat README_LAYER2.md as historical context only
+      - distinguish current implementation from target architecture
+      - preserve existing project logic and fail-closed assumptions
+    validation:
+      must_include:
+        - canonical_source_priority
+        - historical_source_handling
+        - current_vs_target_architecture_split
+        - evidence_awareness
+
+  - id: classify-request-scope
+    component: skill:doc-truth-classification
+    status: mandatory
+    purpose: classify the task scope and determine what kind of claims or updates are being requested
+    inputs:
+      - user_request
+      - active_governance_context
+      - artifacts.required_inputs.canonical_docs
+    outputs:
+      - request_classification
+    instructions:
+      - classify each major claim or requested change
+      - map each claim to current-state, target-state, historical, or unverified scope
+      - assign source priority and confidence level
+    validation:
+      must_include:
+        - claim_scope
+        - source_priority
+        - confidence_level
+        - classification_rationale
+
+  - id: check-phase-alignment
+    component: skill:build-sequence-compliance-check
+    status: mandatory
+    purpose: ensure the request is compatible with the documented build sequence and stage-gate logic
+    inputs:
+      - request_classification
+      - current_phase
+      - requested_phase
+      - stage_gates
+    outputs:
+      - phase_alignment_status
+    instructions:
+      - reject implicit phase jumping
+      - allow only phase-compatible scope expansion
+      - block live-readiness implications before Phase D
+      - flag requests that exceed current allowed scope
+    validation:
+      must_include:
+        - current_phase
+        - requested_phase
+        - allowed
+        - gate_reference
+        - blocking_reason_if_any
+
+  - id: run-deterministic-guards
+    component: hooks
+    status: mandatory
+    purpose: run deterministic enforcement checks against changed files and requested claims
+    inputs:
+      - changed_files
+      - request_classification
+      - active_governance_context
+    outputs:
+      - guard_report
+    instructions:
+      - run snapshot-boundary-guard
+      - run current-truth-source-guard
+      - run live-readiness-claim-blocker when relevant
+      - collect pass/fail results before any downstream completion claim
+    validation:
+      must_include:
+        - passed_guards
+        - failed_guards
+        - blocked_files_or_claims
+        - enforcement_summary
+
+  - id: run-deep-audit-if-needed
+    component: subagents
+    status: conditional
+    purpose: isolate noisy, multi-document, or multi-step audit work from the main context
+    inputs:
+      - changed_files
+      - request_classification
+      - artifacts.required_inputs.canonical_docs
+      - artifacts.required_inputs.historical_context_docs
+    outputs:
+      - deep_audit_summary
+    instructions:
+      - invoke cross-doc-consistency-auditor for contradiction analysis
+      - invoke architecture-sequence-auditor for build-order issues
+      - invoke verification-matrix-auditor for evidence drift
+      - invoke implementation-history-reconciler when historical conflicts appear
+      - invoke layer3-bootstrap-auditor when requested work touches Phase B scope
+    validation:
+      must_include:
+        - findings
+        - evidence_paths
+        - severity
+        - recommended_doc_updates
+
+  - id: produce-change-impact
+    component: skill:change-impact-audit
+    status: mandatory
+    purpose: summarize what changed, why it matters, and what follow-up documentation or governance actions are required
+    inputs:
+      - request_classification
+      - phase_alignment_status
+      - guard_report
+      - deep_audit_summary
+    outputs:
+      - change_impact_summary
+      - doc_update_plan
+    instructions:
+      - distinguish code, documentation, architecture, and verification impacts
+      - identify all affected canonical artifacts
+      - preserve existing project logic
+      - mark whether follow-up updates are mandatory or advisory
+    validation:
+      must_include:
+        - impacted_components
+        - impacted_docs
+        - impact_type
+        - follow_up_required
+        - risk_summary
+
+  - id: update-verification-ledger
+    component: skill:verification-matrix-update-method
+    status: conditional
+    purpose: update evidence classification and verification status after substantive or claim-relevant changes
+    inputs:
+      - change_impact_summary
+      - doc_update_plan
+      - DOCUMENTATION_VERIFICATION_MATRIX_v1.md
+    outputs:
+      - verification_matrix_delta
+    instructions:
+      - reclassify only where evidence supports the change
+      - do not promote planned architecture to current implementation without proof
+      - preserve audit traceability for reviewed but unchanged claims
+    validation:
+      must_include:
+        - changed_classifications
+        - unchanged_but_reviewed
+        - evidence_basis
+        - traceability_notes
+
+  - id: pre-pr-governance
+    component: hook:pre-pr-governance-gate
+    status: conditional
+    purpose: enforce governance completeness before PR submission, milestone close, or release-style checkpoint
+    inputs:
+      - phase_alignment_status
+      - guard_report
+      - change_impact_summary
+      - doc_update_plan
+      - verification_matrix_delta
+    outputs:
+      - blocking_conditions_report
+      - pr_readiness_status
+    instructions:
+      - require current-state consistency
+      - require phase alignment
+      - require evidence-aware doc updates for contract-affecting changes
+      - require absence of forbidden live-readiness or downstream completion claims
+    validation:
+      must_include:
+        - readiness_status
+        - blocking_conditions
+        - missing_artifacts
+        - required_followups
+        - release_or_pr_decision

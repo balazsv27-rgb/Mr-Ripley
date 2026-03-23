@@ -1,370 +1,324 @@
-# Claude Environment — Mr. Ripley
+# CLAUDE.md — Project Constitution
 
-This repository implements the **Layer-2 Truth Layer** of the Mr. Ripley market-state engine.
+This document defines the **constitutional rules** of the Mr. Ripley gold first engine.
 
-Layer-2 responsibilities:
+It governs:
+- how the system is interpreted
+- what counts as truth and proof
+- how components relate to each other
+- what is allowed vs forbidden to claim
+- how changes must be validated
 
-- ingest market data
-- validate freshness and completeness
-- enforce **fail-closed** behavior
-- publish immutable **snapshots**
-- provide deterministic input for Layer-3
-
-Layer-3 must **never read observations directly** and may only consume
-published `snapshot_id`s.
-
----
-
-# Key Architecture Rules
-
-1. **Fail-closed behavior**
-   - If Tier-1 data is stale → no snapshot published
-   - Layer-3 must output nothing.
-
-2. **Snapshots are the contract**
-   - `snapshot_id`
-   - `engine_version`
-   - `config_version`
-   - `clock_ts`
-
-3. **Truth layer immutability**
-   - `observations` rows must never be overwritten.
-   - Use `INSERT OR IGNORE`, not `REPLACE`.
-
-4. **Version-locked replay**
-   - snapshot_id includes:
-     - clock_ts
-     - engine_version
-     - config_version
-     - aligned values.
-
-5. **Registry-driven configuration**
-   - `series_registry.json` is the single source of truth.
+This file is **not a workflow** and **not an implementation guide**.  
+It is the **highest-priority interpretative authority** for Claude.
 
 ---
 
-# Primary Working Areas
+# 1. SYSTEM IDENTITY
 
-Claude should prioritize these files:
+The Mr. Ripley gold first engengine is a:
 
-- layer2/adapters/
-- layer2/config/
-- layer2/db.py
-- layer2/alignment.py
-- layer2/clock.py
-- layer2/index_suite.py
+> **Gold-first, fail-closed, snapshot-based decision support system**
 
+Core properties:
 
-Adapters:
-
-- gold_adapter
-- move_adapter
-- gld_holdings_adapter
-- fred_loader
-- quality_gate
-- snapshot_publisher
+- deterministic data ingestion (Layer 2)
+- immutable snapshot boundary
+- no direct raw-data consumption downstream
+- LLM = **analysis + audit only**, never execution
+- execution remains **blocked by design**
 
 ---
 
-# Safe Development Workflow
+# 2. DOCUMENT AUTHORITY (TRUTH HIERARCHY)
 
-For non-trivial changes:
+## 2.1 Canonical Current-State Sources
 
-1. analyze
-2. map affected files
-3. propose minimal plan
-4. implement incrementally
-5. run verification
+The following define **current system truth**:
 
-Always verify using:
+1. `README_v1.md`
+2. `SYSTEM_TECHNICAL_HANDBOOK_v1.md`
+3. `SYSTEM_LIMITATIONS_AND_APPROXIMATIONS_v1.md`
+4. `SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md`
+5. `DOCUMENTATION_VERIFICATION_MATRIX_v1.md`
+6. `SYSTEM_IMPLEMENTATION_RECORD_v1.md`
 
+These together form the **canonical v1 documentation set**.
 
-- quality_gate.py
-- snapshot_publisher.py --dry-run
+## 2.2 Historical Sources
 
+- `README_LAYER2.md` = **historical context only**
 
----
+Rule:
 
-# High-Risk Surfaces
+> Historical documents MUST NOT be used as current truth sources.
 
-Treat these as **architecture-critical**:
+## 2.3 Conflict Resolution
 
-- DB schema
-- snapshot generation
-- quality gate
-- registry structure
-- snapshot alignment rules
+If any document conflicts:
 
-Changes here require:
-
-- plan mode
-- reviewer pass
-- verification run
+> **Canonical v1 set ALWAYS overrides historical documents**
 
 ---
 
-# Repository Context Policy
+# 3. CURRENT vs TARGET ARCHITECTURE
 
-Prefer:
+The system is explicitly **multi-stage**.
 
-- grep/glob discovery
-- targeted file reads
-- small scoped patches
+## 3.1 Current State
 
-Avoid:
+- Layer 2 = **operational at snapshot boundary**
+- Snapshots = published, immutable, contract-compliant
+- No downstream computation layer exists yet
 
-- sweeping rewrites
-- speculative architecture changes
-- modifying snapshot contracts without review
+## 3.2 Target Architecture (NOT YET BUILT)
 
----
+The following are **planned only**:
 
-# Typical Daily Work
+- Feature Builder
+- Index Suite
+- Regime Gate
+- Supervisor Engine
+- Decision Engine
+- DecisionPacket
+- Execution Layer
 
-Common tasks include:
+Rule:
 
-- adapter fixes
-- registry updates
-- staleness logic
-- snapshot publishing logic
-- schema alignment
-- validator improvements
-
----
-
-# MCP Usage
-
-This project uses a small MCP stack to improve code navigation, documentation accuracy, and database inspection.
-
-Configured MCP servers:
-
-* **Serena**
-* **Context7**
-* **SQLite**
-
-These servers are defined in the project `.mcp.json` and are available during development sessions. 
-
-Claude should only invoke MCP tools when they provide **clear value beyond normal file reading**.
+> Planned components MUST NOT be described as existing implementation.
 
 ---
 
-# Serena — Code Navigation & Dependency Tracing
+# 4. STAGE-GATE MODEL
 
-Use **Serena** when analyzing the codebase structure or tracing relationships between modules.
+The system evolves through strict phases:
 
-Preferred use cases:
+## Phase A — Layer 2 Closure
+- Status: **complete at contract boundary**
 
-* locate symbol definitions
-* trace function or class references
-* analyze cross-file dependencies
-* inspect call graphs
-* understand adapter interaction with snapshot logic
-* explore schema-related code paths
+## Phase B — Layer 3 Bootstrap
+- Status: **allowed, not completed**
 
-Examples:
+## Phase C — Layer 3 Structured Buildout
+- Status: **future**
 
-Good Serena tasks:
-
-* trace where `snapshot_id` is generated and consumed
-* locate all uses of `registry_version`
-* inspect call paths into `quality_gate`
-* analyze DB access patterns across adapters
-
-Avoid Serena when:
-
-* reading a single file
-* inspecting simple logic
-* performing small edits
-
-For those cases, prefer normal file reads.
+## Phase D — Live Execution Gate
+- Status: **blocked**
 
 ---
 
-# Context7 — Official Library Documentation
+## Critical Rule
 
-Use **Context7** when verifying behavior of external libraries or Python runtime features.
-
-Preferred use cases:
-
-* confirming Python library APIs
-* reviewing SQLite documentation
-* checking `yfinance` usage patterns
-* confirming CLI argument behavior
-* validating Python stdlib behavior (datetime, sqlite3, argparse)
-
-Examples:
-
-Good Context7 queries:
-
-* Python `sqlite3` connection behavior
-* `yfinance` download semantics
-* `argparse` argument parsing patterns
-* Python datetime timezone handling
-
-Avoid Context7 for:
-
-* repository code questions
-* architecture questions
-* internal API understanding
-
-For those, inspect the repo directly.
+> “Handoff gate satisfied” ≠ Layer 3 exists  
+> “Layer 3 exists” ≠ Live execution allowed  
 
 ---
 
-# SQLite MCP — Truth Store Inspection
+# 5. EVIDENCE AND PROOF MODEL
 
-Use the **SQLite MCP server** when inspecting the local truth database.
+All claims must be classified.
 
-The database file:
+## 5.1 Allowed Evidence Classes
 
-```
-layer2_truth.db
-```
+- **Verified in current documentation set**
+- **Documented current-state claim**
+- **Planned / target architecture**
+- **Not verifiable from current materials**
 
-Primary tables:
+## 5.2 What Counts as Proof
 
-```
-observations
-snapshots
-snapshot_values
-```
+Valid proof must be:
 
-Preferred use cases:
+- traceable to canonical documents OR
+- supported by concrete code-level implementation
 
-* inspect table schemas
-* check snapshot rows
-* inspect observation data
-* verify snapshot publishing results
-* validate DB migrations
-* analyze snapshot value alignment
+## 5.3 What Does NOT Count as Proof
 
-Examples:
-
-Good SQLite MCP tasks:
-
-* list recent snapshots
-* inspect schema of `snapshots`
-* verify `engine_version` stored correctly
-* inspect values in `snapshot_values`
-* verify Tier-1 series counts
-
-Avoid SQLite MCP when:
-
-* only code analysis is needed
-* DB state is irrelevant to the task
+- inferred behavior
+- implied architecture
+- planned components
+- historical statements
+- partial documentation
+- LLM reasoning alone
 
 ---
 
-# MCP Usage Priority
+## Critical Rule
 
-Claude should follow this priority order:
-
-1. **Local file inspection**
-2. **Serena for structural code navigation**
-3. **SQLite MCP for database inspection**
-4. **Context7 for external documentation**
-
-Do not invoke MCP tools unnecessarily.
-Prefer the **simplest tool capable of answering the question**.
+> Documentation validation ≠ external certification  
+> Documentation validation ≠ production readiness  
 
 ---
 
-# Example Workflow
+# 6. SNAPSHOT CONTRACT (NON-NEGOTIABLE)
 
-Typical debugging sequence:
+## 6.1 Downstream Rule
 
-1. read relevant adapter files
-2. use **Serena** to trace call relationships
-3. inspect snapshot generation logic
-4. use **SQLite MCP** to confirm DB state
-5. consult **Context7** if library behavior is unclear
+Layer 3+ MUST:
 
-This sequence keeps analysis grounded in **actual code and data**.
+- read ONLY from published snapshots
+- NEVER read raw observations
 
----
+## 6.2 Snapshot Requirements
 
-# MCP Decision Gate
+Each snapshot MUST have:
 
-Before invoking any MCP tool, apply this rule:
+- identity (snapshot_id)
+- time anchor (as_of)
+- revision metadata
+- deterministic contents
 
-1. Can the answer be obtained by **reading repository files directly**?
-2. Can simple **grep/glob discovery** locate the needed code?
-3. Is the question about **internal logic rather than external libraries**?
-4. Is database state **irrelevant** to the problem being solved?
+## 6.3 Forbidden Patterns
 
-If **all answers are YES**, **do NOT use an MCP tool.**
-
-MCP tools should only be invoked when they provide **capabilities unavailable through normal file inspection**, such as:
-
-* cross-file symbol tracing (Serena)
-* external documentation lookup (Context7)
-* live database inspection (SQLite)
-
-When uncertain, **default to local file inspection first.**
+- reading `latest`
+- reading raw observations downstream
+- bypassing snapshot boundary
 
 ---
 
-# Serena Tracing Pattern
+# 7. FAIL-CLOSED PRINCIPLE
 
-When using Serena for code analysis, follow this order:
+The system MUST default to:
 
-1. locate the **primary symbol definition**
-2. list **all inbound references** (who calls it)
-3. list **all outbound dependencies** (what it calls)
-4. identify **contract boundaries** (DB, registry, snapshot logic)
+> **NO OUTPUT rather than incorrect output**
 
-Summarize the dependency surface **before making edits**.
+Applied to:
 
-Avoid editing code until the symbol’s **full call graph is understood**.
-
----
-
-## Why this improves Serena dramatically
-
-Without this rule, Claude often:
-
-* searches symbols randomly
-* reads only the definition
-* misses indirect dependencies
-
-This rule forces the agent to reconstruct the **mini call graph** before touching code.
-
-For your repo this is **especially powerful** for things like:
-
-* `snapshot_publisher.py`
-* `quality_gate.py`
-* `db.py`
-* registry loading
-* snapshot hashing logic
-
-Those areas have **cross-file dependencies** where incomplete tracing causes subtle bugs.
+- missing data
+- invalid states
+- broken invariants
+- unverified assumptions
 
 ---
 
-## Real example in your repo
+# 8. REGISTRY AS SINGLE SOURCE OF TRUTH
 
-Good Serena workflow for debugging `snapshot_id` logic:
+All series definitions MUST come from:
 
-1. find `compute_snapshot_id`
-2. list all call sites
-3. inspect dependencies (`engine_version`, `config_version`)
-4. inspect DB writes in `snapshot_publisher`
-5. inspect consumers (`latest_snapshot.json`, Layer-3 contract)
+- `series_registry.json`
 
-Only then modify code.
+Rules:
+
+- no hardcoded series logic
+- no implicit data interpretation
+- no hidden mappings
 
 ---
 
-If you'd like, I can also show you **one final 6-line Claude rule that dramatically improves refactor safety in this repo** (it specifically protects the **snapshot contract and fail-closed guarantees**).
+# 9. EXECUTION BOUNDARY
 
-# Snapshot Contract Safety Rule
+The system is:
 
-Before modifying snapshot, quality gate, or DB schema code:
+> **analysis-only**
 
-1. identify the snapshot contract fields (`snapshot_id`, `engine_version`, `config_version`, `clock_ts`)
-2. confirm Layer-3 interfaces remain unchanged
-3. verify Tier-1 fail-closed behavior is preserved
-4. run `snapshot_publisher.py --dry-run`
-5. run `quality_gate.py`
+NOT allowed:
 
-If any contract field, schema behavior, or fail-closed logic changes unexpectedly → abort the refactor.
+- automated trading
+- signal execution
+- decision triggering
+- order generation
+
+---
+
+## Critical Rule
+
+> No component may simulate or imply execution capability.
+
+---
+
+# 10. STRONG CLAIM DISCIPLINE
+
+The following claims are **FORBIDDEN unless explicitly proven**:
+
+- “Layer 3 is implemented”
+- “System is production-ready”
+- “Execution is available”
+- “Decisions are automated”
+- “System is externally validated”
+
+---
+
+## Allowed Language
+
+- “planned”
+- “target architecture”
+- “not yet implemented”
+- “requires Phase C/D”
+
+---
+
+# 11. DOCUMENT UPDATE OBLIGATIONS
+
+Any **contract-affecting change** MUST trigger:
+
+- README_v1.md review
+- TECHNICAL_HANDBOOK review
+- LIMITATIONS update
+- VERIFICATION_MATRIX update
+- ARCHITECTURE doc review
+
+---
+
+## Critical Rule
+
+> Code changes without documentation alignment are invalid.
+
+---
+
+# 12. VERSION LOCK AND IMMUTABILITY
+
+- snapshots are immutable
+- contracts are versioned
+- behavior must be reproducible
+
+---
+
+# 13. LLM ROLE CONSTRAINT
+
+Claude is:
+
+- analyst
+- validator
+- auditor
+
+Claude is NOT:
+
+- decision engine
+- execution engine
+- source of truth
+
+---
+
+# 14. INTERPRETATION PRIORITIES
+
+When answering or reasoning:
+
+1. Use canonical documents
+2. Apply proof classification
+3. respect phase-gates
+4. enforce snapshot contract
+5. avoid implicit assumptions
+
+---
+
+# 15. FINAL CONSTITUTIONAL RULE
+
+> If a statement cannot be traced to a canonical source  
+> AND cannot be proven from implementation  
+> THEN it MUST be treated as unverified and non-binding.
+
+---
+
+# SUMMARY
+
+This system is:
+
+- **deterministic**
+- **fail-closed**
+- **snapshot-driven**
+- **phase-gated**
+- **documentation-governed**
+
+And most importantly:
+
+> **Truth is constrained. Claims are earned. Execution is forbidden until proven safe.**
