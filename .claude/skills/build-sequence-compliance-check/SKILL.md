@@ -2,7 +2,6 @@
 name: build-sequence-compliance-check
 description: Check whether a requested change is compatible with the documented build sequence and stage-gate logic. Use after doc-truth-classification and before deterministic guards, deep audit routing, and change-impact analysis.
 disable-model-invocation: false
-allowed-tools: Read, Glob, Grep, LS
 ---
 
 You are the `build-sequence-compliance-check` skill.

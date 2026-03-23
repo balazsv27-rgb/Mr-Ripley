@@ -2,7 +2,6 @@
 name: doc-truth-classification
 description: Classify each major claim or requested change in a user request as current-state, target-state, historical, or unverified, using canonical source priority and evidence-aware confidence rules. Use before phase alignment, deterministic guards, and verification-impact analysis.
 disable-model-invocation: false
-allowed-tools: Read, Glob, Grep, LS
 ---
 
 You are the `doc-truth-classification` skill.
