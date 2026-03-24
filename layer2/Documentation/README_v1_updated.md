@@ -1,7 +1,7 @@
 # Mr. Ripley — Layer-2 Truth Layer
 
 > **Repo:** `github.com/balazsv27-rgb/Mr-Ripley`
-> **Last updated:** 2026-03-16
+> **Last updated:** 2026-03-22
 > **Architecture reference:** `SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md`
 > **Engineering reference:** `SYSTEM_TECHNICAL_HANDBOOK_v1.md`
 > **Limitations / approximations:** `SYSTEM_LIMITATIONS_AND_APPROXIMATIONS_v1.md`
@@ -25,7 +25,7 @@ Layer-2 ends at snapshot publication. It does **not** compute features, regimes,
 
 ## 2. Current Operational Status
 
-**Current status as of 2026-03-15 / 2026-03-16:**
+**Current status as of 2026-03-22:**
 
 - Layer-2 ingestion adapters are operational
 - quality gate is operational
@@ -35,6 +35,8 @@ Layer-2 ends at snapshot publication. It does **not** compute features, regimes,
 - `latest_snapshot.json` has been generated successfully
 - Layer-2 → Layer-3 handoff contract is now operational
 - Layer-3 is **not yet built**
+- Layer-3 decision philosophy is now frozen: state-driven / event-driven, not timeframe-driven
+- Layer-3 DecisionPacket schema v0 is now defined as a governed action contract
 
 ### Verified publication example
 
@@ -51,8 +53,6 @@ At that publication boundary, the quality gate reported:
 
 - Tier-1: `15 / 15 PASS`
 - Tier-2: `2 warnings / 5 total`
-
-This proves the Layer-2 publish path now works end-to-end under normal gate conditions.
 
 ---
 
@@ -86,12 +86,16 @@ Layer-3 must never query `observations` directly.
 
 ## 5. Architecture Position
 
-```text
+```
 Layer-1  →  Event Tagger / Narrative Risk Modifiers   (optional, disabled by default)
 Layer-2  →  Ingestion + validation + snapshot store    ← YOU ARE HERE
-Layer-3  →  Feature builder + index suite + decision engine   (not yet built)
+Layer-3  →  State-driven decision engine               (not yet built — philosophy frozen)
 Layer-4  →  Execution orchestration                    (not yet built / intentionally unwired)
 ```
+
+Layer-3 note: the decision engine is **state-driven / event-driven**, not timeframe-driven.
+It will consume three governed inputs: Snapshot Truth, Live Market State, and Event Risk Stream.
+The engine consumes three governed inputs: Snapshot Truth (authoritative replayable base from Layer-2), Live Market State (fast intraday triggers), and Event Risk Stream (penalty and override only — never directional). It decides because state changed materially, not because time passed.
 
 ---
 
@@ -143,7 +147,9 @@ Additional informational fields currently included:
 - `values_by_group`
 - `values`
 
-The published snapshot also now exposes `as_of_ts` and `revision_seq` inside grouped / flat value views.
+The published snapshot also exposes `as_of_ts` and `revision_seq` inside grouped / flat value views.
+
+The `snapshot_id` field is the **primary anchor** for Layer-3 DecisionPackets. Every DecisionPacket must carry the `snapshot_id` of the governing snapshot used as its truth base..
 
 ---
 
@@ -170,7 +176,23 @@ This does **not** mean:
 
 ---
 
-## 9. Current Known Risks (Short Form)
+## 9. Layer-3 Design Status (updated 2026-03-22)
+
+The Layer-3 decision philosophy is now frozen as of 2026-03-22: state-driven / event-driven model, three governed inputs, explicit trigger taxonomy, governed action contract output.
+
+Key points relevant to Layer-2:
+
+- Layer-3 consumes the **Snapshot Truth** from Layer-2 published snapshots — this is unchanged
+- Layer-3 will also consume **Live Market State** and **Event Risk Stream** as governed inputs
+- neither of those additional inputs may rewrite Layer-2 truth history or bypass the snapshot boundary
+- `snapshot_id` anchors every DecisionPacket to a specific Layer-2 publication
+- the fail-closed principle extends into Layer-3: if `data_ok = false` or `freshness_ok = false`, the packet must not recommend aggressive new entry
+
+Layer-2 does not need to change to support the new Layer-3 design. The snapshot contract is sufficient.
+
+---
+
+## 10. Current Known Risks (Short Form)
 
 These remain real, open items:
 
@@ -179,14 +201,14 @@ These remain real, open items:
 - scheduler / orchestrator is not built
 - alerting / retry / kill switch are not built
 - Layer-3 components are not built
+- SP500 history gap (FRED from 2016 only — SPY migration planned)
 - repo hygiene for runtime artifacts should still be treated as an active check
-- some adapters still need usability polish (for example local gold JSON path handling)
 
 See `SYSTEM_LIMITATIONS_AND_APPROXIMATIONS_v1.md` for the full list.
 
 ---
 
-## 10. Recommended Local Run Sequence
+## 11. Recommended Local Run Sequence
 
 ```bash
 # Gold JSON source currently used successfully:
@@ -202,15 +224,14 @@ python layer2/adapters/snapshot_publisher.py
 
 ---
 
-## 11. Interpretation Rule
+## 12. Interpretation Rule
 
-Use the current v1 document set for current-state interpretation:
+Use the current canonical document set for current-state interpretation:
 
-1. `README_v1.md`
-2. `SYSTEM_TECHNICAL_HANDBOOK_v1.md`
-3. `SYSTEM_LIMITATIONS_AND_APPROXIMATIONS_v1.md`
-4. `SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md`
-5. `DOCUMENTATION_VERIFICATION_MATRIX_v1.md`
-6. `SYSTEM_IMPLEMENTATION_RECORD_v1.md`
-
-`README_LAYER2.md` is historical context only and must not be used as a canonical current-state source.
+1. `README_v1.md` — entry point summary
+2. `SYSTEM_TECHNICAL_HANDBOOK_v1.md` — Layer-2 engineering reference
+3. `SYSTEM_LIMITATIONS_AND_APPROXIMATIONS_v1.md` — gaps and open items
+4. `SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md` — target architecture and build sequence
+5. `DOCUMENTATION_VERIFICATION_MATRIX_v1.md` — claim classification and document role map
+6. `SYSTEM_IMPLEMENTATION_RECORD_v1.md` — canonical implementation record and realized-state reference
+7. `README_LAYER2.md` — canonical collaborator guide and living Layer-2 reference
