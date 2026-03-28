@@ -89,7 +89,7 @@ Apply these rules throughout.
 
 ---
 
-## Canonical source role map
+## Canonical source priority
 
 Use this map to determine the required primary source for each claim type. This map encodes the manifest's `claim_routing` rules exactly.
 
