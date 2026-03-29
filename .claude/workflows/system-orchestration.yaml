@@ -15,7 +15,7 @@ version: 3.0.0
 # =========================================================
 constitution:
   file: CLAUDE.md
-  role: persistent_project_rules_and_context
+  role: authoritative_execution_specification
   responsibilities:
     - define canonical project principles
     - define Layer-2 truth discipline (snapshot-only, fail-closed)
@@ -23,7 +23,12 @@ constitution:
     - define evidence classification rules
     - define claim vs proof vs runtime observation distinction
     - define canonical document roles and interpretation priorities
-
+  execution_policy:
+    workflow_mandatory: true
+    enforce_order: true
+    enforce_stage_gates: true
+    enforce_blocking_conditions: true
+    reject_partial_execution: true
 # =========================================================
 # ORCHESTRATION MANIFEST SELF-REFERENCE
 # =========================================================

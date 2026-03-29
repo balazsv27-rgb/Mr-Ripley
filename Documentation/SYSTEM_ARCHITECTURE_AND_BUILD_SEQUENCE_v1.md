@@ -360,7 +360,7 @@ Live execution remains blocked until:
 
 ---
 
-## 8. Layer-3 Implementation Risks
+## 9. Layer-3 Implementation Risks
 
 The state-driven / event-driven model introduces implementation risks that must be tracked here, not in the limitations document. These are design-level risks, not Layer-2 data gaps.
 
@@ -374,7 +374,7 @@ The state-driven / event-driven model introduces implementation risks that must 
 
 ---
 
-## 9. What Has Not Changed
+## 10. What Has Not Changed
 
 The following remain unchanged by the Layer-3 philosophy update:
 
@@ -391,7 +391,7 @@ The following remain unchanged by the Layer-3 philosophy update:
 
 ---
 
-## 10. Interpretation Rule
+## 11. Interpretation Rule
 
 This architecture document defines the sequencing boundary and target design.
 

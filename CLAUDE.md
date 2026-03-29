@@ -346,32 +346,17 @@ When answering or reasoning:
 
 ---
 
-# 15. WORKFLOW EXECUTION OBLIGATION
+# 15. WORKFLOW GOVERNANCE CONSTRAINT
 
-The orchestration manifest at `.claude/workflows/system-orchestration.yaml` is a workflow blueprint, not a truth source.
+All governed actions (interpretation, modification, validation, audit, documentation updates) MUST be subject to orchestration-based workflow enforcement.
 
-However, for every governed request, its declared workflow is mandatory to follow.
+The workflow definition in `.claude/workflows/system-orchestration.yaml` is the authoritative execution specification.
 
-A governed request includes any request that:
-- interprets current system state
-- makes or proposes code changes
-- makes or proposes documentation changes
-- evaluates architecture or phase readiness
-- validates contracts, boundaries, schema, or runtime behavior
-- updates verification posture, ledger state, or release readiness
+However:
+- this document does NOT execute workflows
+- enforcement MUST be implemented via orchestration mechanisms (hooks, runners, validators)
 
-For such requests:
-
-- the workflow steps defined in `system-orchestration.yaml` MUST be followed in declared order
-- required predecessor steps MUST NOT be skipped
-- required outputs MUST be produced before downstream steps proceed
-- blocking conditions MUST halt forward progress until resolved
-- hooks and subagents MAY reinforce enforcement, but they do not replace workflow execution
-- no governed change may bypass the workflow by jumping directly to editing, committing, or strong-claim generation
-
-Critical rule:
-
-> The YAML remains non-authoritative as a truth source, but constitutionally authoritative as the required execution blueprint for governed requests.
+Any action that bypasses enforced workflow execution is considered invalid and non-compliant.
 
 ---
 

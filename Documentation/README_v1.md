@@ -94,8 +94,7 @@ Layer-4  →  Execution orchestration                    (not yet built / intent
 ```
 
 Layer-3 note: the decision engine is **state-driven / event-driven**, not timeframe-driven.
-It will consume three governed inputs: Snapshot Truth, Live Market State, and Event Risk Stream.
-The engine consumes three governed inputs: Snapshot Truth (authoritative replayable base from Layer-2), Live Market State (fast intraday triggers), and Event Risk Stream (penalty and override only — never directional). It decides because state changed materially, not because time passed.
+It consumes three governed inputs: Snapshot Truth (authoritative replayable base from Layer-2), Live Market State (fast intraday triggers), and Event Risk Stream (penalty and override only — never directional). It decides because state changed materially, not because time passed.
 
 ---
 
@@ -149,7 +148,7 @@ Additional informational fields currently included:
 
 The published snapshot also exposes `as_of_ts` and `revision_seq` inside grouped / flat value views.
 
-The `snapshot_id` field is the **primary anchor** for Layer-3 DecisionPackets. Every DecisionPacket must carry the `snapshot_id` of the governing snapshot used as its truth base..
+The `snapshot_id` field is the **primary anchor** for Layer-3 DecisionPackets. Every DecisionPacket must carry the `snapshot_id` of the governing snapshot used as its truth base.
 
 ---
 
