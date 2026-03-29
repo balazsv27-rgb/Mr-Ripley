@@ -263,3 +263,459 @@ For:
 
 `README_LAYER2.md` is part of the canonical current-state set — collaborator guide and living build reference.
 Canonical documents are authoritative by role; use the role-matched source for strong claims.
+
+
+Yes. Your current structure is now rich enough to support a real DAG runner. The key point is this:
+
+**the runner must treat `system-orchestration.yaml` as an executable step graph, not as documentation metadata.**
+
+That is already strongly implied by:
+
+* the constitutional workflow-governance constraint in `CLAUDE.md`
+* the YAML’s `execution_policy` flags (`workflow_mandatory`, `enforce_order`, `enforce_stage_gates`, `enforce_blocking_conditions`, `reject_partial_execution`) 
+* the workflow step model with `inputs`, `outputs`, `depends_on`, `validates`, and `on_block`
+* the final pre-PR gate requiring specific artifacts to exist before `commit` or `push` 
+
+## What the DAG runner should do
+
+It should implement five hard responsibilities.
+
+### 1. Compile YAML workflow steps into a typed execution graph
+
+Each `workflow` entry becomes a node with:
+
+* `id`
+* `component`
+* `layer`
+* `inputs`
+* `outputs`
+* `depends_on`
+* `validates`
+* `on_block`
+* optional execution condition
+
+This is already present in your YAML, especially in the layered workflow section.
+
+### 2. Resolve execution order from dependencies, not from list position alone
+
+The YAML is written in order, but the runner should still compute the DAG from `depends_on`.
+That gives you:
+
+* validation of missing dependencies
+* cycle detection
+* future extensibility
+* partial re-run safety
+
+### 3. Materialize outputs as first-class governance artifacts
+
+The runner must not treat outputs as informal notes. It should persist them in a run state store, because your hooks and final governance gate explicitly require artifacts such as:
+
+* `governance_context`
+* `claim_classification_map`
+* `phase_alignment_status`
+* `guard_report`
+* `doc_update_plan`
+* `verification_ledger_delta`
+* `pr_readiness_verdict`
+
+### 4. Halt on blocking conditions
+
+Your YAML already defines named blocking conditions and ties them to workflow stages and hooks. The runner should therefore maintain a blocking-condition registry and stop forward progress immediately when one is raised. 
+
+### 5. Gate tool actions through runner state
+
+The `pre-pr-governance-gate` is only truly meaningful if `git commit` / `git push` checks the DAG-run state rather than ad hoc local heuristics. The hook should read the runner’s artifact ledger and blocking-condition ledger. 
+
+---
+
+## Best-fit architecture in your structure
+
+Given your existing orchestrator work, the cleanest design is:
+
+### A. YAML compiler layer
+
+Reads `system-orchestration.yaml` and builds an in-memory `GovernanceDAG`.
+
+### B. Node executor layer
+
+Maps each node’s `component` to a concrete executor:
+
+* `constitution` → loader
+* `skill:...` → skill runner
+* `hooks` → hook synthesizer / state check
+* `subagents` → escalated audit dispatcher
+* `stage_gates` → gate evaluator
+
+### C. Run state store
+
+Persists:
+
+* produced artifacts
+* node status
+* blocking conditions
+* audit escalations
+* execution trace
+* final verdict
+
+### D. Hook bridge
+
+Your Claude Code hooks should not independently “decide truth.”
+They should query the DAG runner state:
+
+* “Has the required graph completed?”
+* “Are any blocking conditions unresolved?”
+* “Does the required artifact set exist?”
+
+### E. Policy adapters
+
+A small layer that interprets YAML semantics like:
+
+* `when runtime/code scope is touched`
+* `when change scope requires it`
+* `Execute only if change_type == rename_only`
+
+That part cannot remain plain English forever. It must become executable predicates.
+
+---
+
+## The internal data model you need
+
+A minimal but correct model would look like this:
+
+```python
+from dataclasses import dataclass, field
+from typing import Any, Dict, List, Optional, Literal
+
+NodeStatus = Literal["pending", "running", "passed", "failed", "blocked", "skipped"]
+
+@dataclass
+class WorkflowNode:
+    id: str
+    layer: str
+    component: str
+    purpose: str
+    inputs: List[str] = field(default_factory=list)
+    outputs: List[str] = field(default_factory=list)
+    depends_on: List[str] = field(default_factory=list)
+    validates: List[str] = field(default_factory=list)
+    on_block: Optional[str] = None
+    condition: Optional[str] = None
+    reinforced_by_hook: Optional[str] = None
+
+@dataclass
+class BlockingConditionEvent:
+    condition_id: str
+    raised_at: str
+    detail: str
+    resolved: bool = False
+
+@dataclass
+class ArtifactRecord:
+    name: str
+    producer_node: str
+    value: Any
+    exists: bool = True
+
+@dataclass
+class NodeResult:
+    node_id: str
+    status: NodeStatus
+    produced_artifacts: List[str] = field(default_factory=list)
+    raised_conditions: List[str] = field(default_factory=list)
+    notes: List[str] = field(default_factory=list)
+
+@dataclass
+class GovernanceRunState:
+    request_id: str
+    workflow_name: str
+    node_results: Dict[str, NodeResult] = field(default_factory=dict)
+    artifacts: Dict[str, ArtifactRecord] = field(default_factory=dict)
+    blocking_conditions: List[BlockingConditionEvent] = field(default_factory=list)
+```
+
+This is the minimum structure required to make the YAML operational rather than descriptive.
+
+---
+
+## Execution algorithm
+
+The runner flow should be:
+
+### Step 1: Load constitution + YAML
+
+Load `CLAUDE.md` and `system-orchestration.yaml`.
+Validate that the constitution requires orchestration-based enforcement and that the YAML declares mandatory workflow execution.
+
+### Step 2: Compile the graph
+
+* parse all workflow steps
+* validate unique IDs
+* validate that every `depends_on` target exists
+* validate that each output has at most one producer
+* validate no cycles
+
+### Step 3: Bind step executors
+
+Map:
+
+* `skill:doc-truth-classification` → skill implementation
+* `skill:change-impact-audit` → skill implementation
+* `subagents` → audit dispatcher
+* `hooks` → summarizer or readiness evaluator
+* `stage_gates` → gate engine
+
+### Step 4: Run nodes topologically
+
+For each node:
+
+* verify dependencies passed
+* evaluate condition, if any
+* resolve required input artifacts
+* execute the node
+* record outputs
+* record raised blocking conditions
+* halt if any unresolved blocking condition is fatal
+
+### Step 5: Persist run artifacts
+
+Write a governed run directory, for example:
+
+```text
+.ai-orchestrator/governance_runs/<request_id>/
+  run_state.json
+  artifacts/
+    governance_context.json
+    claim_classification_map.json
+    ...
+    pr_readiness_verdict.json
+```
+
+### Step 6: Hook integration
+
+Before `git commit` or `git push`, the hook reads the latest active run state and checks:
+
+* required artifact set exists
+* no unresolved blocking conditions
+* final gate passed
+
+That exactly matches your current YAML gate intent. 
+
+---
+
+## The most important implementation decision
+
+You need to distinguish between two kinds of nodes:
+
+### Pure evaluation nodes
+
+They inspect inputs and emit verdicts.
+Examples:
+
+* `phase-check`
+* `snapshot-contract-check`
+* `runtime-boundary-check`
+* `update-verification-ledger`
+
+### Dispatch nodes
+
+They select specialized behavior.
+Examples:
+
+* `deep-audit`
+* `runtime-guards-summary`
+* `pre-pr-governance-readiness`
+
+That means your executor interface should support both direct skill execution and orchestration/meta execution.
+
+A clean interface is:
+
+```python
+class GovernanceNodeExecutor:
+    def execute(self, node: WorkflowNode, state: GovernanceRunState, context: dict) -> NodeResult:
+        ...
+```
+
+Then implement:
+
+* `SkillExecutor`
+* `StageGateExecutor`
+* `HookSummaryExecutor`
+* `SubagentDispatcherExecutor`
+* `ConstitutionLoaderExecutor`
+
+---
+
+## Where it fits in your existing orchestrator
+
+Based on your broader orchestrator patterns, the clean insertion point is:
+
+### New package
+
+```text
+graph/
+  governance_types.py
+  governance_compiler.py
+  governance_runner.py
+  governance_registry.py
+  governance_state.py
+  governance_hooks.py
+```
+
+### Responsibilities
+
+* `governance_compiler.py`
+  Parses YAML → `WorkflowNode[]`
+* `governance_registry.py`
+  Maps `component` strings to executable handlers
+* `governance_runner.py`
+  Runs DAG, halts on block, persists state
+* `governance_state.py`
+  Reads/writes artifact + blocking-condition state
+* `governance_hooks.py`
+  Exposes simple functions for `commit/push` hooks
+
+---
+
+## What must be added to the YAML before this is fully executable
+
+Your YAML is close, but not yet fully machine-ready.
+
+### 1. Predicate fields must become formal
+
+Right now you have human-language conditions like:
+
+* `when runtime/code scope is touched`
+* `when adapter/registry scope is touched`
+* `when change scope requires it` 
+
+These need formal predicates, for example:
+
+```yaml
+requires_if:
+  changed_paths_any:
+    - "layer2/**"
+    - "layer3/**"
+```
+
+or
+
+```yaml
+condition:
+  expr: change_impact_report.change_type == "rename_only"
+```
+
+You already started this for `rename-invariance-check`; that is the right direction. 
+
+### 2. Undefined skill reference must be fixed
+
+Your workflow contains:
+
+```yaml
+component: skill:rename-invariance-check
+```
+
+but that skill is not declared in the `skills:` section shown earlier. That will break registry binding unless you add it explicitly.
+
+### 3. Duplicate hook block should be cleaned
+
+`pre-pr-governance-gate` contains duplicated `action` / `on_fail` entries. That should be normalized before a compiler relies on it. 
+
+### 4. Constitution role label is semantically off
+
+In YAML, under `constitution`, you currently use:
+
+```yaml
+role: authoritative_execution_specification
+```
+
+But the same file still says the constitution does not execute workflows; enforcement belongs to hooks, runners, validators. 
+
+So for machine clarity, the role should be closer to:
+
+* `authoritative_governance_constraints`
+  or
+* `authoritative_normative_source`
+
+The YAML itself should remain the execution specification.
+
+---
+
+## Recommended runtime contract
+
+The runner should produce one final machine-verdict object:
+
+```json
+{
+  "request_id": "govrun-2026-03-29-001",
+  "workflow_completed": true,
+  "partial_execution_rejected": false,
+  "unresolved_blocking_conditions": [],
+  "required_outputs_present": true,
+  "pr_readiness": "pass"
+}
+```
+
+Then the `pre-pr-governance-gate` hook only needs to ask:
+
+```python
+if not run_state.workflow_completed:
+    block()
+if run_state.unresolved_blocking_conditions:
+    block()
+if run_state.pr_readiness != "pass":
+    block()
+```
+
+This is much safer than re-deriving all logic inside the hook.
+
+---
+
+## Best rollout strategy
+
+I would implement it in three passes.
+
+### Phase 1 — Graph execution only
+
+* compile workflow
+* execute nodes in order
+* persist artifacts
+* halt on blocks
+
+No hook integration yet.
+
+### Phase 2 — Hook-backed enforcement
+
+* `commit` / `push` checks runner state
+* no bypass if workflow incomplete
+* no bypass if blocks unresolved
+
+### Phase 3 — Predicate formalization + selective reruns
+
+* path-based conditions
+* rename-only conditional execution
+* targeted reruns of affected subgraph only
+
+That sequence fits your fail-closed model much better than trying to make everything dynamic at once. The constitution explicitly requires fail-closed behavior and blocks unsupported claims, which strongly favors progressive hardening over loose early automation.
+
+## Bottom line
+
+Yes, DAG runner enforcement is the right fit for your structure.
+
+The correct implementation model is:
+
+**constitution defines obligation → YAML defines executable graph → runner executes graph → hooks verify runner state**
+
+Your current files already contain almost all the semantics needed for that model. The remaining work is mainly:
+
+* compile YAML into machine-typed nodes
+* persist artifact/state outputs
+* formalize predicates
+* bind hooks to DAG-run state
+* fix a few manifest inconsistencies before execution
+
+The two highest-priority fixes before coding are:
+
+1. add the missing `rename-invariance-check` skill declaration, since the workflow already references it
+2. make conditional clauses machine-readable instead of English-only, especially around scope-sensitive outputs and rename-only execution
+
+I can turn this into a concrete implementation spec for your orchestrator next.

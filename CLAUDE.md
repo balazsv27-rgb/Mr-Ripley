@@ -1,6 +1,10 @@
 # CLAUDE.md — Project Constitution
 
 This document defines the **constitutional rules** of the Mr. Ripley gold first engine.
+This document defines obligations.
+It does not execute or enforce them.
+Execution is delegated to orchestration systems.
+Enforcement is delegated to runtime mechanisms.
 
 It governs:
 - how the system is interpreted
