@@ -1,0 +1,320 @@
+name: mr-ripley-governance-orchestration
+description: >
+  Project-level orchestration manifest for the Claude-assisted governance workflow.
+  Coordinates constitution rules, runtime/code integrity checks, documentation consistency,
+  and evidence-based verification using a dual-layer model:
+  (1) doc governance
+  (2) code/runtime truth enforcement.
+
+version: 2.1.0
+
+constitution:
+  file: CLAUDE.md
+  role: persistent_project_rules_and_context
+  responsibilities:
+    - define canonical project principles
+    - define Layer-2 truth discipline (snapshot-only, fail-closed)
+    - define Layer-3 decision constraints
+    - define evidence classification rules
+    - define claim vs proof vs runtime observation distinction
+    - define canonical document roles and interpretation priorities
+
+orchestration_manifest:
+  file: .claude/workflows/system-orchestration.yaml
+  role: workflow_blueprint_not_truth_source
+
+# =========================================================
+# SKILLS (expanded: runtime + schema + evidence discipline)
+# =========================================================
+skills:
+  - name: snapshot-contract-check
+    role: contract_validation_method
+    purpose: enforce snapshot-only downstream access rules
+
+  - name: doc-truth-classification
+    role: claim_classification_method
+    purpose: classify claims (current, target, historical, unverified)
+
+  - name: role-matched-citation-check
+    role: interpretation_method
+    purpose: enforce use of the canonical document whose role best matches the claim
+
+  - name: build-sequence-compliance-check
+    role: phase_alignment_method
+    purpose: enforce architecture build order
+
+  - name: change-impact-audit
+    role: impact_assessment_method
+    purpose: detect required doc + code updates
+
+  - name: verification-matrix-update-method
+    role: doc_classification_method
+    purpose: update classification matrix only
+
+  - name: verification-ledger-update
+    role: evidence_tracking_method
+    purpose: update claim → evidence → status ledger
+
+  - name: adapter-schema-review
+    role: schema_validation_method
+    purpose: validate registry-driven adapter compliance
+
+  - name: snapshot-boundary-check
+    role: runtime_integrity_method
+    purpose: enforce no raw observation usage downstream
+
+  - name: doc-code-sync-rules
+    role: consistency_method
+    purpose: ensure docs reflect actual runtime behavior
+
+  - name: canonical-terminology-map
+    role: normalization_method
+    purpose: enforce consistent naming (NO_TRADE, snapshot, etc.)
+
+  - name: runtime-artifact-hygiene-check
+    role: workspace_integrity_method
+    purpose: detect unwanted runtime artifacts (db, snapshot.json)
+
+# =========================================================
+# HOOKS (now operational, Claude Code compatible)
+# =========================================================
+hooks:
+  - name: snapshot-boundary-guard
+    trigger: PostToolUse
+    matcher: "Edit|Write"
+    checks:
+      - "grep forbidden: observations access in layer3"
+      - "grep forbidden: latest_snapshot misuse"
+    action: block_on_match
+
+  - name: adapter-schema-guard
+    trigger: PostToolUse
+    matcher: "Edit|Write"
+    checks:
+      - "registry-driven usage enforced"
+      - "no hardcoded series definitions"
+    action: warn_or_block
+
+  - name: doc-code-sync-guard
+    trigger: SubagentStop
+    checks:
+      - "docs updated if contract changed"
+      - "snapshot fields consistent with handbook"
+      - "implementation claims aligned with implementation record"
+    action: warn
+
+  - name: role-matched-doc-guard
+    trigger: SubagentStop
+    checks:
+      - "role-matched canonical citation used for strong claims"
+      - "README_LAYER2 not used as override outside its declared role"
+    action: warn_or_block
+
+  - name: pre-pr-governance-gate
+    trigger: PreToolUse
+    matcher: "git push|commit"
+    checks:
+      - "verification ledger updated"
+      - "no unsupported claims"
+      - "required docs touched"
+    action: block_on_fail
+
+  - name: live-readiness-claim-blocker
+    trigger: PostToolUse
+    matcher: "Edit|Write"
+    checks:
+      - "no live-ready claim before Phase D"
+    action: block_on_match
+
+# =========================================================
+# SUBAGENTS (balanced: doc + code + runtime)
+# =========================================================
+subagents:
+  - name: cross-doc-consistency-auditor
+    role: doc_auditor
+
+  - name: architecture-sequence-auditor
+    role: build_order_auditor
+
+  - name: verification-matrix-auditor
+    role: classification_auditor
+
+  - name: implementation-history-reconciler
+    role: historical_alignment
+
+  - name: doc-code-sync-auditor
+    role: doc_vs_runtime_auditor
+
+  - name: snapshot-boundary-auditor
+    role: runtime_boundary_auditor
+
+  - name: adapter-schema-guardian
+    role: schema_governance_specialist
+
+  - name: canonical-role-auditor
+    role: role_matched_truth_enforcer
+
+# =========================================================
+# ARTIFACTS (ledger added)
+# =========================================================
+artifacts:
+  required_inputs:
+    canonical_docs:
+      - path: README_v1.md
+        role: top_level_orientation
+        authority: canonical
+
+      - path: SYSTEM_TECHNICAL_HANDBOOK_v1.md
+        role: technical_constraints_and_engineering_rules
+        authority: canonical
+
+      - path: SYSTEM_LIMITATIONS_AND_APPROXIMATIONS_v1.md
+        role: limitations_and_approximations_source_of_truth
+        authority: canonical
+
+      - path: SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md
+        role: architecture_source_of_truth
+        authority: canonical
+
+      - path: DOCUMENTATION_VERIFICATION_MATRIX_v1.md
+        role: documentation_consistency_map
+        authority: canonical
+
+      - path: SYSTEM_IMPLEMENTATION_RECORD_v1.md
+        role: implementation_state_source_of_truth
+        authority: canonical
+
+      - path: README_LAYER2.md
+        role: collaborator_guide_and_living_build_reference
+        authority: canonical
+
+    verification_layer:
+      - verification_ledger.md
+
+    code_context:
+      - layer2/config/series_registry.json
+      - layer2/alignment.py
+      - layer2/adapters/*
+      - layer2/db.py
+
+    runtime_context:
+      - latest_snapshot.json
+      - layer2_truth.db
+
+  expected_outputs:
+    - governance_context
+    - phase_alignment_status
+    - guard_report
+    - audit_summary
+    - verification_matrix_delta
+    - verification_ledger_delta
+    - doc_update_plan
+
+# =========================================================
+# INTERPRETATION POLICY
+# =========================================================
+interpretation_policy:
+  canonical_docs_are_authoritative: true
+  canonical_docs_are_not_interchangeable: true
+  require_role_matched_citation: true
+
+  claim_routing:
+    architecture_claims: SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md
+    implementation_claims: SYSTEM_IMPLEMENTATION_RECORD_v1.md
+    limitation_claims: SYSTEM_LIMITATIONS_AND_APPROXIMATIONS_v1.md
+    collaborator_workflow_claims: README_LAYER2.md
+    documentation_consistency_claims: DOCUMENTATION_VERIFICATION_MATRIX_v1.md
+    technical_constraint_claims: SYSTEM_TECHNICAL_HANDBOOK_v1.md
+
+  on_conflict:
+    action: block_strong_claim
+    require_conflict_note: true
+    require_explicit_citations: true
+    resolution_rule: prefer_role_specific_document
+    escalate_for_doc_sync: true
+
+# =========================================================
+# STAGE GATES (Phase B fixed)
+# =========================================================
+stage_gates:
+  phase_b_layer3_bootstrap:
+    required_scope:
+      - snapshot_consumer
+      - decisionpacket_skeleton
+      - no_trade_default_path
+      - state_taxonomy_stub
+      - guard_taxonomy_stub
+      - deterministic_calculations_2_to_3
+
+    forbidden:
+      - feature_builder
+      - live_execution
+      - calibration_logic
+
+# =========================================================
+# BLOCKING CONDITIONS (runtime added)
+# =========================================================
+blocking_conditions:
+  - snapshot_boundary_violation
+  - raw_observations_used_in_layer3
+  - registry_violation
+  - schema_drift_detected
+  - unsupported_current_state_claim
+  - verification_without_evidence
+  - canonical_conflict_unresolved
+  - role_mismatch_for_strong_claim
+  - readme_layer2_used_as_override
+
+# =========================================================
+# VERIFICATION LEDGER (NEW CORE CONCEPT)
+# =========================================================
+verification_ledger:
+  structure:
+    - claim
+    - classification
+    - claim_type
+    - preferred_canonical_source
+    - evidence_source
+    - evidence_type:
+        - doc
+        - code
+        - runtime
+    - status:
+        - proven
+        - supported
+        - unverified
+        - contradicted
+
+  update_rules:
+    - doc_only_updates_do_not_prove_runtime
+    - runtime_observation_has_highest_weight
+    - code_alignment_required_for_proven_status
+    - role_matched_canonical_source_required_for_strong_doc_claims
+
+# =========================================================
+# WORKFLOW (unchanged logic, but now ledger-aware)
+# =========================================================
+workflow:
+  - id: load-context
+    component: constitution
+
+  - id: classify-claims
+    component: skill:doc-truth-classification
+
+  - id: route-claims-by-role
+    component: skill:role-matched-citation-check
+
+  - id: phase-check
+    component: skill:build-sequence-compliance-check
+
+  - id: runtime-guards
+    component: hooks
+
+  - id: deep-audit
+    component: subagents
+
+  - id: update-verification-matrix
+    component: skill:verification-matrix-update-method
+
+  - id: update-verification-ledger
+    component: skill:verification-ledger-update
