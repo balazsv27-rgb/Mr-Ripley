@@ -82,7 +82,7 @@ The two skills are distinct:
 - `verification-matrix-update-method` → updates `DOCUMENTATION_VERIFICATION_MATRIX_v1.md` (claim classification posture)
 - `verification-ledger-update` → updates `verification_ledger.md` (claim → evidence → status tracking)
 
-Additionally: `system-orchestration.yaml` contains a source-authority conflict in its `artifacts.required_inputs.canonical_docs` section, where `README_LAYER2.md` is annotated as `# ← NOW CANONICAL`. This conflicts with `CLAUDE.md` Section 2.2 (which classifies it as "historical context only"), `DOCUMENTATION_VERIFICATION_MATRIX_v1.md` Section 8, and the `doc-truth-classification` skill (which treats it as Tier 3). This skill must not silently resolve this conflict. When any ledger entry would rely on `README_LAYER2.md` as a primary canonical authority for a strong claim, set `source_authority_conflict_detected: true` and add the contradiction to `unresolved_conflicts`.
+Additionally: `README_LAYER2.md` is canonical per `CLAUDE.md` §2.1 and §2.2 with the declared role of collaborator guide and living build reference for Layer-2 implementation and operational navigation. Per `CLAUDE.md` §2.4, it must not be used to overrule role-specific Tier 1 documents on implementation state, architecture boundaries, or limitations. This skill must not use `README_LAYER2.md` as a primary canonical authority for claims outside its declared role. When any ledger entry would rely on `README_LAYER2.md` as a primary authority for a strong implementation-state, architecture, or limitations claim, set `source_authority_conflict_detected: true` and add the role-mismatch to `unresolved_conflicts`.
 
 ---
 
@@ -108,11 +108,11 @@ When attaching a `preferred_canonical_source` to each affected claim, use role-m
 | 7 | `verification_ledger.md` | Claim → evidence → status tracking (the artifact this skill updates) |
 | 8 | `system-orchestration.yaml` | Workflow manifest; skill roles and artifact responsibilities |
 
-### Tier 3 — historical context only
+### Tier 3 — canonical within declared collaborator-workflow role
 
 | Priority | Document | Role |
 |---|---|---|
-| 9 | `README_LAYER2.md` | Historical context only; must not be used as primary canonical authority |
+| 9 | `README_LAYER2.md` | Canonical collaborator guide and living build reference for Layer-2 implementation and operational navigation. Authoritative for collaborator-workflow and Layer-2 navigation claims. Must not be used as primary canonical authority for claims outside its declared role. |
 
 ### Role-matched source selection rules
 
@@ -849,7 +849,7 @@ Expected output:
       "missing_evidence": [],
       "unresolved_conflicts": [],
       "notes": [
-        "README_LAYER2.md is historical context only; changes here do not introduce new evidence for any current-state claim",
+        "README_LAYER2.md is canonical within its declared collaborator-workflow role; changes here do not introduce new evidence for any current-state claim",
         "No claim evidence has changed; ledger entries are unaffected",
         "Advisory review recommended to confirm historical wording does not inadvertently contradict current-state Tier 1 claims",
         "doc-only historical change; does not alter runtime evidence status"

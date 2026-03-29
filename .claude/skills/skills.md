@@ -86,7 +86,7 @@ Classifies every major claim or requested change in the user's request as `curre
 | # | Assumption |
 |---|---|
 | 1 | Prefer the canonical v1 document set for current-state interpretation. |
-| 2 | `README_LAYER2.md` is historical context only — never a current-state truth source. |
+| 2 | `README_LAYER2.md` is canonical within its declared role as collaborator guide and living build reference for Layer-2 implementation and operational navigation. It must not be used as primary source for claims outside that declared role. |
 | 3 | Distinguish strictly between what is implemented now, what is planned, what is historical, and what is unsupported. |
 | 4 | Do not promote target architecture to current implementation status. |
 | 5 | Do not promote historical wording to current truth unless the current v1 set explicitly supports it. |
@@ -97,9 +97,9 @@ Classifies every major claim or requested change in the user's request as `curre
 
 | Tier | Documents |
 |---|---|
-| **Tier 1** (canonical current-state) | `README_v1.md`, `SYSTEM_TECHNICAL_HANDBOOK_v1.md`, `SYSTEM_LIMITATIONS_AND_APPROXIMATIONS_v1.md`, `SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md`, `DOCUMENTATION_VERIFICATION_MATRIX_v1.md` |
-| **Tier 2** (interpretive / governance addenda) | `SYSTEM_IMPLEMENTATION_RECORD_v1.md`, `DECISION_PHILOSOPHY_v0.md` (Layer-3 decision philosophy claims), `DECISIONPACKET_SCHEMA_v0.md` (Layer-3 output contract claims), `ARCHITECTURE_CHANGE_MEMO_v1.md` (architectural re-framing claims) |
-| **Tier 3** (historical context only) | `README_LAYER2.md` |
+| **Tier 1** (canonical current-state) | `README_v1.md`, `SYSTEM_TECHNICAL_HANDBOOK_v1.md`, `SYSTEM_LIMITATIONS_AND_APPROXIMATIONS_v1.md`, `SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md`, `DOCUMENTATION_VERIFICATION_MATRIX_v1.md`, `SYSTEM_IMPLEMENTATION_RECORD_v1.md` (canonical record of what is actually implemented and realized; primary source for implementation-state claims) |
+| **Tier 2** (interpretive / governance addenda) | `DECISION_PHILOSOPHY_v0.md` (Layer-3 decision philosophy claims), `DECISIONPACKET_SCHEMA_v0.md` (Layer-3 output contract claims), `ARCHITECTURE_CHANGE_MEMO_v1.md` (architectural re-framing claims) |
+| **Tier 3** (canonical within declared collaborator-workflow role) | `README_LAYER2.md` |
 
 ### Inputs
 
@@ -179,9 +179,9 @@ Enforces consistent use of project-defined canonical terms across all documentat
 
 | Tier | Documents |
 |---|---|
-| **Tier 1** (canonical current-state) | `README_v1.md`, `SYSTEM_TECHNICAL_HANDBOOK_v1.md`, `SYSTEM_LIMITATIONS_AND_APPROXIMATIONS_v1.md`, `SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md`, `DOCUMENTATION_VERIFICATION_MATRIX_v1.md` |
-| **Tier 2** (implementation/governance) | `SYSTEM_IMPLEMENTATION_RECORD_v1.md` |
-| **Tier 3** (historical context only) | `README_LAYER2.md` |
+| **Tier 1** (canonical current-state) | `SYSTEM_TECHNICAL_HANDBOOK_v1.md`, `SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md`, `SYSTEM_IMPLEMENTATION_RECORD_v1.md` (canonical record of what is actually implemented and realized; primary source for implementation-state claims), `SYSTEM_LIMITATIONS_AND_APPROXIMATIONS_v1.md`, `DOCUMENTATION_VERIFICATION_MATRIX_v1.md`, `README_v1.md` |
+| **Tier 2** (verification / governance artifacts) | `verification_ledger.md`, `system-orchestration.yaml` |
+| **Tier 3** (canonical within declared collaborator-workflow role) | `README_LAYER2.md` |
 | **Constitution** | `CLAUDE.md` (terminological authority) |
 
 ### Inputs
@@ -359,9 +359,9 @@ Determines whether the requested change is compatible with the documented build 
 
 | Tier | Documents |
 |---|---|
-| **Tier 1** (authoritative build-order) | `SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md`, `system-orchestration.yaml`, `README_v1.md`, `SYSTEM_TECHNICAL_HANDBOOK_v1.md`, `SYSTEM_LIMITATIONS_AND_APPROXIMATIONS_v1.md` |
-| **Tier 2** (verification / status support) | `DOCUMENTATION_VERIFICATION_MATRIX_v1.md`, `SYSTEM_IMPLEMENTATION_RECORD_v1.md` |
-| **Tier 3** (historical context only) | `README_LAYER2.md` |
+| **Tier 1** (authoritative build-order) | `SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md`, `system-orchestration.yaml`, `README_v1.md`, `SYSTEM_TECHNICAL_HANDBOOK_v1.md`, `SYSTEM_LIMITATIONS_AND_APPROXIMATIONS_v1.md`, `SYSTEM_IMPLEMENTATION_RECORD_v1.md` (canonical record of what is actually implemented and realized; primary source for implementation-state claims) |
+| **Tier 2** (verification / status support) | `DOCUMENTATION_VERIFICATION_MATRIX_v1.md` |
+| **Tier 3** (canonical within declared collaborator-workflow role) | `README_LAYER2.md` |
 
 ### Phase Model
 
@@ -899,9 +899,9 @@ Determines whether `DOCUMENTATION_VERIFICATION_MATRIX_v1.md` needs to be updated
 
 | Tier | Documents |
 |---|---|
-| **Tier 1** | `README_v1.md`, `SYSTEM_TECHNICAL_HANDBOOK_v1.md`, `SYSTEM_LIMITATIONS_AND_APPROXIMATIONS_v1.md`, `SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md`, `DOCUMENTATION_VERIFICATION_MATRIX_v1.md` (baseline) |
-| **Tier 2** | `SYSTEM_IMPLEMENTATION_RECORD_v1.md` |
-| **Tier 3** (historical only) | `README_LAYER2.md` |
+| **Tier 1** | `README_v1.md`, `SYSTEM_TECHNICAL_HANDBOOK_v1.md`, `SYSTEM_LIMITATIONS_AND_APPROXIMATIONS_v1.md`, `SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md`, `DOCUMENTATION_VERIFICATION_MATRIX_v1.md` (baseline), `SYSTEM_IMPLEMENTATION_RECORD_v1.md` (canonical record of what is actually implemented and realized; primary source for implementation-state claims) |
+| **Tier 2** | `system-orchestration.yaml` (workflow manifest) |
+| **Tier 3** (canonical within declared collaborator-workflow role) | `README_LAYER2.md` |
 
 ### Inputs
 

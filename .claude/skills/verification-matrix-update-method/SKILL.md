@@ -77,24 +77,21 @@ When evaluating which matrix entries are affected and what the correct classific
 3. `SYSTEM_LIMITATIONS_AND_APPROXIMATIONS_v1.md`
 4. `SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md`
 5. `DOCUMENTATION_VERIFICATION_MATRIX_v1.md` — the artifact this skill updates; its current state is the baseline
+6. `SYSTEM_IMPLEMENTATION_RECORD_v1.md` — canonical record of what is actually implemented and realized; primary source for implementation-state claims
 
 ### Tier 2 — canonical interpretive / governance addenda
-6. `SYSTEM_IMPLEMENTATION_RECORD_v1.md` — when the change touches historical build records or implementation audit trail
 7. `system-orchestration.yaml` — workflow manifest; defines skill roles and artifact responsibilities
 
-### Tier 3 — historical context
+### Tier 3 — canonical within declared collaborator-workflow role
 8. `README_LAYER2.md`
 
-Important — source authority conflict currently present in this project:
+Important — role-scoped source authority constraint:
 
-`system-orchestration.yaml` (line 153, `artifacts.required_inputs.canonical_docs`) labels `README_LAYER2.md` with the annotation `# ← NOW CANONICAL`.
+`README_LAYER2.md` is canonical per `CLAUDE.md` §2.1 and §2.2, with the declared role of collaborator guide and living build reference for Layer-2 implementation and operational navigation. `DOCUMENTATION_VERIFICATION_MATRIX_v1.md` Section 8 classifies it as "Collaborator guide + living build reference."
 
-This conflicts with:
-- `CLAUDE.md` Section 2.2, which classifies `README_LAYER2.md` as "historical context only"
-- `DOCUMENTATION_VERIFICATION_MATRIX_v1.md` Section 8, which classifies it as "Collaborator guide + living build reference"
-- `doc-truth-classification` skill, which treats it as Tier 3 and explicitly forbids using it as a primary current-state authority
+Per `CLAUDE.md` §2.4, it must not be used to overrule role-specific Tier 1 documents on implementation state, architecture boundaries, or limitations.
 
-**This skill must not silently resolve this conflict.** Whenever a request touches `README_LAYER2.md` source authority or uses it as a canonical truth source, the skill must set `source_authority_conflict_detected: true` and add the contradiction to `unresolved_conflicts`. This conflict must be resolved at the governance level before any matrix update that depends on `README_LAYER2.md` canonical authority can be treated as settled.
+**This skill must not use `README_LAYER2.md` as primary authority for claims outside its declared role.** Whenever a request uses `README_LAYER2.md` as a canonical source for implementation-state, architecture, or limitations claims — claims that belong to role-specific Tier 1 documents — the skill must set `source_authority_conflict_detected: true` and add the role-mismatch to `unresolved_conflicts`. Role-mismatched citations cannot be treated as settled until the role-correct Tier 1 source is consulted.
 
 ---
 
@@ -265,16 +262,14 @@ If a guard blocked an access pattern or claim, and a document elsewhere implies 
 - but only if the contradiction affects classification interpretation, not just because an attempt was blocked
 - a blocked attempt that is fully consistent with current matrix content requires no matrix contradiction note
 
-### Rule CH-3 — README_LAYER2 source authority conflict
-This conflict is live in the current project state:
+### Rule CH-3 — README_LAYER2 out-of-role citation
+`README_LAYER2.md` is canonical within its declared collaborator-workflow role per `CLAUDE.md` §2.1 and §2.2. It must not be used to overrule role-specific Tier 1 documents on implementation state, architecture boundaries, or limitations (per `CLAUDE.md` §2.4).
 
-`system-orchestration.yaml` labels `README_LAYER2.md` as `# ← NOW CANONICAL` in its artifact list. The canonical v1 document set (including `CLAUDE.md`, `DOCUMENTATION_VERIFICATION_MATRIX_v1.md` Section 8, and the `doc-truth-classification` skill) treats it as historical context.
-
-When any request or change involves `README_LAYER2.md` as a canonical source:
+When any request or change uses `README_LAYER2.md` as the primary source for a claim that falls outside its declared role (implementation-state, architecture, limitations, or technical constraints):
 - set `source_authority_conflict_detected: true`
-- add to `unresolved_conflicts`: "system-orchestration.yaml labels README_LAYER2.md as canonical; CLAUDE.md, DOCUMENTATION_VERIFICATION_MATRIX_v1.md Section 8, and doc-truth-classification treat it as historical context only. This conflict must be resolved at the governance level before any matrix update depending on README_LAYER2.md canonical authority can be treated as settled."
+- add to `unresolved_conflicts`: "README_LAYER2.md cited outside its declared collaborator-workflow role. Per CLAUDE.md §2.4, it must not override role-specific Tier 1 documents on implementation state, architecture boundaries, or limitations. The role-matched Tier 1 source must be consulted before this claim can be treated as settled."
 - propose `source_priority_update` for the Section 8 Document Role Classification entry if applicable
-- do not treat `README_LAYER2.md` as canonical for classification purposes until the conflict is resolved
+- do not use `README_LAYER2.md` as the primary authority for the claim outside its declared role
 
 ### Rule CH-4 — Contradictions inherited from upstream outputs
 If `request_classification.summary.possible_blocking_conditions` contains contradiction-related flags (e.g., `historical_source_promoted_as_current_truth`, `unsupported_current_state_claim`):
@@ -684,11 +679,11 @@ Expected output:
       "source_authority_conflict_detected": true,
       "runtime_status_upgrade_blocked": false,
       "unresolved_conflicts": [
-        "system-orchestration.yaml labels README_LAYER2.md as canonical (annotation: '# ← NOW CANONICAL'). CLAUDE.md Section 2.2, DOCUMENTATION_VERIFICATION_MATRIX_v1.md Section 8, and the doc-truth-classification skill treat it as historical context only. This conflict must be resolved at the governance level before any matrix update depending on README_LAYER2.md canonical authority can be treated as settled."
+        "README_LAYER2.md is canonical per CLAUDE.md §2.1 and §2.2 with a declared collaborator-workflow role. Changes to README_LAYER2.md that affect claims outside its declared role must be reviewed against the role-matched Tier 1 source. Any matrix update depending on such an out-of-role README_LAYER2.md citation cannot be treated as settled until the role-correct Tier 1 source is consulted."
       ],
       "notes": [
         "Historical wording change only; current-state Tier 1 docs are unaffected.",
-        "source_authority_conflict_detected is set because README_LAYER2.md was involved; the live authority conflict must be noted regardless of whether this specific change depends on it."
+        "source_authority_conflict_detected is set as a precautionary flag when README_LAYER2.md is involved; changes to this document should be reviewed to confirm no out-of-role claims are introduced."
       ]
     }
   }
@@ -742,9 +737,9 @@ Expected output:
 
 ---
 
-### Example 5 — system-orchestration.yaml marks README_LAYER2 as canonical while other docs treat it differently
+### Example 5 — README_LAYER2 used as primary source for an implementation-state claim outside its declared role
 
-Context: A request or review has identified that `system-orchestration.yaml` labels `README_LAYER2.md` as `# ← NOW CANONICAL` while `CLAUDE.md`, `DOCUMENTATION_VERIFICATION_MATRIX_v1.md` Section 8, and `doc-truth-classification` treat it as historical/collaborator context only.
+Context: A request or review has identified that `README_LAYER2.md` is being cited as the primary authority for an implementation-state claim. `CLAUDE.md` §2.1 and §2.2 declare it canonical within its collaborator-workflow role; `CLAUDE.md` §2.4 prohibits using it to overrule role-specific Tier 1 documents on implementation state, architecture boundaries, or limitations.
 
 Expected output:
 ```json
@@ -758,7 +753,7 @@ Expected output:
         "section": "Section 8 — Document Role Classification",
         "claim_or_topic": "README_LAYER2.md document role",
         "change_type": "contradiction_note",
-        "reason": "system-orchestration.yaml annotates README_LAYER2.md as '# ← NOW CANONICAL' in its artifact list. DOCUMENTATION_VERIFICATION_MATRIX_v1.md Section 8 classifies it as 'Collaborator guide + living build reference.' CLAUDE.md Section 2.2 classifies it as 'historical context only.' The doc-truth-classification skill assigns it Tier 3. These statements are in conflict. The matrix should record this contradiction explicitly. No classification update can be proposed until the conflict is resolved at the governance level.",
+        "reason": "README_LAYER2.md is being used as the primary source for an implementation-state claim. CLAUDE.md §2.1 and §2.2 declare it canonical with the role of 'Collaborator guide and living build reference for Layer-2 implementation and operational navigation.' CLAUDE.md §2.4 prohibits using it to overrule role-specific Tier 1 documents on implementation state, architecture boundaries, or limitations. DOCUMENTATION_VERIFICATION_MATRIX_v1.md Section 8 confirms this role. The citation is outside its declared role. The matrix should record this as a source authority concern. No classification update can be proposed until the role-matched Tier 1 source is consulted.",
         "source_documents": [
           "system-orchestration.yaml",
           "DOCUMENTATION_VERIFICATION_MATRIX_v1.md",
@@ -780,7 +775,7 @@ Expected output:
           "DOCUMENTATION_VERIFICATION_MATRIX_v1.md"
         ],
         "proposed_old_state": "Not explicitly stated in matrix",
-        "proposed_new_state": "Conflict pending resolution — README_LAYER2.md canonical status is contested between system-orchestration.yaml and the canonical v1 document set",
+        "proposed_new_state": "README_LAYER2.md is canonical within its declared collaborator-workflow role. Out-of-role citation detected — role-matched Tier 1 source must be consulted before this claim can be settled.",
         "confidence": "high"
       }
     ],
@@ -790,8 +785,8 @@ Expected output:
       "source_authority_conflict_detected": true,
       "runtime_status_upgrade_blocked": false,
       "unresolved_conflicts": [
-        "system-orchestration.yaml labels README_LAYER2.md as canonical (annotation: '# ← NOW CANONICAL'). CLAUDE.md Section 2.2, DOCUMENTATION_VERIFICATION_MATRIX_v1.md Section 8, and the doc-truth-classification skill treat it as historical context only. This conflict must be resolved at the governance level before any matrix update depending on README_LAYER2.md canonical authority can be treated as settled.",
-        "matrix_action is review_only rather than update because the authority conflict prevents a settled classification decision."
+        "README_LAYER2.md cited outside its declared collaborator-workflow role. Per CLAUDE.md §2.4, it must not override role-specific Tier 1 documents on implementation state, architecture boundaries, or limitations. The role-matched Tier 1 source must be consulted before this claim can be treated as settled.",
+        "matrix_action is review_only rather than update because the out-of-role citation prevents a settled classification decision."
       ],
       "notes": [
         "The contradiction must not be silently resolved by this skill. Governance-level resolution required.",

@@ -82,11 +82,11 @@ When identifying affected artifacts and determining impact, use this source prec
 7. `verification_ledger.md`
 8. `system-orchestration.yaml`
 
-### Tier 3 — historical context only
-9. `README_LAYER2.md` — historical context only; must not be used as a primary artifact authority
+### Tier 3 — canonical within declared collaborator-workflow role
+9. `README_LAYER2.md` — canonical collaborator guide and living build reference for Layer-2 implementation and operational navigation; authoritative for collaborator-workflow and Layer-2 navigation claims; must not be used as a primary authority for implementation state, architecture boundaries, or limitations
 
 Important:
-- A change that affects only `README_LAYER2.md` affects historical context only.
+- A change that affects only `README_LAYER2.md` affects collaborator-workflow and Layer-2 navigation context; it is canonical within that role but must not override Tier 1 docs on current-state truth, architecture, or limitations.
 - A change that affects Tier 1 artifacts requires review of whether current-state truth has changed.
 - A change that affects `DOCUMENTATION_VERIFICATION_MATRIX_v1.md` or `verification_ledger.md` requires explicit verification action classification.
 
@@ -222,7 +222,7 @@ If the change affects only preserved history, earlier design language, or migrat
 
 Affected:
 - `SYSTEM_IMPLEMENTATION_RECORD_v1.md` — historical reconciliation
-- `README_LAYER2.md` — historical context only
+- `README_LAYER2.md` — canonical within its collaborator-workflow and Layer-2 navigation role
 
 Current-state Tier 1 docs are typically not affected unless they explicitly reference the historical fact being changed.
 
@@ -248,6 +248,22 @@ If a prior guard or hook blocked the requested change:
 - documentation updates may be unnecessary if the code was not accepted
 - `risk_summary` must explicitly name the blocked attempt and the reason it was blocked
 
+### Rule AM-8 — Canonical rename-only changes
+If the change renames a canonical document, changes its title, or changes its canonical label without semantic modification:
+
+Mandatory review:
+- the renamed canonical artifact itself
+- `system-orchestration.yaml` if filenames or canonical references are embedded there
+- `DOCUMENTATION_VERIFICATION_MATRIX_v1.md` for role-map consistency review
+
+Advisory review:
+- `README_v1.md`
+- `SYSTEM_TECHNICAL_HANDBOOK_v1.md`
+- `SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md`
+- `SYSTEM_IMPLEMENTATION_RECORD_v1.md`
+- `README_LAYER2.md`
+
+These reviews confirm that references, role interpretation, and historical traceability remain valid after renaming.
 ---
 
 ## Mandatory vs. advisory follow-up rules
@@ -312,6 +328,15 @@ Ask:
 - Does it affect evidence classifications or claim status? → `verification`
 - Does it affect more than one category materially? → `mixed`
 
+### Step 2A — Determine change mode
+Using the change mode classification rules, assign `change_mode`.
+
+Ask:
+- Does the change modify only filenames, titles, or canonical labels while preserving meaning? → `rename_only`
+- Does it alter semantic content or claims? → `content_change`
+- Does it reorganize document topology or artifact structure? → `structural_change`
+- Is the mode unclear from available inputs? → `uncertain`
+
 ### Step 3 — Identify impacted components
 List all system components, subsystems, or workflow steps materially affected by the change.
 
@@ -365,6 +390,33 @@ Before emitting output, verify:
 
 ---
 
+## Change mode classification rules
+
+Assign exactly one `change_mode`.
+
+### `content_change`
+Use when the change modifies semantic content, current-state claims, target-state claims, limitations, architecture language, or verification posture.
+
+### `rename_only`
+Use when the change alters one or more canonical document filenames, document titles, or canonical labels without changing semantic content.
+
+A `rename_only` change MUST satisfy all of the following:
+- stable document identity is preserved
+- alias mapping is created for every renamed canonical artifact
+- all canonical references are updated or remain valid through alias mapping
+- claim classification remains unchanged
+- evidence classification remains unchanged
+- canonical role mapping remains unchanged
+
+If any of the above conditions is not satisfied, the change MUST NOT be classified as `rename_only`; classify it as `mixed` and flag the risk explicitly.
+
+### `structural_change`
+Use when the change alters document organization, section boundaries, document decomposition, merge/split behavior, or canonical artifact topology, even if some text remains unchanged.
+
+### `uncertain`
+Use when the available inputs do not allow deterministic classification of the change mode. In strict mode, treat this as fail-closed and escalate.
+
+
 ## Deterministic rules
 
 Apply these rules exactly.
@@ -416,6 +468,27 @@ If the impact type cannot be determined with confidence:
 - set `follow_up_required: mandatory`
 - add to `risk_summary`: "impact type could not be determined with confidence; conservative mixed classification applied"
 
+### Rule DR-9 — Rename-only changes require identity continuity
+If `change_mode` is `rename_only`:
+- require an alias mapping for every renamed canonical document
+- require identity continuity to be explicitly preserved
+- require all canonical references to be updated or covered by alias mapping
+- require `follow_up_required` to be at least `advisory`
+- do not allow semantic claim changes, evidence reclassification, or role remapping
+
+### Rule DR-10 — Rename-only changes require semantic invariance
+If `change_mode` is `rename_only`:
+- notes must include: "rename-only change; semantic content, evidence posture, and role mapping must remain unchanged"
+- `risk_summary` must include any missing alias mapping, broken reference, or possible role ambiguity
+- `doc_update_plan` must include an invariance check requirement
+
+### Rule DR-11 — Failed rename invariance escalates classification
+If a purported rename-only change alters claim scope, evidence classification, canonical role mapping, or current-vs-target labeling:
+- do not classify it as `rename_only`
+- set `impact_type: mixed`
+- set `follow_up_required: mandatory`
+- add to `risk_summary`: "purported rename-only change altered semantic governance state"
+
 ---
 
 ## Output schema
@@ -425,6 +498,7 @@ Return a single JSON object with this shape:
 ```json
 {
   "change_impact_summary": {
+    "change_mode": "content_change | rename_only | structural_change | uncertain",
     "impact_type": "code | documentation | architecture | verification | runtime | mixed",
     "contributing_categories": [],
     "impacted_components": ["string"],
@@ -449,7 +523,13 @@ Return a single JSON object with this shape:
         "reason": "string",
         "action": "update | review_only | none"
       }
-    ]
+    ],
+    "rename_controls": {
+      "alias_map_required": false,
+      "identity_continuity_required": false,
+      "reference_update_required": false,
+      "invariance_check_required": false
+    }
   }
 }
 ```
@@ -473,7 +553,8 @@ Return a single JSON object with this shape:
 | `update_type` | `revise` (content must change), `review` (must be checked), `no_change_after_review` (confirmed no update needed after review) |
 | `verification_actions` | Actions required on verification artifacts |
 | `action` | `update` (content must change), `review_only` (must be checked), `none` (no action needed) |
-
+| `change_mode` | Describes whether the change is semantic content change, rename-only, structural, or uncertain |
+| `rename_controls` | Required safeguards when canonical artifact renaming is involved |
 ---
 
 ## Completion checklist
@@ -491,7 +572,7 @@ Before emitting output, verify:
 - [ ] No doc-only change is described as proof of runtime behavior
 - [ ] Every `required_updates` entry has a specific reason, not a generic placeholder
 - [ ] Every `verification_actions` entry names the exact artifact and action
-- [ ] `README_LAYER2.md` was treated as historical context only, never as a current-state artifact authority
+- [ ] `README_LAYER2.md` was treated as canonical within its declared collaborator-workflow role; it was not used as a primary authority for implementation-state, architecture, or limitations claims
 - [ ] The output is a single valid JSON object matching the specified schema
 
 ---
@@ -728,7 +809,7 @@ Expected output:
     "inference_used": false,
     "risk_summary": [],
     "notes": [
-      "README_LAYER2.md is a historical context artifact only. Changes here do not affect canonical current-state docs.",
+      "README_LAYER2.md is canonical within its declared collaborator-workflow role. Changes here do not affect canonical current-state docs on architecture, implementation state, or limitations.",
       "Current-state Tier 1 documents are unaffected by this change.",
       "doc-only change; does not alter runtime evidence status.",
       "Advisory review recommended to confirm historical wording does not contradict current-state language in Tier 1 docs."
@@ -843,6 +924,6 @@ This skill is complete when:
 8. No doc-only change has been described as proof of runtime behavior.
 9. Every `required_updates` entry has a specific, traceable reason.
 10. Every `verification_actions` entry names the exact artifact and the specific action required.
-11. `README_LAYER2.md` was treated as historical context only and was not used as a current-state artifact authority.
+11. `README_LAYER2.md` was treated as canonical within its declared collaborator-workflow role and was not used as a primary authority for implementation-state, architecture, or limitations claims.
 12. The output is a single valid JSON object matching the specified schema.
 13. The verdict is deterministic: the same inputs, mode, and scope must produce the same verdict.

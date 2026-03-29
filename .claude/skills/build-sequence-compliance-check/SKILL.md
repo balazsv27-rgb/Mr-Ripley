@@ -60,17 +60,17 @@ When performing phase alignment, use this source precedence:
 3. `README_v1.md`
 4. `SYSTEM_TECHNICAL_HANDBOOK_v1.md`
 5. `SYSTEM_LIMITATIONS_AND_APPROXIMATIONS_v1.md`
+6. `SYSTEM_IMPLEMENTATION_RECORD_v1.md` — canonical record of what is actually implemented and realized; primary source for implementation-state claims
 
 ### Tier 2 — verification / current-status support
-6. `DOCUMENTATION_VERIFICATION_MATRIX_v1.md`
-7. `SYSTEM_IMPLEMENTATION_RECORD_v1.md`
+7. `DOCUMENTATION_VERIFICATION_MATRIX_v1.md`
 
-### Tier 3 — historical context only
+### Tier 3 — canonical within declared collaborator-workflow role
 8. `README_LAYER2.md`
 
 Important:
-- `README_LAYER2.md` is never a primary source for current phase permissioning.
-- Historical documents may explain how the project evolved, but phase decisions must follow the current canonical v1 build sequence.
+- `README_LAYER2.md` is canonical, but its declared role is collaborator guide and living build reference for Layer-2 navigation — not the primary source for phase permissioning or build-order authority.
+- Phase decisions must follow the current canonical v1 build sequence per `SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md`.
 
 ## Arguments
 

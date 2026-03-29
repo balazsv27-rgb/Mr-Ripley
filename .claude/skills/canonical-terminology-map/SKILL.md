@@ -108,11 +108,11 @@ When determining the authoritative definition or canonical form of a term, use r
 | 7 | `verification_ledger.md` | Claim → evidence → status vocabulary in the ledger context |
 | 8 | `system-orchestration.yaml` | Skill names, hook names, subagent names, blocking condition labels |
 
-### Tier 3 — supporting context only
+### Tier 3 — canonical within declared collaborator-workflow role
 
 | Priority | Document | Role |
 |---|---|---|
-| 9 | `README_LAYER2.md` | Collaborator-workflow phrasing; acceptable as context but must not override Tier 1 terminology for any canonical term |
+| 9 | `README_LAYER2.md` | Canonical collaborator guide and living build reference for Layer-2 implementation and operational navigation. Authoritative for collaborator-workflow and Layer-2 navigation claims. Must not override Tier 1 terminology sources for any canonical term. |
 
 **Conflict resolution rule:** When two sources define the same concept differently, the Tier 1 source with the most specific declared role for that concept type governs. For technical field names and contract vocabulary: `SYSTEM_TECHNICAL_HANDBOOK_v1.md`. For component and layer names: `SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md`. Do not silently adopt a variant from a lower-tier source.
 

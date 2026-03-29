@@ -30,7 +30,7 @@ This skill exists because the orchestration workflow requires request classifica
 Follow these project rules:
 
 - Prefer the current canonical v1 document set for current-state interpretation.
-- Treat `README_LAYER2.md` as **historical context only**, never as a canonical current-state truth source.
+- `README_LAYER2.md` is canonical within its declared role as collaborator guide and living build reference for Layer-2 implementation and operational navigation. It must not be used as the primary source for claims outside its declared role. For collaborator-workflow and Layer-2 navigation claims, it is the role-matched canonical source.
 - Distinguish strictly between:
   - what is currently implemented or currently documented as current-state,
   - what is planned / target architecture,
@@ -50,20 +50,21 @@ When classifying a claim, use this source precedence order unless the request is
 3. `SYSTEM_LIMITATIONS_AND_APPROXIMATIONS_v1.md`
 4. `SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md`
 5. `DOCUMENTATION_VERIFICATION_MATRIX_v1.md`
+6. `SYSTEM_IMPLEMENTATION_RECORD_v1.md` — canonical record of what is actually implemented and realized; primary source for implementation-state claims
 
 ### Tier 2 — canonical interpretive / governance addenda
-6. `SYSTEM_IMPLEMENTATION_RECORD_v1.md` only when used together with the current v1 set
 7. `DECISION_PHILOSOPHY_v0.md` when the claim touches Layer-3 decision philosophy
 8. `DECISIONPACKET_SCHEMA_v0.md` when the claim touches Layer-3 output contract
 9. `ARCHITECTURE_CHANGE_MEMO_v1.md` when the claim touches recent architectural re-framing
 
-### Tier 3 — historical context
+### Tier 3 — canonical within declared collaborator-workflow role
 10. `README_LAYER2.md`
 
 Important:
-- `README_LAYER2.md` may explain history, preserved examples, and migration context.
-- It must **not** be used as the primary source for current-state classification.
-- If a claim depends mainly on `README_LAYER2.md` and lacks support from the current v1 set, classify it as `historical` or `unverified`, not `current-state`.
+- `README_LAYER2.md` is canonical within its declared role: collaborator guide and living build reference for Layer-2 implementation and operational navigation.
+- For collaborator-workflow and Layer-2 navigation claims, it is the role-matched canonical source and produces `current-state` classifications.
+- It must **not** be used as the primary source for claims outside its declared role — architecture, implementation state, and limitations claims require their role-specific Tier 1 documents.
+- If a claim outside `README_LAYER2.md`'s declared role depends mainly on it and lacks support from a role-matched Tier 1 document, classify it as `unverified`, not `current-state`.
 
 ## Truth classification layers
 
@@ -222,11 +223,13 @@ These are routing hints, not final enforcement decisions.
 
 Apply these deterministically.
 
-### Historical source handling
-If a claim relies on `README_LAYER2.md` as if it were the current truth source:
-- downgrade the claim to `historical` or `unverified`,
+### README_LAYER2 out-of-role source handling
+`README_LAYER2.md` is canonical for collaborator-workflow and Layer-2 navigation claims. If a claim outside that declared role relies on `README_LAYER2.md` as its primary source for architecture, implementation state, or limitations:
+- downgrade the claim to `unverified`,
 - flag `touches_historical_reconciliation = true`,
 - add `historical_source_promoted_as_current_truth` to `possible_blocking_conditions`.
+
+Note: claims within `README_LAYER2.md`'s declared role that are supported by it must not be downgraded.
 
 ### Layer-3 status handling
 If a claim says or implies Layer-3 is already built, operational, complete, or ready:

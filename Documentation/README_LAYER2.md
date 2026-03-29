@@ -5,41 +5,23 @@
 > **Repo:** https://github.com/balazsv27-rgb/Mr-Ripley
 > **Last updated:** 2026-03-22
 > **Document version:** v6 — see Section 17 (Revision Log) for change summary
-<<<<<<<< HEAD:Documentation/README_LAYER2.md
-========
 > **Canonical role:** collaborator guide and living build reference within the canonical current-state set
->>>>>>>> main:Documentation/README_LAYER2_updated.md
 
 ---
 
 ## Document Revision Summary (v5 → v6)
 
-<<<<<<<< HEAD:Documentation/README_LAYER2.md
-The following changes were made in this revision. All changes are traceable to
-`ARCHITECTURE_CHANGE_MEMO_v1.md`, `DECISION_PHILOSOPHY_v0.md`, and `DECISIONPACKET_SCHEMA_v0.md`
-dated 2026-03-22.
-========
 The following changes were made in this revision. Current-state interpretation must remain aligned with the canonical v1 set, especially `SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md`, `SYSTEM_TECHNICAL_HANDBOOK_v1.md`, and `SYSTEM_IMPLEMENTATION_RECORD_v1.md`.
->>>>>>>> main:Documentation/README_LAYER2_updated.md
 
 | # | Section | Change | Reason |
 |---|---|---|---|
 | 1 | Header | Updated last-updated date and version to v6 | 2026-03-22 philosophy freeze |
-<<<<<<<< HEAD:Documentation/README_LAYER2.md
-| 2 | §1 | Updated Layer-3 diagram line to reflect state-driven / event-driven model | `DECISION_PHILOSOPHY_v0.md` |
-| 3 | §16 | Updated Layer-3 prerequisites — `guards` and `reason_code` now resolved | v1 docs confirmed |
-| 4 | §16 | Updated Layer-3 build order — bootstrap-first path now leads with DecisionPacket skeleton and `NO_TRADE` default | `ARCHITECTURE_CHANGE_MEMO_v1.md` |
-| 5 | §16 | Updated DecisionPacket example — removed `timeframe` field, expanded to v0 schema shape | `DECISIONPACKET_SCHEMA_v0.md` |
-| 6 | §16 | Added Live Market State and Event Risk Stream as governed Layer-3 inputs | `DECISION_PHILOSOPHY_v0.md` |
-| 7 | §16 | Added note that earlier DecisionPacket example (`action: BUY/SELL/NOTHING`, `timeframe: 5m`) is superseded | `DECISIONPACKET_SCHEMA_v0.md` |
-========
 | 2 | §1 | Updated Layer-3 diagram line to reflect state-driven / event-driven model | `SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md` |
 | 3 | §16 | Updated Layer-3 prerequisites — `guards` and `reason_code` now resolved | v1 docs confirmed |
 | 4 | §16 | Updated Layer-3 build order — bootstrap-first path now leads with DecisionPacket skeleton and `NO_TRADE` default | `ARCHITECTURE_CHANGE_MEMO_v1.md` |
 | 5 | §16 | Updated DecisionPacket example — removed `timeframe` field and aligned description with current Layer-3 design | `SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md` |
 | 6 | §16 | Added Live Market State and Event Risk Stream as governed Layer-3 inputs | `SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md` |
 | 7 | §16 | Added note that earlier DecisionPacket example (`action: BUY/SELL/NOTHING`, `timeframe: 5m`) is superseded | `SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md` |
->>>>>>>> main:Documentation/README_LAYER2_updated.md
 | 8 | §17 | Added v6 revision log entry | 2026-03-22 |
 
 Previous revision (v5 → v4) changes are preserved below for traceability.
@@ -794,15 +776,8 @@ snapshot_id: <64-char hash>
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   LAYER-3 IS NOT BUILT.
   THIS SECTION IS HISTORICAL CONTEXT ONLY.
-<<<<<<<< HEAD:Documentation/README_LAYER2.md
-  FOR CURRENT LAYER-3 DESIGN AND BUILD ORDER SEE:
-    SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md
-    DECISION_PHILOSOPHY_v0.md
-    DECISIONPACKET_SCHEMA_v0.md
-========
   FOR CURRENT LAYER-3 DESIGN, BUILD ORDER, AND DECISIONPACKET FIELD REFERENCE SEE:
     SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md
->>>>>>>> main:Documentation/README_LAYER2_updated.md
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
 
@@ -810,13 +785,8 @@ snapshot_id: <64-char hash>
 
 The Layer-2 → Layer-3 handoff gate is satisfied. Layer-3 bootstrap may begin.
 
-<<<<<<<< HEAD:Documentation/README_LAYER2.md
-- Layer-3 decision philosophy: frozen — `DECISION_PHILOSOPHY_v0.md`
-- DecisionPacket schema v0: defined — `DECISIONPACKET_SCHEMA_v0.md`
-========
 - Layer-3 decision philosophy: frozen in the current architecture definition
 - DecisionPacket field reference: `SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md` section 7
->>>>>>>> main:Documentation/README_LAYER2_updated.md
 - Layer-3 build sequence: `SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md` sections 6–7
 - Layer-3 implementation: not yet built
 
@@ -834,24 +804,15 @@ The stable snapshot contract is defined in `SYSTEM_TECHNICAL_HANDBOOK_v1.md` sec
 | `guards` object in snapshot | ✅ Resolved |
 | `reason_code` enum defined | ✅ Resolved |
 | `layer1_events: []` stub | ✅ Resolved |
-<<<<<<<< HEAD:Documentation/README_LAYER2.md
-| Decision philosophy frozen | ✅ Resolved — `DECISION_PHILOSOPHY_v0.md` |
-| DecisionPacket schema v0 defined | ✅ Resolved — `DECISIONPACKET_SCHEMA_v0.md` |
-========
 | Decision philosophy frozen | ✅ Resolved — reflected in `SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md` |
 | DecisionPacket field reference defined | ✅ Resolved — `SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md` section 7 |
->>>>>>>> main:Documentation/README_LAYER2_updated.md
 
 ### Note on earlier DecisionPacket example in this document
 
 The DecisionPacket example that appeared in earlier versions of this section
 (`action: "BUY | SELL | NOTHING"`, `timeframe: "5m"`) is superseded.
 
-<<<<<<<< HEAD:Documentation/README_LAYER2.md
-Use `DECISIONPACKET_SCHEMA_v0.md` as the authoritative reference for the v0 contract.
-========
 Use `SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md` section 7 as the authoritative current-state reference for the Layer-3 DecisionPacket field contract.
->>>>>>>> main:Documentation/README_LAYER2_updated.md
 
 ---
 

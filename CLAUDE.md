@@ -16,7 +16,7 @@ It is the **highest-priority interpretative authority** for Claude.
 
 # 1. SYSTEM IDENTITY
 
-The Mr. Ripley gold first engengine is a:
+The Mr. Ripley gold first engine is a:
 
 > **Gold-first, fail-closed, snapshot-based decision support system**
 
@@ -42,22 +42,66 @@ The following define **current system truth**:
 4. `SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md`
 5. `DOCUMENTATION_VERIFICATION_MATRIX_v1.md`
 6. `SYSTEM_IMPLEMENTATION_RECORD_v1.md`
+7. `README_LAYER2.md`
 
-These together form the **canonical v1 documentation set**.
+These together form the **canonical current-state documentation set**.
 
-## 2.2 Historical Sources
+## 2.2 Canonical Role Definitions
 
-- `README_LAYER2.md` = **historical context only**
+Canonical documents are **authoritative by role**, not interchangeable by convenience.
+
+- `README_v1.md`  
+  Top-level project orientation and entry point.
+
+- `SYSTEM_TECHNICAL_HANDBOOK_v1.md`  
+  Technical implementation constraints, engineering discipline, contract behavior, and expected operating rules.
+
+- `SYSTEM_LIMITATIONS_AND_APPROXIMATIONS_v1.md`  
+  Known limitations, approximations, explicit non-goals, and constraint boundaries.
+
+- `SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md`  
+  Primary architectural source of truth for structure, boundaries, sequencing, and stage intent.
+
+- `DOCUMENTATION_VERIFICATION_MATRIX_v1.md`  
+  Cross-document consistency map and verification reference.
+
+- `SYSTEM_IMPLEMENTATION_RECORD_v1.md`  
+  Canonical record of what is actually implemented and realized.
+
+- `README_LAYER2.md`  
+  Canonical collaborator guide and living build reference for Layer-2 implementation and operational navigation.
+
+## 2.3 Historical Sources
+
+Historical or superseded materials MAY exist outside the canonical set.
 
 Rule:
 
-> Historical documents MUST NOT be used as current truth sources.
+> Historical documents that are outside the canonical set MUST NOT be used as current truth sources.
 
-## 2.3 Conflict Resolution
+## 2.4 Conflict Resolution
 
 If any document conflicts:
 
-> **Canonical v1 set ALWAYS overrides historical documents**
+> **Role-matched canonical interpretation overrides convenience-based interpretation.**
+
+Resolution order:
+
+1. identify the claim type,
+2. choose the canonical document whose declared role most directly matches that claim,
+3. cite the conflict explicitly,
+4. treat unresolved contradiction as documentation inconsistency,
+5. do not invent reconciliation.
+
+Examples:
+- architecture / boundary questions → prefer `SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md`
+- implementation-state claims → prefer `SYSTEM_IMPLEMENTATION_RECORD_v1.md`
+- limitations / approximations → prefer `SYSTEM_LIMITATIONS_AND_APPROXIMATIONS_v1.md`
+- collaborator workflow / Layer-2 navigation → prefer `README_LAYER2.md`
+
+Critical rule:
+
+> `README_LAYER2.md` is canonical, but it MUST NOT be used to overrule more role-specific canonical documents on implementation state, architecture boundaries, or limitations.
 
 ---
 
@@ -120,7 +164,7 @@ All claims must be classified.
 
 ## 5.1 Allowed Evidence Classes
 
-- **Verified in current documentation set**
+- **Verified in canonical current-state documentation set**
 - **Documented current-state claim**
 - **Planned / target architecture**
 - **Not verifiable from current materials**
@@ -137,8 +181,8 @@ Valid proof must be:
 - inferred behavior
 - implied architecture
 - planned components
-- historical statements
 - partial documentation
+- non-canonical historical statements
 - LLM reasoning alone
 
 ---
@@ -163,8 +207,8 @@ Layer 3+ MUST:
 
 Each snapshot MUST have:
 
-- identity (snapshot_id)
-- time anchor (as_of)
+- identity (`snapshot_id`)
+- time anchor (`as_of`)
 - revision metadata
 - deterministic contents
 
@@ -251,11 +295,13 @@ The following claims are **FORBIDDEN unless explicitly proven**:
 
 Any **contract-affecting change** MUST trigger:
 
-- README_v1.md review
-- TECHNICAL_HANDBOOK review
-- LIMITATIONS update
-- VERIFICATION_MATRIX update
-- ARCHITECTURE doc review
+- `README_v1.md` review
+- `SYSTEM_TECHNICAL_HANDBOOK_v1.md` review
+- `SYSTEM_LIMITATIONS_AND_APPROXIMATIONS_v1.md` update
+- `DOCUMENTATION_VERIFICATION_MATRIX_v1.md` update
+- `SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md` review
+- `SYSTEM_IMPLEMENTATION_RECORD_v1.md` review when implementation state changes
+- `README_LAYER2.md` review when collaborator workflow or Layer-2 build navigation changes
 
 ---
 
@@ -276,13 +322,11 @@ Any **contract-affecting change** MUST trigger:
 # 13. LLM ROLE CONSTRAINT
 
 Claude is:
-
 - analyst
 - validator
 - auditor
 
 Claude is NOT:
-
 - decision engine
 - execution engine
 - source of truth
@@ -292,16 +336,46 @@ Claude is NOT:
 # 14. INTERPRETATION PRIORITIES
 
 When answering or reasoning:
-
-1. Use canonical documents
-2. Apply proof classification
-3. respect phase-gates
-4. enforce snapshot contract
-5. avoid implicit assumptions
+1. use canonical documents
+2. classify the claim by role and evidence type
+3. prefer the role-matched canonical source
+4. respect phase-gates
+5. enforce snapshot contract
+6. avoid implicit assumptions
+7. block strong claims when evidence is incomplete or contradictory
 
 ---
 
-# 15. FINAL CONSTITUTIONAL RULE
+# 15. WORKFLOW EXECUTION OBLIGATION
+
+The orchestration manifest at `.claude/workflows/system-orchestration.yaml` is a workflow blueprint, not a truth source.
+
+However, for every governed request, its declared workflow is mandatory to follow.
+
+A governed request includes any request that:
+- interprets current system state
+- makes or proposes code changes
+- makes or proposes documentation changes
+- evaluates architecture or phase readiness
+- validates contracts, boundaries, schema, or runtime behavior
+- updates verification posture, ledger state, or release readiness
+
+For such requests:
+
+- the workflow steps defined in `system-orchestration.yaml` MUST be followed in declared order
+- required predecessor steps MUST NOT be skipped
+- required outputs MUST be produced before downstream steps proceed
+- blocking conditions MUST halt forward progress until resolved
+- hooks and subagents MAY reinforce enforcement, but they do not replace workflow execution
+- no governed change may bypass the workflow by jumping directly to editing, committing, or strong-claim generation
+
+Critical rule:
+
+> The YAML remains non-authoritative as a truth source, but constitutionally authoritative as the required execution blueprint for governed requests.
+
+---
+
+# 16. FINAL CONSTITUTIONAL RULE
 
 > If a statement cannot be traced to a canonical source  
 > AND cannot be proven from implementation  
@@ -312,7 +386,6 @@ When answering or reasoning:
 # SUMMARY
 
 This system is:
-
 - **deterministic**
 - **fail-closed**
 - **snapshot-driven**

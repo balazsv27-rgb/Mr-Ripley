@@ -125,9 +125,9 @@ These may be used to corroborate a primary source but may not replace it for str
 |---|---|
 | Tier 1 — canonical current-state | `README_v1.md`, `SYSTEM_TECHNICAL_HANDBOOK_v1.md`, `SYSTEM_LIMITATIONS_AND_APPROXIMATIONS_v1.md`, `SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md`, `DOCUMENTATION_VERIFICATION_MATRIX_v1.md`, `SYSTEM_IMPLEMENTATION_RECORD_v1.md` |
 | Tier 2 — verification and governance | `verification_ledger.md`, `system-orchestration.yaml` |
-| Tier 3 — historical context only | `README_LAYER2.md` |
+| Tier 3 — canonical within declared collaborator-workflow role | `README_LAYER2.md` |
 
-Tier 3 documents do not override Tier 1 or Tier 2 documents for strong claims outside their declared role.
+Tier 3 documents do not override Tier 1 or Tier 2 documents for claims outside their declared role. `README_LAYER2.md` is canonical for collaborator-workflow and Layer-2 navigation claims, but must not override role-specific documents on architecture, implementation state, or limitations.
 
 ---
 
@@ -371,7 +371,7 @@ When `README_LAYER2.md` is used outside its declared role for a strong claim:
 4. Require an explicit conflict note naming both the misused source and the correct role-matched source.
 5. Recommend `block` or `warn` as the guard action depending on claim strength.
 
-Note: `system-orchestration.yaml` contains an annotation `# ← NOW CANONICAL` next to `README_LAYER2.md` in its `artifacts.required_inputs.canonical_docs` section. This annotation conflicts with `CLAUDE.md` Section 2.2 (which classifies it as historical context only), `DOCUMENTATION_VERIFICATION_MATRIX_v1.md` Section 8, and the `doc-truth-classification` skill (Tier 3). This skill must not silently accept that annotation as authority. When a claim's source compliance depends on that annotation, set `source_authority_conflict_detected: true` in the output and add it to the conflict notes.
+Note: `README_LAYER2.md` is canonical per `CLAUDE.md` §2.1 and §2.2 with the declared role of collaborator guide and living build reference for Layer-2 implementation and operational navigation. Per `CLAUDE.md` §2.4, it must not be used to overrule role-specific Tier 1 documents on implementation state, architecture boundaries, or limitations. When a claim's source compliance depends on `README_LAYER2.md` being used outside its declared role, set `source_authority_conflict_detected: true` in the output and add the role-mismatch to the conflict notes.
 
 ---
 
@@ -662,12 +662,12 @@ Expected output:
         "conflict_detected": true,
         "blocking_condition_if_any": "readme_layer2_used_as_override",
         "verdict": "conflict_requires_block",
-        "reason": "README_LAYER2.md is Tier 3 (historical context / collaborator workflow) and cannot serve as the primary authority for a readiness claim. The required primary source for phase readiness is SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md. Using README_LAYER2.md as an override for this claim type violates the manifest's interpretation policy.",
+        "reason": "README_LAYER2.md is canonical within its declared collaborator-workflow and Layer-2 navigation role, but cannot serve as the primary authority for a readiness claim outside that role. The required primary source for phase readiness is SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md. Using README_LAYER2.md as override for a non-collaborator-workflow strong claim violates the manifest's interpretation policy.",
         "notes": [
           "README_LAYER2.md declared role: collaborator workflow claim source only",
           "Readiness claims require SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md as primary source",
           "README_LAYER2.md used as override for a non-collaborator-workflow strong claim: rule RC-D3 applies",
-          "system-orchestration.yaml annotation '# ← NOW CANONICAL' next to README_LAYER2.md conflicts with CLAUDE.md Section 2.2 which classifies it as historical context only; this skill does not accept that annotation as resolving the conflict",
+          "README_LAYER2.md is canonical per CLAUDE.md Section 2.1 and 2.2, with declared role as collaborator guide and living build reference for Layer-2 navigation. Its use as primary source for this readiness claim is a role-mismatch per CLAUDE.md Section 2.4 — readiness claims require SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md as primary source.",
           "source_authority_conflict_detected set: true",
           "Requires doc-sync escalation: the authority status of README_LAYER2.md must be resolved at governance level before this claim can proceed"
         ]

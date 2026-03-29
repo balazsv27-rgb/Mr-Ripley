@@ -61,8 +61,8 @@ When applying the snapshot contract, use this source precedence.
 5. `DOCUMENTATION_VERIFICATION_MATRIX_v1.md` — classification of snapshot contract items
 6. `SYSTEM_IMPLEMENTATION_RECORD_v1.md`
 
-### Tier 3 — historical / supporting contract detail only
-7. `README_LAYER2.md` — preserves useful contract interface summary (DB interface, file interface, forbidden interface). Use only as supporting contract detail corroborating Tier 1. Never as a standalone current-state authority.
+### Tier 3 — canonical within declared collaborator-workflow role
+7. `README_LAYER2.md` — canonical collaborator guide with useful contract interface summary (DB interface, file interface, forbidden interface). Use only as supporting contract detail corroborating Tier 1 for snapshot-contract claims; not the role-matched source for contract invariants. Never as a standalone contract authority.
 
 ### CLAUDE.md
 The project constitution defines the snapshot contract as a non-negotiable rule (Section 6). Its rules govern all interpretation.
@@ -187,7 +187,7 @@ Stable top-level fields: snapshot_id, engine_version, config_version, clock_ts,
 ```
 Permitted for: snapshot consumer bootstrap, current-truth handoff reads.
 
-Source corroboration: `README_LAYER2.md` Section 6 (supporting contract detail only — Tier 3).
+Source corroboration: `README_LAYER2.md` Section 6 (supporting contract detail within its declared collaborator-workflow role — corroboration of Tier 1 only).
 
 ---
 
@@ -467,7 +467,7 @@ Before emitting output, verify:
 - [ ] `blocking_reason_if_any` is populated whenever `allowed` is `false`
 - [ ] `snapshot_anchor_required` is `true` for any request touching DecisionPacket design
 - [ ] `followup_guard_recommended` is `true` whenever `boundary_violation` or `ambiguous_requires_block` is emitted
-- [ ] `README_LAYER2.md` was used only as Tier 3 supporting contract detail, never as primary authority
+- [ ] `README_LAYER2.md` was used only as supporting contract detail within its declared collaborator-workflow role, never as primary contract authority
 - [ ] Historical documents were not used to override Tier 1 invariants
 
 ---
@@ -728,7 +728,7 @@ This skill is complete when:
 4. `allowed` is `true` only when all claims are `compliant`.
 5. `blocking_reason_if_any` is non-null whenever `allowed` is `false`.
 6. `followup_guard_recommended` is `true` whenever `boundary_violation` or `ambiguous_requires_block` is the verdict.
-7. `README_LAYER2.md` was used only as Tier 3 supporting contract corroboration, never as primary authority.
+7. `README_LAYER2.md` was used only as supporting contract corroboration within its declared collaborator-workflow role, never as primary contract authority.
 8. No historical document was used to override a Tier 1 invariant.
 9. The output is a single valid JSON object matching the specified schema.
 10. The verdict is deterministic: the same request, mode, and scope must produce the same verdict.

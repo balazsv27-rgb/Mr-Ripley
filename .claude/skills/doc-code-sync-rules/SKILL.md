@@ -134,11 +134,11 @@ When supporting findings with canonical documentation, use role-matched selectio
 | 7 | `verification_ledger.md` | Existing claim → evidence → status tracking; use to check whether sync findings would affect current ledger entries |
 | 8 | `system-orchestration.yaml` | Hook definitions, skill role assignments, guard check declarations |
 
-### Tier 3 — supporting context only
+### Tier 3 — canonical within declared collaborator-workflow role
 
 | Priority | Document | Role |
 |---|---|---|
-| 9 | `README_LAYER2.md` | Supporting context within its declared collaborator-workflow role; must not be used to override Tier 1 sources for technical-constraint, implementation-state, or architecture claims |
+| 9 | `README_LAYER2.md` | Canonical collaborator guide and living build reference for Layer-2 implementation and operational navigation. Authoritative for collaborator-workflow and Layer-2 navigation claims. Must not be used to override Tier 1 sources for technical-constraint, implementation-state, or architecture claims. |
 
 **Critical rule:** When a documentation claim about implementation state, snapshot fields, architecture boundaries, or runtime behavior is sourced from `README_LAYER2.md` while a more role-specific Tier 1 document governs the same claim type, this is a source authority concern. Flag it and prefer the role-matched Tier 1 source.
 

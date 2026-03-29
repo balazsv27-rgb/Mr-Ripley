@@ -17,11 +17,8 @@ Canonical document set:
 - `README_LAYER2.md`
 
 These seven documents together form the canonical current-state set.
-<<<<<<<< HEAD:Documentation/DOCUMENTATION_VERIFICATION_MATRIX_v1.md
-========
 
 They are authoritative by role, not interchangeable by convenience.
->>>>>>>> main:Documentation/DOCUMENTATION_VERIFICATION_MATRIX_v1_updated.md
 
 ---
 
@@ -130,11 +127,7 @@ This table records the canonical role of each document to prevent role-mixing an
 | `SYSTEM_TECHNICAL_HANDBOOK_v1.md` | Current engineering reference (Layer-2) | Layer-2 stack, snapshot contract, quality gate semantics, handoff gate |
 | `SYSTEM_LIMITATIONS_AND_APPROXIMATIONS_v1.md` | Current Layer-2 gaps and open items | Known limitations, accepted approximations, Layer-2-owned open items only |
 | `SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md` | Target architecture + build sequence + design risks | Layer framing, build phases, Layer-3 model, implementation risks |
-<<<<<<<< HEAD:Documentation/DOCUMENTATION_VERIFICATION_MATRIX_v1.md
-| `SYSTEM_IMPLEMENTATION_RECORD_v1.md` | Historical build record + addendum | Build history, audit trail, schema diffs, philosophy change record |
-========
 | `SYSTEM_IMPLEMENTATION_RECORD_v1.md` | Canonical implementation record + realized-state reference | Build history, realized state, audit trail, schema diffs, philosophy change record |
->>>>>>>> main:Documentation/DOCUMENTATION_VERIFICATION_MATRIX_v1_updated.md
 | `DOCUMENTATION_VERIFICATION_MATRIX_v1.md` | Classification layer | What is verified, what is claimed, what is planned, document role map |
 | `README_LAYER2.md` | Collaborator guide + living build reference | Layer-2 build detail, adapter usage, DB state, run sequence, resolved/open items — updated alongside the v1 set |
 

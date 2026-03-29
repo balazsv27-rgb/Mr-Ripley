@@ -118,11 +118,11 @@ When supporting hygiene findings with canonical documentation, use role-matched 
 | 7 | `verification_ledger.md` | Whether an artifact's runtime evidence role has been registered and classified in the ledger |
 | 8 | `system-orchestration.yaml` | Declared runtime context; which artifacts are manifest-governed |
 
-### Tier 3 — supporting context only
+### Tier 3 — canonical within declared collaborator-workflow role
 
 | Priority | Document | Role |
 |---|---|---|
-| 9 | `README_LAYER2.md` | Collaborator-workflow context; acceptable for operational descriptions but must not override Tier 1 sources for evidence classification or artifact governance rules |
+| 9 | `README_LAYER2.md` | Canonical collaborator guide and living build reference for Layer-2 implementation and operational navigation. Authoritative for collaborator-workflow and Layer-2 navigation claims. Must not override Tier 1 sources for evidence classification or artifact governance rules. |
 
 ---
 

@@ -128,11 +128,11 @@ When supporting findings with canonical documentation, use role-matched selectio
 | 7 | `verification_ledger.md` | Existing claim → evidence → status tracking |
 | 8 | `system-orchestration.yaml` | Hook definitions, blocking condition declarations, skill role assignments |
 
-### Tier 3 — supporting context only
+### Tier 3 — canonical within declared collaborator-workflow role
 
 | Priority | Document | Role |
 |---|---|---|
-| 9 | `README_LAYER2.md` | Supporting interface description within its declared collaborator-workflow role; not authoritative for architecture, implementation-state, or technical-constraint claims about the boundary |
+| 9 | `README_LAYER2.md` | Canonical collaborator guide and living build reference for Layer-2 implementation and operational navigation. Authoritative for collaborator-workflow and Layer-2 navigation claims. Not authoritative for architecture, implementation-state, or technical-constraint claims about the boundary. |
 
 **Critical rule:** `README_LAYER2.md` must not be used to override `SYSTEM_TECHNICAL_HANDBOOK_v1.md` or `SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md` on snapshot-boundary or runtime-contract claims. If such a citation is encountered, flag it as a source authority concern and prefer the Tier 1 source.
 

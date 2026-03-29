@@ -4,6 +4,7 @@
 > Layer-2 truth-layer contract and live-execution gate status are unchanged.
 >
 > `README_LAYER2.md` is part of the canonical set — collaborator guide and living build reference.
+> Canonical documents are authoritative by role, not interchangeable by convenience.
 
 ---
 

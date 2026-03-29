@@ -4,11 +4,7 @@
 > **Entry-point summary:** `README_v1.md`
 > **Architecture reference:** `SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md`
 > **Limitations / approximations:** `SYSTEM_LIMITATIONS_AND_APPROXIMATIONS_v1.md`
-<<<<<<<< HEAD:Documentation/SYSTEM_TECHNICAL_HANDBOOK_v1.md
-> **Historical implementation record:** `SYSTEM_IMPLEMENTATION_RECORD_v1.md`
-========
 > **Implementation record:** `SYSTEM_IMPLEMENTATION_RECORD_v1.md`
->>>>>>>> main:Documentation/SYSTEM_TECHNICAL_HANDBOOK_v1_updated.md
 > **Last updated:** 2026-03-22
 
 ---
@@ -265,9 +261,5 @@ For:
 - Layer-3 output contract → see `SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md` section 7 (DecisionPacket field reference)
 - long-form history → use `SYSTEM_IMPLEMENTATION_RECORD_v1.md`
 
-<<<<<<<< HEAD:Documentation/SYSTEM_TECHNICAL_HANDBOOK_v1.md
-`README_LAYER2.md` is part of the canonical set — collaborator guide and living build reference.
-========
 `README_LAYER2.md` is part of the canonical current-state set — collaborator guide and living build reference.
 Canonical documents are authoritative by role; use the role-matched source for strong claims.
->>>>>>>> main:Documentation/SYSTEM_TECHNICAL_HANDBOOK_v1_updated.md

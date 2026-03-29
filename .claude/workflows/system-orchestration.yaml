@@ -3,11 +3,16 @@ description: >
   Project-level orchestration manifest for the Claude-assisted governance workflow.
   Coordinates constitution rules, runtime/code integrity checks, documentation consistency,
   and evidence-based verification using a dual-layer model:
-  (1) doc governance
-  (2) code/runtime truth enforcement.
+  (1) semantic / documentary governance
+  (2) code / runtime truth enforcement.
+  Every declared skill is actively wired into the workflow execution path.
+  Stage gates, hooks, and subagents are operationalized — not passive metadata.
 
-version: 2.0.0
+version: 3.0.0
 
+# =========================================================
+# CONSTITUTION
+# =========================================================
 constitution:
   file: CLAUDE.md
   role: persistent_project_rules_and_context
@@ -17,140 +22,298 @@ constitution:
     - define Layer-3 decision constraints
     - define evidence classification rules
     - define claim vs proof vs runtime observation distinction
+    - define canonical document roles and interpretation priorities
 
+# =========================================================
+# ORCHESTRATION MANIFEST SELF-REFERENCE
+# =========================================================
 orchestration_manifest:
   file: .claude/workflows/system-orchestration.yaml
   role: workflow_blueprint_not_truth_source
+  note: >
+    This manifest is an orchestration blueprint only.
+    It does not override canonical documents or serve as a truth source.
 
 # =========================================================
-# SKILLS (expanded: runtime + schema + evidence discipline)
+# SKILLS
+# All 12 implemented skills declared and mapped to workflow steps.
 # =========================================================
 skills:
-  - name: snapshot-contract-check
-    role: contract_validation_method
-    purpose: enforce snapshot-only downstream access rules
-
   - name: doc-truth-classification
     role: claim_classification_method
-    purpose: classify claims (current, target, historical, unverified)
-
-  - name: build-sequence-compliance-check
-    role: phase_alignment_method
-    purpose: enforce architecture build order
-
-  - name: change-impact-audit
-    role: impact_assessment_method
-    purpose: detect required doc + code updates
-
-  - name: verification-matrix-update-method
-    role: doc_classification_method
-    purpose: update classification matrix only
-
-  - name: verification-ledger-update
-    role: evidence_tracking_method
-    purpose: update claim → evidence → status ledger
-
-  - name: adapter-schema-review
-    role: schema_validation_method
-    purpose: validate registry-driven adapter compliance
-
-  - name: snapshot-boundary-check
-    role: runtime_integrity_method
-    purpose: enforce no raw observation usage downstream
-
-  - name: doc-code-sync-rules
-    role: consistency_method
-    purpose: ensure docs reflect actual runtime behavior
+    purpose: classify claims as current-state, target-state, historical, or unverified
+    workflow_step: classify-claims
 
   - name: canonical-terminology-map
     role: normalization_method
-    purpose: enforce consistent naming (NO_TRADE, snapshot, etc.)
+    purpose: enforce consistent naming (NO_TRADE, snapshot, DecisionPacket, Layer-2, etc.)
+    workflow_step: normalize-terminology
+
+  - name: role-matched-citation-check
+    role: interpretation_method
+    purpose: enforce use of the canonical document whose role best matches each claim
+    workflow_step: route-claims-by-role
+
+  - name: build-sequence-compliance-check
+    role: phase_alignment_method
+    purpose: enforce architecture build order and phase-gate compliance
+    workflow_step: phase-check
+
+  - name: snapshot-contract-check
+    role: contract_validation_method
+    purpose: enforce snapshot-only downstream access and contract boundary rules
+    workflow_step: snapshot-contract-check
+
+  - name: snapshot-boundary-check
+    role: runtime_integrity_method
+    purpose: enforce no raw observation usage downstream of Layer-2 boundary
+    workflow_step: runtime-boundary-check
+
+  - name: adapter-schema-review
+    role: schema_validation_method
+    purpose: validate registry-driven adapter compliance and hardcoding prohibition
+    workflow_step: adapter-schema-check
+
+  - name: change-impact-audit
+    role: impact_assessment_method
+    purpose: assess impact of requested or completed change; produce doc_update_plan
+    workflow_step: change-impact-audit
+    extended_rules:
+    detect_change_type:
+      - content_change
+      - rename_only
+      - structural_change
+
+    rename_only_definition: >
+      File name or document identifier changes without semantic content modification.
+
+    rename_only_requirements:
+      - alias_map_required: true
+      - reference_update_required: true
+      - identity_continuity_required: true
+      - semantic_invariance_required: true
+
+    doc_update_plan.must_include_if_rename:
+      - canonical_doc_identity_update
+      - alias_map
+      - reference_update_scope
+      - invariance_check_required: true
+
+  - name: doc-code-sync-rules
+    role: consistency_method
+    purpose: ensure documentation claims remain aligned with actual code and runtime behavior
+    workflow_step: doc-code-sync-check
+
+  - name: verification-matrix-update-method
+    role: doc_classification_method
+    purpose: update documentation verification matrix classification posture only
+    workflow_step: update-verification-matrix
+
+  - name: verification-ledger-update
+    role: evidence_tracking_method
+    purpose: update claim -> evidence -> status tracking in the verification ledger
+    workflow_step: update-verification-ledger
 
   - name: runtime-artifact-hygiene-check
     role: workspace_integrity_method
-    purpose: detect unwanted runtime artifacts (db, snapshot.json)
+    purpose: detect unwanted runtime artifacts (stale dbs, snapshot files, generated residue)
+    workflow_step: runtime-artifact-hygiene-check
 
 # =========================================================
-# HOOKS (now operational, Claude Code compatible)
+# HOOKS
+# Each hook is attached to its reinforcing workflow phase.
+# Hooks execute automatically via Claude Code tooling triggers.
 # =========================================================
 hooks:
+  - name: role-matched-doc-guard
+    trigger: SubagentStop
+    reinforcing_phase: route-claims-by-role
+    reinforcing_layer: A_semantic_normalization
+    checks:
+      - role-matched canonical citation used for all strong claims
+      - README_LAYER2 not used as override outside its declared collaborator-workflow role
+    action: warn_or_block
+    on_match: flag role-mismatch; require explicit role-correct citation before proceeding
+
   - name: snapshot-boundary-guard
     trigger: PostToolUse
     matcher: "Edit|Write"
+    reinforcing_phase: runtime-boundary-check
+    reinforcing_layer: C_runtime_schema_integrity
     checks:
-      - "grep forbidden: observations access in layer3"
-      - "grep forbidden: latest_snapshot misuse"
+      - no downstream access to raw observations
+      - no latest_snapshot.json misuse
+      - no Layer-2 storage coupling outside governed interface
     action: block_on_match
+    on_match: raise snapshot_boundary_violation blocking condition
 
   - name: adapter-schema-guard
     trigger: PostToolUse
     matcher: "Edit|Write"
+    reinforcing_phase: adapter-schema-check
+    reinforcing_layer: C_runtime_schema_integrity
     checks:
-      - "registry-driven usage enforced"
-      - "no hardcoded series definitions"
+      - registry-driven usage enforced
+      - no hardcoded series definitions
+      - no implicit data interpretation
     action: warn_or_block
-
-  - name: doc-code-sync-guard
-    trigger: SubagentStop
-    checks:
-      - "docs updated if contract changed"
-      - "snapshot fields consistent with handbook"
-    action: warn
-
-  - name: pre-pr-governance-gate
-    trigger: PreToolUse
-    matcher: "git push|commit"
-    checks:
-      - "verification ledger updated"
-      - "no unsupported claims"
-      - "required docs touched"
-    action: block_on_fail
+    on_match: raise registry_violation or schema_drift_detected blocking condition
 
   - name: live-readiness-claim-blocker
     trigger: PostToolUse
     matcher: "Edit|Write"
+    reinforcing_phase: stage-gate-enforcement
+    reinforcing_layer: B_architecture_phase_contract
     checks:
-      - "no live-ready claim before Phase D"
+      - no live-ready claim before Phase D
+      - no execution-capability claim before Phase D
+      - no "production-ready" claim without Phase D evidence
     action: block_on_match
+    on_match: raise unsupported_current_state_claim blocking condition
+
+  - name: doc-code-sync-guard
+    trigger: SubagentStop
+    reinforcing_phase: doc-code-sync-check
+    reinforcing_layer: D_audit_impact
+    checks:
+      - docs updated when contract changed
+      - snapshot fields consistent with handbook
+      - implementation claims aligned with implementation record
+    action: warn
+    on_match: flag for doc-code-sync-auditor escalation
+
+  - name: pre-pr-governance-gate
+    trigger: PreToolUse
+    matcher: "git push|commit"
+    reinforcing_phase: pre-pr-governance-readiness
+    reinforcing_layer: E_verification_hygiene_release
+    checks:
+      - governance_context exists
+      - claim_classification_map exists
+      - normalized_terminology_map exists
+      - role_citation_verdict exists
+      - phase_alignment_status exists
+      - contract_compliance_verdict exists
+      - stage_gate_report exists
+      - runtime_boundary_verdict exists when runtime/code scope is touched
+      - adapter_schema_verdict exists when adapter/registry scope is touched
+      - guard_report exists
+      - audit_summary exists
+      - change_impact_report exists
+      - doc_update_plan exists when change scope requires it
+      - invariance_verdict exists for rename_only changes
+      - doc_code_sync_status exists
+      - verification_matrix_delta exists when matrix posture is affected
+      - verification_ledger_delta exists
+      - artifact_hygiene_verdict exists
+      - pr_readiness_verdict exists
+      - no unsupported strong claims remain
+      - required canonical docs reviewed for contract-affecting changes
+      - all blocking conditions resolved
+      - alias_map must exist for renamed canonical documents
+      - all canonical references must be updated to current_filename or valid alias
+    action: block_on_fail
+    on_fail: reject commit/push; surface missing workflow artifacts and unresolved governance conditions
+
+    action: block_on_fail
+    on_fail: reject commit/push; surface unresolved blocking conditions
 
 # =========================================================
-# SUBAGENTS (balanced: doc + code + runtime)
+# SUBAGENTS
+# Each subagent is assigned an audit lane and a triggering step.
+# Subagents are invoked on escalation, not by default.
 # =========================================================
 subagents:
   - name: cross-doc-consistency-auditor
     role: doc_auditor
+    audit_lane: documentary_consistency
+    triggered_by: doc-code-sync-check
+    trigger_condition: doc/doc consistency conflict detected across canonical documents
+    escalation_condition: unresolved_canonical_conflict
 
   - name: architecture-sequence-auditor
     role: build_order_auditor
+    audit_lane: phase_and_build_order
+    triggered_by: phase-check
+    trigger_condition: ambiguous or conflicting build-order claims
+    escalation_condition: stage_gate_ambiguity
 
   - name: verification-matrix-auditor
     role: classification_auditor
+    audit_lane: verification_classification
+    triggered_by: update-verification-matrix
+    trigger_condition: classification posture dispute or matrix inconsistency
+    escalation_condition: matrix_classification_conflict
 
   - name: implementation-history-reconciler
     role: historical_alignment
+    audit_lane: historical_source_conflicts
+    triggered_by: classify-claims
+    trigger_condition: historical or superseded materials referenced as current truth
+    escalation_condition: non_canonical_source_used_as_current_truth
 
   - name: doc-code-sync-auditor
     role: doc_vs_runtime_auditor
+    audit_lane: doc_runtime_alignment
+    triggered_by: doc-code-sync-check
+    trigger_condition: doc/runtime mismatch detected by doc-code-sync-rules skill
+    escalation_condition: doc_code_drift_unresolved
 
   - name: snapshot-boundary-auditor
     role: runtime_boundary_auditor
+    audit_lane: snapshot_boundary_integrity
+    triggered_by: runtime-boundary-check
+    trigger_condition: snapshot boundary violation suspected or detected
+    escalation_condition: snapshot_boundary_violation
 
   - name: adapter-schema-guardian
     role: schema_governance_specialist
+    audit_lane: adapter_schema_governance
+    triggered_by: adapter-schema-check
+    trigger_condition: adapter/schema ambiguity or registry deviation detected
+    escalation_condition: registry_violation or schema_drift_detected
+
+  - name: canonical-role-auditor
+    role: role_matched_truth_enforcer
+    audit_lane: canonical_role_enforcement
+    triggered_by: route-claims-by-role
+    trigger_condition: role-mismatched citation or README_LAYER2 override detected
+    escalation_condition: role_mismatch_for_strong_claim or readme_layer2_used_as_override
 
 # =========================================================
-# ARTIFACTS (ledger added)
+# ARTIFACTS
 # =========================================================
 artifacts:
   required_inputs:
     canonical_docs:
-      - README_v1.md
-      - SYSTEM_TECHNICAL_HANDBOOK_v1.md
-      - SYSTEM_LIMITATIONS_AND_APPROXIMATIONS_v1.md
-      - SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md
-      - DOCUMENTATION_VERIFICATION_MATRIX_v1.md
-      - SYSTEM_IMPLEMENTATION_RECORD_v1.md
-      - README_LAYER2.md   # ← NOW CANONICAL
+      - path: README_v1.md
+        role: top_level_orientation
+        authority: canonical
+
+      - path: SYSTEM_TECHNICAL_HANDBOOK_v1.md
+        role: technical_constraints_and_engineering_rules
+        authority: canonical
+
+      - path: SYSTEM_LIMITATIONS_AND_APPROXIMATIONS_v1.md
+        role: limitations_and_approximations_source_of_truth
+        authority: canonical
+
+      - path: SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md
+        role: architecture_source_of_truth
+        authority: canonical
+
+      - path: DOCUMENTATION_VERIFICATION_MATRIX_v1.md
+        role: documentation_consistency_map
+        authority: canonical
+
+      - path: SYSTEM_IMPLEMENTATION_RECORD_v1.md
+        role: implementation_state_source_of_truth
+        authority: canonical
+
+      - path: README_LAYER2.md
+        role: collaborator_guide_and_living_build_reference
+        authority: canonical
+        constraint: must not override role-specific canonical documents on implementation state or architecture
 
     verification_layer:
       - verification_ledger.md
@@ -166,19 +329,69 @@ artifacts:
       - layer2_truth.db
 
   expected_outputs:
-    - governance_context
-    - phase_alignment_status
-    - guard_report
-    - audit_summary
-    - verification_matrix_delta
-    - verification_ledger_delta
-    - doc_update_plan
+    - governance_context            # produced by: load-context
+    - claim_classification_map      # produced by: classify-claims
+    - normalized_terminology_map    # produced by: normalize-terminology
+    - role_citation_verdict         # produced by: route-claims-by-role
+    - phase_alignment_status        # produced by: phase-check
+    - contract_compliance_verdict   # produced by: snapshot-contract-check
+    - stage_gate_report             # produced by: stage-gate-enforcement
+    - runtime_boundary_verdict      # produced by: runtime-boundary-check
+    - adapter_schema_verdict        # produced by: adapter-schema-check
+    - guard_report                  # produced by: runtime-guards summary
+    - audit_summary                 # produced by: deep-audit
+    - change_impact_report          # produced by: change-impact-audit
+    - doc_update_plan               # produced by: change-impact-audit
+    - doc_code_sync_status          # produced by: doc-code-sync-check
+    - verification_matrix_delta     # produced by: update-verification-matrix
+    - verification_ledger_delta     # produced by: update-verification-ledger
+    - artifact_hygiene_verdict      # produced by: runtime-artifact-hygiene-check
+    - pr_readiness_verdict          # produced by: pre-pr-governance-readiness
 
 # =========================================================
-# STAGE GATES (Phase B fixed)
+# INTERPRETATION POLICY
+# =========================================================
+interpretation_policy:
+  canonical_docs_are_authoritative: true
+  canonical_docs_are_not_interchangeable: true
+  require_role_matched_citation: true
+
+  claim_routing:
+    architecture_claims: SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md
+    implementation_claims: SYSTEM_IMPLEMENTATION_RECORD_v1.md
+    limitation_claims: SYSTEM_LIMITATIONS_AND_APPROXIMATIONS_v1.md
+    collaborator_workflow_claims: README_LAYER2.md
+    documentation_consistency_claims: DOCUMENTATION_VERIFICATION_MATRIX_v1.md
+    technical_constraint_claims: SYSTEM_TECHNICAL_HANDBOOK_v1.md
+    top_level_orientation_claims: README_v1.md
+
+  on_conflict:
+    action: block_strong_claim
+    require_conflict_note: true
+    require_explicit_citations: true
+    resolution_rule: prefer_role_specific_document
+    escalate_for_doc_sync: true
+    escalation_target: cross-doc-consistency-auditor
+
+  note: >
+    The claim_routing table governs which step in the workflow routes each claim type.
+    It is operationalized at the route-claims-by-role step and enforced by the
+    role-matched-doc-guard hook throughout downstream steps.
+
+# =========================================================
+# STAGE GATES
+# Stage gates are operationalized at step: stage-gate-enforcement.
+# Each gate is checked explicitly; violations raise blocking conditions.
 # =========================================================
 stage_gates:
+  phase_a_layer2_closure:
+    status: complete_at_contract_boundary
+    enforcement_step: stage-gate-enforcement
+    check: Layer-2 snapshot boundary intact; downstream reads only published snapshots
+
   phase_b_layer3_bootstrap:
+    status: allowed_not_completed
+    enforcement_step: stage-gate-enforcement
     required_scope:
       - snapshot_consumer
       - decisionpacket_skeleton
@@ -186,30 +399,85 @@ stage_gates:
       - state_taxonomy_stub
       - guard_taxonomy_stub
       - deterministic_calculations_2_to_3
-
     forbidden:
       - feature_builder
       - live_execution
       - calibration_logic
+    on_forbidden_detected: raise unsupported_current_state_claim and block
+
+  phase_c_layer3_structured_buildout:
+    status: future
+    enforcement_step: stage-gate-enforcement
+    check: any Phase C claim must be labelled as target architecture, not current state
+
+  phase_d_live_execution_gate:
+    status: blocked
+    enforcement_step: stage-gate-enforcement
+    check: any execution-capability or live-readiness claim is blocked unconditionally
 
 # =========================================================
-# BLOCKING CONDITIONS (runtime added)
+# BLOCKING CONDITIONS
+# Any raised blocking condition halts forward progress until resolved.
 # =========================================================
 blocking_conditions:
-  - snapshot_boundary_violation
-  - raw_observations_used_in_layer3
-  - registry_violation
-  - schema_drift_detected
-  - unsupported_current_state_claim
-  - verification_without_evidence
+  - id: snapshot_boundary_violation
+    raises_at: runtime-boundary-check
+    enforced_by_hook: snapshot-boundary-guard
+
+  - id: raw_observations_used_in_layer3
+    raises_at: runtime-boundary-check
+    enforced_by_hook: snapshot-boundary-guard
+
+  - id: registry_violation
+    raises_at: adapter-schema-check
+    enforced_by_hook: adapter-schema-guard
+
+  - id: schema_drift_detected
+    raises_at: adapter-schema-check
+    enforced_by_hook: adapter-schema-guard
+
+  - id: unsupported_current_state_claim
+    raises_at: stage-gate-enforcement
+    enforced_by_hook: live-readiness-claim-blocker
+
+  - id: verification_without_evidence
+    raises_at: update-verification-ledger
+    enforced_by: verification-ledger-update skill
+
+  - id: canonical_conflict_unresolved
+    raises_at: route-claims-by-role
+    enforced_by: role-matched-citation-check skill
+
+  - id: role_mismatch_for_strong_claim
+    raises_at: route-claims-by-role
+    enforced_by_hook: role-matched-doc-guard
+
+  - id: readme_layer2_used_as_override
+    raises_at: route-claims-by-role
+    enforced_by_hook: role-matched-doc-guard
+
+  - id: pr_governance_not_satisfied
+    raises_at: pre-pr-governance-readiness
+    enforced_by_hook: pre-pr-governance-gate
+
+  - id: rename_invariance_violation
+    raises_at: rename-invariance-check
+    enforced_by: rename-invariance-check
+
+  - id: missing_alias_mapping
+    raises_at: change-impact-audit
+    enforced_by: change-impact-audit
 
 # =========================================================
-# VERIFICATION LEDGER (NEW CORE CONCEPT)
+# VERIFICATION LEDGER
 # =========================================================
 verification_ledger:
+  file: verification_ledger.md
   structure:
     - claim
     - classification
+    - claim_type
+    - preferred_canonical_source
     - evidence_source
     - evidence_type:
         - doc
@@ -225,28 +493,512 @@ verification_ledger:
     - doc_only_updates_do_not_prove_runtime
     - runtime_observation_has_highest_weight
     - code_alignment_required_for_proven_status
+    - role_matched_canonical_source_required_for_strong_doc_claims
+
+  separation_rule: >
+    verification-matrix-update-method updates classification posture only.
+    verification-ledger-update updates claim->evidence->status tracking only.
+    These two steps must never be merged or substituted for each other.
 
 # =========================================================
-# WORKFLOW (unchanged logic, but now ledger-aware)
+# WORKFLOW
+#
+# Execution is organized into five layers:
+#
+#   A. Context + Semantic Normalization
+#   B. Architecture + Phase + Contract Gating
+#   C. Runtime / Schema / Boundary Integrity
+#   D. Audit + Impact
+#   E. Verification + Hygiene + Release Readiness
+#
+# Each step declares:
+#   id            - unique step identifier
+#   layer         - governance layer (A/B/C/D/E)
+#   component     - skill, hook, subagent, or constitution
+#   purpose       - what this step accomplishes
+#   inputs        - artifacts or outputs consumed
+#   outputs       - artifacts produced
+#   depends_on    - required prior steps
+#   validates     - blocking conditions checked or raised here
+#   on_block      - action when a blocking condition is raised
 # =========================================================
 workflow:
+
+  # -------------------------------------------------------
+  # LAYER A — Context + Semantic Normalization
+  # Establishes the interpretive foundation.
+  # All downstream steps consume outputs from this layer.
+  # -------------------------------------------------------
+
   - id: load-context
+    layer: A_semantic_normalization
     component: constitution
+    purpose: >
+      Load CLAUDE.md and all canonical documents to establish the interpretive
+      authority, evidence classification rules, and snapshot/execution constraints
+      that govern all downstream steps.
+    inputs:
+      - CLAUDE.md
+      - canonical_docs (all seven)
+    outputs:
+      - governance_context
+    depends_on: []
+    validates: []
+    on_block: halt — constitution load failure is unrecoverable
 
   - id: classify-claims
+    layer: A_semantic_normalization
     component: skill:doc-truth-classification
+    purpose: >
+      Classify every major claim or requested change as:
+      current-state, target-state, historical, or unverified.
+      Uses canonical source priority and evidence-aware confidence rules.
+      Flags non-canonical or superseded sources if referenced.
+    inputs:
+      - governance_context
+      - user request or change under review
+      - canonical_docs
+    outputs:
+      - claim_classification_map
+    depends_on:
+      - load-context
+    validates:
+      - historical sources not used as current truth
+    on_block: >
+      Escalate to implementation-history-reconciler subagent if non-canonical
+      historical materials are presented as current-state truth.
+
+  - id: normalize-terminology
+    layer: A_semantic_normalization
+    component: skill:canonical-terminology-map
+    purpose: >
+      Enforce consistent use of project-defined terms across all claims,
+      documentation references, and implementation-facing descriptions.
+      Detects variant drift (e.g., "trade signal" vs NO_TRADE, "db" vs layer2_truth.db).
+      Produces a normalization map consumed by downstream interpretation steps.
+    inputs:
+      - governance_context
+      - claim_classification_map
+    outputs:
+      - normalized_terminology_map
+    depends_on:
+      - classify-claims
+    validates:
+      - canonical terminology used consistently
+    on_block: >
+      Flag terminology violations for correction before proceeding to gating layers.
+
+  - id: route-claims-by-role
+    layer: A_semantic_normalization
+    component: skill:role-matched-citation-check
+    purpose: >
+      Enforce that each claim is supported by the role-correct canonical document.
+      Detect role-mismatched citations and README_LAYER2 override misuse.
+      Apply the interpretation_policy.claim_routing table.
+      Produce a role/citation verdict for downstream gating.
+    inputs:
+      - governance_context
+      - claim_classification_map
+      - normalized_terminology_map
+      - interpretation_policy.claim_routing
+    outputs:
+      - role_citation_verdict
+    depends_on:
+      - normalize-terminology
+    validates:
+      - canonical_conflict_unresolved
+      - role_mismatch_for_strong_claim
+      - readme_layer2_used_as_override
+    reinforced_by_hook: role-matched-doc-guard
+    on_block: >
+      Raise canonical_conflict_unresolved or role_mismatch_for_strong_claim.
+      Escalate to canonical-role-auditor subagent for deep role resolution.
+
+  # -------------------------------------------------------
+  # LAYER B — Architecture + Phase + Contract Gating
+  # Enforces build-order compliance, snapshot contracts,
+  # stage-gate rules, and live-readiness claim blocking.
+  # -------------------------------------------------------
 
   - id: phase-check
+    layer: B_architecture_phase_contract
     component: skill:build-sequence-compliance-check
+    purpose: >
+      Verify the requested change is compatible with the documented build sequence
+      and current phase gate (Phase A complete, Phase B allowed, Phase C/D blocked).
+      Checks for forbidden scope and required scope at the current phase.
+    inputs:
+      - role_citation_verdict
+      - claim_classification_map
+      - SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md
+      - stage_gates configuration
+    outputs:
+      - phase_alignment_status
+    depends_on:
+      - route-claims-by-role
+    validates:
+      - unsupported_current_state_claim (Phase C/D work presented as current)
+    on_block: >
+      Block if forbidden scope detected for current phase.
+      Escalate to architecture-sequence-auditor subagent for ambiguous build-order claims.
 
-  - id: runtime-guards
+  - id: snapshot-contract-check
+    layer: B_architecture_phase_contract
+    component: skill:snapshot-contract-check
+    purpose: >
+      Validate that all downstream logic consumes only governed published snapshots.
+      Enforce: no raw Layer-2 observation access, no latest_snapshot.json misuse,
+      no snapshot truth rewrite, no Layer-2 storage coupling outside governed interface.
+    inputs:
+      - phase_alignment_status
+      - role_citation_verdict
+      - SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md
+      - SYSTEM_TECHNICAL_HANDBOOK_v1.md
+    outputs:
+      - contract_compliance_verdict
+    depends_on:
+      - phase-check
+    validates:
+      - snapshot_boundary_violation
+      - raw_observations_used_in_layer3
+    on_block: >
+      Raise snapshot_boundary_violation blocking condition.
+      Escalate to snapshot-boundary-auditor subagent.
+
+  - id: stage-gate-enforcement
+    layer: B_architecture_phase_contract
+    component: stage_gates
+    purpose: >
+      Operationalize declared stage gates. For each phase gate:
+      (1) confirm required scope is present or appropriately future-scoped,
+      (2) reject forbidden scope unconditionally,
+      (3) block live-readiness or execution-capability claims before Phase D,
+      (4) produce a stage_gate_report summarizing gate status.
+      This is not a metadata reference — it is an active enforcement step.
+    inputs:
+      - phase_alignment_status
+      - contract_compliance_verdict
+      - claim_classification_map
+      - stage_gates configuration
+      - blocking_conditions
+    outputs:
+      - stage_gate_report
+    depends_on:
+      - snapshot-contract-check
+    validates:
+      - unsupported_current_state_claim
+      - verification_without_evidence
+    reinforced_by_hook: live-readiness-claim-blocker
+    on_block: >
+      Reject the request. Surface which gate was violated and which claims triggered it.
+      Do not advance to runtime/schema layer until gate report is clean.
+
+  # -------------------------------------------------------
+  # LAYER C — Runtime / Schema / Boundary Integrity
+  # Enforces code-level boundary rules, adapter/registry
+  # discipline, and activates runtime guards.
+  # -------------------------------------------------------
+
+  - id: runtime-boundary-check
+    layer: C_runtime_schema_integrity
+    component: skill:snapshot-boundary-check
+    purpose: >
+      Validate runtime and code boundary integrity for the Layer-2 -> Layer-3 handoff.
+      Confirm no downstream raw observation access, no snapshot truth rewrite,
+      no boundary bypass in adapters or Layer-3 stubs.
+    inputs:
+      - stage_gate_report
+      - contract_compliance_verdict
+      - code_context (layer2/adapters/*, layer2/db.py)
+      - runtime_context (latest_snapshot.json, layer2_truth.db)
+    outputs:
+      - runtime_boundary_verdict
+    depends_on:
+      - stage-gate-enforcement
+    validates:
+      - snapshot_boundary_violation
+      - raw_observations_used_in_layer3
+    reinforced_by_hook: snapshot-boundary-guard
+    on_block: >
+      Raise snapshot_boundary_violation.
+      Escalate to snapshot-boundary-auditor subagent for deep runtime boundary audit.
+
+  - id: adapter-schema-check
+    layer: C_runtime_schema_integrity
+    component: skill:adapter-schema-review
+    purpose: >
+      Validate registry-driven adapter compliance and schema discipline at the
+      Layer-2 ingestion/runtime boundary.
+      Check: no hardcoded series logic, series_registry.json is authoritative,
+      no implicit data interpretation, no hidden mappings.
+    inputs:
+      - runtime_boundary_verdict
+      - code_context (layer2/config/series_registry.json, layer2/adapters/*)
+      - SYSTEM_TECHNICAL_HANDBOOK_v1.md
+    outputs:
+      - adapter_schema_verdict
+    depends_on:
+      - runtime-boundary-check
+    validates:
+      - registry_violation
+      - schema_drift_detected
+    reinforced_by_hook: adapter-schema-guard
+    on_block: >
+      Raise registry_violation or schema_drift_detected.
+      Escalate to adapter-schema-guardian subagent.
+
+  - id: runtime-guards-summary
+    layer: C_runtime_schema_integrity
     component: hooks
+    purpose: >
+      Consolidate the guard outputs from snapshot-boundary-guard and adapter-schema-guard
+      into a unified guard_report. This step does not invoke new tools — it synthesizes
+      the hook-driven blocking signals from the runtime layer into a single artifact
+      for audit and downstream consumption.
+    inputs:
+      - runtime_boundary_verdict
+      - adapter_schema_verdict
+      - hook outputs: snapshot-boundary-guard, adapter-schema-guard
+    outputs:
+      - guard_report
+    depends_on:
+      - adapter-schema-check
+    validates:
+      - all C-layer blocking conditions resolved before advancing to audit layer
+    on_block: >
+      Do not advance to Layer D if any C-layer blocking condition remains unresolved.
+
+  # -------------------------------------------------------
+  # LAYER D — Audit + Impact
+  # Deep audit via subagents, change impact assessment,
+  # and doc/code sync review.
+  # -------------------------------------------------------
 
   - id: deep-audit
+    layer: D_audit_impact
     component: subagents
+    purpose: >
+      Invoke targeted deep audits through the appropriate subagent based on
+      escalation signals raised in Layers A–C.
+      Each subagent is invoked only when its specific escalation condition is met.
+      Subagents: cross-doc-consistency-auditor, architecture-sequence-auditor,
+      verification-matrix-auditor, implementation-history-reconciler,
+      doc-code-sync-auditor, snapshot-boundary-auditor, adapter-schema-guardian,
+      canonical-role-auditor.
+    inputs:
+      - guard_report
+      - role_citation_verdict
+      - phase_alignment_status
+      - contract_compliance_verdict
+      - stage_gate_report
+      - runtime_boundary_verdict
+      - adapter_schema_verdict
+      - escalation signals from Layers A–C
+    outputs:
+      - audit_summary
+    depends_on:
+      - runtime-guards-summary
+    audit_dispatch:
+      canonical_conflict_unresolved: canonical-role-auditor
+      stage_gate_ambiguity: architecture-sequence-auditor
+      doc_doc_consistency_conflict: cross-doc-consistency-auditor
+      non_canonical_source_as_current_truth: implementation-history-reconciler
+      doc_code_drift: doc-code-sync-auditor
+      snapshot_boundary_violation: snapshot-boundary-auditor
+      registry_violation: adapter-schema-guardian
+      matrix_classification_conflict: verification-matrix-auditor
+    on_block: >
+      If any audit returns unresolved violations, raise the corresponding blocking
+      condition and halt advancement to verification layer.
+
+  - id: change-impact-audit
+    layer: D_audit_impact
+    component: skill:change-impact-audit
+    purpose: >
+      Assess the full impact of the requested or completed change.
+      Identify which canonical documents require review or update.
+      Produce a structured change_impact_report and doc_update_plan.
+      Consumes all prior governance step outputs.
+    inputs:
+      - audit_summary
+      - claim_classification_map
+      - role_citation_verdict
+      - phase_alignment_status
+      - stage_gate_report
+      - guard_report
+    outputs:
+      - change_impact_report
+      - doc_update_plan
+    depends_on:
+      - deep-audit
+    validates:
+      - contract-affecting changes are flagged for doc update obligations (per CLAUDE.md §11)
+    on_block: >
+      If a contract-affecting change is detected but no doc_update_plan is producible,
+      block and require manual reconciliation before proceeding.
+
+  - id: rename-invariance-check
+    layer: D_audit_impact
+    component: skill:rename-invariance-check
+    purpose: >
+      Verify that rename-only changes do not alter the semantic meaning,
+      claim classification, or evidence structure of canonical documents.
+
+    inputs:
+      - change_impact_report
+      - claim_classification_map
+      - canonical_docs (before and after change)
+
+    outputs:
+      - invariance_verdict
+
+    depends_on:
+      - change-impact-audit
+
+    condition: >
+      Execute only if change_impact_report.change_type == "rename_only"
+
+    validates:
+      - claim_classification_unchanged
+      - no_new_claims_introduced
+      - no_claims_removed
+      - evidence_type_consistency_preserved
+      - role_mapping_preserved
+
+    on_block: >
+      Raise rename_invariance_violation.
+      Block workflow until semantic equivalence is restored.
+
+  - id: doc-code-sync-check
+    layer: D_audit_impact
+    component: skill:doc-code-sync-rules
+    purpose: >
+      Validate whether documentation claims remain aligned with actual code,
+      runtime behavior, and required project contracts.
+      Detect doc/code drift in either direction.
+      Produce a sync verdict for the doc-code-sync-guard hook and downstream steps.
+    inputs:
+      - change_impact_report
+      - doc_update_plan
+      - canonical_docs
+      - code_context
+    outputs:
+      - doc_code_sync_status
+    depends_on:
+      - change-impact-audit
+    validates:
+      - verification_without_evidence (doc claims without code support)
+    reinforced_by_hook: doc-code-sync-guard
+    on_block: >
+      If doc/code drift is unresolved, escalate to doc-code-sync-auditor subagent.
+      Do not advance to verification layer with unresolved drift.
+
+  # -------------------------------------------------------
+  # LAYER E — Verification + Hygiene + Release Readiness
+  # Updates verification posture, ledger tracking, workspace
+  # hygiene, and gates the PR/commit path.
+  # -------------------------------------------------------
 
   - id: update-verification-matrix
+    layer: E_verification_hygiene_release
     component: skill:verification-matrix-update-method
+    purpose: >
+      Determine whether the documentation verification matrix needs to be updated
+      based on prior governance step outputs.
+      Produces a structured matrix delta.
+      SCOPE: classification posture only — does not update the ledger,
+      does not re-classify claims, and does not act as a phase gate.
+    inputs:
+      - doc_code_sync_status
+      - change_impact_report
+      - audit_summary
+      - DOCUMENTATION_VERIFICATION_MATRIX_v1.md
+    outputs:
+      - verification_matrix_delta
+    depends_on:
+      - doc-code-sync-check
+    validates:
+      - matrix entries consistent with current canonical doc set
+    on_block: >
+      Escalate to verification-matrix-auditor subagent if classification dispute detected.
 
   - id: update-verification-ledger
+    layer: E_verification_hygiene_release
     component: skill:verification-ledger-update
+    purpose: >
+      Update the verification ledger: claim -> evidence -> status tracking.
+      Applies ledger update_rules: runtime > code > doc evidence weight.
+      SCOPE: claim/evidence/status tracking only — does not update matrix,
+      does not re-run earlier governance steps.
+      Produces verification_ledger_delta.
+    inputs:
+      - verification_matrix_delta
+      - doc_code_sync_status
+      - change_impact_report
+      - audit_summary
+      - verification_ledger.md
+    outputs:
+      - verification_ledger_delta
+    depends_on:
+      - update-verification-matrix
+    validates:
+      - verification_without_evidence
+      - doc_only_updates_do_not_prove_runtime (per ledger update_rules)
+    on_block: >
+      Raise verification_without_evidence if a claim is promoted without evidence.
+
+  - id: runtime-artifact-hygiene-check
+    layer: E_verification_hygiene_release
+    component: skill:runtime-artifact-hygiene-check
+    purpose: >
+      Validate workspace and runtime artifact hygiene.
+      Detect stale databases, unexpected snapshot files, generated runtime residue,
+      and commit-sensitive artifacts that would confuse verification evidence.
+      Produces artifact_hygiene_verdict.
+    inputs:
+      - verification_ledger_delta
+      - runtime_context (latest_snapshot.json, layer2_truth.db)
+      - workspace state
+    outputs:
+      - artifact_hygiene_verdict
+    depends_on:
+      - update-verification-ledger
+    validates:
+      - no unexpected runtime artifacts in workspace
+      - no evidence-confusing residue in commit scope
+    on_block: >
+      Flag stale or ungoverned artifacts; require cleanup or explicit governance
+      declaration before advancing to pre-PR gate.
+
+  - id: pre-pr-governance-readiness
+    layer: E_verification_hygiene_release
+    component: hooks
+    purpose: >
+      Final governance gate before any PR creation or push.
+      Synthesizes all layer outputs into a pr_readiness_verdict.
+      Operationalizes the pre-pr-governance-gate hook.
+      Blocks if: any blocking condition unresolved, ledger not updated,
+      doc_update_plan not executed, hygiene not verified,
+      or any unsupported strong claims remain.
+    inputs:
+      - verification_matrix_delta
+      - verification_ledger_delta
+      - artifact_hygiene_verdict
+      - doc_code_sync_status
+      - stage_gate_report
+      - guard_report
+      - audit_summary
+      - blocking_conditions (all)
+    outputs:
+      - pr_readiness_verdict
+    depends_on:
+      - runtime-artifact-hygiene-check
+    validates:
+      - pr_governance_not_satisfied
+      - all blocking conditions cleared
+      - required canonical docs touched per CLAUDE.md §11
+    reinforced_by_hook: pre-pr-governance-gate
+    on_block: >
+      Reject push/commit via pre-pr-governance-gate hook.
+      Surface the complete list of unresolved conditions.
+      Do not bypass. Do not use --no-verify.

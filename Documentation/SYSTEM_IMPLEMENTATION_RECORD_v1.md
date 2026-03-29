@@ -1,7 +1,7 @@
 # SYSTEM_IMPLEMENTATION_RECORD_v1
 ## Mr. Ripley — Build Record and Implementation Notes
 
-> **Document role:** detailed implementation record and historical technical reference
+> **Document role:** canonical implementation record, realized-state reference, and long-form technical history
 > **Status:** retained as a long-form build / implementation document
 > **Current entry-point document:** `README_v1.md`
 > **Current engineering reference:** `SYSTEM_TECHNICAL_HANDBOOK_v1.md`
@@ -9,10 +9,11 @@
 > **Current architecture / sequencing doc:** `SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md`
 > **Last updated:** 2026-03-22
 
-This document preserves long-form Layer-2 build history, implementation detail, and audit context.
+This document preserves long-form Layer-2 build history, implementation detail, realized-state evidence, and audit context.
 
-It is **not** the primary current-state truth source.
-If this document conflicts with the current v1 document set, the v1 document set takes precedence.
+It is part of the canonical current-state set, but its authority is role-specific.
+Use this document for implementation-state and realized-build questions, not as a blanket override for architecture, limitations, or collaborator workflow.
+If this document conflicts with a more role-matched canonical document on those topics, the role-matched canonical document takes precedence.
 
 ---
 

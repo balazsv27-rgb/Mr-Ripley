@@ -1,368 +1,213 @@
-# CLAUDE.md — Project Constitution
+Rendben — akkor a hangsúlyt most nem a saját elméleti architektúrátokra teszem, hanem arra, hogy *a Claude Code hivatalos megoldásaival ezt pontosan hogyan lehet megvalósítani*.
 
-This document defines the **constitutional rules** of the Mr. Ripley gold first engine.
+## Mit érdemes másképp nézni
 
-It governs:
-- how the system is interpreted
-- what counts as truth and proof
-- how components relate to each other
-- what is allowed vs forbidden to claim
-- how changes must be validated
+A jelenlegi tervetek jó, csak eddig inkább *belső governance logikaként* volt leírva. A következő lépés az, hogy ezt lefordítsátok a Claude Code tényleges építőelemeire. Az Anthropic dokumentáció alapján ehhez a legerősebb, hivatalosan támogatott komponensek ezek:
 
-This file is **not a workflow** and **not an implementation guide**.  
-It is the **highest-priority interpretative authority** for Claude.
+* *Subagentek* szerepkörös delegálásra és tool-korlátozásra. A Claude Code támogatja, hogy a subagentekhez külön description, tools, disallowedTools, mcpServers, hooks, skills, memory, isolation és egyéb mezőket adjatok meg. A subagentek alapból öröklik a fő beszélgetés eszközeit, de ezt allowlisttel vagy denylisttel le lehet szűkíteni. ([Claude API Docs][1])
+* *Hookok* valós idejű guardolásra. A hooks rendszer támogat PreToolUse, PostToolUse, PostToolUseFailure, PermissionRequest és más eventeket, és az MCP toolokat is ugyanúgy lehet hookkal figyelni, mert normál toolként jelennek meg mcp__<server>__<tool> névformában. ([Claude API Docs][2])
+* *Skillek* újrahasználható, csak szükség esetén betöltődő működési egységként. A skill leírások betöltődnek, de a teljes skill tartalom csak akkor kerül kontextusba, amikor tényleg invoke-oljátok; viszont a preloadolt skilles subagentek másként működnek, mert ott a teljes skilltartalom startupkor bekerülhet. Skillen belül allowed-tools mezővel lehet korlátozni az aktív eszközöket. ([Claude API Docs][3])
+* *MCP* kontrollált tool- és adatforrás-hozzáférésre. A Claude Code project scope-on `.mcp.json`-ban tud közösen használt MCP szervereket kezelni, támogat environment variable expansiont, tool searcht és OAuth alapú vagy egyéb auth megoldásokat. ([Claude API Docs][4])
+* *Tool Search* a kontextusterhelés csökkentésére. Az MCP tool definíciók deferred módon működnek, vagyis alapból nem minden tool schema töltődik be upfront; ez kifejezetten segít a context-terhelés és tokenfogyasztás kordában tartásában. ([Claude API Docs][4])
+* *Project memory* és a Claude által karbantartott memóriafájlok. A Claude Code a projektmemóriát on-demand olvassa és írja a projektmemória könyvtárban, tehát van hivatalos mechanizmus a hosszabb távú, sessionök közti tudásréteghez. ([Claude API Docs][5])
 
----
+Most az a kérdés, hogyan lehet a ti roadmapeteket ezekre a hivatalos mechanizmusokra ráültetni.
 
-# 1. SYSTEM IDENTITY
+## Hol tartotok most, Claude Code nyelvre lefordítva
 
-The Mr. Ripley gold first engine is a:
+A projektetekben már megvan a *constitutional layer* és a *canonical doc authority modell*. Ezt a Claude Code oldaláról úgy lehet felfogni, hogy a CLAUDE.md már egy rögzített, projekt-specifikus governance forrás, a system-orchestration.yaml pedig már egy deklaratív workflow blueprint. Vagyis a “mit kellene csinálni” szintje nagyjából kész.
 
-> **Gold-first, fail-closed, snapshot-based decision support system**
+Ami még nincs teljesen kész, az a “Claude Code pontosan milyen mechanizmusával fogjuk ezt kikényszeríteni” szint. Itt jön be a Subagent + Hook + Skill + MCP négyese.
 
-Core properties:
+## Hova akartok eljutni, Claude Code szempontból
 
-- deterministic data ingestion (Layer 2)
-- immutable snapshot boundary
-- no direct raw-data consumption downstream
-- LLM = **analysis + audit only**, never execution
-- execution remains **blocked by design**
+A célállapot egy olyan Claude Code projektkonfiguráció, ahol:
 
----
+* a *subagentek* specializáltak és nem örökölnek fölösleges toolokat;
+* a *skillek* csak akkor töltődnek be, amikor tényleg kell, és ahol kell, ott allowed-tools mezővel további szűkítés van;
+* a *hookok* a kritikus szabályokat ténylegesen blokkolják, nem csak dokumentációban írják le;
+* az *MCP* szűk, project-scoped és policy-vezérelt;
+* a *Tool Search* és a context policy együtt csökkentik a tokenpazarlást;
+* a *memory* nem kontrollálatlan szemétlerakó, hanem karbantartott projektmemória.
 
-# 2. DOCUMENT AUTHORITY (TRUTH HIERARCHY)
+Más szóval: a célállapot nem egy “sok Claude-feature egyszerre” rendszer, hanem egy *szigorúan konfigurált Claude Code runtime*.
 
-## 2.1 Canonical Current-State Sources
+## A roadmap most már Claude Code feature-ökre vetítve
 
-The following define **current system truth**:
+### 1. Egyetlen végleges CLAUDE.md és constitution-change szabály
 
-1. `README_v1.md`
-2. `SYSTEM_TECHNICAL_HANDBOOK_v1.md`
-3. `SYSTEM_LIMITATIONS_AND_APPROXIMATIONS_v1.md`
-4. `SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md`
-5. `DOCUMENTATION_VERIFICATION_MATRIX_v1.md`
-6. `SYSTEM_IMPLEMENTATION_RECORD_v1.md`
-7. `README_LAYER2.md`
+Ez már megvan, de a Claude Code hivatalos működéséhez igazítva itt az a következő lépés, hogy a constitution változásait *hookkal és workflow-val kössétek össze*. A hook rendszer erre alkalmas, mert tool-eseményeknél beavatkozhat, a common workflows dokumentáció pedig kifejezetten javasolja a projekt-specifikus subagenteket és a szűk eszközhasználatot. ([Claude API Docs][2])
 
-These together form the **canonical current-state documentation set**.
+*Mit jelent ez konkrétan?*
+Ha valaki a `CLAUDE.md`-t módosítja, a rendszernek nem csak diffet kell látnia, hanem automatikusan el kell indítania:
 
-## 2.2 Canonical Role Definitions
+* a role-matched review-t,
+* a workflow review-t,
+* és a governance skillek hatásvizsgálatát.
 
-Canonical documents are **authoritative by role**, not interchangeable by convenience.
+Ezt legjobban egy *PostToolUse hook + change-impact szabály* kombinációval tudjátok megfogni.
 
-- `README_v1.md`  
-  Top-level project orientation and entry point.
+### 2. Minimal-context routing megvalósítása subagentekkel és skillekkel
 
-- `SYSTEM_TECHNICAL_HANDBOOK_v1.md`  
-  Technical implementation constraints, engineering discipline, contract behavior, and expected operating rules.
+Ez a roadmapetek egyik legfontosabb pontja, és Claude Code oldalon erre a leghivatalosabb eszköz a *subagent tool restriction + skill invocation model*.
 
-- `SYSTEM_LIMITATIONS_AND_APPROXIMATIONS_v1.md`  
-  Known limitations, approximations, explicit non-goals, and constraint boundaries.
+Az Anthropic docs szerint a subagenteknél lehet:
 
-- `SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md`  
-  Primary architectural source of truth for structure, boundaries, sequencing, and stage intent.
+* tools allowlistet adni,
+* disallowedTools denylistet adni,
+* külön skills listát adni,
+* és akár mcpServers és hooks szintű szűkítést is alkalmazni. ([Claude API Docs][1])
 
-- `DOCUMENTATION_VERIFICATION_MATRIX_v1.md`  
-  Cross-document consistency map and verification reference.
+*Nálatok ezt így érdemes megcsinálni:*
 
-- `SYSTEM_IMPLEMENTATION_RECORD_v1.md`  
-  Canonical record of what is actually implemented and realized.
+* A doc-truth-classification ne legyen egy általános agent. Legyen egy olyan subagent vagy skillvezérelt alagent, amely csak olvasási toolokat kap:
 
-- `README_LAYER2.md`  
-  Canonical collaborator guide and living build reference for Layer-2 implementation and operational navigation.
+  * Read
+  * Grep
+  * Glob
+  * esetleg egy nagyon szűk GitHub vagy repo-olvasó eszköz
+    és *ne kapjon*
+  * Edit
+  * Write
+  * semmilyen write-capable MCP-t
+  * DB write vagy shell write hozzáférést.
+    Az Anthropic docs konkrét példát adnak arra, hogy egy subagentet csak olvasó toolokra korlátozzatok. ([Claude API Docs][1])
 
-## 2.3 Historical Sources
+* A build-sequence-compliance-check szintén kapjon csak olvasó toolokat, és a skills mezőben csak a build-sequence logikát hordozó skillje legyen aktív.
 
-Historical or superseded materials MAY exist outside the canonical set.
+* A snapshot-contract-check kaphat olvasó code access-t, és opcionálisan read-only MCP-t, de ne kapjon semmilyen külső write toolt.
 
-Rule:
+* A jövőbeli PR / issue agent lehet az, amelyik GitHub MCP-t kap, de ez ne öröklődjön át automatikusan minden más agentre.
 
-> Historical documents that are outside the canonical set MUST NOT be used as current truth sources.
+Ez a Claude Code nyelvén azt jelenti, hogy *a minimal-context routing nem egy elméleti elv lesz, hanem a subagent frontmatter és skill frontmatter eszközkorlátozásából következik*.
 
-## 2.4 Conflict Resolution
+### 3. Change-impact map megvalósítása hookokkal és a workflow blueprinttel
 
-If any document conflicts:
+A change-impact logika a Claude Code-ban nincs készen “Mr. Ripley impact graph” néven, de a hook rendszer és a strukturált workflow ezt nagyon jól támogatja. A hooks docs szerint a hookok minták alapján képesek konkrét toolhasználatot, toolnevet vagy eseményt megfogni. Az Agent SDK dokumentáció is jelzi, hogy matcher alapú hook-konfiguráció létezik. ([Claude API Docs][2])
 
-> **Role-matched canonical interpretation overrides convenience-based interpretation.**
+*Nálatok a change-impact map első verzióját így érdemes megcsinálni:*
 
-Resolution order:
+* a system-orchestration.yaml`-ba tegyetek egy deklaratív change_impact_map` blokkot;
+* a hook figyelje, hogy melyik fájl változott;
+* a hook vagy a kapcsolódó skill ennek alapján generáljon egy “required re-check” listát.
 
-1. identify the claim type,
-2. choose the canonical document whose declared role most directly matches that claim,
-3. cite the conflict explicitly,
-4. treat unresolved contradiction as documentation inconsistency,
-5. do not invent reconciliation.
+Ez még nem AST-szintű csodatechnika, de bőven elég első körre. Claude Code oldalról ezt a hookokkal és a projektfájlok szerkezeti lekérdezésével simán meg lehet támogatni.
 
-Examples:
-- architecture / boundary questions → prefer `SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md`
-- implementation-state claims → prefer `SYSTEM_IMPLEMENTATION_RECORD_v1.md`
-- limitations / approximations → prefer `SYSTEM_LIMITATIONS_AND_APPROXIMATIONS_v1.md`
-- collaborator workflow / Layer-2 navigation → prefer `README_LAYER2.md`
+### 4. Hookok prioritás szerinti implementálása
 
-Critical rule:
+Ez a pont szinte egy az egyben Claude Code hooks funkcionalitás. Itt az a kulcs, hogy ne egyből mindent akarjatok automatizálni, hanem tényleg a legnagyobb értékű guardokkal kezdjetek.
 
-> `README_LAYER2.md` is canonical, but it MUST NOT be used to overrule more role-specific canonical documents on implementation state, architecture boundaries, or limitations.
+Az első hullámnál ezeket érdemes közvetlenül hookokra építeni:
 
----
+* **snapshot-boundary-guard**
+  PreToolUse vagy PostToolUse hookkal figyelhető, hogy történik-e tiltott downstream hozzáférés a nyers Layer-2 truth felé. Az MCP toolokat is ugyanígy lehet nézni, mert normál toolnévként jelennek meg. ([Claude API Docs][2])
 
-# 3. CURRENT vs TARGET ARCHITECTURE
+* **role-matched-doc-guard**
+  Ez lehet olyan guard, amely bizonyos edit vagy write esemény után ellenőrzi, hogy a strong claim-ekhez megfelelő canonical source volt-e használva.
 
-The system is explicitly **multi-stage**.
+* **live-readiness-claim-blocker**
+  Ezt különösen jól lehet hookkal csinálni, mert a rendszeretekben a live execution továbbra is tiltott; tehát minden olyan tartalom, amely live-ready vagy execution-enabled állítást próbál beírni, blokkolható.
 
-## 3.1 Current State
+Ez a Claude Code feature-készletével teljesen natív módon megvalósítható; itt tényleg nem kell semmi idegen kerülőút.
 
-- Layer 2 = **operational at snapshot boundary**
-- Snapshots = published, immutable, contract-compliant
-- No downstream computation layer exists yet
+### 5. Skill-rendszer tudatos szétválasztása
 
-## 3.2 Target Architecture (NOT YET BUILT)
+A ti skilleitek közül a mostaniak tipikusan *workflow/governance skill-ek*, nem capability uplift skill-ek. Claude Code oldalról ez azért jó, mert a skillek pontosan erre valók: célzott, újrahasználható viselkedési csomagok, amelyek csak invoke esetén töltődnek teljesen be. Ugyanakkor az Anthropic docs figyelmeztetnek, hogy ha egy subagent preloadolt skillt használ, akkor annak teljes tartalma startupkor bekerülhet a kontextusba. ([Claude API Docs][3])
 
-The following are **planned only**:
+*Ez nálatok gyakorlati döntést jelent:*
 
-- Feature Builder
-- Index Suite
-- Regime Gate
-- Supervisor Engine
-- Decision Engine
-- DecisionPacket
-- Execution Layer
+* a nagy, hosszú governance skill-eket ne preloadoljátok feleslegesen minden subagenthez;
+* inkább legyenek invoke-olható, különálló skill-ek;
+* csak a tényleg szükséges agent kapja meg őket.
 
-Rule:
+Így a skill-réteg nem fogja tönkretenni azt a tokenfegyelmet, amit a minimal-context routinggel éppen meg akartok nyerni.
 
-> Planned components MUST NOT be described as existing implementation.
+### 6. MCP-réteg: szűk, project-scope, policy-vezérelt
 
----
+A Claude Code MCP dokumentációból a legfontosabb tanulság nálatok az, hogy a *project scope* a megfelelő hely a közösen használt, repo-szintű MCP-khez, és ezt `.mcp.json`-ban tudjátok tárolni. A docs támogatják az environment variable expansiont is, tehát nincs mentség arra, hogy plain text secret kerüljön a repóba. ([Claude API Docs][4])
 
-# 4. STAGE-GATE MODEL
+*Mr. Ripley MCP v1 javaslat, Claude Code szerint:*
 
-The system evolves through strict phases:
+* github project-scope szerver
+* context7 project-scope szerver
+* egy read-only internal/stdio vagy hasonló belső szerver, amely csak a szükséges metainformációkat adja
+* minden más maradjon local vagy user scope, vagy egyáltalán ne legyen bekötve
 
-## Phase A — Layer 2 Closure
-- Status: **complete at contract boundary**
+A docs alapján a project-scoped MCP szerverek csapatmegosztásra valók, és a .mcp.json erre van kitalálva. A tool search miatt az MCP-k nem terhelik azonnal túl a kontextust, mert a tool definíciók deferred módon kezelődnek. ([Claude API Docs][4])
 
-## Phase B — Layer 3 Bootstrap
-- Status: **allowed, not completed**
+*Ez nálatok azt jelenti:*
 
-## Phase C — Layer 3 Structured Buildout
-- Status: **future**
+* lehet MCP-t használni anélkül, hogy azonnal tokenkatasztrófát csinálnátok;
+* de csak akkor, ha kevés szerveretek van és minden role-scoped.
 
-## Phase D — Live Execution Gate
-- Status: **blocked**
+### 7. Tool access segmentation: subagentenkénti allowlist / denylist
 
----
+A Claude docs egyik legerősebb, és nektek legfontosabb megoldása, hogy a subagentek toolkészlete explicit korlátozható. A common workflows dokumentáció még külön ki is mondja, hogy limitáljátok a tool access-t arra, amire az adott subagentnek ténylegesen szüksége van. ([Claude API Docs][1])
 
-## Critical Rule
+*Ez a ti megvalósításotokban így nézzen ki:*
 
-> “Handoff gate satisfied” ≠ Layer 3 exists  
-> “Layer 3 exists” ≠ Live execution allowed  
+* audit agent: csak olvasó toolok
+* classification agent: csak olvasó toolok + releváns skill
+* PR agent: GitHub MCP + olvasó repo toolok
+* MCP-s hozzáférést csak annak az agentnek adjatok, akinek muszáj
+* ahol van MCP, ott a hookok figyeljék és korlátozzák a használatot
 
----
+Ez a lépés fogja a legerősebben megakadályozni, hogy az egész rendszerből szépen megszervezett, de drága káosz legyen.
 
-# 5. EVIDENCE AND PROOF MODEL
+### 8. Memory hygiene: ne hagyjátok, hogy a memória legyen az új káosz
 
-All claims must be classified.
+A Claude Code memóriafájljait a rendszer projekt-szinten olvassa és írja, tehát van beépített mechanizmus a sessionök közötti tudásra. De ez nem jelenti azt, hogy mindent oda kell önteni. A docs alapján Claude a projektmemóriát on-demand kezeli. ([Claude API Docs][5])
 
-## 5.1 Allowed Evidence Classes
+*Nálatok ezt így kell használni:*
 
-- **Verified in canonical current-state documentation set**
-- **Documented current-state claim**
-- **Planned / target architecture**
-- **Not verifiable from current materials**
+* a memory ne legyen authority source;
+* a memory legyen inkább rövid, konszolidált operational note réteg;
+* canonical truth továbbra is a docs és a constitution;
+* időnként legyen memory hygiene pass, hogy ne növekedjen kontroll nélkül.
 
-## 5.2 What Counts as Proof
+### 9. Költség- és context-fegyelem mérése
 
-Valid proof must be:
+A Claude Code docs javasolják a /context használatát arra, hogy lássátok, mi fogyasztja a kontextust, és a status line rendszer is alkalmas arra, hogy költséget és context usage-et megjelenítsetek. Emellett a Tool Search és az MCP deferred loading is pont azért van, hogy ezt kordában tartsátok. ([Claude API Docs][6])
 
-- traceable to canonical documents OR
-- supported by concrete code-level implementation
+*Ez gyakorlati ajánlás nálatok:*
 
-## 5.3 What Does NOT Count as Proof
+* minden nagyobb subagent / skill / MCP rollout után nézzétek meg a /context képet;
+* ha valami túl sokat visz, nem újabb modell kell, hanem jobb context policy;
+* akár status line-ban is kitehetitek a context usage és cost indikátort.
 
-- inferred behavior
-- implied architecture
-- planned components
-- partial documentation
-- non-canonical historical statements
-- LLM reasoning alone
+## Mit csinálnék most pontosan, ha ezt Claude Code-hivatalos módon kellene végigvinni
 
----
+Először lezárnám a constitutiont és a terminológiát. Utána minden meglévő subagenthez és skillhez írnék explicit tool és context policy-t. Ezután bekötném a három P1 hookot natív hooks mechanizmussal. Ezután jönne a declarative change-impact map a YAML-ben. Csak ezek után vezetném be a szűkített project-scope MCP v1-et, és csak ezután finomítanám a memoryt és a költségfigyelést.
 
-## Critical Rule
+Vagyis Claude Code oldalról a sorrend ez lenne:
 
-> Documentation validation ≠ external certification  
-> Documentation validation ≠ production readiness  
+1. *Subagent config rendbetétele* (tools, disallowedTools, skills, esetleg mcpServers) ([Claude API Docs][1])
+2. *Skill invoke/logika finomítása* és preload kerülése, ahol nem kell ([Claude API Docs][3])
+3. *Hookok implementálása* a P1 guardokra ([Claude API Docs][2])
+4. **Project-scope .mcp.json** minimális szerverkészlettel, env expansionnel ([Claude API Docs][4])
+5. *Tool Search bekapcsolva hagyása* és context/cost mérés ([Claude API Docs][4])
+6. *Project memory hygiene* mint külön karbantartási rutin ([Claude API Docs][5])
 
----
+## A lényeg, nagyon tisztán
 
-# 6. SNAPSHOT CONTRACT (NON-NEGOTIABLE)
+A ti projekteteknél a Claude Code hivatalos megoldásaiból *nem mindent* kell használni, hanem ezt a kombinációt:
 
-## 6.1 Downstream Rule
+* *subagentek* a role-szűkítéshez,
+* *skillek* az invoke-olható governance logikához,
+* *hookok* a valós idejű blokkoláshoz,
+* *MCP* a szűk, kontrollált tool-réteghez,
+* *Tool Search* a tokenfegyelemhez,
+* *memory* pedig csak karbantartott másodlagos operational rétegként.
 
-Layer 3+ MUST:
+Egy mondatban:
 
-- read ONLY from published snapshots
-- NEVER read raw observations
+*Mr. Ripley-ben ezt Claude Code-dal úgy lehet jól megvalósítani, hogy a governance modell minden elemét egy hivatalos Claude mechanizmushoz kötitek: a szerepeket subagentekhez, a szabályokat skillekhez, a védelmet hookokhoz, a külső hozzáférést MCP-hez, a tokenfegyelmet pedig Tool Search-höz és explicit context policy-hoz.*
 
-## 6.2 Snapshot Requirements
+Ha szeretnéd, a következő körben ebből csinálok egy *konkrét “Claude Code implementation blueprint for Mr. Ripley”* dokumentumot, szekciónként: Subagents, Skills, Hooks, MCP, Memory, Tool Policy.
 
-Each snapshot MUST have:
-
-- identity (`snapshot_id`)
-- time anchor (`as_of`)
-- revision metadata
-- deterministic contents
-
-## 6.3 Forbidden Patterns
-
-- reading `latest`
-- reading raw observations downstream
-- bypassing snapshot boundary
-
----
-
-# 7. FAIL-CLOSED PRINCIPLE
-
-The system MUST default to:
-
-> **NO OUTPUT rather than incorrect output**
-
-Applied to:
-
-- missing data
-- invalid states
-- broken invariants
-- unverified assumptions
-
----
-
-# 8. REGISTRY AS SINGLE SOURCE OF TRUTH
-
-All series definitions MUST come from:
-
-- `series_registry.json`
-
-Rules:
-
-- no hardcoded series logic
-- no implicit data interpretation
-- no hidden mappings
-
----
-
-# 9. EXECUTION BOUNDARY
-
-The system is:
-
-> **analysis-only**
-
-NOT allowed:
-
-- automated trading
-- signal execution
-- decision triggering
-- order generation
-
----
-
-## Critical Rule
-
-> No component may simulate or imply execution capability.
-
----
-
-# 10. STRONG CLAIM DISCIPLINE
-
-The following claims are **FORBIDDEN unless explicitly proven**:
-
-- “Layer 3 is implemented”
-- “System is production-ready”
-- “Execution is available”
-- “Decisions are automated”
-- “System is externally validated”
-
----
-
-## Allowed Language
-
-- “planned”
-- “target architecture”
-- “not yet implemented”
-- “requires Phase C/D”
-
----
-
-# 11. DOCUMENT UPDATE OBLIGATIONS
-
-Any **contract-affecting change** MUST trigger:
-
-- `README_v1.md` review
-- `SYSTEM_TECHNICAL_HANDBOOK_v1.md` review
-- `SYSTEM_LIMITATIONS_AND_APPROXIMATIONS_v1.md` update
-- `DOCUMENTATION_VERIFICATION_MATRIX_v1.md` update
-- `SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md` review
-- `SYSTEM_IMPLEMENTATION_RECORD_v1.md` review when implementation state changes
-- `README_LAYER2.md` review when collaborator workflow or Layer-2 build navigation changes
-
----
-
-## Critical Rule
-
-> Code changes without documentation alignment are invalid.
-
----
-
-# 12. VERSION LOCK AND IMMUTABILITY
-
-- snapshots are immutable
-- contracts are versioned
-- behavior must be reproducible
-
----
-
-# 13. LLM ROLE CONSTRAINT
-
-Claude is:
-- analyst
-- validator
-- auditor
-
-Claude is NOT:
-- decision engine
-- execution engine
-- source of truth
-
----
-
-# 14. INTERPRETATION PRIORITIES
-
-When answering or reasoning:
-1. use canonical documents
-2. classify the claim by role and evidence type
-3. prefer the role-matched canonical source
-4. respect phase-gates
-5. enforce snapshot contract
-6. avoid implicit assumptions
-7. block strong claims when evidence is incomplete or contradictory
-
----
-
-# 15. FINAL CONSTITUTIONAL RULE
-
-> If a statement cannot be traced to a canonical source  
-> AND cannot be proven from implementation  
-> THEN it MUST be treated as unverified and non-binding.
-
----
-
-# SUMMARY
-
-This system is:
-- **deterministic**
-- **fail-closed**
-- **snapshot-driven**
-- **phase-gated**
-- **documentation-governed**
-
-And most importantly:
-
-> **Truth is constrained. Claims are earned. Execution is forbidden until proven safe.**
+[1]: https://docs.anthropic.com/en/docs/claude-code/sub-agents?utm_source=chatgpt.com "Create custom subagents - Claude Code Docs"
+[2]: https://docs.anthropic.com/en/docs/claude-code/hooks?utm_source=chatgpt.com "Hooks reference - Claude Code Docs"
+[3]: https://docs.anthropic.com/en/docs/claude-code/slash-commands?utm_source=chatgpt.com "Extend Claude with skills - Claude Code Docs"
+[4]: https://docs.anthropic.com/en/docs/claude-code/mcp?utm_source=chatgpt.com "Connect Claude Code to tools via MCP"
+[5]: https://docs.anthropic.com/en/docs/claude-code/memory?utm_source=chatgpt.com "How Claude remembers your project - Claude Code Docs"
+[6]: https://docs.anthropic.com/en/docs/claude-code/costs?utm_source=chatgpt.com "Manage costs effectively - Claude Code Docs"

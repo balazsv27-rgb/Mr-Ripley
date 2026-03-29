@@ -233,10 +233,5 @@ Use the current canonical document set for current-state interpretation:
 3. `SYSTEM_LIMITATIONS_AND_APPROXIMATIONS_v1.md` — gaps and open items
 4. `SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md` — target architecture and build sequence
 5. `DOCUMENTATION_VERIFICATION_MATRIX_v1.md` — claim classification and document role map
-<<<<<<<< HEAD:Documentation/README_v1.md
-6. `SYSTEM_IMPLEMENTATION_RECORD_v1.md` — historical build record and change addendum
-7. `README_LAYER2.md` — collaborator build guide and living Layer-2 reference
-========
 6. `SYSTEM_IMPLEMENTATION_RECORD_v1.md` — canonical implementation record and realized-state reference
 7. `README_LAYER2.md` — canonical collaborator guide and living Layer-2 reference
->>>>>>>> main:Documentation/README_v1_updated.md
