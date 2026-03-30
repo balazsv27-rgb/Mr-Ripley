@@ -1,0 +1,145 @@
+section: skills
+version: "1.0"
+
+data:
+
+  - name: doc-truth-classification
+    role: claim_classification_method
+    purpose: >
+      Classify claims as current-state, target-state, historical, or unverified.
+      Uses canonical source priority and evidence-aware confidence rules.
+    workflow_step: classify-claims
+    produces:
+      - claim_classification_map
+
+  - name: canonical-terminology-map
+    role: normalization_method
+    purpose: >
+      Enforce consistent naming across all claims and documentation references.
+      Detects variant drift (NO_TRADE, snapshot, DecisionPacket, Layer-2, etc.).
+    workflow_step: normalize-terminology
+    produces:
+      - normalized_terminology_map
+
+  - name: role-matched-citation-check
+    role: interpretation_method
+    purpose: >
+      Enforce use of the canonical document whose role best matches each claim.
+      Detect role-mismatched citations and README_LAYER2 override misuse.
+    workflow_step: route-claims-by-role
+    produces:
+      - role_citation_verdict
+
+  - name: build-sequence-compliance-check
+    role: phase_alignment_method
+    purpose: >
+      Enforce architecture build order and phase-gate compliance.
+      Check for forbidden scope and required scope at the current phase.
+    workflow_step: phase-check
+    produces:
+      - phase_alignment_status
+
+  - name: snapshot-contract-check
+    role: contract_validation_method
+    purpose: >
+      Enforce snapshot-only downstream access and contract boundary rules.
+      No raw Layer-2 observation access; no latest_snapshot.json misuse.
+    workflow_step: snapshot-contract-check
+    produces:
+      - contract_compliance_verdict
+
+  - name: snapshot-boundary-check
+    role: runtime_integrity_method
+    purpose: >
+      Enforce no raw observation usage downstream of the Layer-2 boundary.
+      Validate runtime and code boundary integrity for Layer-2 -> Layer-3 handoff.
+    workflow_step: runtime-boundary-check
+    produces:
+      - runtime_boundary_verdict
+
+  - name: adapter-schema-review
+    role: schema_validation_method
+    purpose: >
+      Validate registry-driven adapter compliance and hardcoding prohibition.
+      series_registry.json is authoritative; no implicit data interpretation allowed.
+    workflow_step: adapter-schema-check
+    produces:
+      - adapter_schema_verdict
+
+  - name: change-impact-audit
+    role: impact_assessment_method
+    purpose: >
+      Assess full impact of the requested or completed change.
+      Identify which canonical documents require review or update.
+      Produce change_impact_report and doc_update_plan.
+    workflow_step: change-impact-audit
+    produces:
+      - change_impact_report
+      - doc_update_plan
+    change_type_detection:
+      values:
+        - content_change
+        - rename_only
+        - structural_change
+    rename_only_definition: >
+      File name or document identifier changes without semantic content modification.
+    rename_only_requirements:
+      alias_map_required: true
+      reference_update_required: true
+      identity_continuity_required: true
+      semantic_invariance_required: true
+    doc_update_plan_must_include_if_rename:
+      - canonical_doc_identity_update
+      - alias_map
+      - reference_update_scope
+      - invariance_check_required
+
+  - name: rename-invariance-check
+    role: rename_semantic_validation_method
+    purpose: >
+      Verify that rename-only changes do not alter the semantic meaning,
+      claim classification, or evidence structure of canonical documents.
+      Produces invariance_verdict. Activated only when change_type == rename_only.
+    workflow_step: rename-invariance-check
+    produces:
+      - invariance_verdict
+    activation_predicate: rename_only_change
+
+  - name: doc-code-sync-rules
+    role: consistency_method
+    purpose: >
+      Validate that documentation claims remain aligned with actual code,
+      runtime behavior, and required project contracts.
+      Detect doc/code drift in either direction.
+    workflow_step: doc-code-sync-check
+    produces:
+      - doc_code_sync_status
+
+  - name: verification-matrix-update-method
+    role: doc_classification_method
+    purpose: >
+      Update documentation verification matrix classification posture only.
+      Does not update the ledger; does not re-classify claims; does not act as a phase gate.
+    workflow_step: update-verification-matrix
+    produces:
+      - verification_matrix_delta
+    scope_constraint: classification_posture_only
+
+  - name: verification-ledger-update
+    role: evidence_tracking_method
+    purpose: >
+      Update claim -> evidence -> status tracking in the verification ledger.
+      Does not update matrix; does not re-run earlier governance steps.
+    workflow_step: update-verification-ledger
+    produces:
+      - verification_ledger_delta
+    scope_constraint: claim_evidence_status_tracking_only
+
+  - name: runtime-artifact-hygiene-check
+    role: workspace_integrity_method
+    purpose: >
+      Detect unwanted runtime artifacts (stale dbs, snapshot files, generated residue).
+      Validate workspace hygiene before any PR or commit.
+    workflow_step: runtime-artifact-hygiene-check
+    produces:
+      - artifact_hygiene_verdict

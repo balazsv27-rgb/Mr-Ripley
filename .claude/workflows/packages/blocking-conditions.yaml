@@ -1,0 +1,112 @@
+section: blocking_conditions
+version: "1.0"
+
+data:
+
+  - id: snapshot_boundary_violation
+    raises_at: runtime-boundary-check
+    raised_by: skill:snapshot-boundary-check
+    enforced_by_hook: snapshot-boundary-guard
+    severity: critical
+    halts_workflow: true
+    resolvable: true
+    resolution_required: restore_snapshot_only_access_and_remove_raw_observation_reads
+
+  - id: raw_observations_used_in_layer3
+    raises_at: runtime-boundary-check
+    raised_by: skill:snapshot-boundary-check
+    enforced_by_hook: snapshot-boundary-guard
+    severity: critical
+    halts_workflow: true
+    resolvable: true
+    resolution_required: remove_direct_observation_access_from_downstream_components
+
+  - id: registry_violation
+    raises_at: adapter-schema-check
+    raised_by: skill:adapter-schema-review
+    enforced_by_hook: adapter-schema-guard
+    severity: high
+    halts_workflow: true
+    resolvable: true
+    resolution_required: restore_registry_driven_adapter_configuration
+
+  - id: schema_drift_detected
+    raises_at: adapter-schema-check
+    raised_by: skill:adapter-schema-review
+    enforced_by_hook: adapter-schema-guard
+    severity: high
+    halts_workflow: true
+    resolvable: true
+    resolution_required: align_adapter_schema_with_series_registry
+
+  - id: unsupported_current_state_claim
+    raises_at: stage-gate-enforcement
+    raised_by: stage_gates
+    enforced_by_hook: live-readiness-claim-blocker
+    severity: critical
+    halts_workflow: true
+    resolvable: true
+    resolution_required: reclassify_claim_as_planned_or_target_architecture
+
+  - id: verification_without_evidence
+    raises_at: update-verification-ledger
+    raised_by: skill:verification-ledger-update
+    enforced_by_hook: null
+    severity: high
+    halts_workflow: true
+    resolvable: true
+    resolution_required: provide_traceable_evidence_canonical_or_code_level
+
+  - id: canonical_conflict_unresolved
+    raises_at: route-claims-by-role
+    raised_by: skill:role-matched-citation-check
+    enforced_by_hook: role-matched-doc-guard
+    severity: high
+    halts_workflow: true
+    resolvable: true
+    resolution_required: resolve_canonical_doc_conflict_with_explicit_role_matched_citations
+
+  - id: role_mismatch_for_strong_claim
+    raises_at: route-claims-by-role
+    raised_by: skill:role-matched-citation-check
+    enforced_by_hook: role-matched-doc-guard
+    severity: high
+    halts_workflow: false
+    resolvable: true
+    resolution_required: replace_citation_with_role_correct_canonical_document
+
+  - id: readme_layer2_used_as_override
+    raises_at: route-claims-by-role
+    raised_by: skill:role-matched-citation-check
+    enforced_by_hook: role-matched-doc-guard
+    severity: medium
+    halts_workflow: false
+    resolvable: true
+    resolution_required: use_role_specific_canonical_document_instead_of_readme_layer2
+
+  - id: pr_governance_not_satisfied
+    raises_at: pre-pr-governance-readiness
+    raised_by: hooks:pre-pr-governance-gate
+    enforced_by_hook: pre-pr-governance-gate
+    severity: critical
+    halts_workflow: true
+    resolvable: true
+    resolution_required: satisfy_all_required_artifact_and_condition_checks_in_pr_readiness_verdict
+
+  - id: rename_invariance_violation
+    raises_at: rename-invariance-check
+    raised_by: skill:rename-invariance-check
+    enforced_by_hook: null
+    severity: high
+    halts_workflow: true
+    resolvable: true
+    resolution_required: restore_semantic_equivalence_in_renamed_canonical_documents
+
+  - id: missing_alias_mapping
+    raises_at: change-impact-audit
+    raised_by: skill:change-impact-audit
+    enforced_by_hook: null
+    severity: high
+    halts_workflow: true
+    resolvable: true
+    resolution_required: add_alias_map_for_renamed_canonical_document_to_doc_update_plan

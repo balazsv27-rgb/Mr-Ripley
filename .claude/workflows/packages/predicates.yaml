@@ -1,0 +1,63 @@
+section: scope_predicates
+version: "1.0"
+
+data:
+
+  runtime_code_scope:
+    id: runtime_code_scope
+    description: Change touches runtime or code files
+    type: path_match_any
+    matches_paths:
+      - "layer2/**"
+      - "layer3/**"
+      - "layer2/adapters/**"
+      - "layer2/db.py"
+      - "layer2/alignment.py"
+      - "layer2/clock.py"
+
+  adapter_registry_scope:
+    id: adapter_registry_scope
+    description: Change touches adapter or registry files
+    type: path_match_any
+    matches_paths:
+      - "layer2/adapters/**"
+      - "layer2/config/series_registry.json"
+      - "layer2/config/registry.py"
+
+  rename_only_change:
+    id: rename_only_change
+    description: >
+      Change is a file name or document identifier rename without
+      semantic content modification.
+    type: artifact_field_equals
+    artifact: change_impact_report
+    field: change_type
+    value: rename_only
+
+  contract_affecting_change:
+    id: contract_affecting_change
+    description: >
+      Change affects snapshot contract, canonical document role,
+      execution boundary, or any item governed by CLAUDE.md section 11.
+    type: artifact_field_equals
+    artifact: change_impact_report
+    field: contract_affecting
+    value: true
+
+  matrix_posture_affected:
+    id: matrix_posture_affected
+    description: >
+      Change affects classification posture in the documentation
+      verification matrix.
+    type: artifact_field_equals
+    artifact: change_impact_report
+    field: matrix_posture_affected
+    value: true
+
+  doc_update_required:
+    id: doc_update_required
+    description: Change requires a documentation update plan to be produced.
+    type: artifact_field_equals
+    artifact: change_impact_report
+    field: doc_update_required
+    value: true

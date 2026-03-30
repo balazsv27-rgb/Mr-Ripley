@@ -1,0 +1,11 @@
+section: orchestration_manifest
+version: "1.0"
+
+data:
+  file: .claude/workflows/system-orchestration.yaml
+  role: workflow_execution_manifest
+  note: >
+    This manifest defines the executable workflow structure.
+    It does not override canonical documents or serve as a truth source.
+    It is the authoritative specification for step ordering, artifact ownership,
+    predicate evaluation, blocking-condition propagation, and hook binding.

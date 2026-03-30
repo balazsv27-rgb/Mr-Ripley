@@ -1,0 +1,87 @@
+section: stage_gates
+version: "1.0"
+
+data:
+
+  phase_a_layer2_closure:
+    status: complete_at_contract_boundary
+    enforcement_step: stage-gate-enforcement
+    allowed_scope:
+      - layer2_operational
+      - snapshot_boundary
+    required_scope:
+      - snapshot_contract_stable
+      - engine_version_present
+      - config_version_present
+      - guards_object_in_snapshot
+      - reason_code_enum_defined
+    check:
+      type: artifact_field_equals
+      artifact: phase_alignment_status
+      field: phase_a_satisfied
+      value: true
+    on_violation:
+      raises: unsupported_current_state_claim
+
+  phase_b_layer3_bootstrap:
+    status: allowed_not_completed
+    enforcement_step: stage-gate-enforcement
+    allowed_scope:
+      - snapshot_consumer
+      - decisionpacket_skeleton
+      - no_trade_default_path
+      - state_taxonomy_stub
+      - guard_taxonomy_stub
+      - deterministic_calculations_2_to_3
+    forbidden_scope:
+      - feature_builder
+      - live_execution
+      - calibration_logic
+      - index_suite
+      - regime_gate
+      - supervisor_engine
+      - decision_engine
+    check:
+      type: artifact_field_not_contains
+      artifact: phase_alignment_status
+      field: detected_forbidden_scope
+      value: any_forbidden_phase_b_item
+    on_violation:
+      raises: unsupported_current_state_claim
+
+  phase_c_layer3_structured_buildout:
+    status: future
+    enforcement_step: stage-gate-enforcement
+    allowed_scope: []
+    forbidden_scope:
+      - feature_builder_active
+      - index_suite_active
+      - regime_gate_active
+      - supervisor_engine_active
+      - decision_engine_active
+    check:
+      type: artifact_field_equals
+      artifact: phase_alignment_status
+      field: phase_c_active
+      value: false
+    on_violation:
+      raises: unsupported_current_state_claim
+
+  phase_d_live_execution_gate:
+    status: blocked
+    enforcement_step: stage-gate-enforcement
+    allowed_scope: []
+    forbidden_scope:
+      - live_execution
+      - execution_capability
+      - automated_trading
+      - order_generation
+      - signal_execution
+      - decision_triggering
+    check:
+      type: artifact_field_equals
+      artifact: phase_alignment_status
+      field: live_execution_claim_detected
+      value: false
+    on_violation:
+      raises: unsupported_current_state_claim

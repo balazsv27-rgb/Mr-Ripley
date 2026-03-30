@@ -1,0 +1,96 @@
+section: subagents
+version: "1.0"
+
+data:
+
+  - name: cross-doc-consistency-auditor
+    role: doc_auditor
+    audit_lane: documentary_consistency
+    triggered_by: doc-code-sync-check
+    trigger_condition:
+      type: artifact_field_equals
+      artifact: doc_code_sync_status
+      field: doc_doc_conflict_detected
+      value: true
+    escalation_condition: unresolved_canonical_conflict
+
+  - name: architecture-sequence-auditor
+    role: build_order_auditor
+    audit_lane: phase_and_build_order
+    triggered_by: phase-check
+    trigger_condition:
+      type: artifact_field_equals
+      artifact: phase_alignment_status
+      field: build_order_ambiguity_detected
+      value: true
+    escalation_condition: stage_gate_ambiguity
+
+  - name: verification-matrix-auditor
+    role: classification_auditor
+    audit_lane: verification_classification
+    triggered_by: update-verification-matrix
+    trigger_condition:
+      type: artifact_field_equals
+      artifact: verification_matrix_delta
+      field: classification_dispute_detected
+      value: true
+    escalation_condition: matrix_classification_conflict
+
+  - name: implementation-history-reconciler
+    role: historical_alignment
+    audit_lane: historical_source_conflicts
+    triggered_by: classify-claims
+    trigger_condition:
+      type: artifact_field_equals
+      artifact: claim_classification_map
+      field: non_canonical_source_as_current_truth
+      value: true
+    escalation_condition: non_canonical_source_used_as_current_truth
+
+  - name: doc-code-sync-auditor
+    role: doc_vs_runtime_auditor
+    audit_lane: doc_runtime_alignment
+    triggered_by: doc-code-sync-check
+    trigger_condition:
+      type: artifact_field_equals
+      artifact: doc_code_sync_status
+      field: drift_detected
+      value: true
+    escalation_condition: doc_code_drift_unresolved
+
+  - name: snapshot-boundary-auditor
+    role: runtime_boundary_auditor
+    audit_lane: snapshot_boundary_integrity
+    triggered_by: runtime-boundary-check
+    trigger_condition:
+      type: artifact_field_equals
+      artifact: runtime_boundary_verdict
+      field: boundary_violation_suspected
+      value: true
+    escalation_condition: snapshot_boundary_violation
+
+  - name: adapter-schema-guardian
+    role: schema_governance_specialist
+    audit_lane: adapter_schema_governance
+    triggered_by: adapter-schema-check
+    trigger_condition:
+      type: artifact_field_any_equals
+      artifact: adapter_schema_verdict
+      field: violations
+      values:
+        - registry_violation
+        - schema_drift_detected
+    escalation_condition: registry_violation_or_schema_drift_detected
+
+  - name: canonical-role-auditor
+    role: role_matched_truth_enforcer
+    audit_lane: canonical_role_enforcement
+    triggered_by: route-claims-by-role
+    trigger_condition:
+      type: artifact_field_any_equals
+      artifact: role_citation_verdict
+      field: violations
+      values:
+        - role_mismatch_for_strong_claim
+        - readme_layer2_used_as_override
+    escalation_condition: role_mismatch_or_readme_layer2_override

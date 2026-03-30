@@ -1,0 +1,27 @@
+section: constitution
+version: "1.0"
+
+data:
+  file: CLAUDE.md
+  role: authoritative_normative_constraints
+  responsibilities:
+    - define canonical project principles
+    - define Layer-2 truth discipline (snapshot-only, fail-closed)
+    - define Layer-3 decision constraints
+    - define evidence classification rules
+    - define claim vs proof vs runtime observation distinction
+    - define canonical document roles and interpretation priorities
+    - define execution boundary (analysis-only; no automated trading)
+    - define phase-gate model (A complete, B allowed, C/D blocked)
+    - define document update obligations for contract-affecting changes
+  execution_policy:
+    workflow_mandatory: true
+    enforce_order: true
+    enforce_stage_gates: true
+    enforce_blocking_conditions: true
+    reject_partial_execution: true
+  note: >
+    CLAUDE.md defines obligations and interpretive constraints.
+    It is NOT a workflow and does NOT execute workflow steps.
+    Execution is delegated to the DAG runner via this manifest.
+    Enforcement is delegated to runtime mechanisms (hooks, validators, skill outputs).
