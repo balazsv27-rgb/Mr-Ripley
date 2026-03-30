@@ -1,0 +1,193 @@
+section: hooks
+version: "1.0"
+
+data:
+
+  - name: role-matched-doc-guard
+    trigger: SubagentStop
+    reinforcing_phase: route-claims-by-role
+    reinforcing_layer: A_semantic_normalization
+    reads_artifacts:
+      - role_citation_verdict
+    checks:
+      - type: artifact_field_not_contains
+        artifact: role_citation_verdict
+        field: violations
+        value: role_mismatch
+      - type: artifact_field_not_contains
+        artifact: role_citation_verdict
+        field: violations
+        value: readme_layer2_override
+    action: warn_or_block
+    on_match: >
+      Flag role-mismatch violation in role_citation_verdict.
+      Require explicit role-correct citation before proceeding.
+      Raise role_mismatch_for_strong_claim or readme_layer2_used_as_override.
+
+  - name: snapshot-boundary-guard
+    trigger: PostToolUse
+    matcher: "Edit|Write"
+    reinforcing_phase: runtime-boundary-check
+    reinforcing_layer: C_runtime_schema_integrity
+    reads_artifacts:
+      - runtime_boundary_verdict
+    checks:
+      - type: artifact_field_equals
+        artifact: runtime_boundary_verdict
+        field: raw_observation_access_detected
+        value: false
+      - type: artifact_field_equals
+        artifact: runtime_boundary_verdict
+        field: latest_snapshot_misuse_detected
+        value: false
+      - type: artifact_field_equals
+        artifact: runtime_boundary_verdict
+        field: layer2_storage_coupling_detected
+        value: false
+    action: block_on_match
+    on_match: raise snapshot_boundary_violation blocking condition
+
+  - name: adapter-schema-guard
+    trigger: PostToolUse
+    matcher: "Edit|Write"
+    reinforcing_phase: adapter-schema-check
+    reinforcing_layer: C_runtime_schema_integrity
+    reads_artifacts:
+      - adapter_schema_verdict
+    checks:
+      - type: artifact_field_equals
+        artifact: adapter_schema_verdict
+        field: registry_driven
+        value: true
+      - type: artifact_field_equals
+        artifact: adapter_schema_verdict
+        field: hardcoded_series_detected
+        value: false
+      - type: artifact_field_equals
+        artifact: adapter_schema_verdict
+        field: implicit_interpretation_detected
+        value: false
+    action: warn_or_block
+    on_match: raise registry_violation or schema_drift_detected blocking condition
+
+  - name: live-readiness-claim-blocker
+    trigger: PostToolUse
+    matcher: "Edit|Write"
+    reinforcing_phase: stage-gate-enforcement
+    reinforcing_layer: B_architecture_phase_contract
+    reads_artifacts:
+      - stage_gate_report
+    checks:
+      - type: artifact_field_equals
+        artifact: stage_gate_report
+        field: live_readiness_claim_detected
+        value: false
+      - type: artifact_field_equals
+        artifact: stage_gate_report
+        field: execution_capability_claim_detected
+        value: false
+      - type: artifact_field_equals
+        artifact: stage_gate_report
+        field: production_ready_claim_detected
+        value: false
+    action: block_on_match
+    on_match: raise unsupported_current_state_claim blocking condition
+
+  - name: doc-code-sync-guard
+    trigger: SubagentStop
+    reinforcing_phase: doc-code-sync-check
+    reinforcing_layer: D_audit_impact
+    reads_artifacts:
+      - doc_code_sync_status
+    checks:
+      - type: artifact_field_equals
+        artifact: doc_code_sync_status
+        field: drift_detected
+        value: false
+    action: warn
+    on_match: flag doc_code_sync_status.drift_detected for doc-code-sync-auditor escalation
+
+  - name: pre-pr-governance-gate
+    trigger: PreToolUse
+    matcher: "git push|commit"
+    reinforcing_phase: pre-pr-governance-readiness
+    reinforcing_layer: E_verification_hygiene_release
+    reads_artifacts:
+      - pr_readiness_verdict
+    required_artifacts:
+      - artifact: governance_context
+        required_always: true
+      - artifact: claim_classification_map
+        required_always: true
+      - artifact: normalized_terminology_map
+        required_always: true
+      - artifact: role_citation_verdict
+        required_always: true
+      - artifact: phase_alignment_status
+        required_always: true
+      - artifact: contract_compliance_verdict
+        required_always: true
+      - artifact: stage_gate_report
+        required_always: true
+      - artifact: runtime_boundary_verdict
+        required_always: false
+        requires_if:
+          predicate: runtime_code_scope
+      - artifact: adapter_schema_verdict
+        required_always: false
+        requires_if:
+          predicate: adapter_registry_scope
+      - artifact: guard_report
+        required_always: true
+      - artifact: audit_summary
+        required_always: true
+      - artifact: change_impact_report
+        required_always: true
+      - artifact: doc_update_plan
+        required_always: false
+        requires_if:
+          predicate: doc_update_required
+      - artifact: invariance_verdict
+        required_always: false
+        requires_if:
+          predicate: rename_only_change
+      - artifact: doc_code_sync_status
+        required_always: true
+      - artifact: verification_matrix_delta
+        required_always: false
+        requires_if:
+          predicate: matrix_posture_affected
+      - artifact: verification_ledger_delta
+        required_always: true
+      - artifact: artifact_hygiene_verdict
+        required_always: true
+      - artifact: pr_readiness_verdict
+        required_always: true
+    additional_checks:
+      - type: artifact_field_equals
+        artifact: pr_readiness_verdict
+        field: unsupported_strong_claims_remain
+        value: false
+      - type: artifact_field_equals
+        artifact: pr_readiness_verdict
+        field: blocking_conditions_unresolved
+        value: false
+      - type: artifact_field_equals
+        artifact: pr_readiness_verdict
+        field: required_canonical_docs_reviewed
+        value: true
+      - type: artifact_field_equals
+        artifact: pr_readiness_verdict
+        field: canonical_references_updated
+        value: true
+      - type: artifact_field_equals
+        artifact: pr_readiness_verdict
+        field: alias_map_present_for_renames
+        value: true
+        requires_if:
+          predicate: rename_only_change
+    action: block_on_fail
+    on_fail: >
+      Reject commit/push.
+      Surface missing workflow artifacts and unresolved governance conditions
+      from pr_readiness_verdict.failed_checks.

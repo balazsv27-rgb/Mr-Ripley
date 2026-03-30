@@ -1,0 +1,29 @@
+section: interpretation_policy
+version: "1.0"
+
+data:
+  canonical_docs_are_authoritative: true
+  canonical_docs_are_not_interchangeable: true
+  require_role_matched_citation: true
+
+  claim_routing:
+    architecture_claims: SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md
+    implementation_claims: SYSTEM_IMPLEMENTATION_RECORD_v1.md
+    limitation_claims: SYSTEM_LIMITATIONS_AND_APPROXIMATIONS_v1.md
+    collaborator_workflow_claims: README_LAYER2.md
+    documentation_consistency_claims: DOCUMENTATION_VERIFICATION_MATRIX_v1.md
+    technical_constraint_claims: SYSTEM_TECHNICAL_HANDBOOK_v1.md
+    top_level_orientation_claims: README_v1.md
+
+  on_conflict:
+    action: block_strong_claim
+    require_conflict_note: true
+    require_explicit_citations: true
+    resolution_rule: prefer_role_specific_document
+    escalate_for_doc_sync: true
+    escalation_target: cross-doc-consistency-auditor
+
+  note: >
+    The claim_routing table governs which step routes each claim type.
+    Operationalized at route-claims-by-role; enforced by role-matched-doc-guard
+    throughout downstream steps.
