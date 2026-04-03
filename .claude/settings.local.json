@@ -5,7 +5,14 @@
   },
   "permissions": {
     "allow": [
-      "Bash(find C:/Code/Mr-Ripley/layer2/adapters -type f -name *.py)"
+      "Bash(find C:/Code/Mr-Ripley/layer2/adapters -type f -name *.py)",
+      "Bash(mkdir -p /c/Code/Mr-Ripley/.claude/hooks/lib)",
+      "Bash(touch /c/Code/Mr-Ripley/.claude/hooks/lib/__init__.py)",
+      "Bash(python:*)",
+      "Bash(echo \"exit: $?\")",
+      "Bash(echo \"exit=$?\")",
+      "Bash(printf '{}')",
+      "Bash(echo \"EXIT=$?\")"
     ]
   }
 }

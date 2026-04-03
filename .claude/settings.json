@@ -1,4 +1,50 @@
 {
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python .claude/hooks/pre_pr_governance_gate.py"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python .claude/hooks/snapshot_boundary_guard.py"
+          },
+          {
+            "type": "command",
+            "command": "python .claude/hooks/adapter_schema_guard.py"
+          },
+          {
+            "type": "command",
+            "command": "python .claude/hooks/live_readiness_claim_blocker.py"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python .claude/hooks/role_matched_doc_guard.py"
+          },
+          {
+            "type": "command",
+            "command": "python .claude/hooks/doc_code_sync_guard.py"
+          }
+        ]
+      }
+    ]
+  },
   "project": "mr-ripley-layer2",
   "preferred_workflow": "plan-first",
   "default_agent": "planner",

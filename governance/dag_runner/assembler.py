@@ -20,7 +20,7 @@ from governance.dag_runner.models import (
 
 class AssemblerError(RuntimeError):
     """Raised when package assembly fails."""
-
+ 
 
 def _package_map(loaded: LoadedWorkflowPackages) -> dict[str, dict[str, Any]]:
     """

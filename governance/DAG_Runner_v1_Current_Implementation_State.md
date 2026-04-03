@@ -68,8 +68,9 @@ python -c "import governance.dag\_runner; print('package ok')"
 
 ### `governance/dag\_runner/models.py`
 
-**Purpose:** defines the typed data model used across the DAG runner.
-
+**Purpose:** Defines the typed data model used across the DAG runner.
+             This is the canonical type system of the DAG runtime.
+             These are not “static properties” — they are the contract boundary between every module.
 **Key models**
 
 * `ManifestSpec`
@@ -104,8 +105,8 @@ models ok
 
 ### `governance/dag\_runner/loader.py`
 
-**Purpose:** loads the root workflow YAML and all referenced workflow package YAML files.
-
+**Purpose:** Loads the root workflow YAML and all referenced workflow package YAML files.
+             Transforms external YAML into raw in-memory structures.   
 **What it does**
 
 * reads `.claude/workflows/system-orchestration.yaml`
@@ -128,8 +129,8 @@ python -c "from governance.dag\_runner.loader import load\_workflow\_packages; r
 
 ### `governance/dag\_runner/assembler.py`
 
-**Purpose:** assembles loaded workflow packages into a typed compiled workflow specification.
-
+**Purpose:** Assembles loaded workflow packages into a typed compiled workflow specification.
+             This is the compiler’s “linker” phase, where the declarative system becomes a structured program.   
 **What it does**
 
 * extracts package `data` sections
@@ -163,7 +164,9 @@ python -c "from governance.dag\_runner.loader import load\_workflow\_packages; f
 
 ### `governance/dag\_runner/validator.py`
 
-**Purpose:** validates the assembled workflow specification.
+**Purpose:** Validates the assembled workflow specification.
+             This is a fail-closed static verifier (like a type checker + linter).
+             This is pre-execution enforcement — nothing dynamic here.
 
 **What it does**
 
@@ -192,12 +195,13 @@ True 0
 
 ### `governance/dag\_runner/planner.py`
 
-**Purpose:** computes the topological execution order from the validated workflow spec.
-
+**Purpose:** Computes the topological execution order from the validated workflow spec.
+             Transforms a validated spec into an executable DAG plan.
 **What it does**
 
 * builds a dependency graph
 * performs topological sorting
+* materializes execution order
 * emits an `ExecutionPlan`
 
 **How to test**
@@ -218,7 +222,8 @@ python -c "from governance.dag\_runner.loader import load\_workflow\_packages; f
 
 ### `governance/dag\_runner/blockers.py`
 
-**Purpose:** analyzes the relationship between the blocker registry and workflow step `raises` references.
+**Purpose:** Analyzes the relationship between the blocker registry and workflow step `raises` references.
+             Currently: structural analysis only (not enforcement), a registry integrity checker, not a runtime gatekeeper.
 
 **What it does**
 
@@ -246,7 +251,9 @@ python -c "from governance.dag\_runner.loader import load\_workflow\_packages; f
 
 ### `governance/dag\_runner/verdict.py`
 
-**Purpose:** computes the governance verdict from validation and blocker analysis.
+**Purpose:** Computes the governance verdict from validation and blocker analysis.
+             Converts validation + blocker analysis into a governance verdict.
+             The first “decision layer” in the system.
 
 **Current V1 logic**
 
@@ -271,8 +278,8 @@ ready \['Validation passed and blocker structure is consistent.']
 
 ### `governance/dag\_runner/executor.py`
 
-**Purpose:** executes the planned workflow in V1 shell mode.
-
+**Purpose:** builds the runtime state and executes the planned workflow in V1 shell mode.
+                
 **Important note**  
 This is not true skill execution. It is a trace-producing shell runtime.
 
@@ -302,8 +309,8 @@ python -c "from governance.dag\_runner.loader import load\_workflow\_packages; f
 
 ### `governance/dag\_runner/state\_store.py`
 
-**Purpose:** persists the current run into machine-readable JSON.
-
+**Purpose:** Persists the current run into machine-readable JSON.
+             This is the serialization boundary of the runtime.
 **What it does**
 
 * stores workflow summary
@@ -331,7 +338,7 @@ python -c "from governance.dag\_runner.state\_store import generate\_and\_write\
 ### `governance/dag\_runner/cli.py`
 
 **Purpose:** CLI entry point for the full V1 governance runtime shell.
-
+             Coordinates the full pipeline end-to-end.
 **What it does**
 
 * load

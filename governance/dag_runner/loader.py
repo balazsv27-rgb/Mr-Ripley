@@ -128,7 +128,7 @@ def _extract_package_file_list(payload: dict[str, Any]) -> list[str]:
 
     return normalized
 
-
+ 
 def _build_manifest_spec(
     payload: dict[str, Any],
     workflow_path: Path,

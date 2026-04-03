@@ -8,7 +8,7 @@ from typing import Any, Literal
 NodeStatus = Literal["PASS", "WARN", "FAIL", "SKIP"]
 ArtifactStatus = Literal["present", "missing", "blocked", "stale"]
 FinalVerdict = Literal["ready", "review_only", "blocked", "invalid"]
-
+ 
 
 @dataclass(frozen=True)
 class ManifestSpec:
