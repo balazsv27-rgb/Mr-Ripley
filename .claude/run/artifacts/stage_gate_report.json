@@ -2,9 +2,9 @@
   "artifact": "stage_gate_report",
   "produced_by": "stage-gate-check",
   "session": "",
-  "timestamp": "2026-04-04T16:53:07.680060Z",
+  "timestamp": "2026-04-04T17:58:07.420064Z",
   "data": {
-    "file_path": "C:\\Code\\Mr-Ripley\\governance\\dag_runner\\executor.py",
+    "file_path": "C:\\Code\\Mr-Ripley\\tests\\governance\\test_cli_integration.py",
     "scanned": true,
     "live_readiness_claim_detected": false,
     "execution_capability_claim_detected": false,

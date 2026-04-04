@@ -2,9 +2,9 @@
   "artifact": "adapter_schema_verdict",
   "produced_by": "adapter-schema-check",
   "session": "",
-  "timestamp": "2026-04-04T16:53:07.710451Z",
+  "timestamp": "2026-04-04T17:58:07.447622Z",
   "data": {
-    "file_path": "C:\\Code\\Mr-Ripley\\governance\\dag_runner\\executor.py",
+    "file_path": "C:\\Code\\Mr-Ripley\\tests\\governance\\test_cli_integration.py",
     "scanned": false,
     "registry_driven": true,
     "hardcoded_series_detected": false,
