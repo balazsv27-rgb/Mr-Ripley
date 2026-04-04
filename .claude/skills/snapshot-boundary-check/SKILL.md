@@ -106,7 +106,7 @@ Apply these rules throughout.
 
 ---
 
-## Canonical source priority
+
 
 When supporting findings with canonical documentation, use role-matched selection.
 
