@@ -35,9 +35,9 @@ What is already in place:
 This means the governance specification side is mature enough to support a DAG runner implementation.
 
 What is **not** in place yet:
-- implemented runtime hooks,
 - uploaded command files,
 - uploaded plans,
+- the DAG runner hook bridge (`hook_bridge.py`),
 - full Layer-2 runtime coverage (`db.py`, `constants.py` still missing),
 - and any Layer-3 execution runtime.
 
@@ -171,7 +171,6 @@ The DAG runner is therefore the bridge between “well-structured governance doc
 
 ### Still not uploaded
 - `.claude/commands/*`
-- `.claude/hooks/*`
 - `.claude/plans/*`
 - `layer2/db.py`
 - `layer2/constants.py`
@@ -192,8 +191,21 @@ The workflow package set is complete enough to support:
 - artifact registry binding,
 - and persisted run state.
 
-### 2. Hooks are not required to begin
-Runtime hooks are not yet implemented, but the hook specification already exists in the workflow package model and bootstrap materials. That is enough to design the hook bridge contract now.
+### 2. Hooks are implemented; hook bridge is the remaining piece
+Runtime hooks are now implemented in `.claude/hooks/`. Six Python governance hooks cover the full enforcement surface declared in the workflow package model:
+
+| Hook | Event | Layer | Action |
+|------|-------|-------|--------|
+| `snapshot_boundary_guard.py` | PostToolUse (Edit/Write) | C — Runtime Schema Integrity | block on violation |
+| `adapter_schema_guard.py` | PostToolUse (Edit/Write) | C — Runtime Schema Integrity | warn or block |
+| `live_readiness_claim_blocker.py` | PostToolUse (Edit/Write) | B — Architecture Phase Contract | block on match |
+| `role_matched_doc_guard.py` | Stop (SubagentStop) | A — Semantic Normalization | warn or block |
+| `doc_code_sync_guard.py` | Stop (SubagentStop) | D — Audit Impact | warn |
+| `pre_pr_governance_gate.py` | PreToolUse (Bash) | E — Verification Hygiene / Release | block on fail |
+
+A shared library at `.claude/hooks/lib/artifact_store.py` provides the read/write artifact contract used by all hooks. Artifacts are persisted to `.claude/run/artifacts/`.
+
+The DAG runner hook bridge (`hook_bridge.py`) is the remaining unimplemented piece. The hook bridge will expose a stable read-only API over persisted run state, allowing hooks to query governance verdict and artifact status without parsing the raw JSON themselves.
 
 ### 3. Skills are registry-backed references, not executable programs
 The `SKILL.md` files are governance instructions. DAG v1 should reference and validate them, not attempt to execute them as machine code.
@@ -225,7 +237,7 @@ The GLD holdings adapter now uses a Yahoo-based proxy source, while `series_regi
 - supported structured condition evaluation for v1
 
 ### Not included yet
-- actual hook runtime implementation
+- `hook_bridge.py` — DAG runner module exposing read-only state API for hooks (hooks are implemented; bridge is not)
 - MCP orchestration
 - full subagent runtime execution
 - Layer-3 execution
@@ -657,7 +669,19 @@ Mr-Ripley/
 │   │
 │   ├── commands/                                            🔒 (not uploaded; design known)
 │   │
-│   ├── hooks/                                               🔒 (not uploaded; candidate design known)
+│   ├── hooks/                                               [IMPLEMENTED: 6 hooks + lib]
+│   │   ├── lib/
+│   │   │   ├── __init__.py                                  ✅ ACCEPTED
+│   │   │   └── artifact_store.py                            ✅ ACCEPTED
+│   │   ├── snapshot_boundary_guard.py                       ✅ ACCEPTED
+│   │   ├── adapter_schema_guard.py                          ✅ ACCEPTED
+│   │   ├── live_readiness_claim_blocker.py                  ✅ ACCEPTED
+│   │   ├── role_matched_doc_guard.py                        ✅ ACCEPTED
+│   │   ├── doc_code_sync_guard.py                           ✅ ACCEPTED
+│   │   ├── pre_pr_governance_gate.py                        ✅ ACCEPTED
+│   │   ├── auto-format.sh                                   (stub)
+│   │   ├── run-tests.sh                                     (stub)
+│   │   └── security-scan.sh                                 (stub)
 │   │
 │   ├── plans/                                               🔒 (not uploaded)
 │   │

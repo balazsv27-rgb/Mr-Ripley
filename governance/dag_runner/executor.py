@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import datetime, UTC
+from datetime import datetime, timezone
 from uuid import uuid4
 
 from governance.dag_runner.models import (
@@ -25,7 +25,7 @@ class ExecutionResult:
 
 
 def _utc_now() -> datetime:
-    return datetime.now(UTC)
+    return datetime.now(timezone.utc)
 
 
 def _build_initial_run_state(

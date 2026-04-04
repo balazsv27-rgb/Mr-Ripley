@@ -396,7 +396,159 @@ python -m governance.dag\_runner.cli --show-steps --write-state
 
 \---
 
-## 3\. Current Recognized Workflow Shape
+## 3\. Hook Implementation
+
+The following runtime enforcement hooks are now implemented in `.claude/hooks/`.
+They form the active governance enforcement surface that fires during Claude Code tool use and agent stop events.
+All hooks share a common artifact contract via `.claude/hooks/lib/artifact_store.py`.
+
+### Shared library: `.claude/hooks/lib/artifact\_store.py`
+
+**Purpose:** Shared read/write contract for governance artifacts.
+**Artifact location:** `.claude/run/artifacts/<name>.json`
+**Provides:** `read_artifact(name)`, `write_artifact(name, data, produced_by)`, `artifact_exists(name)`
+**Envelope schema:** `artifact`, `produced_by`, `session`, `timestamp`, `data`
+
+\---
+
+### `snapshot\_boundary\_guard.py`
+
+**Hook event:** PostToolUse (Edit | Write)
+**Layer:** C — Runtime Schema Integrity
+**Action:** block on violation
+**Blocking conditions raised:** `snapshot_boundary_violation`, `raw_observations_used_in_layer3`
+**Artifact written:** `runtime_boundary_verdict`
+
+**What it enforces**
+
+* `raw_observation_access_detected` — non-Layer-2 code reading the `observations` table directly
+* `latest_snapshot_misuse_detected` — use of `snapshot_id='latest'` (forbidden by CLAUDE.md §6.3)
+* `layer2_storage_coupling_detected` — non-Layer-2 code importing `layer2.db` or referencing `layer2_truth.db`
+
+Layer-2 files are exempt from raw observation access and storage coupling checks.
+`latest` snapshot misuse is forbidden everywhere.
+
+\---
+
+### `adapter\_schema\_guard.py`
+
+**Hook event:** PostToolUse (Edit | Write)
+**Layer:** C — Runtime Schema Integrity
+**Action:** warn (exit 1) or block (exit 2)
+**Scope predicate:** `adapter_registry_scope` (`layer2/adapters/**`, `layer2/config/**`)
+**Blocking conditions raised:** `registry_violation`, `schema_drift_detected`
+**Artifact written:** `adapter_schema_verdict`
+
+**What it enforces**
+
+* `registry_driven` (positive check) — adapter must import from `layer2.config.registry` or reference the registry
+* `hardcoded_series_detected` — inline series ID lists, dicts, or per-series conditionals
+* `implicit_interpretation_detected` — inline tier, staleness\_days, blocks\_snapshot, frequency, or include\_in\_snapshot assignments
+
+Blocks (exit 2) when no registry usage is found at all.
+Warns (exit 1) when violations appear alongside registry usage.
+
+\---
+
+### `live\_readiness\_claim\_blocker.py`
+
+**Hook event:** PostToolUse (Edit | Write)
+**Layer:** B — Architecture Phase Contract
+**Action:** block on match
+**Blocking conditions raised:** `unsupported_current_state_claim`
+**Artifact written:** `stage_gate_report`
+
+**What it enforces**
+
+* `live_readiness_claim_detected` — claims asserting Layer-3 existence, system live status, or live operation availability (forbidden until Phase D)
+* `execution_capability_claim_detected` — claims asserting execution readiness, automated decision-making, or trading/order/signal execution capability (forbidden until Phase D)
+* `production_ready_claim_detected` — assertions of production-readiness or external validation
+
+Applies a negation filter — lines with clear negation words in the ~50-character prefix before the match are excluded.
+Scans all non-governance-tooling files (code and documentation alike).
+
+\---
+
+### `role\_matched\_doc\_guard.py`
+
+**Hook event:** Stop (SubagentStop)
+**Layer:** A — Semantic Normalization
+**Action:** warn (exit 1) or block (exit 2)
+**Blocking conditions raised:** `role_mismatch_for_strong_claim`, `readme_layer2_used_as_override`, `canonical_conflict_unresolved`
+**Artifact consumed:** `role_citation_verdict`
+
+**What it enforces**
+
+* `role_mismatch` — a canonical document was cited for a claim whose role belongs to a different canonical document (CLAUDE.md §2.2, §2.4)
+* `readme_layer2_override` — README\_LAYER2.md was used to override a more role-specific canonical document on implementation state, architecture boundaries, or limitations
+
+Blocks (exit 2) when a violation is attached to a strong claim (CLAUDE.md §10).
+Warns (exit 1) otherwise.
+
+\---
+
+### `doc\_code\_sync\_guard.py`
+
+**Hook event:** Stop (SubagentStop)
+**Layer:** D — Audit Impact
+**Action:** warn only (exit 1)
+**Escalation target:** doc-code-sync-auditor subagent
+**Blocking conditions flagged:** `doc_code_drift_unresolved` (for pre-pr-governance-gate, not here)
+**Artifact consumed:** `doc_code_sync_status`
+
+**What it enforces**
+
+* `drift_detected` must be false
+* Drift types: `code_without_doc`, `doc_without_code`, or `both`
+
+Warning-only gate: does not block agent stop.
+Unresolved drift WILL block at `pre_pr_governance_gate` before commit or push.
+
+\---
+
+### `pre\_pr\_governance\_gate.py`
+
+**Hook event:** PreToolUse (Bash)
+**Layer:** E — Verification Hygiene / Release
+**Action:** block on fail
+**Self-filter:** only activates when command contains `git commit` or `git push`
+**Blocking conditions raised:** `governance_artifacts_incomplete`, `pr_readiness_checks_failed`
+
+**What it enforces**
+
+* All 14 always-required governance artifacts are present in `.claude/run/artifacts/`
+* Conditional artifacts are present based on active scope predicates inferred from staged files:
+
+  | Predicate | Trigger | Required artifact |
+  |-----------|---------|------------------|
+  | `runtime_code_scope` | any `layer2/` file staged | `runtime_boundary_verdict` |
+  | `adapter_registry_scope` | `layer2/adapters/` or `layer2/config/` staged | `adapter_schema_verdict` |
+  | `doc_update_required` | canonical document staged | `doc_update_plan` |
+  | `rename_only_change` | staged set is exclusively renames | `invariance_verdict` |
+  | `matrix_posture_affected` | verification matrix staged | `verification_matrix_delta` |
+
+* PR readiness checks from `pr_readiness_verdict`:
+  * `unsupported_strong_claims_remain` must be `false`
+  * `blocking_conditions_unresolved` must be `false`
+  * `required_canonical_docs_reviewed` must be `true`
+  * `canonical_references_updated` must be `true`
+  * `alias_map_present_for_renames` must be `true` (only when `rename_only_change` active)
+
+\---
+
+### Shell stubs
+
+Three shell hook stubs are present but not yet implemented:
+
+* `auto-format.sh`
+* `run-tests.sh`
+* `security-scan.sh`
+
+These are placeholder files and currently contain no logic.
+
+\---
+
+## 4\. Current Recognized Workflow Shape
 
 |Slice|Value|
 |-|-:|
@@ -530,12 +682,15 @@ python -m pytest tests/governance -q
 
 |Component|Status|Meaning|
 |-|-|-|
-|`hook\_bridge.py`|not implemented|read-only API over persisted run state|
+|`.claude/hooks/*.py`|**implemented**|six runtime enforcement hooks are in place and active|
+|`.claude/hooks/lib/artifact\_store.py`|**implemented**|shared artifact read/write contract used by all hooks|
+|`hook\_bridge.py`|not implemented|read-only API over persisted run state for hook consumption|
 |predicate runtime evaluation|partial|validation exists, true runtime condition evaluation does not|
 |artifact lifecycle handling|basic|no deeper missing / stale / blocked lifecycle|
 |blocker runtime events|partial|structural blocker analysis exists, runtime blocker event handling does not|
 |real skill execution|not implemented|executor is shell mode only|
 |integration tests|partial|unit-style coverage exists, end-to-end CLI integration is still missing|
+|shell hook stubs|not implemented|`auto-format.sh`, `run-tests.sh`, `security-scan.sh` are present but empty|
 
 \---
 
@@ -565,12 +720,16 @@ At minimum:
 
 ### Step 4 — Implement `hook\_bridge.py`
 
+The six runtime enforcement hooks in `.claude/hooks/` are now implemented and active.
+`hook\_bridge.py` is the missing link: it will allow those hooks to query the DAG runner's persisted run state through a stable read-only API rather than parsing the raw JSON themselves.
+
 First V1 version should expose read-only helpers over persisted run state:
 
 * `get\_final\_verdict()`
 * `has\_unresolved\_blocks()`
 * `get\_required\_artifact(name)`
 * `get\_recorded\_trace\_events()`
+* `get\_pr\_readiness()`
 
 ### Step 5 — Implement `artifacts.py`
 
@@ -609,7 +768,8 @@ DAG Runner v1 is currently:
 * CLI-runnable,
 * verdict-aware,
 * execution-capable in shell mode,
-* and able to persist a machine-readable governance run state.
+* able to persist a machine-readable governance run state,
+* and backed by six active runtime enforcement hooks covering the full governance enforcement surface.
 
 The most important sentence in one line:
 
