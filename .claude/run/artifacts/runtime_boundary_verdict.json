@@ -2,9 +2,9 @@
   "artifact": "runtime_boundary_verdict",
   "produced_by": "runtime-boundary-check",
   "session": "",
-  "timestamp": "2026-04-04T17:58:07.421064Z",
+  "timestamp": "2026-04-04T19:05:26.097128Z",
   "data": {
-    "file_path": "C:\\Code\\Mr-Ripley\\tests\\governance\\test_cli_integration.py",
+    "file_path": "C:\\Code\\Mr-Ripley\\tests\\governance\\test_predicates.py",
     "scanned": true,
     "layer2_file": false,
     "raw_observation_access_detected": false,
