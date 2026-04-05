@@ -135,6 +135,9 @@ def _artifact_record_map(
 
     Each record is guaranteed to have at least a 'name' key.
     Records that are not dicts or lack 'name' are skipped (defensive).
+
+    Private: internal helper. Consumers outside this module should use the
+    public `get_artifact_record()` helper instead.
     """
     records = _extract_artifact_records(run_state)
     return {
@@ -175,6 +178,24 @@ def _step_outputs_are_unconditionally_required(step: WorkflowStep) -> bool:
 # ---------------------------------------------------------------------------
 # Public API
 # ---------------------------------------------------------------------------
+
+
+def get_artifact_record(
+    run_state: GovernanceRunState | dict[str, Any],
+    name: str,
+) -> dict[str, Any] | None:
+    """
+    Return the normalized artifact record dict for the named artifact, or None
+    if the artifact is absent from the run state.
+
+    Supports both typed GovernanceRunState and persisted dict payloads.
+    Does not mutate run state.
+
+    Raises ArtifactStructureError if the run-state shape is malformed (same
+    structural exceptions that artifact normalization raises on malformed input).
+    """
+    record_map = _artifact_record_map(run_state)
+    return record_map.get(name)
 
 
 def artifact_exists(

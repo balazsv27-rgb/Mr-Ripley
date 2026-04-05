@@ -19,6 +19,7 @@ from governance.dag_runner.artifacts import (
     ArtifactStructureError,
     artifact_exists,
     build_artifact_summary,
+    get_artifact_record,
     get_missing_required_artifacts,
     get_required_artifacts,
 )
@@ -419,3 +420,36 @@ def test_build_artifact_summary_declared_vs_recorded_consistent_for_shell_run(fu
         f"Recorded but undeclared: {summary['recorded_but_undeclared_artifacts']}"
     )
     assert summary["declared_artifacts"] == summary["recorded_artifacts"]
+
+
+# ---------------------------------------------------------------------------
+# 13. get_artifact_record() — public helper
+# ---------------------------------------------------------------------------
+
+
+def test_get_artifact_record_returns_record_dict_for_present_artifact_in_typed_state() -> None:
+    record = _make_artifact_record("governance_context", status="present")
+    run_state = _make_run_state({"governance_context": record})
+    result = get_artifact_record(run_state, "governance_context")
+    assert result is not None
+    assert result["name"] == "governance_context"
+    assert result["status"] == "present"
+
+
+def test_get_artifact_record_returns_none_for_absent_artifact_in_typed_state() -> None:
+    run_state = _make_run_state({})
+    result = get_artifact_record(run_state, "governance_context")
+    assert result is None
+
+
+def test_get_artifact_record_returns_record_dict_for_present_artifact_in_dict_payload() -> None:
+    run_state = _dict_run_state(_dict_record("governance_context", "present"))
+    result = get_artifact_record(run_state, "governance_context")
+    assert result is not None
+    assert result["name"] == "governance_context"
+    assert result["status"] == "present"
+
+
+def test_get_artifact_record_raises_structure_error_on_malformed_dict_payload() -> None:
+    with pytest.raises(ArtifactStructureError):
+        get_artifact_record({"some_key": "not_artifact_records"}, "governance_context")

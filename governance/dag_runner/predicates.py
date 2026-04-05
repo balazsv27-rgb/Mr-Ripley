@@ -40,8 +40,8 @@ from dataclasses import dataclass, field
 from typing import Any
 
 from governance.dag_runner.artifacts import (
-    _artifact_record_map,
     artifact_exists,
+    get_artifact_record,
 )
 from governance.dag_runner.models import GovernanceRunState
 
@@ -159,11 +159,10 @@ def _get_artifact_record(
     """
     Return the artifact record dict for the named artifact, or None if absent.
 
-    Delegates normalization to artifacts._artifact_record_map so input handling
+    Delegates to the public artifacts.get_artifact_record() so input handling
     remains in the canonical artifact-policy module.
     """
-    record_map = _artifact_record_map(run_state)
-    return record_map.get(name)
+    return get_artifact_record(run_state, name)
 
 
 def _extract_field_value(record: dict[str, Any], field_name: str) -> tuple[Any, bool]:
