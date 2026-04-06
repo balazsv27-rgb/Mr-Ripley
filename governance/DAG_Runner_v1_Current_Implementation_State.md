@@ -9,14 +9,16 @@ It can:
 * load the root orchestration workflow,
 * resolve and load the workflow package set,
 * assemble a typed workflow specification,
-* validate the structure fail-closed,
+* validate the structure fail-closed (including `validates` tokens and predicate references),
 * compute a topological execution plan,
-* analyze blocker coverage and references,
-* compute a governance verdict,
-* execute the workflow in V1 shell mode,
+* analyze blocker coverage and references (structural and runtime),
+* compute a structural governance verdict,
+* execute the workflow in V1 shell mode with condition/`skip_if` evaluation and SKIP semantics,
+* populate runtime `BlockingEvent` records from step execution,
+* compute a runtime-aware governance verdict,
 * query artifact policy (required artifacts, presence, summaries),
 * evaluate structured predicate conditions against run state,
-* persist the run state into JSON,
+* persist the run state into JSON including compact top-level readiness fields,
 * and expose a read-only bridge API for hook consumption.
 
 This implementation is not a trading engine, not an MCP orchestration layer, and not a true skill-execution runtime. It is the executable governance layer that turns the package-based specification into a testable runtime surface.
@@ -49,6 +51,7 @@ tests/
     ├── test_loader.py
     ├── test_assembler.py
     ├── test_validator.py
+    ├── test_validator_failures.py
     ├── test_planner.py
     ├── test_blockers.py
     ├── test_verdict.py
@@ -188,7 +191,25 @@ python -c "from governance.dag_runner.loader import load_workflow_packages; from
 * validates component references
 * validates supported condition / `skip_if` structures
 * detects dependency cycles
+* validates `validates` tokens against declared blocking conditions and known governance property constants
+* validates named predicate references (`type: "predicate_ref"`) against declared predicates in `spec.predicates`
 * fails closed when the spec is invalid
+
+**Allowed condition types (V1)**
+
+| Type | Category |
+|---|---|
+| `artifact_field_equals` | inline structured condition |
+| `artifact_field_not_equals` | inline structured condition |
+| `artifact_exists` | inline structured condition |
+| `artifact_missing` | inline structured condition |
+| `predicate_ref` | named predicate reference — requires `name` key resolving to `spec.predicates` |
+
+**`validates` token source of truth (V1)**
+
+Union of:
+1. All declared blocking condition IDs from `spec.blocking_conditions`
+2. `_KNOWN_VALIDATES_TOKENS` — a hardcoded frozenset of 15 governance property constants in `validator.py` (invariants validated by workflow steps that are not tied to a `BlockingCondition`)
 
 **How to test**
 
@@ -233,10 +254,11 @@ python -c "from governance.dag_runner.loader import load_workflow_packages; from
 
 ### `governance/dag_runner/blockers.py`
 
-**Purpose:** Analyzes the relationship between the blocker registry and workflow step `raises` references.
-             Currently: structural analysis only (not enforcement), a registry integrity checker, not a runtime gatekeeper.
+**Purpose:** Analyzes the relationship between the blocker registry and workflow step `raises` references
+             (structural analysis), and analyzes runtime blocking events recorded during execution
+             (runtime analysis).
 
-**What it does**
+**What it does — structural analysis**
 
 * collects declared blockers
 * collects referenced blockers from planned steps
@@ -244,13 +266,23 @@ python -c "from governance.dag_runner.loader import load_workflow_packages; from
 * detects unknown blocker references
 * reports structural consistency
 
+**What it does — runtime analysis**
+
+* `analyze_runtime_blockers(run_state, spec) -> RuntimeBlockerSummary`
+  * validates all recorded `BlockingEvent` IDs against the declared registry (fails closed on unknown IDs)
+  * returns `raised_blockers`, `unresolved_blockers`, `fatal_unresolved_blockers`
+  * returns counts and boolean flags (`has_unresolved`, `has_fatal_unresolved`)
+  * returns `raised_by_step` map
+* `has_unresolved_fatal_blocks(run_state, spec) -> bool`
+  * convenience wrapper — True when any unresolved blocking event has `halts_workflow=True`
+
 **How to test**
 
 ```bash
 python -c "from governance.dag_runner.loader import load_workflow_packages; from governance.dag_runner.assembler import assemble_workflow_spec; from governance.dag_runner.validator import validate_or_raise; from governance.dag_runner.planner import build_execution_plan; from governance.dag_runner.blockers import analyze_blockers; loaded=load_workflow_packages(); spec=assemble_workflow_spec(loaded); validate_or_raise(spec); plan=build_execution_plan(spec); summary=analyze_blockers(spec, plan); print(len(summary.declared_blockers), len(summary.referenced_blockers), len(summary.orphan_blockers), len(summary.unknown_references), summary.is_structurally_consistent)"
 ```
 
-**Current result**
+**Current structural result**
 
 * declared blockers: `12`
 * referenced blockers: `17`
@@ -258,20 +290,42 @@ python -c "from governance.dag_runner.loader import load_workflow_packages; from
 * unknown references: `0`
 * structurally consistent: `True`
 
+**Current runtime result (clean shell run)**
+
+* raised blockers: `0`
+* unresolved blockers: `0`
+* fatal unresolved: `0`
+
 ---
 
 ### `governance/dag_runner/verdict.py`
 
 **Purpose:** Computes the governance verdict from validation and blocker analysis.
-             Converts validation + blocker analysis into a governance verdict.
-             The first "decision layer" in the system.
+             Provides both a structural verdict (pre-execution) and a runtime-aware verdict
+             (post-execution, consults run state and artifact presence).
 
-**Current V1 logic**
+**Structural verdict logic (`compute_structural_verdict` / `compute_verdict`)**
 
 * validation failure → `blocked`
 * unknown blocker references → `blocked`
-* structural warning conditions → `review_only`
+* orphan blockers → `review_only`
 * otherwise → `ready`
+
+**Runtime-aware verdict logic (`compute_runtime_verdict`)**
+
+Evaluation order:
+1. structural invalidity → `blocked`
+2. unknown structural blocker refs → `blocked`
+3. fatal unresolved runtime blockers → `blocked`
+4. non-fatal unresolved runtime blockers → `review_only`
+5. required outputs not present → `review_only`
+6. workflow not complete (no `run_completed` trace event) → `review_only`
+7. structural orphan blockers → `review_only`
+8. all clean → `ready`
+
+**Additional exports**
+
+* `is_workflow_complete(run_state) -> bool` — True when `run_completed` trace event is present
 
 **How to test**
 
@@ -289,19 +343,24 @@ ready ['Validation passed and blocker structure is consistent.']
 
 ### `governance/dag_runner/executor.py`
 
-**Purpose:** builds the runtime state and executes the planned workflow in V1 shell mode.
+**Purpose:** Builds the runtime state and executes the planned workflow in V1 shell mode.
 
 **Important note**
-This is not true skill execution. It is a trace-producing shell runtime.
+This is not true skill execution. It is a trace-producing shell runtime with real condition evaluation and SKIP semantics.
 
 **What it does**
 
 * walks the planned nodes in order
 * builds a `GovernanceRunState`
-* records `NodeResult` entries
+* evaluates `condition` before executing each node — if unmatched, emits `SKIP`
+* evaluates `skip_if` after `condition` — if matched, emits `SKIP`
+* records `condition_evaluated` and `skip_if_evaluated` trace events during evaluation
+* records `step_skipped` trace event when a node is skipped
+* records `NodeResult` entries (status: `PASS` or `SKIP`)
 * records `ExecutionTraceEvent` entries
-* materializes artifact records
+* materializes artifact records (skipped steps produce no artifacts)
 * stores the final verdict into the run state
+* populates `run_state.blocking_conditions` with runtime `BlockingEvent` objects (via `_raise_blocking_event`)
 
 **How to test**
 
@@ -312,9 +371,10 @@ python -c "from governance.dag_runner.loader import load_workflow_packages; from
 **Current result**
 
 * final verdict: `ready`
-* node results: `18`
-* execution trace events: `38`
-* artifacts: `19`
+* node results: `18` (17 PASS + 1 SKIP — `rename-invariance-check` is skipped when condition is not met)
+* execution trace events: `39`
+* artifacts recorded: `18` (skipped step produces no artifact)
+* runtime blocking conditions: `0` (clean run)
 
 ---
 
@@ -444,9 +504,10 @@ All other predicate types raise `UnsupportedPredicateError`.
 
 **`get_pr_readiness` resolution order**
 
-1. top-level `pr_readiness` dict
-2. artifact named `pr_readiness_verdict` in `artifact_records`
-3. `None`
+1. top-level `pr_readiness` string (Phase 3 compact contract) — returned as `{"status": value}`
+2. top-level `pr_readiness` dict (legacy dict form)
+3. artifact named `pr_readiness_verdict` in `artifact_records`
+4. `None`
 
 **Exceptions**
 
@@ -469,6 +530,8 @@ python -c "from governance.dag_runner.hook_bridge import get_final_verdict; prin
 
 **Purpose:** Persists the current run into machine-readable JSON.
              This is the serialization boundary of the runtime.
+             As of Phase 3, also exposes a compact top-level readiness contract for hooks and CI consumers.
+
 **What it does**
 
 * stores workflow summary
@@ -480,6 +543,17 @@ python -c "from governance.dag_runner.hook_bridge import get_final_verdict; prin
 * stores node results
 * stores artifact records
 * stores execution trace
+* derives and stores compact top-level readiness fields from existing runtime analysis modules
+
+**Compact top-level readiness fields (Phase 3 hook-facing contract)**
+
+| Field | Type | Derivation |
+|---|---|---|
+| `workflow_completed` | `bool` | `is_workflow_complete(run_state)` — checks for `run_completed` trace event |
+| `required_outputs_present` | `bool` | `artifacts.build_artifact_summary(...)["required_outputs_present"]` |
+| `unresolved_blocking_conditions` | `list[dict]` | Unresolved `BlockingEvent` objects serialized to `{blocking_id, raised_by, severity, resolved, message}` |
+| `fatal_unresolved_block_count` | `int` | `blockers.analyze_runtime_blockers(...).total_fatal_unresolved` |
+| `pr_readiness` | `str` | Mapped from `compute_runtime_verdict(...)` status: `"ready"`, `"review_only"`, or `"blocked"` |
 
 **Primary output**
 
@@ -532,7 +606,7 @@ python -m governance.dag_runner.cli --show-steps --write-state
 * Validation: `PASS`
 * Planned steps: `18`
 * Executed steps: `18`
-* Recorded trace events: `38`
+* Recorded trace events: `39`
 * Verdict: `READY`
 
 ---
@@ -730,6 +804,19 @@ These are placeholder files and currently contain no logic.
 4. `route-claims-by-role`
 5. `phase-check`
 
+### Current runtime execution summary
+
+| Metric | Value |
+|-|-:|
+| PASS nodes | 17 |
+| SKIP nodes | 1 (`rename-invariance-check` — condition not met) |
+| Trace events | 39 |
+| Artifacts recorded | 18 (skipped step produces no artifact) |
+| Runtime blocking conditions | 0 (clean run) |
+| Workflow completed | `True` |
+| Required outputs present | `True` |
+| PR readiness | `ready` |
+
 ---
 
 ## 5. Tests and Results
@@ -738,18 +825,19 @@ These are placeholder files and currently contain no logic.
 
 ```text
 tests/governance/
-├── test_loader.py            (  1 test)
-├── test_assembler.py         (  1 test)
-├── test_validator.py         (  1 test)
-├── test_planner.py           (  1 test)
-├── test_blockers.py          (  1 test)
-├── test_verdict.py           (  1 test)
-├── test_executor.py          (  1 test)
-├── test_state_store.py       (  8 tests)
-├── test_cli_integration.py   ( 13 tests)
-├── test_artifacts.py         ( 33 tests)
-├── test_predicates.py        ( 34 tests)
-└── test_hook_bridge.py       ( 28 tests)
+├── test_loader.py              (  1 test)
+├── test_assembler.py           (  1 test)
+├── test_validator.py           (  1 test)
+├── test_validator_failures.py  ( 24 tests)
+├── test_planner.py             (  1 test)
+├── test_blockers.py            ( 15 tests)
+├── test_verdict.py             ( 16 tests)
+├── test_executor.py            ( 21 tests)
+├── test_state_store.py         ( 13 tests)
+├── test_cli_integration.py     ( 13 tests)
+├── test_artifacts.py           ( 33 tests)
+├── test_predicates.py          ( 34 tests)
+└── test_hook_bridge.py         ( 31 tests)
 ```
 
 ### What each test covers
@@ -766,21 +854,68 @@ Checks that the typed spec assembles successfully and the current counts match e
 
 Checks that the current assembled workflow validates cleanly with zero issues.
 
+#### `test_validator_failures.py`
+
+Focused negative fixture suite — all tests use inline-constructed `AssembledWorkflowSpec` fixtures (no disk I/O, no YAML loading):
+
+* **missing dependency** — step referencing a nonexistent `depends_on` target fires `missing_dependency`
+* **missing skill reference** — `component: skill:unknown` fires `unknown_skill_component`; declared skill passes
+* **missing blocker reference** — `raises` referencing undeclared blocker fires `unknown_blocking_condition`; declared blocker passes
+* **unsupported condition structure** — unrecognized `type`, non-dict condition, unsupported `skip_if` type each fire the appropriate issue; valid inline conditions are not flagged
+* **dependency cycle** — direct two-step A→B, B→A cycle fires `dependency_cycle`; self-referential step fires invalid
+* **invalid `validates` token** — unknown governance token fires `unknown_validates_token` with token detail; blocking condition IDs and empty lists pass cleanly
+* **invalid predicate reference** — undeclared `predicate_ref` name fires `unknown_predicate_reference`; missing `name` key fires `invalid_predicate_reference`; declared predicate passes in both `condition` and `skip_if`
+* **multiple issues accumulated** — step with three simultaneous problems yields ≥3 issues; issues from multiple steps are all reported
+* **real workflow sanity check** — current real workflow still validates cleanly after all expansions
+
 #### `test_planner.py`
 
 Checks that the execution plan builds successfully and the topological order starts with the expected five steps.
 
 #### `test_blockers.py`
 
-Checks that there are 12 declared blockers, 17 references, 0 orphans, 0 unknown references, and the structure is consistent.
+Covers:
+
+* structural analysis against current real workflow (12 declared, 17 referenced, 0 orphans, 0 unknown, consistent)
+* `analyze_runtime_blockers` with empty state returns zero counts
+* resolved blockers are not counted as unresolved
+* unresolved non-fatal blockers appear in `unresolved_blockers` but not `fatal_unresolved_blockers`
+* unresolved fatal blockers appear in both lists
+* `fatal` vs `non-fatal` classification is driven by `BlockingCondition.halts_workflow`
+* `raised_by_step` map is populated correctly
+* per-step deduplication of blocker IDs
+* unknown blocker ID raises `BlockerError` (fail-closed)
+* `has_unresolved_fatal_blocks` convenience wrapper — False for empty / non-fatal / resolved, True for fatal unresolved
+* integration: shell run produces zero runtime blockers
 
 #### `test_verdict.py`
 
-Checks that the current workflow verdict is `ready`.
+Covers:
+
+* `compute_structural_verdict` — ready, blocked on validation failure, blocked on unknown refs, review_only on orphans
+* `compute_verdict` backward-compat wrapper matches structural verdict
+* `compute_runtime_verdict` — blocked on validation failure, blocked on unknown blocker refs, blocked on fatal unresolved blocker, not blocked when fatal blocker resolved, review_only on non-fatal unresolved, review_only on missing required artifacts, review_only when workflow not complete, review_only on structural orphan blockers, ready when all clean
+* integration: runtime verdict is `ready` for full shell run
 
 #### `test_executor.py`
 
-Checks that the V1 shell executor records 18 node results, 38 trace events, and 19 artifact records.
+Covers:
+
+* V1 shell run produces expected node results, trace events, and artifacts
+* `condition_evaluated` trace event is emitted for the real workflow's conditional step
+* `step_skipped` trace event is present in real workflow (rename-invariance-check)
+* `blocking_conditions` is empty for the clean real workflow
+* step without predicates executes as PASS
+* matched `condition` → PASS; unmatched `condition` → SKIP with correct trace events
+* unmatched `condition` SKIP result has empty `produced_artifacts`
+* unmatched `skip_if` → PASS; matched `skip_if` → SKIP with correct trace events
+* `condition` evaluated before `skip_if`; both evaluated when `condition` passes but `skip_if` fails
+* malformed `condition` raises `ExecutorError` (fail-closed)
+* malformed `skip_if` raises `ExecutorError` (fail-closed)
+* unsupported `condition` type raises `ExecutorError`
+* unsupported `skip_if` type raises `ExecutorError`
+* `BlockingEvent` objects are populated via the blocking helper
+* condition-triggered SKIP and skip_if-triggered SKIP produce no blocking conditions
 
 #### `test_state_store.py`
 
@@ -788,12 +923,17 @@ Verifies the persisted JSON contract:
 
 * file is written as valid JSON
 * verdict fields (`verdict_status`, `verdict_reasons`, `final_verdict`) are present and correct
-* execution trace is present with correct shape and event types
+* execution trace is present with correct shape and event types (`run_started`, `run_completed`)
 * node results are present with correct shape and valid statuses
 * artifact records are present with correct shape
 * run and workflow metadata fields are present and match expected values
 * blocker summary fields are present and correct
 * count fields are internally consistent (each count matches the length of its corresponding list)
+* compact readiness fields are present (`workflow_completed`, `required_outputs_present`, `unresolved_blocking_conditions`, `fatal_unresolved_block_count`, `pr_readiness`)
+* compact readiness field types are correct
+* clean workflow persists a clean ready state: `workflow_completed=True`, `required_outputs_present=True`, `fatal_unresolved_block_count=0`, `pr_readiness="ready"`, `unresolved_blocking_conditions=[]`
+* compact readiness fields are internally consistent with detailed runtime content
+* all pre-Phase-3 detailed fields remain present (backward compatibility)
 
 #### `test_cli_integration.py`
 
@@ -832,7 +972,8 @@ Covers:
 * `get_final_verdict` — priority order, blocked, `None` when both null
 * `get_required_artifact` — returns record, returns None for absent
 * `get_recorded_trace_events` — list contents, empty list, copy isolation
-* `get_pr_readiness` — resolves from artifact, prefers top-level, returns None when absent
+* `get_pr_readiness` — resolves from artifact, prefers top-level dict, returns None when absent
+* `get_pr_readiness` — Phase 3 compact string field wrapped as `{"status": value}`; string takes priority over artifact fallback; dict form remains backward compatible
 * `has_unresolved_blocks` — True on unknown references, True on blocked verdict, False when clean, False on `review_only`
 * `_extract_blocking_conditions` — fails closed when no blocker structure and no verdict
 * exception hierarchy (`RunStateNotFoundError`, `RunStateDecodeError`, `RunStateStructureError` are all `HookBridgeError`)
@@ -841,7 +982,7 @@ Covers:
 ### Current test result
 
 ```text
-123 passed in ~3s
+204 passed in ~3s
 ```
 
 ### Full test command
@@ -856,13 +997,16 @@ python -m pytest tests/governance -q
 
 `governance_run_state.json` currently contains:
 
+**Workflow and structural metadata**
 * workflow metadata (name, file, loaded packages)
 * workflow shape counts (steps, skills, artifacts, blockers, stage gates, subagents)
 * validation status and issue list
 * blocker summary counts (declared, referenced, orphan, unknown, structurally consistent)
-* verdict status and reasons
-* final verdict
+* structural verdict status and reasons
 * execution order
+
+**Runtime execution metadata**
+* final verdict
 * run id
 * started_at timestamp
 * recorded node result count
@@ -872,74 +1016,108 @@ python -m pytest tests/governance -q
 * artifact record list (with name, producer_step, status, payload)
 * execution trace list (with timestamp, node_name, event_type, detail)
 
+**Compact top-level readiness fields (Phase 3 — hook-facing contract)**
+* `workflow_completed` — bool
+* `required_outputs_present` — bool
+* `unresolved_blocking_conditions` — list of serialized runtime blocking events
+* `fatal_unresolved_block_count` — int
+* `pr_readiness` — string: `"ready"`, `"review_only"`, or `"blocked"`
+
 ---
 
 ## 7. What Is Still Missing
 
 | Component | Status | Meaning |
 |-|-|-|
-| Executor condition/`skip_if` evaluation | not implemented | executor records PASS for every step; conditions are not evaluated at runtime |
-| Runtime `BlockingEvent` population | not implemented | `run_state.blocking_conditions` is never populated from actual runtime events |
-| Runtime-aware verdict | not implemented | verdict is computed from structural analysis only, not from runtime block state or artifact presence |
-| Compact hook-facing fields in state JSON | not implemented | hooks must re-derive readiness from raw trace rather than reading top-level summary fields |
-| Real skill execution | not implemented | executor is shell mode only |
-| Validator predicate/validates expansion | not implemented | validator does not yet check predicate references or `validates` tokens |
+| Real skill execution | not implemented | executor is shell mode only; all steps record PASS/SKIP via structural simulation |
 | Shell hook stubs | not implemented | `auto-format.sh`, `run-tests.sh`, `security-scan.sh` are present but empty |
-| Negative fixture test suite | not implemented | no `test_validator_failures.py` with fixture-based failure cases |
+| Runtime artifact hygiene expansion | not implemented | `runtime-artifact-hygiene-check` skill and broader workspace hygiene enforcement beyond the current hook |
+| Negative integration suite | not implemented | no end-to-end negative test covering full pipeline under failure conditions (invalid spec, blocked verdict, skipped artifacts) |
 
 ---
 
-## 8. Recommended Next Steps
+## 8. Completed Phases
 
-### Phase 1 — Executor runtime semantics
+### Phase 1 — Executor runtime semantics ✓
 
-Evaluate supported `condition` and `skip_if` forms before executing each node. Emit `SKIP` when the skip condition is satisfied. Record real `BlockingEvent` objects into `run_state.blocking_conditions`. Record condition evaluation in the execution trace.
+Implemented `condition` and `skip_if` evaluation before executing each node.
+Emits `SKIP` when the skip condition is satisfied or the run condition is not met.
+Records `condition_evaluated`, `skip_if_evaluated`, and `step_skipped` trace events.
+Populates `run_state.blocking_conditions` via `_raise_blocking_event`.
+Malformed or unsupported conditions raise `ExecutorError` (fail-closed).
 
-Suggested helpers:
-* `_evaluate_condition(condition, run_state) -> tuple[bool, dict]`
-* `_evaluate_skip_if(skip_if, run_state) -> tuple[bool, dict]`
-* `_raise_blocking_events(step, run_state) -> None`
+### Phase 2 — Runtime blocker analysis and runtime-aware verdict ✓
 
-Acceptance criteria: a satisfied `skip_if` produces `NodeResult.status == "SKIP"`, unsupported runtime condition fails closed, `run_state.blocking_conditions` is populated.
+Added `analyze_runtime_blockers(run_state, spec) -> RuntimeBlockerSummary` to `blockers.py`.
+Added `has_unresolved_fatal_blocks(run_state, spec) -> bool`.
+Added `compute_runtime_verdict(...)` to `verdict.py` — evaluates execution state, artifact presence, and blocker resolution.
+Exposed `is_workflow_complete(run_state) -> bool`.
 
-### Phase 2 — Runtime blocker analysis and runtime-aware verdict
+### Phase 3 — Richer hook contract in `state_store.py` ✓
 
-Add `analyze_runtime_blockers(run_state, spec) -> RuntimeBlockerSummary` to `blockers.py`. Add `has_unresolved_fatal_blocks(...) -> bool`. Split verdict into structural and runtime forms in `verdict.py`. Runtime unresolved fatal block → `blocked`. Missing required artifact → `blocked` or `review_only` per policy.
+Added compact top-level readiness fields to the persisted JSON:
+`workflow_completed`, `required_outputs_present`, `unresolved_blocking_conditions`, `fatal_unresolved_block_count`, `pr_readiness`.
+Fields are derived from `artifacts.build_artifact_summary`, `blockers.analyze_runtime_blockers`, and `verdict.compute_runtime_verdict`.
+Updated `hook_bridge._extract_pr_readiness` to handle Phase 3 compact string field.
+All pre-Phase-3 fields remain present (backward compatible).
 
-### Phase 3 — Richer hook contract in `state_store.py`
+### Phase 4 — Validator expansion ✓
 
-Add compact top-level fields to the persisted JSON so hooks can read readiness without re-deriving from the raw trace:
+Added `_validate_step_validates(spec)` — rejects unknown `validates` tokens (code: `unknown_validates_token`).
+Added `_validate_predicate_references(spec)` — rejects undeclared `predicate_ref` names (codes: `unknown_predicate_reference`, `invalid_predicate_reference`).
+Added `predicate_ref` to supported condition types in `_is_supported_condition`.
+Added `_KNOWN_VALIDATES_TOKENS` frozenset (15 governance property constants) as the V1 static token registry.
+Source of truth for allowed validates tokens: `spec.blocking_conditions.keys()` ∪ `_KNOWN_VALIDATES_TOKENS`.
 
-* `workflow_completed: bool`
-* `required_outputs_present: bool`
-* `unresolved_blocking_conditions: list[...]`
-* `fatal_unresolved_block_count: int`
-* `pr_readiness: str`
+### Phase 5 — Negative fixture test suite ✓
 
-### Phase 4 — Validator expansion
-
-Add `_validate_step_validates()` and `_validate_predicate_references()` to `validator.py`. Unknown `validates` tokens and unknown predicate references should fail validation.
-
-### Phase 5 — Negative fixture test suite
-
-Add `tests/governance/test_validator_failures.py` with fixture-based failures for: missing dependency, missing skill reference, missing blocker reference, unsupported condition structure, dependency cycle, invalid `validates` token, invalid predicate reference.
+Created `tests/governance/test_validator_failures.py` (24 tests).
+Covers all required failure cases: missing dependency, missing skill reference, missing blocker reference, unsupported condition structure, dependency cycle, invalid `validates` token, invalid predicate reference.
+All tests use inline-constructed `AssembledWorkflowSpec` fixtures — no disk I/O, no YAML loading, no CLI required.
+Includes positive counterparts (declared references pass), multi-issue accumulation, and a real workflow sanity check.
 
 ---
 
-## 9. Final Summary
+## 9. Recommended Next Steps
+
+### Next — Negative integration suite
+
+Add `tests/governance/test_pipeline_failures.py` (or similar) with end-to-end pipeline tests covering:
+* invalid workflow spec fed through the full load→assemble→validate→plan pipeline
+* blocked verdict propagated through executor and state store
+* runtime blocking event triggering `review_only` or `blocked` verdict
+* missing required artifact producing non-ready `pr_readiness`
+
+These would complement the unit-level negative fixtures in `test_validator_failures.py` with integration-level negative evidence.
+
+### Later — Shell hook stub completion
+
+Implement `auto-format.sh`, `run-tests.sh`, `security-scan.sh` with real logic.
+
+### Later — Runtime artifact hygiene expansion
+
+Expand workspace hygiene enforcement beyond the current `runtime-artifact-hygiene-check` skill stub.
+
+---
+
+## 10. Final Summary
 
 DAG Runner v1 is currently:
 
 * operational,
-* tested (123 tests across 12 test files),
+* tested (204 tests across 13 test files),
 * CLI-runnable (with `--show-steps`, `--write-state`, `--state-path`),
-* verdict-aware,
-* execution-capable in shell mode,
+* verdict-aware (both structural and runtime-aware),
+* execution-capable in shell mode with real condition/`skip_if` evaluation and SKIP semantics,
+* runtime-blocker-aware (BlockingEvent population, fatal/non-fatal classification),
 * backed by a public artifact policy module (`artifacts.py`),
 * backed by a runtime predicate evaluator (`predicates.py`),
 * backed by a read-only hook bridge (`hook_bridge.py`),
+* backed by a compact top-level readiness contract in `governance_run_state.json`,
+* backed by a hardened static validator (validates tokens, predicate references, dependency cycles, component refs),
+* backed by a negative fixture suite proving validator fail-closed behavior,
 * and backed by six active runtime enforcement hooks covering the full governance enforcement surface.
 
 The most important single-sentence summary:
 
-> **The governance specification has been translated into a runnable, validatable, plannable, blocker-aware, verdict-producing, artifact-queryable, predicate-evaluating, hook-readable, persisted V1 runtime shell.**
+> **The governance specification has been translated into a runnable, validatable, plannable, blocker-aware (structural and runtime), verdict-producing (structural and runtime-aware), artifact-queryable, predicate-evaluating, hook-readable, compact-readiness-persisted, statically-hardened V1 runtime shell.**
