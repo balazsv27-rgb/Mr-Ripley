@@ -2,7 +2,7 @@
 
 ## Executive Summary
 
-`governance/dag\_runner/` is now a working V1 governance runtime shell for Mr. Ripley.
+`governance/dag_runner/` is a working V1 governance runtime shell for Mr. Ripley.
 
 It can:
 
@@ -14,18 +14,21 @@ It can:
 * analyze blocker coverage and references,
 * compute a governance verdict,
 * execute the workflow in V1 shell mode,
-* and persist the run state into JSON.
+* query artifact policy (required artifacts, presence, summaries),
+* evaluate structured predicate conditions against run state,
+* persist the run state into JSON,
+* and expose a read-only bridge API for hook consumption.
 
 This implementation is not a trading engine, not an MCP orchestration layer, and not a true skill-execution runtime. It is the executable governance layer that turns the package-based specification into a testable runtime surface.
 
-\---
+---
 
-## 1\. Repository Structure
+## 1. Repository Structure
 
 ```text
 governance/
-└── dag\_runner/
-    ├── \_\_init\_\_.py
+└── dag_runner/
+    ├── __init__.py
     ├── models.py
     ├── loader.py
     ├── assembler.py
@@ -34,43 +37,51 @@ governance/
     ├── blockers.py
     ├── verdict.py
     ├── executor.py
-    ├── state\_store.py
+    ├── artifacts.py
+    ├── predicates.py
+    ├── hook_bridge.py
+    ├── state_store.py
     ├── cli.py
-    └── dag\_runner\_v\_1\_blueprint.md
+    └── dag_runner_v_1_blueprint.md
 
 tests/
 └── governance/
-    ├── test\_loader.py
-    ├── test\_assembler.py
-    ├── test\_validator.py
-    ├── test\_planner.py
-    ├── test\_blockers.py
-    ├── test\_verdict.py
-    └── test\_executor.py
+    ├── test_loader.py
+    ├── test_assembler.py
+    ├── test_validator.py
+    ├── test_planner.py
+    ├── test_blockers.py
+    ├── test_verdict.py
+    ├── test_executor.py
+    ├── test_state_store.py
+    ├── test_cli_integration.py
+    ├── test_artifacts.py
+    ├── test_predicates.py
+    └── test_hook_bridge.py
 ```
 
-\---
+---
 
-## 2\. Code File Inventory
+## 2. Code File Inventory
 
-### `governance/dag\_runner/\_\_init\_\_.py`
+### `governance/dag_runner/__init__.py`
 
-**Purpose:** package entry point.  
+**Purpose:** package entry point.
 **Status:** technical support file.
 
 **How to test**
 
 ```bash
-python -c "import governance.dag\_runner; print('package ok')"
+python -c "import governance.dag_runner; print('package ok')"
 ```
 
-\---
+---
 
-### `governance/dag\_runner/models.py`
+### `governance/dag_runner/models.py`
 
 **Purpose:** Defines the typed data model used across the DAG runner.
              This is the canonical type system of the DAG runtime.
-             These are not “static properties” — they are the contract boundary between every module.
+             These are not "static properties" — they are the contract boundary between every module.
 **Key models**
 
 * `ManifestSpec`
@@ -92,7 +103,7 @@ python -c "import governance.dag\_runner; print('package ok')"
 **How to test**
 
 ```bash
-python -c "from governance.dag\_runner.models import GovernanceRunState, WorkflowStep; print('models ok')"
+python -c "from governance.dag_runner.models import GovernanceRunState, WorkflowStep; print('models ok')"
 ```
 
 **Expected result**
@@ -101,12 +112,12 @@ python -c "from governance.dag\_runner.models import GovernanceRunState, Workflo
 models ok
 ```
 
-\---
+---
 
-### `governance/dag\_runner/loader.py`
+### `governance/dag_runner/loader.py`
 
 **Purpose:** Loads the root workflow YAML and all referenced workflow package YAML files.
-             Transforms external YAML into raw in-memory structures.   
+             Transforms external YAML into raw in-memory structures.
 **What it does**
 
 * reads `.claude/workflows/system-orchestration.yaml`
@@ -117,7 +128,7 @@ models ok
 **How to test**
 
 ```bash
-python -c "from governance.dag\_runner.loader import load\_workflow\_packages; r=load\_workflow\_packages(); print(r.manifest.workflow\_name, len(r.packages))"
+python -c "from governance.dag_runner.loader import load_workflow_packages; r=load_workflow_packages(); print(r.manifest.workflow_name, len(r.packages))"
 ```
 
 **Current result**
@@ -125,12 +136,12 @@ python -c "from governance.dag\_runner.loader import load\_workflow\_packages; r
 * workflow name: `mr-ripley-governance-orchestration`
 * loaded packages: `13`
 
-\---
+---
 
-### `governance/dag\_runner/assembler.py`
+### `governance/dag_runner/assembler.py`
 
 **Purpose:** Assembles loaded workflow packages into a typed compiled workflow specification.
-             This is the compiler’s “linker” phase, where the declarative system becomes a structured program.   
+             This is the compiler's "linker" phase, where the declarative system becomes a structured program.
 **What it does**
 
 * extracts package `data` sections
@@ -148,7 +159,7 @@ python -c "from governance.dag\_runner.loader import load\_workflow\_packages; r
 **How to test**
 
 ```bash
-python -c "from governance.dag\_runner.loader import load\_workflow\_packages; from governance.dag\_runner.assembler import assemble\_workflow\_spec; loaded=load\_workflow\_packages(); spec=assemble\_workflow\_spec(loaded); print(spec.manifest.workflow\_name, len(spec.workflow\_steps), len(spec.skills), len(spec.artifacts), len(spec.blocking\_conditions), len(spec.stage\_gates), len(spec.subagents))"
+python -c "from governance.dag_runner.loader import load_workflow_packages; from governance.dag_runner.assembler import assemble_workflow_spec; loaded=load_workflow_packages(); spec=assemble_workflow_spec(loaded); print(spec.manifest.workflow_name, len(spec.workflow_steps), len(spec.skills), len(spec.artifacts), len(spec.blocking_conditions), len(spec.stage_gates), len(spec.subagents))"
 ```
 
 **Current result**
@@ -160,9 +171,9 @@ python -c "from governance.dag\_runner.loader import load\_workflow\_packages; f
 * stage gates: `4`
 * subagents: `8`
 
-\---
+---
 
-### `governance/dag\_runner/validator.py`
+### `governance/dag_runner/validator.py`
 
 **Purpose:** Validates the assembled workflow specification.
              This is a fail-closed static verifier (like a type checker + linter).
@@ -171,18 +182,18 @@ python -c "from governance.dag\_runner.loader import load\_workflow\_packages; f
 **What it does**
 
 * validates required sections
-* validates `depends\_on`
+* validates `depends_on`
 * validates output artifact references
 * validates blocker references
 * validates component references
-* validates supported condition / `skip\_if` structures
+* validates supported condition / `skip_if` structures
 * detects dependency cycles
 * fails closed when the spec is invalid
 
 **How to test**
 
 ```bash
-python -c "from governance.dag\_runner.loader import load\_workflow\_packages; from governance.dag\_runner.assembler import assemble\_workflow\_spec; from governance.dag\_runner.validator import validate\_workflow\_spec; loaded=load\_workflow\_packages(); spec=assemble\_workflow\_spec(loaded); result=validate\_workflow\_spec(spec); print(result.is\_valid, len(result.issues))"
+python -c "from governance.dag_runner.loader import load_workflow_packages; from governance.dag_runner.assembler import assemble_workflow_spec; from governance.dag_runner.validator import validate_workflow_spec; loaded=load_workflow_packages(); spec=assemble_workflow_spec(loaded); result=validate_workflow_spec(spec); print(result.is_valid, len(result.issues))"
 ```
 
 **Current result**
@@ -191,9 +202,9 @@ python -c "from governance.dag\_runner.loader import load\_workflow\_packages; f
 True 0
 ```
 
-\---
+---
 
-### `governance/dag\_runner/planner.py`
+### `governance/dag_runner/planner.py`
 
 **Purpose:** Computes the topological execution order from the validated workflow spec.
              Transforms a validated spec into an executable DAG plan.
@@ -207,7 +218,7 @@ True 0
 **How to test**
 
 ```bash
-python -c "from governance.dag\_runner.loader import load\_workflow\_packages; from governance.dag\_runner.assembler import assemble\_workflow\_spec; from governance.dag\_runner.validator import validate\_or\_raise; from governance.dag\_runner.planner import build\_execution\_plan; loaded=load\_workflow\_packages(); spec=assemble\_workflow\_spec(loaded); validate\_or\_raise(spec); plan=build\_execution\_plan(spec); print(plan.workflow\_name, len(plan.ordered\_steps), plan.ordered\_step\_ids\[:5])"
+python -c "from governance.dag_runner.loader import load_workflow_packages; from governance.dag_runner.assembler import assemble_workflow_spec; from governance.dag_runner.validator import validate_or_raise; from governance.dag_runner.planner import build_execution_plan; loaded=load_workflow_packages(); spec=assemble_workflow_spec(loaded); validate_or_raise(spec); plan=build_execution_plan(spec); print(plan.workflow_name, len(plan.ordered_steps), plan.ordered_step_ids[:5])"
 ```
 
 **Current first five steps**
@@ -218,9 +229,9 @@ python -c "from governance.dag\_runner.loader import load\_workflow\_packages; f
 4. `route-claims-by-role`
 5. `phase-check`
 
-\---
+---
 
-### `governance/dag\_runner/blockers.py`
+### `governance/dag_runner/blockers.py`
 
 **Purpose:** Analyzes the relationship between the blocker registry and workflow step `raises` references.
              Currently: structural analysis only (not enforcement), a registry integrity checker, not a runtime gatekeeper.
@@ -236,7 +247,7 @@ python -c "from governance.dag\_runner.loader import load\_workflow\_packages; f
 **How to test**
 
 ```bash
-python -c "from governance.dag\_runner.loader import load\_workflow\_packages; from governance.dag\_runner.assembler import assemble\_workflow\_spec; from governance.dag\_runner.validator import validate\_or\_raise; from governance.dag\_runner.planner import build\_execution\_plan; from governance.dag\_runner.blockers import analyze\_blockers; loaded=load\_workflow\_packages(); spec=assemble\_workflow\_spec(loaded); validate\_or\_raise(spec); plan=build\_execution\_plan(spec); summary=analyze\_blockers(spec, plan); print(len(summary.declared\_blockers), len(summary.referenced\_blockers), len(summary.orphan\_blockers), len(summary.unknown\_references), summary.is\_structurally\_consistent)"
+python -c "from governance.dag_runner.loader import load_workflow_packages; from governance.dag_runner.assembler import assemble_workflow_spec; from governance.dag_runner.validator import validate_or_raise; from governance.dag_runner.planner import build_execution_plan; from governance.dag_runner.blockers import analyze_blockers; loaded=load_workflow_packages(); spec=assemble_workflow_spec(loaded); validate_or_raise(spec); plan=build_execution_plan(spec); summary=analyze_blockers(spec, plan); print(len(summary.declared_blockers), len(summary.referenced_blockers), len(summary.orphan_blockers), len(summary.unknown_references), summary.is_structurally_consistent)"
 ```
 
 **Current result**
@@ -247,40 +258,40 @@ python -c "from governance.dag\_runner.loader import load\_workflow\_packages; f
 * unknown references: `0`
 * structurally consistent: `True`
 
-\---
+---
 
-### `governance/dag\_runner/verdict.py`
+### `governance/dag_runner/verdict.py`
 
 **Purpose:** Computes the governance verdict from validation and blocker analysis.
              Converts validation + blocker analysis into a governance verdict.
-             The first “decision layer” in the system.
+             The first "decision layer" in the system.
 
 **Current V1 logic**
 
 * validation failure → `blocked`
 * unknown blocker references → `blocked`
-* structural warning conditions → `review\_only`
+* structural warning conditions → `review_only`
 * otherwise → `ready`
 
 **How to test**
 
 ```bash
-python -c "from governance.dag\_runner.loader import load\_workflow\_packages; from governance.dag\_runner.assembler import assemble\_workflow\_spec; from governance.dag\_runner.validator import validate\_workflow\_spec; from governance.dag\_runner.planner import build\_execution\_plan; from governance.dag\_runner.blockers import analyze\_blockers; from governance.dag\_runner.verdict import compute\_verdict; loaded=load\_workflow\_packages(); spec=assemble\_workflow\_spec(loaded); validation=validate\_workflow\_spec(spec); plan=build\_execution\_plan(spec); blockers=analyze\_blockers(spec, plan); verdict=compute\_verdict(validation, blockers); print(verdict.status, verdict.reasons)"
+python -c "from governance.dag_runner.loader import load_workflow_packages; from governance.dag_runner.assembler import assemble_workflow_spec; from governance.dag_runner.validator import validate_workflow_spec; from governance.dag_runner.planner import build_execution_plan; from governance.dag_runner.blockers import analyze_blockers; from governance.dag_runner.verdict import compute_verdict; loaded=load_workflow_packages(); spec=assemble_workflow_spec(loaded); validation=validate_workflow_spec(spec); plan=build_execution_plan(spec); blockers=analyze_blockers(spec, plan); verdict=compute_verdict(validation, blockers); print(verdict.status, verdict.reasons)"
 ```
 
 **Current result**
 
 ```text
-ready \['Validation passed and blocker structure is consistent.']
+ready ['Validation passed and blocker structure is consistent.']
 ```
 
-\---
+---
 
-### `governance/dag\_runner/executor.py`
+### `governance/dag_runner/executor.py`
 
 **Purpose:** builds the runtime state and executes the planned workflow in V1 shell mode.
-                
-**Important note**  
+
+**Important note**
 This is not true skill execution. It is a trace-producing shell runtime.
 
 **What it does**
@@ -295,7 +306,7 @@ This is not true skill execution. It is a trace-producing shell runtime.
 **How to test**
 
 ```bash
-python -c "from governance.dag\_runner.loader import load\_workflow\_packages; from governance.dag\_runner.assembler import assemble\_workflow\_spec; from governance.dag\_runner.validator import validate\_workflow\_spec; from governance.dag\_runner.planner import build\_execution\_plan; from governance.dag\_runner.blockers import analyze\_blockers; from governance.dag\_runner.verdict import compute\_verdict; from governance.dag\_runner.executor import execute\_plan; loaded=load\_workflow\_packages(); spec=assemble\_workflow\_spec(loaded); validation=validate\_workflow\_spec(spec); plan=build\_execution\_plan(spec); blockers=analyze\_blockers(spec, plan); verdict=compute\_verdict(validation, blockers); result=execute\_plan(spec, plan, verdict\_status=verdict.status); print(result.run\_state.final\_verdict, len(result.run\_state.node\_results), len(result.run\_state.execution\_trace), len(result.run\_state.artifacts))"
+python -c "from governance.dag_runner.loader import load_workflow_packages; from governance.dag_runner.assembler import assemble_workflow_spec; from governance.dag_runner.validator import validate_workflow_spec; from governance.dag_runner.planner import build_execution_plan; from governance.dag_runner.blockers import analyze_blockers; from governance.dag_runner.verdict import compute_verdict; from governance.dag_runner.executor import execute_plan; loaded=load_workflow_packages(); spec=assemble_workflow_spec(loaded); validation=validate_workflow_spec(spec); plan=build_execution_plan(spec); blockers=analyze_blockers(spec, plan); verdict=compute_verdict(validation, blockers); result=execute_plan(spec, plan, verdict_status=verdict.status); print(result.run_state.final_verdict, len(result.run_state.node_results), len(result.run_state.execution_trace), len(result.run_state.artifacts))"
 ```
 
 **Current result**
@@ -305,9 +316,156 @@ python -c "from governance.dag\_runner.loader import load\_workflow\_packages; f
 * execution trace events: `38`
 * artifacts: `19`
 
-\---
+---
 
-### `governance/dag\_runner/state\_store.py`
+### `governance/dag_runner/artifacts.py`
+
+**Purpose:** Artifact policy and query module. The single place for answering artifact questions:
+             which artifacts are declared, which are required, which are present, which are missing,
+             and what compact summary should verdict and hooks consume.
+
+**Design rules**
+
+* read-only and policy-only — no disk I/O, no run-state mutation
+* fail closed — malformed inputs raise explicit exceptions
+* supports both typed `GovernanceRunState` and persisted dict payloads
+* deterministic — list-returning functions return sorted output
+
+**Public API**
+
+| Function | Description |
+|---|---|
+| `artifact_exists(run_state, name)` | True when artifact is present and usable |
+| `get_artifact_record(run_state, name)` | Returns the artifact record dict or None |
+| `get_required_artifacts(spec)` | Sorted list of unconditionally required artifact names |
+| `get_missing_required_artifacts(spec, run_state)` | Sorted list of required artifacts absent from run state |
+| `build_artifact_summary(spec, run_state)` | Compact machine-readable artifact summary dict |
+
+**Required-artifact policy (V1)**
+
+An artifact is unconditionally required when `ArtifactSpec.required = True`. The assembler derives this from `conditional` in `artifacts.yaml`:
+
+```
+required = not conditional
+```
+
+Conditional artifacts (`doc_update_plan`, `invariance_verdict`, `verification_matrix_delta`) are excluded from the required list — they are only required when specific runtime predicates are active.
+
+**Exceptions**
+
+* `ArtifactPolicyError` — base exception
+* `ArtifactStructureError` — malformed or structurally insufficient run-state input
+
+**How to test**
+
+```bash
+python -c "from governance.dag_runner.artifacts import get_required_artifacts, build_artifact_summary; from governance.dag_runner.loader import load_workflow_packages; from governance.dag_runner.assembler import assemble_workflow_spec; from governance.dag_runner.executor import execute_plan; from governance.dag_runner.planner import build_execution_plan; from governance.dag_runner.validator import validate_workflow_spec; from governance.dag_runner.blockers import analyze_blockers; from governance.dag_runner.verdict import compute_verdict; loaded=load_workflow_packages(); spec=assemble_workflow_spec(loaded); validation=validate_workflow_spec(spec); plan=build_execution_plan(spec); blockers=analyze_blockers(spec, plan); verdict=compute_verdict(validation, blockers); result=execute_plan(spec, plan, verdict_status=verdict.status); req=get_required_artifacts(spec); print(len(req), 'required artifacts')"
+```
+
+**Current result**
+
+* required artifacts: `16` (19 total − 3 conditional)
+
+---
+
+### `governance/dag_runner/predicates.py`
+
+**Purpose:** V1 predicate evaluator. The single place for answering predicate questions at runtime.
+             Evaluates structured predicate conditions against a governance run state.
+
+**Design rules**
+
+* fail closed — unsupported or malformed predicates raise explicit exceptions
+* read-only — does not mutate run state
+* delegates artifact-record lookup to `artifacts.get_artifact_record()` (public API, not the internal helper)
+* deterministic — summary output is sorted
+
+**Supported V1 predicate types**
+
+| Type | Matched when |
+|---|---|
+| `artifact_exists` | named artifact is present in run state |
+| `artifact_missing` | named artifact is absent from run state |
+| `artifact_field_equals` | artifact exists and a field equals a value |
+| `artifact_field_not_equals` | artifact exists and a field does not equal a value |
+
+All other predicate types raise `UnsupportedPredicateError`.
+
+**Field resolution order** (for field-based predicates)
+
+1. `record["payload"][field]` — payload dict takes precedence
+2. `record["data"][field]` — supports hook `artifact_store` envelope format
+3. `record[field]` — top-level key fallback
+
+**Public API**
+
+| Function | Description |
+|---|---|
+| `evaluate_condition(condition, run_state)` | Evaluate one predicate, return `ConditionEvaluationResult` |
+| `predicate_matches(condition, run_state)` | Thin wrapper, returns `bool` |
+| `build_predicate_summary(evaluations)` | Compact machine-readable summary of a list of evaluations |
+
+**Exceptions**
+
+* `PredicateEvaluationError` — base exception
+* `PredicateStructureError` — malformed predicate or missing required keys
+* `UnsupportedPredicateError` — predicate type not in V1 supported set
+
+---
+
+### `governance/dag_runner/hook_bridge.py`
+
+**Purpose:** Read-only bridge from `.claude/hooks/` runtime enforcement hooks to the persisted
+             `governance_run_state.json` produced by the DAG runner.
+
+**Design rules**
+
+* read-only — no writes to disk, no mutation of loaded state
+* fail closed — missing or malformed state files raise explicit exceptions
+* no live runner dependency — consumes only persisted JSON
+* no YAML loading, no subprocess calls, no artifact-store writes
+
+**Public API**
+
+| Function | Description |
+|---|---|
+| `load_run_state(path=None)` | Load and minimally validate the persisted run-state JSON |
+| `get_final_verdict(path=None)` | Return final verdict string (or None) |
+| `has_unresolved_blocks(path=None)` | True when unknown blocker references exist or verdict is blocked |
+| `get_required_artifact(name, path=None)` | Return named artifact record dict from persisted state, or None |
+| `get_recorded_trace_events(path=None)` | Return the persisted execution trace event list |
+| `get_pr_readiness(path=None)` | Return PR readiness dict or None |
+
+**`get_final_verdict` resolution order**
+
+1. top-level `final_verdict` (executor-recorded, post-run)
+2. top-level `verdict_status` (computation-time, pre-execution)
+3. `None` — does not invent a verdict
+
+**`get_pr_readiness` resolution order**
+
+1. top-level `pr_readiness` dict
+2. artifact named `pr_readiness_verdict` in `artifact_records`
+3. `None`
+
+**Exceptions**
+
+* `HookBridgeError` — base exception
+* `RunStateNotFoundError` — file does not exist or cannot be read
+* `RunStateDecodeError` — file contains invalid JSON
+* `RunStateStructureError` — JSON is valid but fails minimal structure check
+
+**How to test**
+
+```bash
+python -c "from governance.dag_runner.hook_bridge import get_final_verdict; print(get_final_verdict())"
+```
+
+(Requires a `governance_run_state.json` generated by `--write-state`.)
+
+---
+
+### `governance/dag_runner/state_store.py`
 
 **Purpose:** Persists the current run into machine-readable JSON.
              This is the serialization boundary of the runtime.
@@ -325,17 +483,17 @@ python -c "from governance.dag\_runner.loader import load\_workflow\_packages; f
 
 **Primary output**
 
-* `governance\_run\_state.json`
+* `governance_run_state.json`
 
 **How to test**
 
 ```bash
-python -c "from governance.dag\_runner.state\_store import generate\_and\_write\_run\_state; print(generate\_and\_write\_run\_state('.claude/workflows/system-orchestration.yaml'))"
+python -c "from governance.dag_runner.state_store import generate_and_write_run_state; print(generate_and_write_run_state('.claude/workflows/system-orchestration.yaml'))"
 ```
 
-\---
+---
 
-### `governance/dag\_runner/cli.py`
+### `governance/dag_runner/cli.py`
 
 **Purpose:** CLI entry point for the full V1 governance runtime shell.
              Coordinates the full pipeline end-to-end.
@@ -354,16 +512,19 @@ python -c "from governance.dag\_runner.state\_store import generate\_and\_write\
 
 ```bash
 # basic run
-python -m governance.dag\_runner.cli
+python -m governance.dag_runner.cli
 
 # show execution order
-python -m governance.dag\_runner.cli --show-steps
+python -m governance.dag_runner.cli --show-steps
 
 # write run-state JSON
-python -m governance.dag\_runner.cli --write-state
+python -m governance.dag_runner.cli --write-state
+
+# write run-state JSON to a specific path
+python -m governance.dag_runner.cli --write-state --state-path path/to/output.json
 
 # full run
-python -m governance.dag\_runner.cli --show-steps --write-state
+python -m governance.dag_runner.cli --show-steps --write-state
 ```
 
 **Current typical output**
@@ -374,9 +535,9 @@ python -m governance.dag\_runner.cli --show-steps --write-state
 * Recorded trace events: `38`
 * Verdict: `READY`
 
-\---
+---
 
-### `governance/dag\_runner/dag\_runner\_v\_1\_blueprint.md`
+### `governance/dag_runner/dag_runner_v_1_blueprint.md`
 
 **Purpose:** implementation blueprint for the DAG runner.
 
@@ -394,24 +555,24 @@ python -m governance.dag\_runner.cli --show-steps --write-state
 * implementation checkpoint
 * handoff document for future work
 
-\---
+---
 
-## 3\. Hook Implementation
+## 3. Hook Implementation
 
-The following runtime enforcement hooks are now implemented in `.claude/hooks/`.
+The following runtime enforcement hooks are implemented in `.claude/hooks/`.
 They form the active governance enforcement surface that fires during Claude Code tool use and agent stop events.
 All hooks share a common artifact contract via `.claude/hooks/lib/artifact_store.py`.
 
-### Shared library: `.claude/hooks/lib/artifact\_store.py`
+### Shared library: `.claude/hooks/lib/artifact_store.py`
 
 **Purpose:** Shared read/write contract for governance artifacts.
 **Artifact location:** `.claude/run/artifacts/<name>.json`
 **Provides:** `read_artifact(name)`, `write_artifact(name, data, produced_by)`, `artifact_exists(name)`
 **Envelope schema:** `artifact`, `produced_by`, `session`, `timestamp`, `data`
 
-\---
+---
 
-### `snapshot\_boundary\_guard.py`
+### `snapshot_boundary_guard.py`
 
 **Hook event:** PostToolUse (Edit | Write)
 **Layer:** C — Runtime Schema Integrity
@@ -428,9 +589,9 @@ All hooks share a common artifact contract via `.claude/hooks/lib/artifact_store
 Layer-2 files are exempt from raw observation access and storage coupling checks.
 `latest` snapshot misuse is forbidden everywhere.
 
-\---
+---
 
-### `adapter\_schema\_guard.py`
+### `adapter_schema_guard.py`
 
 **Hook event:** PostToolUse (Edit | Write)
 **Layer:** C — Runtime Schema Integrity
@@ -443,14 +604,14 @@ Layer-2 files are exempt from raw observation access and storage coupling checks
 
 * `registry_driven` (positive check) — adapter must import from `layer2.config.registry` or reference the registry
 * `hardcoded_series_detected` — inline series ID lists, dicts, or per-series conditionals
-* `implicit_interpretation_detected` — inline tier, staleness\_days, blocks\_snapshot, frequency, or include\_in\_snapshot assignments
+* `implicit_interpretation_detected` — inline tier, staleness_days, blocks_snapshot, frequency, or include_in_snapshot assignments
 
 Blocks (exit 2) when no registry usage is found at all.
 Warns (exit 1) when violations appear alongside registry usage.
 
-\---
+---
 
-### `live\_readiness\_claim\_blocker.py`
+### `live_readiness_claim_blocker.py`
 
 **Hook event:** PostToolUse (Edit | Write)
 **Layer:** B — Architecture Phase Contract
@@ -467,9 +628,9 @@ Warns (exit 1) when violations appear alongside registry usage.
 Applies a negation filter — lines with clear negation words in the ~50-character prefix before the match are excluded.
 Scans all non-governance-tooling files (code and documentation alike).
 
-\---
+---
 
-### `role\_matched\_doc\_guard.py`
+### `role_matched_doc_guard.py`
 
 **Hook event:** Stop (SubagentStop)
 **Layer:** A — Semantic Normalization
@@ -480,14 +641,14 @@ Scans all non-governance-tooling files (code and documentation alike).
 **What it enforces**
 
 * `role_mismatch` — a canonical document was cited for a claim whose role belongs to a different canonical document (CLAUDE.md §2.2, §2.4)
-* `readme_layer2_override` — README\_LAYER2.md was used to override a more role-specific canonical document on implementation state, architecture boundaries, or limitations
+* `readme_layer2_override` — README_LAYER2.md was used to override a more role-specific canonical document on implementation state, architecture boundaries, or limitations
 
 Blocks (exit 2) when a violation is attached to a strong claim (CLAUDE.md §10).
 Warns (exit 1) otherwise.
 
-\---
+---
 
-### `doc\_code\_sync\_guard.py`
+### `doc_code_sync_guard.py`
 
 **Hook event:** Stop (SubagentStop)
 **Layer:** D — Audit Impact
@@ -504,9 +665,9 @@ Warns (exit 1) otherwise.
 Warning-only gate: does not block agent stop.
 Unresolved drift WILL block at `pre_pr_governance_gate` before commit or push.
 
-\---
+---
 
-### `pre\_pr\_governance\_gate.py`
+### `pre_pr_governance_gate.py`
 
 **Hook event:** PreToolUse (Bash)
 **Layer:** E — Verification Hygiene / Release
@@ -534,7 +695,7 @@ Unresolved drift WILL block at `pre_pr_governance_gate` before commit or push.
   * `canonical_references_updated` must be `true`
   * `alias_map_present_for_renames` must be `true` (only when `rename_only_change` active)
 
-\---
+---
 
 ### Shell stubs
 
@@ -546,20 +707,20 @@ Three shell hook stubs are present but not yet implemented:
 
 These are placeholder files and currently contain no logic.
 
-\---
+---
 
-## 4\. Current Recognized Workflow Shape
+## 4. Current Recognized Workflow Shape
 
-|Slice|Value|
+| Slice | Value |
 |-|-:|
-|Workflow name|`mr-ripley-governance-orchestration`|
-|Loaded packages|13|
-|Workflow steps|18|
-|Skills|13|
-|Artifacts|19|
-|Blocking conditions|12|
-|Stage gates|4|
-|Subagents|8|
+| Workflow name | `mr-ripley-governance-orchestration` |
+| Loaded packages | 13 |
+| Workflow steps | 18 |
+| Skills | 13 |
+| Artifacts | 19 |
+| Blocking conditions | 12 |
+| Stage gates | 4 |
+| Subagents | 8 |
 
 ### First five execution steps
 
@@ -569,83 +730,118 @@ These are placeholder files and currently contain no logic.
 4. `route-claims-by-role`
 5. `phase-check`
 
-\---
+---
 
-## 4\. Tests and Results
+## 5. Tests and Results
 
 ### Test file structure
 
 ```text
 tests/governance/
-├── test\_loader.py
-├── test\_assembler.py
-├── test\_validator.py
-├── test\_planner.py
-├── test\_blockers.py
-├── test\_verdict.py
-└── test\_executor.py
+├── test_loader.py            (  1 test)
+├── test_assembler.py         (  1 test)
+├── test_validator.py         (  1 test)
+├── test_planner.py           (  1 test)
+├── test_blockers.py          (  1 test)
+├── test_verdict.py           (  1 test)
+├── test_executor.py          (  1 test)
+├── test_state_store.py       (  8 tests)
+├── test_cli_integration.py   ( 13 tests)
+├── test_artifacts.py         ( 33 tests)
+├── test_predicates.py        ( 34 tests)
+└── test_hook_bridge.py       ( 28 tests)
 ```
 
 ### What each test covers
 
-#### `test\_loader.py`
+#### `test_loader.py`
 
-Checks that:
+Checks that the root workflow loads, the 13 packages load, and the workflow name is correct.
 
-* the root workflow loads
-* the 13 packages load
-* the workflow name is correct
+#### `test_assembler.py`
 
-#### `test\_assembler.py`
+Checks that the typed spec assembles successfully and the current counts match expected values.
 
-Checks that:
+#### `test_validator.py`
 
-* the typed spec is assembled successfully
-* the current counts match expected values
+Checks that the current assembled workflow validates cleanly with zero issues.
 
-#### `test\_validator.py`
+#### `test_planner.py`
 
-Checks that:
+Checks that the execution plan builds successfully and the topological order starts with the expected five steps.
 
-* the current assembled workflow validates cleanly
-* issue count is zero
+#### `test_blockers.py`
 
-#### `test\_planner.py`
+Checks that there are 12 declared blockers, 17 references, 0 orphans, 0 unknown references, and the structure is consistent.
 
-Checks that:
+#### `test_verdict.py`
 
-* the execution plan builds successfully
-* the topological order starts with the expected five steps
+Checks that the current workflow verdict is `ready`.
 
-#### `test\_blockers.py`
+#### `test_executor.py`
 
-Checks that:
+Checks that the V1 shell executor records 18 node results, 38 trace events, and 19 artifact records.
 
-* there are 12 declared blockers
-* there are 17 blocker references
-* there are 0 orphan blockers
-* there are 0 unknown references
-* the blocker structure is consistent
+#### `test_state_store.py`
 
-#### `test\_verdict.py`
+Verifies the persisted JSON contract:
 
-Checks that:
+* file is written as valid JSON
+* verdict fields (`verdict_status`, `verdict_reasons`, `final_verdict`) are present and correct
+* execution trace is present with correct shape and event types
+* node results are present with correct shape and valid statuses
+* artifact records are present with correct shape
+* run and workflow metadata fields are present and match expected values
+* blocker summary fields are present and correct
+* count fields are internally consistent (each count matches the length of its corresponding list)
 
-* the current workflow verdict is `ready`
+#### `test_cli_integration.py`
 
-#### `test\_executor.py`
+End-to-end CLI integration via `main()` with monkeypatched `sys.argv`:
 
-Checks that:
+* basic run exits with code 0 and reports Verdict, Planned steps, Executed steps
+* `--show-steps` includes execution order and all 18 steps
+* `--write-state` creates a file, writes valid JSON, and reports the written path
+* `--write-state --state-path <path>` writes to the specified path
+* full combined run (`--show-steps --write-state`) succeeds, produces both console output and a valid state file
+* console step counts are consistent with the written state file
 
-* the V1 shell executor records a full run state
-* there are 18 node results
-* there are 38 trace events
-* there are 19 artifact records
+#### `test_artifacts.py`
+
+Covers:
+
+* `artifact_exists` for typed `GovernanceRunState` (present, absent, non-present statuses)
+* `artifact_exists` for persisted dict payloads (present, absent, non-present)
+* `get_artifact_record` for typed state (returns record, returns None, raises on malformed dict)
+* `get_artifact_record` for persisted dict payload (returns record)
+* `get_required_artifacts` (sorted list, count, includes known required, excludes conditional)
+* `get_missing_required_artifacts` (detects missing, detects non-present status, empty after full shell run)
+* `build_artifact_summary` (required keys, counts, `required_outputs_present`, declared-vs-recorded)
+* malformed input raises `ArtifactStructureError`
+* integration against full pipeline fixture
+
+#### `test_predicates.py`
+
+Covers all four predicate types, field resolution order (payload → data → top-level), malformed predicate errors, `UnsupportedPredicateError`, `predicate_matches`, `build_predicate_summary`, and a light integration test against a real shell run state.
+
+#### `test_hook_bridge.py`
+
+Covers:
+
+* `load_run_state` — success, missing file, invalid JSON, malformed payload (all structural variants)
+* `get_final_verdict` — priority order, blocked, `None` when both null
+* `get_required_artifact` — returns record, returns None for absent
+* `get_recorded_trace_events` — list contents, empty list, copy isolation
+* `get_pr_readiness` — resolves from artifact, prefers top-level, returns None when absent
+* `has_unresolved_blocks` — True on unknown references, True on blocked verdict, False when clean, False on `review_only`
+* `_extract_blocking_conditions` — fails closed when no blocker structure and no verdict
+* exception hierarchy (`RunStateNotFoundError`, `RunStateDecodeError`, `RunStateStructureError` are all `HookBridgeError`)
+* path handling — accepts both `str` and `Path`
 
 ### Current test result
 
 ```text
-7 passed in 0.53s
+123 passed in ~3s
 ```
 
 ### Full test command
@@ -654,804 +850,96 @@ Checks that:
 python -m pytest tests/governance -q
 ```
 
-\---
+---
 
-## 5\. Current Run-State JSON Contents
+## 6. Current Run-State JSON Contents
 
-`governance\_run\_state.json` currently contains:
+`governance_run_state.json` currently contains:
 
-* workflow metadata
-* package / step / skill / artifact / blocker / stage gate / subagent counts
+* workflow metadata (name, file, loaded packages)
+* workflow shape counts (steps, skills, artifacts, blockers, stage gates, subagents)
 * validation status and issue list
-* blocker summary counts
+* blocker summary counts (declared, referenced, orphan, unknown, structurally consistent)
 * verdict status and reasons
+* final verdict
 * execution order
 * run id
-* started\_at timestamp
-* final verdict
+* started_at timestamp
 * recorded node result count
 * recorded artifact count
 * recorded trace event count
-* node result list
-* artifact record list
-* execution trace list
+* node result list (with status, summary, evidence, produced_artifacts, triggered_blocks, inference_used)
+* artifact record list (with name, producer_step, status, payload)
+* execution trace list (with timestamp, node_name, event_type, detail)
 
-\---
+---
 
-## 6\. What Is Still Missing
+## 7. What Is Still Missing
 
-|Component|Status|Meaning|
+| Component | Status | Meaning |
 |-|-|-|
-|`.claude/hooks/*.py`|**implemented**|six runtime enforcement hooks are in place and active|
-|`.claude/hooks/lib/artifact\_store.py`|**implemented**|shared artifact read/write contract used by all hooks|
-|`hook\_bridge.py`|not implemented|read-only API over persisted run state for hook consumption|
-|predicate runtime evaluation|partial|validation exists, true runtime condition evaluation does not|
-|artifact lifecycle handling|basic|no deeper missing / stale / blocked lifecycle|
-|blocker runtime events|partial|structural blocker analysis exists, runtime blocker event handling does not|
-|real skill execution|not implemented|executor is shell mode only|
-|integration tests|partial|unit-style coverage exists, end-to-end CLI integration is still missing|
-|shell hook stubs|not implemented|`auto-format.sh`, `run-tests.sh`, `security-scan.sh` are present but empty|
+| Executor condition/`skip_if` evaluation | not implemented | executor records PASS for every step; conditions are not evaluated at runtime |
+| Runtime `BlockingEvent` population | not implemented | `run_state.blocking_conditions` is never populated from actual runtime events |
+| Runtime-aware verdict | not implemented | verdict is computed from structural analysis only, not from runtime block state or artifact presence |
+| Compact hook-facing fields in state JSON | not implemented | hooks must re-derive readiness from raw trace rather than reading top-level summary fields |
+| Real skill execution | not implemented | executor is shell mode only |
+| Validator predicate/validates expansion | not implemented | validator does not yet check predicate references or `validates` tokens |
+| Shell hook stubs | not implemented | `auto-format.sh`, `run-tests.sh`, `security-scan.sh` are present but empty |
+| Negative fixture test suite | not implemented | no `test_validator_failures.py` with fixture-based failure cases |
 
-\---
+---
 
-## 7\. Recommended Next Steps
+## 8. Recommended Next Steps
 
-### Step 1 — Save this as a stable milestone
+### Phase 1 — Executor runtime semantics
 
-Commit this state as a dedicated milestone. Do not mix it with the next refactor wave.
+Evaluate supported `condition` and `skip_if` forms before executing each node. Emit `SKIP` when the skip condition is satisfied. Record real `BlockingEvent` objects into `run_state.blocking_conditions`. Record condition evaluation in the execution trace.
 
-### Step 2 — Add `test\_state\_store.py`
+Suggested helpers:
+* `_evaluate_condition(condition, run_state) -> tuple[bool, dict]`
+* `_evaluate_skip_if(skip_if, run_state) -> tuple[bool, dict]`
+* `_raise_blocking_events(step, run_state) -> None`
 
-Validate that the persisted JSON really contains:
+Acceptance criteria: a satisfied `skip_if` produces `NodeResult.status == "SKIP"`, unsupported runtime condition fails closed, `run_state.blocking_conditions` is populated.
 
-* verdict fields
-* execution trace
-* node results
-* artifact records
+### Phase 2 — Runtime blocker analysis and runtime-aware verdict
 
-### Step 3 — Add a CLI integration test
+Add `analyze_runtime_blockers(run_state, spec) -> RuntimeBlockerSummary` to `blockers.py`. Add `has_unresolved_fatal_blocks(...) -> bool`. Split verdict into structural and runtime forms in `verdict.py`. Runtime unresolved fatal block → `blocked`. Missing required artifact → `blocked` or `review_only` per policy.
 
-At minimum:
+### Phase 3 — Richer hook contract in `state_store.py`
 
-* CLI runs successfully
-* exit code is 0
-* verdict appears in output
-* run-state file is created
+Add compact top-level fields to the persisted JSON so hooks can read readiness without re-deriving from the raw trace:
 
-### Step 4 — Implement `hook\_bridge.py`
+* `workflow_completed: bool`
+* `required_outputs_present: bool`
+* `unresolved_blocking_conditions: list[...]`
+* `fatal_unresolved_block_count: int`
+* `pr_readiness: str`
 
-The six runtime enforcement hooks in `.claude/hooks/` are now implemented and active.
-`hook\_bridge.py` is the missing link: it will allow those hooks to query the DAG runner's persisted run state through a stable read-only API rather than parsing the raw JSON themselves.
+### Phase 4 — Validator expansion
 
-First V1 version should expose read-only helpers over persisted run state:
+Add `_validate_step_validates()` and `_validate_predicate_references()` to `validator.py`. Unknown `validates` tokens and unknown predicate references should fail validation.
 
-* `get\_final\_verdict()`
-* `has\_unresolved\_blocks()`
-* `get\_required\_artifact(name)`
-* `get\_recorded\_trace\_events()`
-* `get\_pr\_readiness()`
+### Phase 5 — Negative fixture test suite
 
-### Step 5 — Implement `artifacts.py`
+Add `tests/governance/test_validator_failures.py` with fixture-based failures for: missing dependency, missing skill reference, missing blocker reference, unsupported condition structure, dependency cycle, invalid `validates` token, invalid predicate reference.
 
-Move artifact-oriented logic into its own module:
+---
 
-* artifact state queries
-* required artifact checks
-* conditional artifact handling
-* artifact summaries
-
-### Step 6 — Deepen predicate runtime support
-
-Only support explicit structured condition forms.
-Do not introduce free-form expression behavior.
-
-### Step 7 — Tighten blocker runtime and verdict logic
-
-Do this only after:
-
-* artifact state support
-* predicate runtime evaluation
-* hook bridge
-
-### Step 8 — Deepen executor behavior
-
-The current executor is a good shell runtime. Do not overcomplicate it too early.
-
-\---
-
-## 8\. Final Summary
+## 9. Final Summary
 
 DAG Runner v1 is currently:
 
 * operational,
-* tested,
-* CLI-runnable,
+* tested (123 tests across 12 test files),
+* CLI-runnable (with `--show-steps`, `--write-state`, `--state-path`),
 * verdict-aware,
 * execution-capable in shell mode,
-* able to persist a machine-readable governance run state,
+* backed by a public artifact policy module (`artifacts.py`),
+* backed by a runtime predicate evaluator (`predicates.py`),
+* backed by a read-only hook bridge (`hook_bridge.py`),
 * and backed by six active runtime enforcement hooks covering the full governance enforcement surface.
 
-The most important sentence in one line:
+The most important single-sentence summary:
 
-**the governance specification has already been translated into a runnable, validatable, plannable, blocker-aware, verdict-producing, persisted V1 runtime shell.
-
-
-
-
-
-TO discuss:
-
-Here is the remediation checklist, turned into concrete, file-by-file next work.**
-
-
-
-**EXECUTION PRIORITY**
-
-**Make runtime semantics real.**
-
-**Add hook-facing read API.**
-
-**Separate artifact policy from executor.**
-
-**Expand failure-mode and integration tests.**
-
-**Tighten types and small performance issues.**
-
-**FILE-BY-FILE REMEDIATION CHECKLIST**
-
-**governance/dag\_runner/validator.py**
-
-
-
-**Why**
-
-**The blueprint says validator should also check predicate references and validates tokens, not just dependencies, outputs, raises, components, conditions, and cycles. The current validator does not yet do that.**
-
-
-
-**Change**
-
-
-
-**Add \_validate\_step\_validates()**
-
-**Add \_validate\_predicate\_references()**
-
-**Add optional duplicate-output-producer validation**
-
-**Add explicit hook/component registry validation if hooks registry becomes formal**
-
-
-
-**Suggested additions**
-
-
-
-**\_validate\_step\_validates(spec) -> list\[ValidationIssue]**
-
-**\_validate\_predicate\_references(spec) -> list\[ValidationIssue]**
-
-
-
-**Acceptance criteria**
-
-
-
-**Unknown validates token fails validation**
-
-**Unknown predicate reference fails validation**
-
-**New fixture tests cover both**
-
-**governance/dag\_runner/executor.py**
-
-
-
-**Why**
-
-**Right now executor records a shell pass for every step, never evaluates condition / skip\_if, never emits real BlockingEvents, and never changes node status based on runtime semantics. That is the biggest roadmap gap.**
-
-
-
-**Change**
-
-
-
-**Evaluate supported condition forms before executing a node**
-
-**Respect skip\_if**
-
-**Emit SKIP when skip condition is satisfied**
-
-**Emit FAIL or halt when unsupported runtime condition is encountered**
-
-**Append real BlockingEvent objects into run\_state.blocking\_conditions**
-
-**Record condition evaluation in execution trace**
-
-
-
-**Suggested helper functions**
-
-
-
-**\_evaluate\_condition(condition, run\_state) -> tuple\[bool, dict]**
-
-**\_evaluate\_skip\_if(skip\_if, run\_state) -> tuple\[bool, dict]**
-
-**\_raise\_blocking\_events(step, run\_state) -> None**
-
-
-
-**Acceptance criteria**
-
-
-
-**A satisfied skip\_if produces NodeResult.status == "SKIP"**
-
-**Unsupported runtime condition fails closed**
-
-**run\_state.blocking\_conditions is populated from actual runtime events**
-
-**Trace contains condition evaluation events**
-
-**governance/dag\_runner/blockers.py**
-
-
-
-**Why**
-
-**Current blocker logic is structurally correct, but still registry-analysis only. The roadmap wants unresolved-block failure semantics, not just reference hygiene.**
-
-
-
-**Change**
-
-
-
-**Keep current structural summary**
-
-**Add runtime-oriented summary helper over GovernanceRunState**
-
-**Distinguish:**
-
-**declared blockers**
-
-**referenced blockers**
-
-**raised blockers**
-
-**unresolved blockers**
-
-**fatal unresolved blockers**
-
-
-
-**Suggested additions**
-
-
-
-**analyze\_runtime\_blockers(run\_state, spec) -> RuntimeBlockerSummary**
-
-**has\_unresolved\_fatal\_blocks(...) -> bool**
-
-
-
-**Acceptance criteria**
-
-
-
-**Runtime blocker summary can answer:**
-
-**are there unresolved blocks?**
-
-**are any fatal?**
-
-**which steps raised them?**
-
-**governance/dag\_runner/verdict.py**
-
-
-
-**Why**
-
-**Current verdict logic only looks at validation result plus structural blocker summary. It does not yet incorporate runtime block state, required artifact presence, or workflow completion.**
-
-
-
-**Change**
-
-
-
-**Split verdict into:**
-
-**structural verdict**
-
-**runtime verdict**
-
-**Add optional execution-aware verdict computation**
-
-
-
-**Suggested additions**
-
-
-
-**compute\_structural\_verdict(validation\_result, blocker\_summary)**
-
-**compute\_runtime\_verdict(validation\_result, blocker\_summary, run\_state, artifact\_summary)**
-
-
-
-**Recommended runtime inputs**
-
-
-
-**unresolved runtime blockers**
-
-**required outputs present**
-
-**workflow completed**
-
-**final gate result**
-
-
-
-**Acceptance criteria**
-
-
-
-**Runtime unresolved fatal block -> blocked**
-
-**Missing required artifact -> blocked or review\_only, based on policy**
-
-**Full clean run -> ready**
-
-**governance/dag\_runner/state\_store.py**
-
-
-
-**Why**
-
-**This is already useful, but it needs to become the stable hook contract. The roadmap explicitly wants hooks to read runner state and gate commit/push.**
-
-
-
-**Change**
-
-
-
-**Add compact hook-facing fields in persisted JSON**
-
-**Preserve current rich details, but add a concise top-level machine contract**
-
-
-
-**Recommended new top-level fields**
-
-
-
-**workflow\_completed: bool**
-
-**required\_outputs\_present: bool**
-
-**unresolved\_blocking\_conditions: list\[...]**
-
-**fatal\_unresolved\_block\_count: int**
-
-**pr\_readiness: str**
-
-**hook\_readiness: dict**
-
-
-
-**Acceptance criteria**
-
-
-
-**Hook code can determine readiness from a few top-level fields**
-
-**No need for hooks to re-derive logic from raw trace**
-
-**governance/dag\_runner/cli.py**
-
-
-
-**Why**
-
-**CLI is good, but it should eventually expose the stronger runtime semantics and integration health more clearly.**
-
-
-
-**Change**
-
-
-
-**Add --json-summary option**
-
-**Add --fail-on-review-only option for stricter CI usage**
-
-**Print unresolved runtime block counts when runtime blocker engine exists**
-
-**Print required artifact status when artifact policy exists**
-
-
-
-**Acceptance criteria**
-
-
-
-**CLI can be used both by humans and CI**
-
-**Summary output includes readiness-critical signals**
-
-**governance/dag\_runner/planner.py**
-
-
-
-**Why**
-
-**Functionally correct, but mildly inefficient and a bit too forgiving. It currently ignores ordered nodes not present in workflow\_steps, even though validator should have guaranteed consistency.**
-
-
-
-**Change**
-
-
-
-**Replace pop(0) with a queue/heap approach**
-
-**Fail instead of silently ignoring missing ordered nodes**
-
-**Optionally preserve deterministic sort with heapq**
-
-
-
-**Acceptance criteria**
-
-
-
-**No silent skip in \_build\_planned\_nodes()**
-
-**Same deterministic order as today**
-
-**Cleaner asymptotic behavior**
-
-**governance/dag\_runner/assembler.py**
-
-
-
-**Why**
-
-**Overall good, but still tightly coupled to current YAML shapes. That is acceptable for V1, though a few hardening checks would help.**
-
-
-
-**Change**
-
-
-
-**Validate uniqueness of artifact producers if roadmap requires it**
-
-**Normalize more package metadata into raw\_sections**
-
-**Add explicit manifest expectation checks if package model requires them**
-
-
-
-**Acceptance criteria**
-
-
-
-**Duplicate artifact producers fail closed**
-
-**Assembly errors become more specific when package shape drifts**
-
-**governance/dag\_runner/models.py**
-
-
-
-**Why**
-
-**The model layer is strong, but one roadmap expectation is still underused: BlockingEvent exists, yet runtime code barely uses it. Also some types could become more explicit in downstream modules.**
-
-
-
-**Change**
-
-
-
-**Keep models mostly stable**
-
-**Add any missing runtime summary types only if needed**
-
-**Ensure downstream modules type their inputs explicitly against these models**
-
-
-
-**Acceptance criteria**
-
-
-
-**No spec/plan/verdict loose typing in public functions where model types are known**
-
-**NEW FILES TO ADD**
-
-**governance/dag\_runner/hook\_bridge.py**
-
-
-
-**Priority: very high**
-
-
-
-**Why**
-
-**This is the clearest missing roadmap piece. Both roadmap and blueprint expect hooks to read runner state.**
-
-
-
-**First version should provide**
-
-
-
-**get\_final\_verdict(state\_path=...)**
-
-**has\_unresolved\_blocks(state\_path=...)**
-
-**get\_required\_artifact(name, state\_path=...)**
-
-**get\_recorded\_trace\_events(state\_path=...)**
-
-**get\_pr\_readiness(state\_path=...)**
-
-
-
-**Implementation base**
-
-
-
-**Use load\_run\_state() from state\_store.py**
-
-
-
-**Acceptance criteria**
-
-
-
-**Hook scripts do not parse JSON themselves**
-
-**API is read-only**
-
-**Missing state file fails closed**
-
-**governance/dag\_runner/artifacts.py**
-
-
-
-**Priority: high**
-
-
-
-**Why**
-
-**Blueprint includes it, roadmap implies it, current implementation smears artifact logic across executor and state store.**
-
-
-
-**First version should provide**
-
-
-
-**build\_artifact\_summary(spec, run\_state)**
-
-**get\_required\_artifacts(spec)**
-
-**get\_missing\_required\_artifacts(spec, run\_state)**
-
-**artifact\_exists(run\_state, name)**
-
-
-
-**Acceptance criteria**
-
-
-
-**Required artifact checking is no longer hand-coded in later modules**
-
-**Verdict and hook bridge can depend on artifact summary cleanly**
-
-**governance/dag\_runner/predicates.py**
-
-
-
-**Priority: medium-high**
-
-
-
-**Why**
-
-**Validator already knows supported condition types; runtime executor needs a real evaluator.**
-
-
-
-**First version should support only**
-
-
-
-**artifact\_exists**
-
-**artifact\_missing**
-
-**artifact\_field\_equals**
-
-**artifact\_field\_not\_equals**
-
-
-
-**Recommended interface**
-
-
-
-**evaluate\_condition(condition: dict\[str, Any], run\_state: GovernanceRunState) -> ConditionResult**
-
-
-
-**Acceptance criteria**
-
-
-
-**Unsupported type raises fail-closed runtime error**
-
-**Executor uses this rather than its own local ad hoc logic**
-
-**TESTS TO ADD NEXT**
-
-**tests/governance/test\_state\_store.py**
-
-
-
-**Priority: very high**
-
-**Check that persisted JSON contains:**
-
-
-
-**verdict\_status**
-
-**verdict\_reasons**
-
-**recorded\_trace\_events**
-
-**node\_results**
-
-**artifact\_records**
-
-**future workflow\_completed / required\_outputs\_present fields**
-
-**tests/governance/test\_cli\_integration.py**
-
-
-
-**Priority: very high**
-
-**Run CLI end-to-end and assert:**
-
-
-
-**exit code 0**
-
-**output contains Verdict:**
-
-**output contains Executed steps:**
-
-**state file exists**
-
-**tests/governance/test\_validator\_failures.py**
-
-
-
-**Priority: high**
-
-**Add fixture-based failures for:**
-
-
-
-**missing dependency**
-
-**missing skill reference**
-
-**missing blocker reference**
-
-**unsupported condition structure**
-
-**dependency cycle**
-
-**invalid validates token**
-
-**invalid predicate reference**
-
-
-
-**This is explicitly in the spirit of the blueprint hardening guidance.**
-
-
-
-**tests/governance/test\_hook\_bridge.py**
-
-
-
-**Priority: high**
-
-**Once hook\_bridge.py exists:**
-
-
-
-**read final verdict**
-
-**detect unresolved blocks**
-
-**fetch required artifact**
-
-**fail closed on missing state file**
-
-**SUGGESTED IMPLEMENTATION ORDER**
-
-**Phase 1**
-
-**hook\_bridge.py**
-
-**test\_state\_store.py**
-
-**test\_cli\_integration.py**
-
-**Phase 2**
-
-**artifacts.py**
-
-**predicates.py**
-
-**executor integration with runtime condition evaluation**
-
-**Phase 3**
-
-**runtime blocker events in executor**
-
-**runtime-aware verdict.py**
-
-**richer persisted hook contract in state\_store.py**
-
-**Phase 4**
-
-**validator expansion for predicates + validates**
-
-**negative fixture suite**
-
-**planner cleanup and minor performance polish**
-
-**MINIMAL “DONE” DEFINITION FOR NEXT SPRINT**
-
-
-
-**I would call the next sprint successful if all of this is true:**
-
-
-
-**hooks can read persisted runner state through hook\_bridge.py**
-
-**executor evaluates supported conditions**
-
-**executor records runtime BlockingEvents**
-
-**artifact requiredness is checked through artifacts.py**
-
-**verdict can block on unresolved runtime blockers**
-
-**state JSON exposes a compact hook-facing readiness contract**
-
-**new negative and integration tests are green**
-
-
-
-**That gets you from “good shell” to “actual governance enforcement surface,” which is what the roadmap has been hinting at all along, with admirable persistence and only moderate cruelty.**
-
+> **The governance specification has been translated into a runnable, validatable, plannable, blocker-aware, verdict-producing, artifact-queryable, predicate-evaluating, hook-readable, persisted V1 runtime shell.**
