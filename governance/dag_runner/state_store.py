@@ -5,13 +5,18 @@ from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import Any
 
+from governance.dag_runner.artifacts import build_artifact_summary
 from governance.dag_runner.assembler import assemble_workflow_spec
-from governance.dag_runner.blockers import analyze_blockers
+from governance.dag_runner.blockers import analyze_blockers, analyze_runtime_blockers
 from governance.dag_runner.executor import ExecutionResult, execute_plan
 from governance.dag_runner.loader import load_workflow_packages
 from governance.dag_runner.planner import build_execution_plan
 from governance.dag_runner.validator import validate_workflow_spec
-from governance.dag_runner.verdict import compute_verdict
+from governance.dag_runner.verdict import (
+    compute_runtime_verdict,
+    compute_verdict,
+    is_workflow_complete,
+)
 
 
 DEFAULT_STATE_PATH = Path("governance_run_state.json")
@@ -95,8 +100,53 @@ class StoredRunState:
     artifact_records: list[StoredArtifactRecord] = field(default_factory=list)
     execution_trace: list[StoredExecutionTraceEvent] = field(default_factory=list)
 
+    # Compact top-level readiness fields (Phase 3 hook-facing contract)
+    workflow_completed: bool = False
+    required_outputs_present: bool = False
+    unresolved_blocking_conditions: list[dict[str, Any]] = field(default_factory=list)
+    fatal_unresolved_block_count: int = 0
+    pr_readiness: str = "blocked"
+
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
+
+
+def _serialize_blocking_event(event) -> dict[str, Any]:
+    """Serialize a BlockingEvent to a compact hook-readable dict."""
+    return {
+        "blocking_id": event.blocking_id,
+        "raised_by": event.raised_by,
+        "severity": event.severity,
+        "resolved": event.resolved,
+        "message": event.message,
+    }
+
+
+def _compute_pr_readiness(runtime_verdict_status: str) -> str:
+    """Map runtime verdict status to compact PR readiness string."""
+    mapping = {"ready": "ready", "review_only": "review_only", "blocked": "blocked"}
+    return mapping.get(runtime_verdict_status, "blocked")
+
+
+def _build_top_level_readiness_fields(
+    run_state,
+    artifact_summary: dict[str, Any],
+    runtime_blocker_summary,
+    runtime_verdict,
+) -> dict[str, Any]:
+    """Compute compact top-level readiness fields from runtime analysis outputs."""
+    unresolved = [
+        _serialize_blocking_event(event)
+        for event in run_state.blocking_conditions
+        if not event.resolved
+    ]
+    return {
+        "workflow_completed": is_workflow_complete(run_state),
+        "required_outputs_present": bool(artifact_summary.get("required_outputs_present", False)),
+        "unresolved_blocking_conditions": unresolved,
+        "fatal_unresolved_block_count": runtime_blocker_summary.total_fatal_unresolved,
+        "pr_readiness": _compute_pr_readiness(runtime_verdict.status),
+    }
 
 
 def build_stored_run_state(
@@ -117,6 +167,13 @@ def build_stored_run_state(
     node_results: list[StoredNodeResult] = []
     artifact_records: list[StoredArtifactRecord] = []
     execution_trace: list[StoredExecutionTraceEvent] = []
+
+    # Compact readiness field defaults (used when no execution result is available)
+    readiness_workflow_completed = False
+    readiness_required_outputs_present = False
+    readiness_unresolved_blocking_conditions: list[dict[str, Any]] = []
+    readiness_fatal_unresolved_block_count = 0
+    readiness_pr_readiness = "blocked"
 
     if execution_result is not None:
         run_state = execution_result.run_state
@@ -160,6 +217,21 @@ def build_stored_run_state(
             )
             for event in run_state.execution_trace
         ]
+
+        # Derive compact top-level readiness fields from existing runtime modules
+        artifact_summary = build_artifact_summary(spec, run_state)
+        runtime_blocker_summary = analyze_runtime_blockers(run_state, spec)
+        runtime_verdict = compute_runtime_verdict(
+            validation_result, blocker_summary, run_state, artifact_summary, spec
+        )
+        readiness = _build_top_level_readiness_fields(
+            run_state, artifact_summary, runtime_blocker_summary, runtime_verdict
+        )
+        readiness_workflow_completed = readiness["workflow_completed"]
+        readiness_required_outputs_present = readiness["required_outputs_present"]
+        readiness_unresolved_blocking_conditions = readiness["unresolved_blocking_conditions"]
+        readiness_fatal_unresolved_block_count = readiness["fatal_unresolved_block_count"]
+        readiness_pr_readiness = readiness["pr_readiness"]
 
     return StoredRunState(
         workflow_name=spec.manifest.workflow_name,
@@ -212,6 +284,12 @@ def build_stored_run_state(
         node_results=node_results,
         artifact_records=artifact_records,
         execution_trace=execution_trace,
+
+        workflow_completed=readiness_workflow_completed,
+        required_outputs_present=readiness_required_outputs_present,
+        unresolved_blocking_conditions=readiness_unresolved_blocking_conditions,
+        fatal_unresolved_block_count=readiness_fatal_unresolved_block_count,
+        pr_readiness=readiness_pr_readiness,
     )
 
 

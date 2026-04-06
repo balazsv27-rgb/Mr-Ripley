@@ -265,3 +265,81 @@ def test_run_state_count_fields_match_payload_lengths(run_state: dict) -> None:
 
     # workflow_steps count matches planned steps
     assert run_state["workflow_steps"] == run_state["planned_steps"]
+
+
+# ---------------------------------------------------------------------------
+# 9. Compact top-level readiness fields (Phase 3 hook-facing contract)
+# ---------------------------------------------------------------------------
+
+
+def test_run_state_contains_compact_readiness_fields(run_state: dict) -> None:
+    """All five compact readiness fields must be present in the persisted JSON."""
+    assert "workflow_completed" in run_state
+    assert "required_outputs_present" in run_state
+    assert "unresolved_blocking_conditions" in run_state
+    assert "fatal_unresolved_block_count" in run_state
+    assert "pr_readiness" in run_state
+
+
+def test_run_state_compact_readiness_types(run_state: dict) -> None:
+    """Compact readiness fields must have the correct types."""
+    assert isinstance(run_state["workflow_completed"], bool)
+    assert isinstance(run_state["required_outputs_present"], bool)
+    assert isinstance(run_state["unresolved_blocking_conditions"], list)
+    assert isinstance(run_state["fatal_unresolved_block_count"], int)
+    assert isinstance(run_state["pr_readiness"], str)
+
+
+def test_run_state_clean_workflow_readiness_values(run_state: dict) -> None:
+    """Current clean real workflow must persist a clean ready state."""
+    assert run_state["workflow_completed"] is True
+    assert run_state["required_outputs_present"] is True
+    assert run_state["fatal_unresolved_block_count"] == 0
+    assert run_state["pr_readiness"] == "ready"
+    assert run_state["unresolved_blocking_conditions"] == []
+
+
+def test_run_state_readiness_consistent_with_detailed_content(run_state: dict) -> None:
+    """Compact readiness fields must be internally consistent with detailed runtime content."""
+    # workflow_completed must align with run_completed in execution_trace
+    event_types = [e["event_type"] for e in run_state["execution_trace"]]
+    assert run_state["workflow_completed"] == ("run_completed" in event_types)
+
+    # fatal_unresolved_block_count <= len(unresolved_blocking_conditions)
+    assert run_state["fatal_unresolved_block_count"] <= len(
+        run_state["unresolved_blocking_conditions"]
+    )
+
+    # pr_readiness must be one of the three allowed values
+    assert run_state["pr_readiness"] in {"ready", "review_only", "blocked"}
+
+    # pr_readiness "ready" requires workflow_completed and required_outputs_present
+    if run_state["pr_readiness"] == "ready":
+        assert run_state["workflow_completed"] is True
+        assert run_state["required_outputs_present"] is True
+        assert run_state["fatal_unresolved_block_count"] == 0
+
+
+def test_run_state_existing_detailed_fields_still_present(run_state: dict) -> None:
+    """Backward-compatibility: all existing detailed fields must remain."""
+    # Structural verdict fields
+    assert "verdict_status" in run_state
+    assert "verdict_reasons" in run_state
+    assert "final_verdict" in run_state
+
+    # Execution detail
+    assert "execution_trace" in run_state
+    assert "node_results" in run_state
+    assert "artifact_records" in run_state
+
+    # Blocker structural summary
+    assert "blocker_declared_count" in run_state
+    assert "blocker_referenced_count" in run_state
+    assert "blocker_orphan_count" in run_state
+    assert "blocker_unknown_reference_count" in run_state
+    assert "blocker_structurally_consistent" in run_state
+
+    # Run metadata
+    assert "workflow_name" in run_state
+    assert "run_id" in run_state
+    assert "started_at" in run_state

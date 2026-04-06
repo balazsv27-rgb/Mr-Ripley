@@ -78,6 +78,11 @@ def _is_workflow_complete(run_state: GovernanceRunState) -> bool:
     return any(e.event_type == "run_completed" for e in run_state.execution_trace)
 
 
+def is_workflow_complete(run_state: GovernanceRunState) -> bool:
+    """Return True if the workflow completed (run_completed trace event present)."""
+    return _is_workflow_complete(run_state)
+
+
 def compute_runtime_verdict(
     validation_result: ValidationResult,
     blocker_summary: BlockerSummary,

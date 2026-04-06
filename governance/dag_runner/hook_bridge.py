@@ -24,9 +24,10 @@ artifacts:
   1. 'artifact_records' list → converted to name-keyed map internally
 
 pr_readiness:
-  1. top-level 'pr_readiness' dict
-  2. artifact named 'pr_readiness_verdict' in artifact_records
-  3. None
+  1. top-level 'pr_readiness' str  (Phase 3 compact contract — wrapped as {"status": value})
+  2. top-level 'pr_readiness' dict (legacy dict form)
+  3. artifact named 'pr_readiness_verdict' in artifact_records
+  4. None
 
 unresolved blocks:
   1. blocker_unknown_reference_count > 0 (explicit unknown references)
@@ -188,20 +189,26 @@ def _extract_blocking_conditions(run_state: dict[str, Any]) -> dict[str, Any]:
 def _extract_pr_readiness(run_state: dict[str, Any]) -> dict[str, Any] | None:
     """
     Resolve PR readiness with deterministic priority:
-      1. top-level 'pr_readiness' key (dict) — preferred if populated
-      2. artifact named 'pr_readiness_verdict' in artifact_records — V1 shell fallback
-      3. None
+      1. top-level 'pr_readiness' str  (Phase 3 compact contract) — wrapped as {"status": value}
+      2. top-level 'pr_readiness' dict (legacy dict form)
+      3. artifact named 'pr_readiness_verdict' in artifact_records — V1 shell fallback
+      4. None
 
     In V1 shell mode the pr_readiness_verdict artifact is a stub record
     (status='present', payload={'produced_by': step_id}). Callers are responsible
     for checking whether the returned payload is substantive.
     """
-    # 1. Top-level pr_readiness dict
     top_level = run_state.get("pr_readiness")
+
+    # 1. Phase 3 compact string — wrap into dict for uniform return type
+    if isinstance(top_level, str):
+        return {"status": top_level}
+
+    # 2. Legacy dict form
     if isinstance(top_level, dict):
         return top_level
 
-    # 2. Artifact named 'pr_readiness_verdict'
+    # 3. Artifact named 'pr_readiness_verdict'
     artifact_map = _extract_artifact_map(run_state)
     pr_artifact = artifact_map.get("pr_readiness_verdict")
     if pr_artifact is not None:
@@ -354,9 +361,10 @@ def get_pr_readiness(path: str | Path | None = None) -> dict[str, Any] | None:
     Return the PR readiness object if present.
 
     Resolution order:
-      1. top-level 'pr_readiness' dict
-      2. artifact named 'pr_readiness_verdict' in artifact_records
-      3. None
+      1. top-level 'pr_readiness' str  (Phase 3) — returned as {"status": value}
+      2. top-level 'pr_readiness' dict (legacy)
+      3. artifact named 'pr_readiness_verdict' in artifact_records
+      4. None
 
     In V1 shell mode the returned artifact record will be a stub with
     payload={'produced_by': step_id}. Callers must inspect the payload

@@ -259,6 +259,36 @@ def test_get_pr_readiness_returns_none_when_absent(tmp_path: Path) -> None:
     assert get_pr_readiness(p) is None
 
 
+def test_get_pr_readiness_handles_compact_string_field(tmp_path: Path) -> None:
+    """Phase 3: top-level pr_readiness string is wrapped into {"status": value}."""
+    state = _minimal_state(artifact_records=[])
+    state["pr_readiness"] = "ready"
+    p = _write(tmp_path, state)
+    result = get_pr_readiness(p)
+    assert result == {"status": "ready"}
+
+
+def test_get_pr_readiness_string_prefers_over_artifact(tmp_path: Path) -> None:
+    """Phase 3 compact string takes priority over artifact fallback."""
+    rec = _artifact_record("pr_readiness_verdict", "pre-pr-governance-readiness")
+    state = _minimal_state(artifact_records=[rec])
+    state["pr_readiness"] = "blocked"
+    p = _write(tmp_path, state)
+    result = get_pr_readiness(p)
+    assert result == {"status": "blocked"}
+
+
+def test_get_pr_readiness_dict_still_preferred_over_artifact(tmp_path: Path) -> None:
+    """Legacy dict form remains preferred over artifact fallback (backward compat)."""
+    top_level_pr = {"all_checks_passed": True, "custom": "data"}
+    rec = _artifact_record("pr_readiness_verdict", "pre-pr-governance-readiness")
+    state = _minimal_state(artifact_records=[rec])
+    state["pr_readiness"] = top_level_pr
+    p = _write(tmp_path, state)
+    result = get_pr_readiness(p)
+    assert result == top_level_pr
+
+
 # ---------------------------------------------------------------------------
 # 10. has_unresolved_blocks — True when unknown references exist
 # ---------------------------------------------------------------------------
