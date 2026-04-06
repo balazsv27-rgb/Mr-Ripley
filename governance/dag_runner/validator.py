@@ -61,11 +61,14 @@ def _is_supported_condition(value: Any) -> bool:
     - None
     - dict with a recognized 'type'
 
-    Currently supported:
+    Currently supported inline condition types:
       - artifact_field_equals
       - artifact_field_not_equals
       - artifact_exists
       - artifact_missing
+
+    Named predicate reference type (resolved via spec.predicates):
+      - predicate_ref  (requires a 'name' key; validated by _validate_predicate_references)
     """
     if value is None:
         return True
@@ -82,8 +85,32 @@ def _is_supported_condition(value: Any) -> bool:
         "artifact_field_not_equals",
         "artifact_exists",
         "artifact_missing",
+        "predicate_ref",
     }
     return condition_type in supported
+
+
+# V1 governance property tokens used in step.validates fields that are not
+# blocking condition IDs. These represent high-level invariants validated by
+# workflow steps but not necessarily tied to a declared BlockingCondition.
+# Source of truth: union of this set and spec.blocking_conditions.keys().
+_KNOWN_VALIDATES_TOKENS: frozenset[str] = frozenset({
+    "all_blocking_conditions_cleared",
+    "all_c_layer_blocking_conditions_resolved",
+    "canonical_terminology_used_consistently",
+    "claim_classification_unchanged",
+    "contract_affecting_changes_flagged_for_doc_update_obligations",
+    "doc_only_updates_do_not_prove_runtime",
+    "evidence_type_consistency_preserved",
+    "historical_sources_not_used_as_current_truth",
+    "matrix_entries_consistent_with_canonical_doc_set",
+    "no_claims_removed",
+    "no_evidence_confusing_residue_in_commit_scope",
+    "no_new_claims_introduced",
+    "no_unexpected_runtime_artifacts_in_workspace",
+    "required_canonical_docs_reviewed_per_claude_md_section_11",
+    "role_mapping_preserved",
+})
 
 
 def _validate_required_sections(spec: AssembledWorkflowSpec) -> list[ValidationIssue]:
@@ -344,6 +371,84 @@ def _validate_dependency_cycles(spec: AssembledWorkflowSpec) -> list[ValidationI
     return issues
 
 
+def _validate_step_validates(spec: AssembledWorkflowSpec) -> list[ValidationIssue]:
+    """
+    Validate that every token in step.validates is a known governance token.
+
+    Allowed token set (V1):
+      - All declared blocking condition IDs from spec.blocking_conditions
+      - All tokens in _KNOWN_VALIDATES_TOKENS (governance property constants)
+
+    Any token not in this union is rejected as unknown.
+    """
+    issues: list[ValidationIssue] = []
+    known = frozenset(spec.blocking_conditions.keys()) | _KNOWN_VALIDATES_TOKENS
+
+    for step_id, step in spec.workflow_steps.items():
+        for token in step.validates:
+            if token not in known:
+                issues.append(
+                    ValidationIssue(
+                        code="unknown_validates_token",
+                        message=f"validates references unknown token '{token}'.",
+                        step_id=step_id,
+                        detail={"token": token},
+                    )
+                )
+
+    return issues
+
+
+def _validate_predicate_references(spec: AssembledWorkflowSpec) -> list[ValidationIssue]:
+    """
+    Validate that named predicate references in condition/skip_if fields resolve
+    to declared predicates in spec.predicates.
+
+    A named predicate reference has the form:
+      {type: "predicate_ref", name: "<predicate_name>"}
+
+    Inline structured conditions (e.g. artifact_field_equals, artifact_exists)
+    are handled by _validate_conditions and are NOT predicate references.
+    Only conditions with type == "predicate_ref" trigger this lookup.
+    """
+    issues: list[ValidationIssue] = []
+    known_predicates = set(spec.predicates.keys())
+
+    for step_id, step in spec.workflow_steps.items():
+        for field_label, condition in (("condition", step.condition), ("skip_if", step.skip_if)):
+            if not isinstance(condition, dict):
+                continue
+            if condition.get("type") != "predicate_ref":
+                continue
+
+            pred_name = condition.get("name")
+            if not isinstance(pred_name, str) or not pred_name.strip():
+                issues.append(
+                    ValidationIssue(
+                        code="invalid_predicate_reference",
+                        message=(
+                            f"{field_label} predicate_ref is missing a valid 'name' field."
+                        ),
+                        step_id=step_id,
+                        detail={"field": field_label, "condition": condition},
+                    )
+                )
+            elif pred_name not in known_predicates:
+                issues.append(
+                    ValidationIssue(
+                        code="unknown_predicate_reference",
+                        message=(
+                            f"{field_label} predicate_ref '{pred_name}' is not declared "
+                            "in spec.predicates."
+                        ),
+                        step_id=step_id,
+                        detail={"field": field_label, "predicate": pred_name},
+                    )
+                )
+
+    return issues
+
+
 def validate_workflow_spec(spec: AssembledWorkflowSpec) -> ValidationResult:
     issues: list[ValidationIssue] = []
 
@@ -354,6 +459,8 @@ def validate_workflow_spec(spec: AssembledWorkflowSpec) -> ValidationResult:
     issues.extend(_validate_component_references(spec))
     issues.extend(_validate_conditions(spec))
     issues.extend(_validate_dependency_cycles(spec))
+    issues.extend(_validate_step_validates(spec))
+    issues.extend(_validate_predicate_references(spec))
 
     return ValidationResult(
         is_valid=len(issues) == 0,

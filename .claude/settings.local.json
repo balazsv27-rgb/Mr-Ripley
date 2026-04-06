@@ -12,7 +12,10 @@
       "Bash(echo \"exit: $?\")",
       "Bash(echo \"exit=$?\")",
       "Bash(printf '{}')",
-      "Bash(echo \"EXIT=$?\")"
+      "Bash(echo \"EXIT=$?\")",
+      "Bash(grep -r validates: C:/Code/Mr-Ripley/.claude/workflows/ --include=*.yaml -A2)",
+      "Bash(find C:/Code/Mr-Ripley/.claude/workflows/ -name *.yaml)",
+      "Bash(grep -v \"^--$\")"
     ]
   }
 }
