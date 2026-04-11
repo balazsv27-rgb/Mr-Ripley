@@ -2,9 +2,9 @@
   "artifact": "adapter_schema_verdict",
   "produced_by": "adapter-schema-check",
   "session": "",
-  "timestamp": "2026-04-11T21:34:32.628948Z",
+  "timestamp": "2026-04-11T21:48:26.374257Z",
   "data": {
-    "file_path": "C:\\Code\\Mr-Ripley\\.claude\\agents\\AGENT_FILE_SCHEMA.md",
+    "file_path": "C:\\Code\\Mr-Ripley\\.claude\\agents\\artifact-hygiene-agent.md",
     "scanned": false,
     "registry_driven": true,
     "hardcoded_series_detected": false,
