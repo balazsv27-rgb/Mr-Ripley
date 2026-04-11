@@ -35,7 +35,14 @@
       "Bash(grep -E \"^[a-z_].*\\\\.py$\")",
       "Bash(xargs grep:*)",
       "Bash(grep -r \"path:\" .claude/workflows/packages/*.yaml)",
-      "Bash(grep:*)"
+      "Bash(grep:*)",
+      "Bash(find /c/Code/Mr-Ripley/.claude/hooks -type f -name *)",
+      "Bash(ls:*)",
+      "Bash(find C:CodeMr-Ripley.claudehooks -type f -name *.sh)",
+      "Bash(while read:*)",
+      "Bash(do echo:*)",
+      "Read(//c/Code/Mr-Ripley/**)",
+      "Bash(done)"
     ]
   }
 }
