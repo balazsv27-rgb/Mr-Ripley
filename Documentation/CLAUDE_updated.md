@@ -1,3 +1,7 @@
+> **HISTORICAL / NON-CANONICAL**
+> This file is not part of the canonical 7-document authority set.
+> Canonical truth is defined by the canonical documentation set and `CLAUDE.md`.
+
 Rendben — akkor a hangsúlyt most nem a saját elméleti architektúrátokra teszem, hanem arra, hogy *a Claude Code hivatalos megoldásaival ezt pontosan hogyan lehet megvalósítani*.
 
 ## Mit érdemes másképp nézni

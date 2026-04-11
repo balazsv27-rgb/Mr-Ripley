@@ -18,7 +18,7 @@ The following changes were made in this revision. Current-state interpretation m
 | 1 | Header | Updated last-updated date and version to v6 | 2026-03-22 philosophy freeze |
 | 2 | §1 | Updated Layer-3 diagram line to reflect state-driven / event-driven model | `SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md` |
 | 3 | §16 | Updated Layer-3 prerequisites — `guards` and `reason_code` now resolved | v1 docs confirmed |
-| 4 | §16 | Updated Layer-3 build order — bootstrap-first path now leads with DecisionPacket skeleton and `NO_TRADE` default | `ARCHITECTURE_CHANGE_MEMO_v1.md` |
+| 4 | §16 | Updated Layer-3 build order — bootstrap-first path now leads with DecisionPacket skeleton and `NO_TRADE` default | `SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md` |
 | 5 | §16 | Updated DecisionPacket example — removed `timeframe` field and aligned description with current Layer-3 design | `SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md` |
 | 6 | §16 | Added Live Market State and Event Risk Stream as governed Layer-3 inputs | `SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md` |
 | 7 | §16 | Added note that earlier DecisionPacket example (`action: BUY/SELL/NOTHING`, `timeframe: 5m`) is superseded | `SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md` |
@@ -582,8 +582,8 @@ Forced snapshots should be filtered out of backtests.
 | `config_version` in snapshot schema + JSON | ✅ DONE | — | Resolved from `registry_version` |
 | Auto-migration for existing DBs | ✅ DONE | — | `_ensure_snapshot_schema_migrations()` |
 | Three-way snapshot dedup | ✅ DONE | — | `clock_ts + engine_version + config_version` |
-| `guards` structured object in snapshot JSON | ⬜ TODO | **High** | Required before Layer-3 gate evaluation |
-| `reason_code` enum in shared constants file | ⬜ TODO | **High** | Prevents free-text at execution boundary |
+| `guards` structured object in snapshot JSON | ✅ DONE | — | Resolved — see §16 previously-blocked items |
+| `reason_code` enum in shared constants file | ✅ DONE | — | Resolved — see §16 previously-blocked items |
 | SP500 history fix (use SPY via Yahoo) | ⬜ TODO | **High** | Affects calibration validity — 2014–2016 gap |
 | `revision_risk` column in `observations` | ⬜ TODO | Medium | Architecture4 vintage discipline requirement |
 | Revision writer (`revision_seq=1` path) | ⬜ TODO | Medium | FRED corrections currently silently dropped |
@@ -639,7 +639,7 @@ Step 3: Layer-3 reads snapshot_id                          ⬜ NOT BUILT YET
         → If no snapshot_id exists → Layer-3 outputs nothing
 
 Current state: Steps 1 and 2 complete and version-locked.
-Step 3 not yet built. guards object and reason_code enum needed before Step 3 starts.
+Step 3 not yet built. guards and reason_code prerequisites resolved (see §16).
 ```
 
 ---
@@ -804,8 +804,8 @@ snapshot_id: <64-char hash>
 | README to-do list showed registry wiring as pending | Low | Corrected — wiring confirmed complete in code audit |
 
 **Known remaining items from Audit 5:**
-- `guards` structured object not yet in snapshot output (required before Layer-3) ⬜
-- `reason_code` enum not defined (required before Layer-3) ⬜
+- `guards` structured object in snapshot output ✅ (resolved — see §16)
+- `reason_code` enum defined ✅ (resolved — see §16)
 - SP500 history gap 2014–2016 (HIGH priority for calibration) ⬜
 - `revision_risk` column not in `observations` table ⬜
 - `layer1_events: []` stub not in snapshot JSON ⬜

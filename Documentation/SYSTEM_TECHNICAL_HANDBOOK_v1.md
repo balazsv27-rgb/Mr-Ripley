@@ -45,7 +45,7 @@ Layer-4  →  Execution orchestration                    (not yet built / intent
 
 Layer-3 must consume only published snapshots. It must never query `observations` directly.
 
-Layer-3 note: as of 2026-03-22, the Layer-3 decision philosophy is frozen as of 2026-03-22. The engine will be state-driven / event-driven, consuming Snapshot Truth from Layer-2 alongside Live Market State and Event Risk Stream as additional governed inputs. Neither of those additional inputs may touch Layer-2 storage.
+Layer-3 note: as of 2026-03-22, the Layer-3 decision philosophy is frozen. The engine will be state-driven / event-driven, consuming Snapshot Truth from Layer-2 alongside Live Market State and Event Risk Stream as additional governed inputs. Neither of those additional inputs may touch Layer-2 storage.
 
 ---
 

@@ -2,9 +2,9 @@
   "artifact": "adapter_schema_verdict",
   "produced_by": "adapter-schema-check",
   "session": "",
-  "timestamp": "2026-04-11T17:59:08.149305Z",
+  "timestamp": "2026-04-11T18:24:29.824055Z",
   "data": {
-    "file_path": "C:\\Code\\Mr-Ripley\\verification_ledger.md",
+    "file_path": "C:\\Code\\Mr-Ripley\\Documentation\\roadmap2.md",
     "scanned": false,
     "registry_driven": true,
     "hardcoded_series_detected": false,

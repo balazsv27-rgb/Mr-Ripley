@@ -98,7 +98,7 @@ Classifies every major claim or requested change in the user's request as `curre
 | Tier | Documents |
 |---|---|
 | **Tier 1** (canonical current-state) | `README_v1.md`, `SYSTEM_TECHNICAL_HANDBOOK_v1.md`, `SYSTEM_LIMITATIONS_AND_APPROXIMATIONS_v1.md`, `SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md`, `DOCUMENTATION_VERIFICATION_MATRIX_v1.md`, `SYSTEM_IMPLEMENTATION_RECORD_v1.md` (canonical record of what is actually implemented and realized; primary source for implementation-state claims) |
-| **Tier 2** (interpretive / governance addenda) | `DECISION_PHILOSOPHY_v0.md` (Layer-3 decision philosophy claims), `DECISIONPACKET_SCHEMA_v0.md` (Layer-3 output contract claims), `ARCHITECTURE_CHANGE_MEMO_v1.md` (architectural re-framing claims) |
+| **Tier 2** (interpretive / governance addenda) | `SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md` (Layer-3 decision philosophy, DecisionPacket schema, architectural framing), `SYSTEM_IMPLEMENTATION_RECORD_v1.md` (current implementation state and boundary status) |
 | **Tier 3** (canonical within declared collaborator-workflow role) | `README_LAYER2.md` |
 
 ### Inputs

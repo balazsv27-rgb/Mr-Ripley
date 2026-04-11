@@ -1,3 +1,7 @@
+> **HISTORICAL / NON-CANONICAL**
+> This file is not part of the canonical 7-document authority set.
+> Canonical truth is defined by the canonical documentation set and `CLAUDE.md`.
+
 This is a strong, internally consistent system—but there is a **non-trivial architectural tension emerging** between:
 
 1. your **constitutional layer** (CLAUDE.md)

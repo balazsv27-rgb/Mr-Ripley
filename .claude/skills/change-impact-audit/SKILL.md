@@ -745,7 +745,7 @@ Expected output:
     "inference_used": false,
     "risk_summary": [
       "Phase B bootstrap work is now in progress; build-sequence docs should confirm that bootstrap scope has not been exceeded.",
-      "DecisionPacket schema must remain aligned with DECISIONPACKET_SCHEMA_v0.md if referenced."
+      "DecisionPacket schema must remain aligned with SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md section 7 if referenced."
     ],
     "notes": [
       "This is Phase B bootstrap work; it is target-state relative to current operational Layer-2, but within the permitted next phase.",

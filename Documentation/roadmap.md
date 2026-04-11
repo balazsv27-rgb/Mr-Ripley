@@ -1,3 +1,7 @@
+> **HISTORICAL / NON-CANONICAL**
+> This file is not part of the canonical 7-document authority set.
+> Canonical truth is defined by the canonical documentation set and `CLAUDE.md`.
+
 # Layer-2 Technical Handbook
 ## Mr. Ripley — Gold-First Decision Engine
 

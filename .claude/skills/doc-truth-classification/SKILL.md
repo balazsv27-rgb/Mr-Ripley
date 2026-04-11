@@ -53,9 +53,8 @@ When classifying a claim, use this source precedence order unless the request is
 6. `SYSTEM_IMPLEMENTATION_RECORD_v1.md` — canonical record of what is actually implemented and realized; primary source for implementation-state claims
 
 ### Tier 2 — canonical interpretive / governance addenda
-7. `DECISION_PHILOSOPHY_v0.md` when the claim touches Layer-3 decision philosophy
-8. `DECISIONPACKET_SCHEMA_v0.md` when the claim touches Layer-3 output contract
-9. `ARCHITECTURE_CHANGE_MEMO_v1.md` when the claim touches recent architectural re-framing
+7. `SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md` sections covering Layer-3 decision philosophy, DecisionPacket schema (frozen), and architectural framing
+8. `SYSTEM_IMPLEMENTATION_RECORD_v1.md` when the claim touches current implementation availability or boundary status
 
 ### Tier 3 — canonical within declared collaborator-workflow role
 10. `README_LAYER2.md`

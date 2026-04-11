@@ -2,9 +2,9 @@
   "artifact": "runtime_boundary_verdict",
   "produced_by": "runtime-boundary-check",
   "session": "",
-  "timestamp": "2026-04-11T17:59:08.128496Z",
+  "timestamp": "2026-04-11T18:24:29.820228Z",
   "data": {
-    "file_path": "C:\\Code\\Mr-Ripley\\verification_ledger.md",
+    "file_path": "C:\\Code\\Mr-Ripley\\Documentation\\roadmap2.md",
     "scanned": false,
     "layer2_file": false,
     "raw_observation_access_detected": false,
