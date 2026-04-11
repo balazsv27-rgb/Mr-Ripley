@@ -4,31 +4,31 @@ version: "1.0"
 data:
   required_inputs:
     canonical_docs:
-      - path: README_v1.md
+      - path: Documentation/README_v1.md
         role: top_level_orientation
         authority: canonical
 
-      - path: SYSTEM_TECHNICAL_HANDBOOK_v1.md
+      - path: Documentation/SYSTEM_TECHNICAL_HANDBOOK_v1.md
         role: technical_constraints_and_engineering_rules
         authority: canonical
 
-      - path: SYSTEM_LIMITATIONS_AND_APPROXIMATIONS_v1.md
+      - path: Documentation/SYSTEM_LIMITATIONS_AND_APPROXIMATIONS_v1.md
         role: limitations_and_approximations_source_of_truth
         authority: canonical
 
-      - path: SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md
+      - path: Documentation/SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md
         role: architecture_source_of_truth
         authority: canonical
 
-      - path: DOCUMENTATION_VERIFICATION_MATRIX_v1.md
+      - path: Documentation/DOCUMENTATION_VERIFICATION_MATRIX_v1.md
         role: documentation_consistency_map
         authority: canonical
 
-      - path: SYSTEM_IMPLEMENTATION_RECORD_v1.md
+      - path: Documentation/SYSTEM_IMPLEMENTATION_RECORD_v1.md
         role: implementation_state_source_of_truth
         authority: canonical
 
-      - path: README_LAYER2.md
+      - path: Documentation/README_LAYER2.md
         role: collaborator_guide_and_living_build_reference
         authority: canonical
         constraint: >

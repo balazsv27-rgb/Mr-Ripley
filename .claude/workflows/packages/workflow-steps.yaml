@@ -160,7 +160,7 @@ data:
     inputs:
       - role_citation_verdict
       - claim_classification_map
-      - SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md
+      - Documentation/SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md
       - stage_gates
     outputs:
       - phase_alignment_status
@@ -191,8 +191,8 @@ data:
     inputs:
       - phase_alignment_status
       - role_citation_verdict
-      - SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md
-      - SYSTEM_TECHNICAL_HANDBOOK_v1.md
+      - Documentation/SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md
+      - Documentation/SYSTEM_TECHNICAL_HANDBOOK_v1.md
     outputs:
       - contract_compliance_verdict
     depends_on:
@@ -287,7 +287,7 @@ data:
     inputs:
       - runtime_boundary_verdict
       - code_context
-      - SYSTEM_TECHNICAL_HANDBOOK_v1.md
+      - Documentation/SYSTEM_TECHNICAL_HANDBOOK_v1.md
     outputs:
       - adapter_schema_verdict
     depends_on:
@@ -526,7 +526,7 @@ data:
       - doc_code_sync_status
       - change_impact_report
       - audit_summary
-      - DOCUMENTATION_VERIFICATION_MATRIX_v1.md
+      - Documentation/DOCUMENTATION_VERIFICATION_MATRIX_v1.md
     outputs:
       - verification_matrix_delta
     depends_on:

@@ -2,10 +2,10 @@
   "artifact": "stage_gate_report",
   "produced_by": "stage-gate-check",
   "session": "",
-  "timestamp": "2026-04-11T17:21:37.893282Z",
+  "timestamp": "2026-04-11T17:29:59.273777Z",
   "data": {
-    "file_path": "C:\\Code\\Mr-Ripley\\layer2\\adapters\\snapshot_publisher.py",
-    "scanned": true,
+    "file_path": "C:\\Code\\Mr-Ripley\\.claude\\workflows\\packages\\workflow-steps.yaml",
+    "scanned": false,
     "live_readiness_claim_detected": false,
     "execution_capability_claim_detected": false,
     "production_ready_claim_detected": false,
