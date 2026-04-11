@@ -128,7 +128,7 @@ The following are **planned only**:
 - Regime Gate
 - Supervisor Engine
 - Decision Engine
-- DecisionPacket
+- DecisionPacket generator (schema frozen; generator / runtime production path not built)
 - Execution Layer
 
 Rule:
@@ -212,7 +212,7 @@ Layer 3+ MUST:
 Each snapshot MUST have:
 
 - identity (`snapshot_id`)
-- time anchor (`as_of`)
+- time anchor (`clock_ts`)
 - revision metadata
 - deterministic contents
 

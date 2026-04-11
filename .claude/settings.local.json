@@ -15,7 +15,18 @@
       "Bash(echo \"EXIT=$?\")",
       "Bash(grep -r validates: C:/Code/Mr-Ripley/.claude/workflows/ --include=*.yaml -A2)",
       "Bash(find C:/Code/Mr-Ripley/.claude/workflows/ -name *.yaml)",
-      "Bash(grep -v \"^--$\")"
+      "Bash(grep -v \"^--$\")",
+      "Bash(python -c \":*)",
+      "Bash(grep -E \"\\\\.\\(py|md|txt|json|yaml\\)$\")",
+      "Bash(find /c/Code/Mr-Ripley/.claude/hooks -type f -name *.py)",
+      "Bash(/tmp/compare_lists.txt:*)",
+      "Read(//tmp/**)",
+      "Bash(grep -r \"governance_run_state\\\\|dag_runner\" /c/Code/Mr-Ripley/.claude/hooks/*.py)",
+      "Bash(__NEW_LINE_3e0e8ff59bbb6b3a__ echo:*)",
+      "Bash(grep -r \"governance_run_state\\\\|dag_runner\" /c/Code/Mr-Ripley/.claude --include=*.py --include=*.yaml)",
+      "Bash(__NEW_LINE_a93ff5d0e7159752__ echo:*)",
+      "Bash(__NEW_LINE_a93ff5d0e7159752__ find:*)",
+      "Bash(wc:*)"
     ]
   }
 }

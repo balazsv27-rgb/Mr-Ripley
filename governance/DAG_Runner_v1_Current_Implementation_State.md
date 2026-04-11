@@ -23,6 +23,24 @@ It can:
 
 This implementation is not a trading engine, not an MCP orchestration layer, and not a true skill-execution runtime. It is the executable governance layer that turns the package-based specification into a testable runtime surface.
 
+### V1 Shell-Mode Execution Caveat
+
+The DAG runner currently executes in **V1 shell mode**. This is structural execution, not true skill execution.
+
+A `ready` verdict in V1 shell mode means:
+
+- structural validation of the workflow specification passed
+- shell-mode execution completed without fatal blockers
+- artifact placeholder records were materialized by the executor
+
+It does **not** mean:
+
+- governance analysis skills (claim classification, terminology normalization, doc-code sync, etc.) actually ran
+- skills were truly executed with real inputs and outputs
+- the semantic governance pipeline produced verified results
+
+Steps may be recorded as `PASS` without real skill execution having occurred. The `ready` verdict is a **structural readiness signal**, not a semantic governance completion signal.
+
 ---
 
 ## 1. Repository Structure
@@ -162,7 +180,7 @@ python -c "from governance.dag_runner.loader import load_workflow_packages; r=lo
 **How to test**
 
 ```bash
-python -c "from governance.dag_runner.loader import load_workflow_packages; from governance.dag_runner.assembler import assemble_workflow_spec; loaded=load_workflow_packages(); spec=assemble_workflow_spec(loaded); print(spec.manifest.workflow_name, len(spec.workflow_steps), len(spec.skills), len(spec.artifacts), len(spec.blocking_conditions), len(spec.stage_gates), len(spec.subagents))"
+python -c "from governance.dag_runner.loader import load_workflow_packages; from governance.dag_runner.assembler import assemble_workflow_spec; loaded=load_workflow_packages(); spec=assemble_workflow_spec(loaded); print(spec.manifest.workflow_name, len(spec.workflow_steps), len(spec.skills), len(spec.artifacts), len(spec.blocking_conditions), len(spec.stage_gates), len(spec.subagents), len(spec.predicates))"
 ```
 
 **Current result**
@@ -173,6 +191,7 @@ python -c "from governance.dag_runner.loader import load_workflow_packages; from
 * blocking conditions: `12`
 * stage gates: `4`
 * subagents: `8`
+* predicates: `6`
 
 ---
 
@@ -795,6 +814,7 @@ These are placeholder files and currently contain no logic.
 | Blocking conditions | 12 |
 | Stage gates | 4 |
 | Subagents | 8 |
+| Predicates | 6 |
 
 ### First five execution steps
 
