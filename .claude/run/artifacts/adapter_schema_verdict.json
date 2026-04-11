@@ -2,9 +2,9 @@
   "artifact": "adapter_schema_verdict",
   "produced_by": "adapter-schema-check",
   "session": "",
-  "timestamp": "2026-04-11T17:29:59.272783Z",
+  "timestamp": "2026-04-11T17:59:08.149305Z",
   "data": {
-    "file_path": "C:\\Code\\Mr-Ripley\\.claude\\workflows\\packages\\workflow-steps.yaml",
+    "file_path": "C:\\Code\\Mr-Ripley\\verification_ledger.md",
     "scanned": false,
     "registry_driven": true,
     "hardcoded_series_detected": false,

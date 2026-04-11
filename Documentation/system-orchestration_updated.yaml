@@ -1,3 +1,9 @@
+# =========================================================
+# THIS FILE IS HISTORICAL / NOT ACTIVE
+# The active orchestration spec is: .claude/workflows/system-orchestration.yaml
+# This file is retained for reference only. Do not use as current-state truth.
+# =========================================================
+
 name: mr-ripley-governance-orchestration
 description: >
   Project-level orchestration manifest for the Claude-assisted governance workflow.

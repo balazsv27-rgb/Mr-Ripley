@@ -50,37 +50,52 @@ nothing. This is called **fail-closed** behavior.
 
 ```
 Mr-Ripley/
-├── FRED/                              # Historical FRED data dumps
-│   ├── 2014GOLD/                      # Gold price backfill data
-│   │   ├── gold_xauusd_stooq_2014_yesterday.json  # 3,132 daily gold prices
-│   │   └── backfill_gold_stooq.py                 # Script used to collect it
-│   ├── all_series_merged.json         # FRED metadata catalogue (149,595 series)
-│   └── gold_sereies.json              # FRED gold series metadata
-│                                      # note: filename has a typo — do not rename
-├── .secrets/                          # API keys (NOT in GitHub — gitignored)
-│   └── fred_api_key.txt               # Your FRED API key goes here
-├── layer2/                            # Everything we built
+├── Documentation/                         # Canonical documentation set
+│   ├── README_v1.md                       # Top-level project orientation
+│   ├── SYSTEM_TECHNICAL_HANDBOOK_v1.md    # Technical constraints & engineering rules
+│   ├── SYSTEM_LIMITATIONS_AND_APPROXIMATIONS_v1.md
+│   ├── SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md
+│   ├── DOCUMENTATION_VERIFICATION_MATRIX_v1.md
+│   ├── SYSTEM_IMPLEMENTATION_RECORD_v1.md
+│   └── README_LAYER2.md                  # This file (collaborator guide)
+├── FRED/                                  # Historical FRED/gold data
+│   ├── gold_xauusd_stooq_2014_yesterday.json  # 3,132 daily gold prices (2014-present)
+│   └── layer_2_data_structure_and_collection_frequency_overview.md
+├── governance/                            # Governance DAG runner
+│   └── dag_runner/
+│       ├── cli.py                         # Governance workflow CLI
+│       ├── executor.py, loader.py, ...    # See governance/dag_runner/ for full listing
+│       └── DAG_Runner_v1_Current_Implementation_State.md
+├── legacy_marco_data/                     # Legacy data files (archived)
+├── .secrets/                              # API keys (NOT in GitHub — gitignored)
+│   └── fred_api_key.txt                   # Your FRED API key goes here
+├── layer2/                                # Everything we built
 │   ├── adapters/
-│   │   ├── gold_adapter.py            # Gold price XAUUSD ingestion (Tier-1)
-│   │   ├── move_adapter.py            # MOVE index ingestion (Tier-1)
-│   │   ├── gld_holdings_adapter.py    # GLD ounces held (Tier-2)
-│   │   ├── fred_loader.py             # FRED 20-series loader (Tier-1 + Tier-2)
-│   │   ├── quality_gate.py            # Staleness checker + snapshot verdict
-│   │   └── snapshot_publisher.py      # Publishes point-in-time snapshots for Layer-3
+│   │   ├── gold_adapter.py                # Gold price XAUUSD ingestion (Tier-1)
+│   │   ├── move_adapter.py                # MOVE index ingestion (Tier-1)
+│   │   ├── gld_holdings_adapter.py        # GLD ounces held (Tier-2)
+│   │   ├── fred_loader.py                 # FRED 20-series loader (Tier-1 + Tier-2)
+│   │   ├── quality_gate.py                # Staleness checker + snapshot verdict
+│   │   └── snapshot_publisher.py          # Publishes point-in-time snapshots for Layer-3
 │   ├── config/
-│   │   ├── __init__.py                # Makes config a Python package
-│   │   ├── series_registry.json       # ★ Single source of truth for all series metadata
-│   │   │                              #   Must contain "registry_version" key — consumed
-│   │   │                              #   by snapshot_publisher as config_version
-│   │   └── registry.py               # Registry loader + validator
-│   └── README_LAYER2.md               # This file
-├── layer2_truth.db                    # SQLite DB (local only — gitignored)
-├── layer2_quality_report.json         # Quality gate output (local only — gitignored)
-├── latest_snapshot.json               # Latest published snapshot (local only — gitignored)
-├── alphavangtage.json                 # AlphaVantage daily data (unused, future use)
-├── fix_encoding.py                    # Utility: fixes special characters in .py files
-├── fix_docstring.py                   # Utility: fixes missing docstring quotes
-└── venv/                              # Python virtual environment (local only)
+│   │   ├── __init__.py                    # Makes config a Python package
+│   │   ├── series_registry.json           # ★ Single source of truth for all series metadata
+│   │   │                                  #   Must contain "registry_version" key — consumed
+│   │   │                                  #   by snapshot_publisher as config_version
+│   │   └── registry.py                    # Registry loader + validator
+│   ├── alignment.py                       # Set-based point-in-time alignment
+│   ├── clock.py                           # Engine clock governance
+│   ├── db.py                              # Database interface
+│   ├── index_suite.py                     # Index computation (clock-aligned)
+│   ├── query_db.py                        # Database query inspector
+│   └── run_backfill.py                    # Backfill orchestrator
+├── tests/                                 # Test suite
+│   └── governance/                        # DAG runner tests
+├── CLAUDE.md                              # Project constitution
+├── layer2_truth.db                        # SQLite DB (local only — gitignored)
+├── layer2_quality_report.json             # Quality gate output (local only — gitignored)
+├── latest_snapshot.json                   # Latest published snapshot (local only — gitignored)
+└── requirements.txt                       # Python dependencies
 ```
 
 ---
@@ -178,7 +193,7 @@ on next `get_connection(with_snapshot_tables=True)` call (handled by `_ensure_sn
 | Gold history | Starts 2014, target is 2005 | Medium | Extend backfill via Stooq |
 | DTWEXM / DTWEXO / TWEXB | Discontinued series in DB | Low | Bridge with DTWEXBGS or drop |
 | GLD history | Approximation only — uniform shares across dates | Low | Accept or find paid source |
-| AlphaVantage | `alphavangtage.json` unused | Low | Wire into observations table |
+| AlphaVantage | No AlphaVantage data integration (file not present in repo) | Low | Acquire data and wire into observations table |
 | `revision_risk` | Not tracked; monthly macro series carry unacknowledged revision exposure | Medium | Add column to `observations`; populate for FRED monthly series |
 | Revision writer | `revision_seq=1` path not built; FRED corrections silently dropped | Medium | Implement rev-1 write path |
 | `--full-reload` help text | Describes deprecated `INSERT OR REPLACE` behavior | Low | Update help text across all 4 adapters |
@@ -275,7 +290,7 @@ Source: Local JSON → gold-api.com spot → Yahoo Finance (GC=F) → Stooq
 
 ```bash
 # First-time setup
-python layer2\adapters\gold_adapter.py --load-json FRED\2014GOLD\gold_xauusd_stooq_2014_yesterday.json --live
+python layer2\adapters\gold_adapter.py --load-json FRED\gold_xauusd_stooq_2014_yesterday.json --live
 
 # Daily EOD job
 python layer2\adapters\gold_adapter.py --live --backfill-days 5
@@ -370,7 +385,14 @@ python layer2\adapters\quality_gate.py --quiet
 
 # Custom report path
 python layer2\adapters\quality_gate.py --report-path reports\quality.json
+
+# Custom DB path
+python layer2\adapters\quality_gate.py --db path\to\layer2_truth.db
 ```
+
+**Additional flags:** `--db` (SQLite path), `--timezone` (clock timezone, default UTC),
+`--cut-hour` / `--cut-minute` / `--cut-second` (clock cut time, default 22:00:00),
+`--exceptions-file` (calendar exceptions JSON), `--policy-version` (clock policy version, default `clock-v1`).
 
 **Expected output (healthy):**
 ```
@@ -419,6 +441,7 @@ python layer2\adapters\snapshot_publisher.py --force
 ```
 
 > **CLI flags:** `--clock-date` sets the clock date. `--db` sets the database path.
+> `--snapshot-path` sets the JSON output path (default: `latest_snapshot.json`).
 > These flags have not been renamed — they remain as originally implemented.
 
 **Outputs:**
@@ -450,6 +473,64 @@ in its payload, in addition to `clock_ts` and series values. This means two snap
 for the same `clock_ts` but different engine or config versions produce different IDs.
 Snapshot deduplication also checks all three fields — the same `clock_ts` can have
 multiple valid snapshots under different versions.
+
+---
+
+### G. Other CLI Entry Points
+
+**Backfill orchestrator** (`run_backfill.py`) — runs adapters in registry order:
+```bash
+python layer2\run_backfill.py --full-history --gold-json FRED\gold_xauusd_stooq_2014_yesterday.json
+python layer2\run_backfill.py --dry-run --only gold fred
+python layer2\run_backfill.py --skip gld --start-date 2025-01-01 --end-date 2025-12-31
+```
+Flags: `--db`, `--full-history`, `--gold-json PATH`, `--start-date`, `--end-date`, `--dry-run`, `--skip {gold,move,gld,fred}`, `--only {gold,move,gld,fred}`, `--python`.
+
+**Database query inspector** (`query_db.py`) — read-only DB inspection:
+```bash
+python layer2\query_db.py --status
+python layer2\query_db.py --freshness
+python layer2\query_db.py --snapshots
+python layer2\query_db.py --series gold_price_proxy --tail 10
+python layer2\query_db.py --sql "SELECT count(*) FROM observations"
+```
+Flags: `--db`, `--status`, `--counts`, `--freshness`, `--registry`, `--tables`, `--schema TABLE`, `--series ID`, `--compare ID [ID ...]`, `--snapshots`, `--snapshot-detail PREFIX`, `--gaps ID`, `--export ID`, `--export-all`, `--sql QUERY`, `--tail N`, `--from DATE`, `--to DATE`, `--max-gap N`, `--out PATH`, `--tier {1,2}`.
+
+**Engine clock** (`clock.py`) — governed clock queries:
+```bash
+python layer2\clock.py --date 2026-03-06
+python layer2\clock.py --latest-completed --json
+```
+Flags: `--date`, `--latest-completed`, `--timezone`, `--cut-hour`, `--cut-minute`, `--cut-second`, `--exceptions-file`, `--policy-version`, `--json`.
+
+**Alignment** (`alignment.py`) — point-in-time alignment queries:
+```bash
+python layer2\alignment.py --clock-date 2026-03-06 --json
+python layer2\alignment.py --show-sql
+```
+Flags: `--clock-date`, `--db`, `--timezone`, `--cut-hour`, `--cut-minute`, `--cut-second`, `--exceptions-file`, `--policy-version`, `--json`, `--show-sql`.
+
+**Index suite** (`index_suite.py`) — clock-aligned index computation:
+```bash
+python layer2\index_suite.py --clock-date 2026-03-06 --json
+```
+Flags: `--clock-date`, `--db`, `--json`, `--timezone`, `--cut-hour`, `--cut-minute`, `--cut-second`, `--exceptions-file`, `--policy-version`.
+
+**Registry** (`config/registry.py`) — registry inspection and validation:
+```bash
+python -m layer2.config.registry --validate
+python -m layer2.config.registry --list --tier 1
+python -m layer2.config.registry --show gold_price_proxy
+python -m layer2.config.registry --summary
+```
+Flags: `--validate`, `--list`, `--tier N`, `--show SERIES_ID`, `--summary`, `--registry-path PATH`.
+
+**Governance DAG runner** (`governance/dag_runner/cli.py`) — shell-mode governance workflow orchestrator:
+```bash
+python -m governance.dag_runner.cli --show-steps
+python -m governance.dag_runner.cli --write-state
+```
+Flags: `--workflow PATH`, `--show-steps`, `--write-state`, `--state-path PATH`.
 
 ---
 
@@ -593,7 +674,7 @@ echo your_fred_api_key_here > .secrets\fred_api_key.txt
 python -m layer2.config.registry --validate
 
 # Step 6: Load gold backfill (first time only)
-python layer2\adapters\gold_adapter.py --load-json FRED\2014GOLD\gold_xauusd_stooq_2014_yesterday.json --live
+python layer2\adapters\gold_adapter.py --load-json FRED\gold_xauusd_stooq_2014_yesterday.json --live
 
 # Step 7: Load MOVE and GLD
 python layer2\adapters\move_adapter.py --source yahoo --backfill-days 1825

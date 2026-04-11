@@ -27,7 +27,15 @@
       "Bash(__NEW_LINE_a93ff5d0e7159752__ echo:*)",
       "Bash(__NEW_LINE_a93ff5d0e7159752__ find:*)",
       "Bash(wc:*)",
-      "Bash(echo \"Exit code: $?\")"
+      "Bash(echo \"Exit code: $?\")",
+      "Bash(grep -E '\\\\.\\(md|py|json|yaml|yml\\)$')",
+      "Bash(ls -lh ./Documentation/*.md)",
+      "Bash(grep -E \"\\\\.\\(md|yaml|yml\\)$\")",
+      "Bash(/tmp/check_paths.txt:*)",
+      "Bash(grep -E \"^[a-z_].*\\\\.py$\")",
+      "Bash(xargs grep:*)",
+      "Bash(grep -r \"path:\" .claude/workflows/packages/*.yaml)",
+      "Bash(grep:*)"
     ]
   }
 }
