@@ -409,7 +409,7 @@ python layer2\adapters\snapshot_publisher.py --dry-run
 python layer2\adapters\snapshot_publisher.py
 
 # Publish for a specific past date (replay)
-python layer2\adapters\snapshot_publisher.py --date 2026-03-05
+python layer2\adapters\snapshot_publisher.py --clock-date 2026-03-05
 
 # List recent snapshots (now shows engine_version + config_version)
 python layer2\adapters\snapshot_publisher.py --list
@@ -418,8 +418,8 @@ python layer2\adapters\snapshot_publisher.py --list
 python layer2\adapters\snapshot_publisher.py --force
 ```
 
-> **CLI flag change (v2):** `--clock-date` is now `--date`. `--db` is now `--db-path`.
-> Update any scheduler scripts that use the old flag names.
+> **CLI flags:** `--clock-date` sets the clock date. `--db` sets the database path.
+> These flags have not been renamed — they remain as originally implemented.
 
 **Outputs:**
 - `snapshots` table in DB — one row per published snapshot (includes `engine_version`, `config_version`)
@@ -720,7 +720,6 @@ snapshot_id: <64-char hash>
 | `_snapshot_exists()` dedup only on `clock_ts` | Medium | Upgraded to three-way dedup: `clock_ts + engine_version + config_version` |
 | `_list_snapshots()` did not show version fields | Low | Updated to display `engine_version` and `config_version` |
 | `compute_snapshot_id()` did not include version fields | Medium | Both version fields now included in hash payload |
-| CLI flags `--clock-date` / `--db` inconsistent with codebase | Low | Renamed to `--date` / `--db-path` |
 | README to-do list showed registry wiring as pending | Low | Corrected — wiring confirmed complete in code audit |
 
 **Known remaining items from Audit 5:**

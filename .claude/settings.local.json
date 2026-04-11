@@ -26,7 +26,8 @@
       "Bash(grep -r \"governance_run_state\\\\|dag_runner\" /c/Code/Mr-Ripley/.claude --include=*.py --include=*.yaml)",
       "Bash(__NEW_LINE_a93ff5d0e7159752__ echo:*)",
       "Bash(__NEW_LINE_a93ff5d0e7159752__ find:*)",
-      "Bash(wc:*)"
+      "Bash(wc:*)",
+      "Bash(echo \"Exit code: $?\")"
     ]
   }
 }

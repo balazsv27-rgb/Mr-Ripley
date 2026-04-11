@@ -221,7 +221,8 @@ def _list_snapshots(conn, limit: int = 10) -> None:
     rows = conn.execute(
         """
         SELECT snapshot_id, clock_ts, verdict, tier1_pass, tier1_fail,
-               series_count, dry_run, forced, created_at
+               series_count, engine_version, config_version,
+               dry_run, forced, created_at
         FROM snapshots
         ORDER BY clock_ts DESC
         LIMIT ?
@@ -244,13 +245,15 @@ def _list_snapshots(conn, limit: int = 10) -> None:
             flags += " [FORCED]"
 
         log.info(
-            "  %s | %s | %s | T1: %d/%d | series: %d%s",
+            "  %s | %s | %s | T1: %d/%d | series: %d | eng=%s cfg=%s%s",
             r["snapshot_id"],
             r["clock_ts"][:19],
             r["verdict"],
             r["tier1_pass"],
             r["tier1_pass"] + r["tier1_fail"],
             r["series_count"],
+            r["engine_version"],
+            r["config_version"],
             flags,
         )
     log.info("=" * 80)

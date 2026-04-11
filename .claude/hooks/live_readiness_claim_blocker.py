@@ -33,6 +33,16 @@ Lines containing clear negation words in the immediate prefix ("not",
 "never", "no ", "isn't", "cannot", "can't", "won't", "wouldn't") are
 excluded from matching, reducing false positives in limitation statements.
 
+Lines containing the non-equivalence symbol (≠) are also excluded.
+
+Normative-negation context filter
+----------------------------------
+Lines that fall inside a normative-negation section (e.g. a "FORBIDDEN
+unless proven" example list or "NOT allowed:" block) are excluded.  A
+window of preceding lines is checked for context markers defined in
+NORMATIVE_NEGATION_CONTEXT_MARKERS.  This prevents false positives on
+bullet-listed forbidden-claim examples in governance documents.
+
 Scope
 -----
 Scans ALL non-governance-tooling files: code (.py, .js, .ts, etc.) and
@@ -207,6 +217,33 @@ _NEGATION_WORDS = (
     "has not", "have not", "had not",
 )
 
+# ---------------------------------------------------------------------------
+# Normative-negation context detection (false-positive hardening)
+# ---------------------------------------------------------------------------
+#
+# Certain documents (e.g. CLAUDE.md §9–§10) list forbidden claims as
+# normative examples — bullet items under "FORBIDDEN unless proven",
+# "NOT allowed:", etc.  These lines match forbidden-claim patterns but are
+# part of the governance specification, not positive assertions.
+#
+# When a pattern match is found, scan a short window of preceding lines for
+# these contextual markers.  If any marker is present, the match is treated
+# as a normative-negation example and suppressed.
+
+NORMATIVE_NEGATION_CONTEXT_MARKERS = (
+    "forbidden unless",
+    "forbidden until",
+    "not allowed",
+    "claims are forbidden",
+    "following claims are",
+    "forbidden strong claim",
+    "forbidden phrases",
+    "must not be described as",
+)
+
+# Number of preceding lines to search for context markers.
+_NEGATION_CONTEXT_WINDOW = 15
+
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -237,7 +274,7 @@ def normalise(file_path: str) -> str:
 def is_skip_file(file_path: str) -> bool:
     """Return True for governance/tooling files that should not be scanned."""
     norm = normalise(file_path)
-    return norm.startswith(".claude/")
+    return norm.startswith(".claude/") or "/.claude/" in norm
 
 
 def is_scannable(file_path: str) -> bool:
@@ -257,11 +294,32 @@ def read_file_content(file_path: str) -> str | None:
 def _is_likely_negated(line: str, match: re.Match) -> bool:
     """
     Return True if the matched phrase is likely negated by a word or phrase
-    appearing in the ~50-character window immediately before the match.
+    appearing in the ~50-character window immediately before the match,
+    or if the line contains an unambiguous non-equivalence symbol (≠).
     """
+    # ≠ anywhere on the line indicates non-equivalence, not a positive claim.
+    if "≠" in line:
+        return True
     start = max(0, match.start() - 50)
     prefix = line[start:match.start()].lower()
     return any(neg in prefix for neg in _NEGATION_WORDS)
+
+
+def _is_in_normative_negation_context(lines: list[str], line_idx: int) -> bool:
+    """
+    Return True if the line at *line_idx* appears inside a normative-negation
+    section — one that lists forbidden claims as examples of what is NOT
+    allowed, rather than making those claims positively.
+
+    Checks the preceding _NEGATION_CONTEXT_WINDOW lines for any of the
+    NORMATIVE_NEGATION_CONTEXT_MARKERS.
+    """
+    start = max(0, line_idx - _NEGATION_CONTEXT_WINDOW)
+    for i in range(start, line_idx):
+        lowered = lines[i].lower()
+        if any(marker in lowered for marker in NORMATIVE_NEGATION_CONTEXT_MARKERS):
+            return True
+    return False
 
 
 class Match(NamedTuple):
@@ -274,16 +332,21 @@ def scan_content(content: str, patterns: list) -> list[Match]:
     """
     Scan content line-by-line for all patterns.
 
-    Lines that appear to negate the claim (negation filter) are skipped.
+    Lines that appear to negate the claim (negation filter) or that fall
+    inside a normative-negation context (e.g. a "FORBIDDEN unless proven"
+    example list) are skipped.
     Returns a list of Match instances.
     """
+    lines = content.splitlines()
     matches = []
-    for line_no, line in enumerate(content.splitlines(), start=1):
+    for line_idx, line in enumerate(lines):
         for pat in patterns:
             m = pat.search(line)
-            if m and not _is_likely_negated(line, m):
+            if (m
+                    and not _is_likely_negated(line, m)
+                    and not _is_in_normative_negation_context(lines, line_idx)):
                 matches.append(Match(
-                    line_no=line_no,
+                    line_no=line_idx + 1,
                     line_text=line.strip(),
                     pattern_desc=pat.pattern,
                 ))
