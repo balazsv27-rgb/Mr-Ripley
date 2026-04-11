@@ -15,6 +15,7 @@
     skills.yaml                   # skill inventory with step/artifact bindings
     hooks.yaml                    # hook definitions with checks and gating logic
     subagents.yaml                # subagent declarations with trigger conditions
+    agents.yaml                   # agent definitions — primary workflow step executors
     artifacts.yaml                # required inputs, expected outputs, producer ownership
     interpretation-policy.yaml    # claim routing and conflict resolution rules
     stage-gates.yaml              # phase gate definitions with enforcement checks
@@ -46,12 +47,13 @@ The DAG runner assembles the spec as follows:
 5.  skills
 6.  hooks
 7.  subagents
-8.  artifacts
-9.  interpretation_policy
-10. stage_gates
-11. blocking_conditions
-12. verification_ledger
-13. workflow
+8.  agents
+9.  artifacts
+10. interpretation_policy
+11. stage_gates
+12. blocking_conditions
+13. verification_ledger
+14. workflow
 ```
 
 Order is explicit and deterministic. The runner must not rely on filesystem ordering.
@@ -77,6 +79,7 @@ data: ...                 # content merged into that section
 | skills.yaml                    | skills                   |
 | hooks.yaml                     | hooks                    |
 | subagents.yaml                 | subagents                |
+| agents.yaml                    | agents                   |
 | artifacts.yaml                 | artifacts                |
 | interpretation-policy.yaml     | interpretation_policy    |
 | stage-gates.yaml               | stage_gates              |
@@ -94,6 +97,8 @@ Each section is owned by exactly one package. No cross-package duplication.
 - `component: stage_gates` binds to the gates in `stage-gates.yaml` via the step's `inputs.stage_gates` reference.
 - `component: subagents` dispatches via `audit_dispatch` conditions in the step.
 - `component: hooks` synthesizes hook signals via `consumes_hook_signals`.
+- `agent_binding: <name>` binds the step to an agent declared in `agents.yaml` by `name`. The agent is the execution unit; the skill (via `component`) provides behavioral instructions.
+- Agent names in `agent_binding` fields must resolve to entries in `agents`.
 - `component: constitution` is a reserved executor for the `load-context` step only.
 - Predicates in `condition`, `skip_if`, and `requires_if` fields must resolve to entries in `scope_predicates`.
 - Blocking condition ids in `raises` and `validates` must resolve to entries in `blocking-conditions`.

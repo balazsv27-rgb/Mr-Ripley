@@ -5,12 +5,17 @@ data:
   workflow_schema_version: "4.0"
   predicate_language_version: "1.0"
   artifact_contract_version: "1.0"
+  agent_contract_version: "1.0"
   execution_model: dag
   enforcement_model: hook_plus_runner
   note: >
     The DAG runner executes workflow steps in topological order.
+    Agents are the primary execution units for skill-bound steps —
+    they provide scoped context isolation, constrained tool access,
+    and structured artifact production. Subagents are escalation-only
+    audit specialists dispatched on specific violation conditions.
     Hooks inspect runner state and enforce tool gating.
-    Skills evaluate inputs and produce artifacts.
+    Skills provide behavioral instructions consumed by agents.
     Blocking conditions halt forward progress until resolved.
     CLAUDE.md defines normative constraints only — it does not execute steps.
     This manifest defines the executable structure. These roles must not be conflated.

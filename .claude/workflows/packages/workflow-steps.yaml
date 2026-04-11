@@ -27,6 +27,7 @@ version: "1.0"
 #   requires_if   - conditional input requirement tied to a predicate
 #   consumes_hook_signals - hook outputs synthesized by this step
 #   escalates_to  - subagent dispatch rules evaluated after step outputs are produced
+#   agent_binding - agent name (from agents.yaml) that executes this step
 #   reinforced_by_hook - hook name that re-checks this step's output at runtime
 
 data:
@@ -57,6 +58,7 @@ data:
   - id: classify-claims
     layer: A_semantic_normalization
     component: skill:doc-truth-classification
+    agent_binding: claim-classification-agent
     purpose: >
       Classify every major claim or requested change as:
       current-state, target-state, historical, or unverified.
@@ -87,6 +89,7 @@ data:
   - id: normalize-terminology
     layer: A_semantic_normalization
     component: skill:canonical-terminology-map
+    agent_binding: terminology-normalization-agent
     purpose: >
       Enforce consistent use of project-defined terms across all claims,
       documentation references, and implementation-facing descriptions.
@@ -108,6 +111,7 @@ data:
   - id: route-claims-by-role
     layer: A_semantic_normalization
     component: skill:role-matched-citation-check
+    agent_binding: role-citation-agent
     purpose: >
       Enforce that each claim is supported by the role-correct canonical document.
       Detect role-mismatched citations and README_LAYER2 override misuse.
@@ -153,6 +157,7 @@ data:
   - id: phase-check
     layer: B_architecture_phase_contract
     component: skill:build-sequence-compliance-check
+    agent_binding: build-sequence-agent
     purpose: >
       Verify the requested change is compatible with the documented build sequence
       and current phase gate (Phase A complete, Phase B allowed, Phase C/D blocked).
@@ -184,6 +189,7 @@ data:
   - id: snapshot-contract-check
     layer: B_architecture_phase_contract
     component: skill:snapshot-contract-check
+    agent_binding: snapshot-contract-agent
     purpose: >
       Validate that all downstream logic consumes only governed published snapshots.
       Enforce: no raw Layer-2 observation access, no latest_snapshot.json misuse,
@@ -203,6 +209,15 @@ data:
     raises:
       - snapshot_boundary_violation
       - raw_observations_used_in_layer3
+    escalates_to:
+      - condition:
+          type: artifact_field_any_equals
+          artifact: contract_compliance_verdict
+          field: violations
+          values:
+            - snapshot_boundary_violation
+            - raw_observations_used_in_layer3
+        invoke: snapshot-boundary-auditor
     on_block: >
       Raise snapshot_boundary_violation blocking condition.
       Escalate to snapshot-boundary-auditor subagent.
@@ -245,6 +260,7 @@ data:
   - id: runtime-boundary-check
     layer: C_runtime_schema_integrity
     component: skill:snapshot-boundary-check
+    agent_binding: runtime-boundary-agent
     purpose: >
       Validate runtime and code boundary integrity for the Layer-2 -> Layer-3 handoff.
       Confirm no downstream raw observation access, no snapshot truth rewrite,
@@ -279,6 +295,7 @@ data:
   - id: adapter-schema-check
     layer: C_runtime_schema_integrity
     component: skill:adapter-schema-review
+    agent_binding: adapter-schema-agent
     purpose: >
       Validate registry-driven adapter compliance and schema discipline at the
       Layer-2 ingestion/runtime boundary.
@@ -345,6 +362,7 @@ data:
   - id: deep-audit
     layer: D_audit_impact
     component: subagents
+    agent_binding: audit-coordinator-agent
     purpose: >
       Invoke targeted deep audits through the appropriate subagent based on
       escalation signals raised in Layers A–C.
@@ -406,6 +424,7 @@ data:
   - id: change-impact-audit
     layer: D_audit_impact
     component: skill:change-impact-audit
+    agent_binding: change-impact-agent
     purpose: >
       Assess the full impact of the requested or completed change.
       Identify which canonical documents require review or update per CLAUDE.md section 11.
@@ -434,6 +453,7 @@ data:
   - id: rename-invariance-check
     layer: D_audit_impact
     component: skill:rename-invariance-check
+    agent_binding: rename-invariance-agent
     purpose: >
       Verify that rename-only changes do not alter the semantic meaning,
       claim classification, or evidence structure of canonical documents.
@@ -471,6 +491,7 @@ data:
   - id: doc-code-sync-check
     layer: D_audit_impact
     component: skill:doc-code-sync-rules
+    agent_binding: doc-code-sync-agent
     purpose: >
       Validate whether documentation claims remain aligned with actual code,
       runtime behavior, and required project contracts.
@@ -516,6 +537,7 @@ data:
   - id: update-verification-matrix
     layer: E_verification_hygiene_release
     component: skill:verification-matrix-update-method
+    agent_binding: verification-matrix-agent
     purpose: >
       Determine whether the documentation verification matrix needs to be updated
       based on prior governance step outputs.
@@ -547,6 +569,7 @@ data:
   - id: update-verification-ledger
     layer: E_verification_hygiene_release
     component: skill:verification-ledger-update
+    agent_binding: verification-ledger-agent
     purpose: >
       Update the verification ledger: claim -> evidence -> status tracking.
       Applies ledger update_rules: runtime > code > doc evidence weight.
@@ -575,6 +598,7 @@ data:
   - id: runtime-artifact-hygiene-check
     layer: E_verification_hygiene_release
     component: skill:runtime-artifact-hygiene-check
+    agent_binding: artifact-hygiene-agent
     purpose: >
       Validate workspace and runtime artifact hygiene.
       Detect stale databases, unexpected snapshot files, generated runtime residue,

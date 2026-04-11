@@ -1,0 +1,469 @@
+section: agents
+version: "1.0"
+
+# Agent Definitions — Primary Workflow Step Executors
+#
+# Agents are governed execution units bound to workflow steps via agent_binding.
+# Each agent provides:
+#   - Scoped context isolation (own agent instance)
+#   - Constrained tool access (principle of least privilege)
+#   - Structured artifact production (declared outputs)
+#   - Skill-driven behavioral instructions (via skill_bindings)
+#
+# AGENT vs SUBAGENT — the authoritative distinction:
+#
+#   AGENT    = Primary step executor. Invoked by the DAG runner for every
+#              execution of the bound workflow step. Produces required artifacts.
+#              Defined here in agents.yaml.
+#
+#   SUBAGENT = Escalation target. Dispatched ONLY when a specific violation
+#              condition is detected in an agent's output. Does not produce
+#              required workflow artifacts — produces audit findings merged
+#              into audit_summary. Defined in subagents.yaml.
+#
+# Agent schema:
+#   name               - unique identifier (referenced by agent_binding in workflow-steps.yaml)
+#   role               - functional role within the governance workflow
+#   layer              - governance layer (A through E)
+#   purpose            - what this agent accomplishes
+#   model              - LLM model (opus for complex reasoning, sonnet for standard)
+#   tools              - allowed tool list (principle of least privilege)
+#   workflow_steps     - workflow step(s) this agent implements (1:1 binding)
+#   skill_bindings     - skill(s) providing behavioral instructions
+#   produces           - artifact(s) this agent must output
+#   consumes           - artifact(s) or documents this agent reads as input
+#   hook_reinforcement - hook that enforces this agent's output (null if none)
+#   escalation_targets - subagent(s) dispatched on specific violations ([] if none)
+#   failure_mode       - behavior on invalid input or unresolvable state
+#
+# Optional fields:
+#   activation_predicate - scope predicate that must be true for this agent to execute
+
+data:
+
+  # -------------------------------------------------------
+  # LAYER A — Semantic Normalization Agents
+  # Establish the interpretive foundation.
+  # -------------------------------------------------------
+
+  - name: claim-classification-agent
+    role: claim_classifier
+    layer: A_semantic_normalization
+    purpose: >
+      Classify every major claim or requested change as current-state,
+      target-state, historical, or unverified using canonical source priority
+      and evidence-aware confidence rules.
+    model: opus
+    tools: [Read, Grep, Glob]
+    workflow_steps:
+      - classify-claims
+    skill_bindings:
+      - doc-truth-classification
+    produces:
+      - claim_classification_map
+    consumes:
+      - governance_context
+      - canonical_docs
+    hook_reinforcement: null
+    escalation_targets:
+      - subagent: implementation-history-reconciler
+        condition: non_canonical_source_as_current_truth
+    failure_mode: >
+      Fail closed. If canonical source priority cannot be resolved or
+      evidence classification is ambiguous, produce claim_classification_map
+      with status: inconclusive and raise canonical_conflict_unresolved.
+
+  - name: terminology-normalization-agent
+    role: terminology_normalizer
+    layer: A_semantic_normalization
+    purpose: >
+      Enforce consistent use of project-defined terms across all claims,
+      documentation references, and implementation-facing descriptions.
+      Detect variant drift (NO_TRADE vs trade signal, layer2_truth.db vs db,
+      DecisionPacket vs decision packet, etc.).
+    model: sonnet
+    tools: [Read, Grep, Glob]
+    workflow_steps:
+      - normalize-terminology
+    skill_bindings:
+      - canonical-terminology-map
+    produces:
+      - normalized_terminology_map
+    consumes:
+      - governance_context
+      - claim_classification_map
+    hook_reinforcement: null
+    escalation_targets: []
+    failure_mode: >
+      Fail closed. Flag terminology violations for correction before
+      downstream gating layers consume the output.
+
+  - name: role-citation-agent
+    role: citation_validator
+    layer: A_semantic_normalization
+    purpose: >
+      Enforce that each claim is supported by the role-correct canonical document.
+      Detect role-mismatched citations and README_LAYER2 override misuse.
+      Apply the interpretation_policy.claim_routing table.
+    model: sonnet
+    tools: [Read, Grep, Glob]
+    workflow_steps:
+      - route-claims-by-role
+    skill_bindings:
+      - role-matched-citation-check
+    produces:
+      - role_citation_verdict
+    consumes:
+      - governance_context
+      - claim_classification_map
+      - normalized_terminology_map
+      - interpretation_policy.claim_routing
+    hook_reinforcement: role-matched-doc-guard
+    escalation_targets:
+      - subagent: canonical-role-auditor
+        condition: role_mismatch_for_strong_claim_or_readme_layer2_override
+    failure_mode: >
+      Fail closed. Raise canonical_conflict_unresolved or
+      role_mismatch_for_strong_claim. Do not produce a passing verdict
+      if role matching cannot be confirmed.
+
+  # -------------------------------------------------------
+  # LAYER B — Architecture + Phase + Contract Gating Agents
+  # Enforce build-order compliance, snapshot contracts,
+  # and phase gate rules.
+  # -------------------------------------------------------
+
+  - name: build-sequence-agent
+    role: phase_alignment_validator
+    layer: B_architecture_phase_contract
+    purpose: >
+      Verify the requested change is compatible with the documented build sequence
+      and current phase gate status. Check for forbidden scope and required scope
+      at the current phase (Phase A complete at contract boundary, Phase B allowed
+      but not completed, Phase C and D not yet available).
+    model: sonnet
+    tools: [Read, Grep, Glob]
+    workflow_steps:
+      - phase-check
+    skill_bindings:
+      - build-sequence-compliance-check
+    produces:
+      - phase_alignment_status
+    consumes:
+      - role_citation_verdict
+      - claim_classification_map
+      - stage_gates
+    hook_reinforcement: null
+    escalation_targets:
+      - subagent: architecture-sequence-auditor
+        condition: build_order_ambiguity_detected
+    failure_mode: >
+      Fail closed. Block if forbidden scope detected for current phase.
+      Raise unsupported_current_state_claim.
+
+  - name: snapshot-contract-agent
+    role: contract_validator
+    layer: B_architecture_phase_contract
+    purpose: >
+      Validate that all downstream logic consumes only governed published snapshots.
+      Enforce: no raw Layer-2 observation access, no latest_snapshot.json misuse,
+      no snapshot truth rewrite, no Layer-2 storage coupling outside governed interface.
+    model: sonnet
+    tools: [Read, Grep, Glob]
+    workflow_steps:
+      - snapshot-contract-check
+    skill_bindings:
+      - snapshot-contract-check
+    produces:
+      - contract_compliance_verdict
+    consumes:
+      - phase_alignment_status
+      - role_citation_verdict
+    hook_reinforcement: null
+    escalation_targets:
+      - subagent: snapshot-boundary-auditor
+        condition: snapshot_boundary_violation
+    failure_mode: >
+      Fail closed. Raise snapshot_boundary_violation or
+      raw_observations_used_in_layer3.
+
+  # -------------------------------------------------------
+  # LAYER C — Runtime / Schema / Boundary Integrity Agents
+  # Enforce code-level boundary rules and adapter/registry discipline.
+  # -------------------------------------------------------
+
+  - name: runtime-boundary-agent
+    role: boundary_integrity_validator
+    layer: C_runtime_schema_integrity
+    purpose: >
+      Validate runtime and code boundary integrity for the Layer-2 to downstream
+      handoff. Confirm no raw observation access, no snapshot truth rewrite,
+      no boundary bypass in adapters or downstream stubs.
+    model: sonnet
+    tools: [Read, Grep, Glob, Bash]
+    workflow_steps:
+      - runtime-boundary-check
+    skill_bindings:
+      - snapshot-boundary-check
+    produces:
+      - runtime_boundary_verdict
+    consumes:
+      - stage_gate_report
+      - contract_compliance_verdict
+      - code_context
+      - runtime_context
+    hook_reinforcement: snapshot-boundary-guard
+    escalation_targets:
+      - subagent: snapshot-boundary-auditor
+        condition: boundary_violation_suspected
+    failure_mode: >
+      Fail closed. Raise snapshot_boundary_violation.
+
+  - name: adapter-schema-agent
+    role: schema_compliance_validator
+    layer: C_runtime_schema_integrity
+    purpose: >
+      Validate registry-driven adapter compliance and schema discipline at the
+      Layer-2 ingestion/runtime boundary. Check: no hardcoded series logic,
+      series_registry.json is authoritative, no implicit data interpretation,
+      no hidden mappings.
+    model: sonnet
+    tools: [Read, Grep, Glob]
+    workflow_steps:
+      - adapter-schema-check
+    skill_bindings:
+      - adapter-schema-review
+    produces:
+      - adapter_schema_verdict
+    consumes:
+      - runtime_boundary_verdict
+      - code_context
+    hook_reinforcement: adapter-schema-guard
+    escalation_targets:
+      - subagent: adapter-schema-guardian
+        condition: registry_violation_or_schema_drift
+    failure_mode: >
+      Fail closed. Raise registry_violation or schema_drift_detected.
+
+  # -------------------------------------------------------
+  # LAYER D — Audit + Impact Agents
+  # Deep audit coordination, change impact assessment,
+  # rename invariance, and doc/code sync validation.
+  # -------------------------------------------------------
+
+  - name: audit-coordinator-agent
+    role: audit_dispatcher
+    layer: D_audit_impact
+    purpose: >
+      Coordinate and invoke targeted deep audits through the appropriate subagent
+      based on escalation signals raised in Layers A through C.
+      Consolidate all audit findings into a unified audit_summary artifact.
+      This agent does NOT perform audits itself — it dispatches subagents
+      and synthesizes their results.
+    model: sonnet
+    tools: [Read, Grep, Glob]
+    workflow_steps:
+      - deep-audit
+    skill_bindings: []
+    produces:
+      - audit_summary
+    consumes:
+      - guard_report
+      - role_citation_verdict
+      - phase_alignment_status
+      - contract_compliance_verdict
+      - stage_gate_report
+      - runtime_boundary_verdict
+      - adapter_schema_verdict
+      - claim_classification_map
+    hook_reinforcement: null
+    escalation_targets:
+      - subagent: canonical-role-auditor
+        condition: role_mismatch_or_readme_layer2_override
+      - subagent: architecture-sequence-auditor
+        condition: build_order_ambiguity_detected
+      - subagent: snapshot-boundary-auditor
+        condition: boundary_violation_suspected
+      - subagent: adapter-schema-guardian
+        condition: registry_violation_or_schema_drift
+      - subagent: implementation-history-reconciler
+        condition: non_canonical_source_as_current_truth
+    failure_mode: >
+      If any dispatched audit returns unresolved violations, produce
+      audit_summary with unresolved findings and halt DAG advancement
+      to verification layer.
+
+  - name: change-impact-agent
+    role: impact_assessor
+    layer: D_audit_impact
+    purpose: >
+      Assess the full impact of the requested or completed change.
+      Identify which canonical documents require review or update
+      per CLAUDE.md section 11 document update obligations.
+      Produce change_impact_report and doc_update_plan.
+    model: opus
+    tools: [Read, Grep, Glob]
+    workflow_steps:
+      - change-impact-audit
+    skill_bindings:
+      - change-impact-audit
+    produces:
+      - change_impact_report
+      - doc_update_plan
+    consumes:
+      - audit_summary
+      - claim_classification_map
+      - role_citation_verdict
+      - phase_alignment_status
+      - stage_gate_report
+      - guard_report
+    hook_reinforcement: null
+    escalation_targets: []
+    failure_mode: >
+      Fail closed. If a contract-affecting change is detected but no
+      doc_update_plan is producible, block and require manual reconciliation
+      before proceeding. Raise missing_alias_mapping if rename without alias map.
+
+  - name: rename-invariance-agent
+    role: rename_validator
+    layer: D_audit_impact
+    purpose: >
+      Verify that rename-only changes do not alter the semantic meaning,
+      claim classification, or evidence structure of canonical documents.
+      Activated only when change_type equals rename_only.
+    model: sonnet
+    tools: [Read, Grep, Glob]
+    workflow_steps:
+      - rename-invariance-check
+    skill_bindings:
+      - rename-invariance-check
+    produces:
+      - invariance_verdict
+    consumes:
+      - change_impact_report
+      - claim_classification_map
+      - canonical_docs
+    hook_reinforcement: null
+    escalation_targets: []
+    activation_predicate: rename_only_change
+    failure_mode: >
+      Fail closed. Raise rename_invariance_violation.
+      Block workflow until semantic equivalence is restored.
+
+  - name: doc-code-sync-agent
+    role: sync_validator
+    layer: D_audit_impact
+    purpose: >
+      Validate whether documentation claims remain aligned with actual code,
+      runtime behavior, and required project contracts.
+      Detect doc/code drift in either direction — code changed without doc
+      updates, or docs changed without supporting code/runtime evidence.
+    model: sonnet
+    tools: [Read, Grep, Glob, Bash]
+    workflow_steps:
+      - doc-code-sync-check
+    skill_bindings:
+      - doc-code-sync-rules
+    produces:
+      - doc_code_sync_status
+    consumes:
+      - change_impact_report
+      - doc_update_plan
+      - canonical_docs
+      - code_context
+    hook_reinforcement: doc-code-sync-guard
+    escalation_targets:
+      - subagent: doc-code-sync-auditor
+        condition: drift_detected
+      - subagent: cross-doc-consistency-auditor
+        condition: doc_doc_conflict_detected
+    failure_mode: >
+      Fail closed. If doc/code drift is unresolved, do not advance
+      to verification layer. Raise verification_without_evidence.
+
+  # -------------------------------------------------------
+  # LAYER E — Verification + Hygiene + Release Agents
+  # Update verification posture, ledger tracking, workspace
+  # hygiene validation.
+  # -------------------------------------------------------
+
+  - name: verification-matrix-agent
+    role: matrix_updater
+    layer: E_verification_hygiene_release
+    purpose: >
+      Determine whether the documentation verification matrix needs to be updated
+      based on prior governance step outputs. Produce a structured matrix delta.
+      Scope: classification posture only — does not update the ledger,
+      does not re-classify claims, does not act as a phase gate.
+    model: sonnet
+    tools: [Read, Grep, Glob]
+    workflow_steps:
+      - update-verification-matrix
+    skill_bindings:
+      - verification-matrix-update-method
+    produces:
+      - verification_matrix_delta
+    consumes:
+      - doc_code_sync_status
+      - change_impact_report
+      - audit_summary
+    hook_reinforcement: null
+    escalation_targets:
+      - subagent: verification-matrix-auditor
+        condition: classification_dispute_detected
+    failure_mode: >
+      Escalate to verification-matrix-auditor on classification dispute.
+      Do not produce a delta with disputed classifications.
+
+  - name: verification-ledger-agent
+    role: ledger_updater
+    layer: E_verification_hygiene_release
+    purpose: >
+      Update the verification ledger: claim to evidence to status tracking.
+      Apply update_rules: runtime evidence outweighs code evidence outweighs
+      doc evidence. Doc-only updates do not prove runtime behavior.
+      Scope: claim/evidence/status tracking only.
+    model: sonnet
+    tools: [Read, Grep, Glob]
+    workflow_steps:
+      - update-verification-ledger
+    skill_bindings:
+      - verification-ledger-update
+    produces:
+      - verification_ledger_delta
+    consumes:
+      - verification_matrix_delta
+      - doc_code_sync_status
+      - change_impact_report
+      - audit_summary
+      - verification_ledger.md
+    hook_reinforcement: null
+    escalation_targets: []
+    failure_mode: >
+      Fail closed. Raise verification_without_evidence if a claim is
+      promoted to proven without traceable evidence.
+
+  - name: artifact-hygiene-agent
+    role: hygiene_validator
+    layer: E_verification_hygiene_release
+    purpose: >
+      Validate workspace and runtime artifact hygiene. Detect stale databases,
+      unexpected snapshot files, generated runtime residue, and commit-sensitive
+      artifacts that would confuse verification evidence.
+    model: sonnet
+    tools: [Read, Grep, Glob, Bash]
+    workflow_steps:
+      - runtime-artifact-hygiene-check
+    skill_bindings:
+      - runtime-artifact-hygiene-check
+    produces:
+      - artifact_hygiene_verdict
+    consumes:
+      - verification_ledger_delta
+      - runtime_context
+      - workspace_state
+    hook_reinforcement: null
+    escalation_targets: []
+    failure_mode: >
+      Flag stale or ungoverned artifacts. Require cleanup or explicit
+      governance declaration before advancing to pre-PR gate.

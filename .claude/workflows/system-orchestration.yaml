@@ -58,6 +58,9 @@ assembly:
     - path: packages/subagents.yaml
       section: subagents
 
+    - path: packages/agents.yaml
+      section: agents
+
     - path: packages/artifacts.yaml
       section: artifacts
 
@@ -93,6 +96,9 @@ validation_expectations:
   - no_cycles_in_workflow_dependencies
   - every_escalates_to_target_is_a_declared_subagent
   - every_reinforced_by_hook_is_a_declared_hook
+  - every_agent_binding_resolves_to_declared_agent
+  - every_agent_produces_declared_artifacts_only
+  - every_agent_skill_binding_resolves_to_declared_skill
 
 # =========================================================
 # COMPATIBILITY METADATA

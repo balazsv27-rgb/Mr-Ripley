@@ -1,9 +1,17 @@
 # Candidate Agents — Mr. Ripley Layer-2
 
+> **SUPERSEDED** — This document has been superseded by:
+> - `.claude/workflows/packages/agents.yaml` — authoritative agent definitions (14 governance workflow agents)
+> - `.claude/workflows/packages/subagents.yaml` — authoritative subagent definitions (8 escalation specialists)
+>
+> The `.claude/agents/*.md` placeholder files referenced below no longer exist.
+> They were not wired into the governance workflow and have been removed.
+> The content below is retained as historical context only.
+
 Agents provide isolated context for specific roles. Use when fresh perspective
 or scope isolation is needed — not for every task.
 
-Location: `.claude/agents/<name>.md`
+Location (historical): `.claude/agents/<name>.md` — **REMOVED**
 
 ---
 

@@ -2,9 +2,9 @@
   "artifact": "stage_gate_report",
   "produced_by": "stage-gate-check",
   "session": "",
-  "timestamp": "2026-04-11T18:24:29.869154Z",
+  "timestamp": "2026-04-11T21:20:07.319369Z",
   "data": {
-    "file_path": "C:\\Code\\Mr-Ripley\\Documentation\\roadmap2.md",
+    "file_path": "C:\\Code\\Mr-Ripley\\agent_generation_plan.md",
     "scanned": true,
     "live_readiness_claim_detected": false,
     "execution_capability_claim_detected": false,
