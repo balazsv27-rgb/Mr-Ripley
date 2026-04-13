@@ -72,7 +72,7 @@
     "grep",
     "read_file"
   ],
-  "enabledMcpjsonServers": ["serena", "context7", "sqlite"],
+  "enabledMcpjsonServers": [],
   "disallowed_patterns": [
     "overwrite observations rows",
     "remove snapshot version fields",

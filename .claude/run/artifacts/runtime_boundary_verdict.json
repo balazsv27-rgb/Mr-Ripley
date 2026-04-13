@@ -2,9 +2,9 @@
   "artifact": "runtime_boundary_verdict",
   "produced_by": "runtime-boundary-check",
   "session": "",
-  "timestamp": "2026-04-11T22:15:13.352692Z",
+  "timestamp": "2026-04-13T18:56:15.153501Z",
   "data": {
-    "file_path": "C:\\Code\\Mr-Ripley\\.claude\\agents\\VALIDATION_STEPS_8_9.md",
+    "file_path": "C:\\Code\\Mr-Ripley\\.mcp.json.reference.local",
     "scanned": false,
     "layer2_file": false,
     "raw_observation_access_detected": false,

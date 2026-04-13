@@ -43,7 +43,8 @@
       "Bash(do echo:*)",
       "Read(//c/Code/Mr-Ripley/**)",
       "Bash(done)",
-      "Bash(find /c/Code/Mr-Ripley -name *agent* -type f)"
+      "Bash(find /c/Code/Mr-Ripley -name *agent* -type f)",
+      "Bash(git rm:*)"
     ]
   }
 }

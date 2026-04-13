@@ -2,9 +2,9 @@
   "artifact": "stage_gate_report",
   "produced_by": "stage-gate-check",
   "session": "",
-  "timestamp": "2026-04-11T22:15:13.365514Z",
+  "timestamp": "2026-04-13T18:56:15.154515Z",
   "data": {
-    "file_path": "C:\\Code\\Mr-Ripley\\.claude\\agents\\VALIDATION_STEPS_8_9.md",
+    "file_path": "C:\\Code\\Mr-Ripley\\.mcp.json.reference.local",
     "scanned": false,
     "live_readiness_claim_detected": false,
     "execution_capability_claim_detected": false,

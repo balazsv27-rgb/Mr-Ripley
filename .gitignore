@@ -1,6 +1,7 @@
 # Secrets / local config
 .secrets/
 *.local
+.mcp.json
 
 # Python
 __pycache__/
