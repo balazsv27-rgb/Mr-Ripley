@@ -10,14 +10,14 @@
 
 | Dimension | Value |
 |-----------|-------|
-| Overall status | Partial V2A |
-| Module delivery | ~70% |
-| Integration wiring | ~55% |
-| V1 test suite | 204 tests, ALL PASS |
-| V2 test suite | ~56 tests, ALL PASS (unit-level only) |
-| Contract-breaking defects | 2 (F1, F2) |
-| Unwired modules | 4 of 9 new V2A modules (prompt_assembly, artifact_writer, drift_detector, diagnostics) |
-| Live testing readiness | Mocked testing only (graph, dry-run, mock agent_execution, V1 shell) |
+| Overall status | **V2A COMPLETE (mocked-testing ready)** |
+| Module delivery | 100% (V2A scope) |
+| Integration wiring | 100% (V2A scope; prompt_assembly, input_bounding deferred to V2B) |
+| Full test suite | 313 tests, ALL PASS |
+| Contract-breaking defects | 0 (F1, F2 both FIXED) |
+| Unwired modules | 1 deferred (prompt_assembly — V2B prerequisite); artifact_writer, drift_detector, diagnostics all wired |
+| Live testing readiness | Mocked testing: ALL MODES READY. Live testing: blocked on V2B prerequisites. |
+| Acceptance record | `DAG_RUNNER_V2A_ACCEPTANCE_RECORD.md` — all 11 criteria MET |
 
 ### Remediation goal
 
@@ -36,17 +36,17 @@ This plan does NOT expand scope into V2B (live Claude backends, escalation, suba
 
 ### Must-fix items (blocking V2A completion claim)
 
-These must ALL be closed before V2A can be claimed as complete:
+**Status: ALL 7 ITEMS CLOSED** (verified 2026-04-18)
 
-| ID | Finding | File(s) | Rationale |
-|----|---------|---------|-----------|
-| MF-1 | F1: halt-on-critical-failure does not halt DAG traversal | `executor.py` | Violates CLAUDE.md §7 fail-closed principle. Contract-breaking. |
-| MF-2 | F2: `load_run_state_from_path` does not exist — continuation crashes | `cli.py`, `state_store.py` | Any `--continue-from` invocation crashes with ImportError. Contract-breaking. |
-| MF-3 | F3: artifact_writer not integrated into executor | `executor.py` | V2A criterion "All artifacts written to `.claude/run/artifacts/` match hook envelope format" is unmet. |
-| MF-4 | F5: drift detection not integrated into CLI | `cli.py` | V2A criterion "Drift detection blocks on critical drift before execution starts" is unmet. |
-| MF-5 | F6: diagnostics not integrated into CLI | `cli.py` | V2A criterion requires structured diagnostic output. Module exists but is dead code. |
-| MF-6 | F7: exit code mapping missing | `cli.py` | V2A criterion "Exit codes align with failure categories" is unmet. Only 0/1 returned. |
-| MF-7 | F9: state_store missing V2 metadata persistence | `state_store.py` | `StoredNodeResult` lacks `latency_ms` and `token_count`. V2 execution metadata lost on persistence. |
+| ID | Finding | File(s) | Status | Fixed In |
+|----|---------|---------|--------|----------|
+| MF-1 | F1: halt-on-critical-failure does not halt DAG traversal | `executor.py` | **CLOSED** | R1-A (6 tests in `test_executor_halt.py`) |
+| MF-2 | F2: `load_run_state_from_path` does not exist — continuation crashes | `cli.py`, `state_store.py` | **CLOSED** | R1-B (5 tests in `test_state_store.py`) |
+| MF-3 | F3: artifact_writer not integrated into executor | `executor.py` | **CLOSED** | R2-A (15 tests in `test_executor_artifacts.py`) |
+| MF-4 | F5: drift detection not integrated into CLI | `cli.py` | **CLOSED** | R2-B (5 tests in `test_cli_drift.py`) |
+| MF-5 | F6: diagnostics not integrated into CLI | `cli.py` | **CLOSED** | R2-C (4 tests in `test_cli_diagnostics.py`) |
+| MF-6 | F7: exit code mapping missing | `cli.py` | **CLOSED** | R3-A (8 tests in `test_cli_exit_codes.py`) |
+| MF-7 | F9: state_store missing V2 metadata persistence | `state_store.py` | **CLOSED** | R3-C (2 tests in `test_state_store_v2_metadata.py`) |
 
 ### Allowable deferrals (documented, non-blocking for V2A)
 
@@ -74,13 +74,13 @@ These must ALL be closed before V2A can be claimed as complete:
 ### Ordered phases
 
 ```
-R1: Contract-Breaking Defect Repair (F1, F2)
+R1: Contract-Breaking Defect Repair (F1, F2)          ✓ COMPLETE
   ↓
-R2: V2A Integration Wiring (F3, F5, F6)
+R2: V2A Integration Wiring (F3, F5, F6)               ✓ COMPLETE
   ↓
-R3: Plan-Conformance Restoration (F7, F8, F9, F10 partial)
+R3: Plan-Conformance Restoration (F7, F8, F9, F10)    ✓ COMPLETE
   ↓
-R4: Verification and Acceptance Review
+R4: Verification and Acceptance Review                 ✓ COMPLETE
 ```
 
 ### Rationale for sequencing
@@ -106,9 +106,11 @@ R4: Verification and Acceptance Review
 
 ## 4. Phase-by-Phase Work Plan
 
-### Phase R1: Contract-Breaking Defect Repair
+### Phase R1: Contract-Breaking Defect Repair — COMPLETE
 
 **Objective**: Fix the two defects that make V2A contract-non-compliant: halt-on-critical control flow (F1) and continuation crash (F2).
+
+**Status**: COMPLETE. Implemented in commit `c56aee8`. 11 new tests added.
 
 **Files affected**: `executor.py`, `state_store.py`, `cli.py`
 
@@ -170,16 +172,18 @@ R4: Verification and Acceptance Review
 - Test: CLI-level continuation: write state from a partial run, invoke CLI with `--continue-from`, verify execution resumes.
 
 **Success criteria for R1**:
-- F1 halt test passes: FAIL + halts_workflow → all subsequent steps SKIP.
-- F2 round-trip test passes: write → load → validate → resume works.
-- All 204 V1 tests still pass.
-- All existing 56 V2 tests still pass.
+- F1 halt test passes: FAIL + halts_workflow → all subsequent steps SKIP. **MET**
+- F2 round-trip test passes: write → load → validate → resume works. **MET**
+- All 204 V1 tests still pass. **MET**
+- All existing 56 V2 tests still pass. **MET**
 
 ---
 
-### Phase R2: V2A Integration Wiring
+### Phase R2: V2A Integration Wiring — COMPLETE
 
 **Objective**: Wire the three remaining critical unwired modules into the production path: artifact_writer into executor, drift_detector into CLI, diagnostics into CLI.
+
+**Status**: COMPLETE. Implemented in commit `143a59d`. 24 new tests added.
 
 **Files affected**: `executor.py`, `cli.py`
 
@@ -333,17 +337,19 @@ This check closes the remaining DAG-correctness gap without pulling full schema 
 - Test: diagnostics work correctly with V1 shell mode (all zeros).
 
 **Success criteria for R2**:
-- Artifact envelopes written to disk during `--mode agent_execution`.
-- Critical drifts block execution.
-- Diagnostics present in `--json` output.
-- All V1 tests still pass.
-- All V2 tests still pass.
+- Artifact envelopes written to disk during `--mode agent_execution`. **MET**
+- Critical drifts block execution. **MET**
+- Diagnostics present in `--json` output. **MET**
+- All V1 tests still pass. **MET**
+- All V2 tests still pass. **MET**
 
 ---
 
-### Phase R3: Plan-Conformance Restoration
+### Phase R3: Plan-Conformance Restoration — COMPLETE
 
 **Objective**: Close the remaining plan-conformance gaps: exit codes, phase scoping, state persistence, and minimum trace event coverage.
+
+**Status**: COMPLETE. Implemented in commit `3f36a34`. 18 new tests added. Option B chosen for `--phase` (warning emitted, documented as deferred).
 
 **Files affected**: `cli.py`, `planner.py`, `state_store.py`, `executor.py`
 
@@ -449,17 +455,19 @@ The remaining 7 event types (`skill_resolved`, `prompt_assembled`, `input_bounde
 - Test: V2 execution with artifact production contains `artifact_produced` events.
 
 **Success criteria for R3**:
-- Exit codes map to failure categories per the plan table.
-- `StoredNodeResult` persists V2 metadata.
-- `--phase` is either functional or documented as deferred with a warning.
-- Minimum trace events emitted for backend invocation and artifact production.
-- All V1 and V2 tests still pass.
+- Exit codes map to failure categories per the plan table. **MET**
+- `StoredNodeResult` persists V2 metadata. **MET**
+- `--phase` is either functional or documented as deferred with a warning. **MET** (Option B: warning emitted)
+- Minimum trace events emitted for backend invocation and artifact production. **MET**
+- All V1 and V2 tests still pass. **MET**
 
 ---
 
-### Phase R4: Verification and Acceptance Review
+### Phase R4: Verification and Acceptance Review — COMPLETE
 
 **Objective**: Execute the full V2A verification protocol and produce an acceptance record.
+
+**Status**: COMPLETE. Verified 2026-04-18. Acceptance record: `DAG_RUNNER_V2A_ACCEPTANCE_RECORD.md`.
 
 **Files affected**: None (verification only).
 
@@ -522,73 +530,74 @@ Document:
 - Updated V2A status assessment
 
 **Success criteria for R4**:
-- All 11 V2A acceptance criteria verified with evidence.
-- Acceptance record produced with clear status.
+- All 11 V2A acceptance criteria verified with evidence. **MET**
+- Acceptance record produced with clear status. **MET** → `DAG_RUNNER_V2A_ACCEPTANCE_RECORD.md`
 
 ---
 
 ## 5. Critical File Remediation Matrix
 
-| File | Current Defect(s) | Remediation Action | Phase | Blocking? | Required Tests |
-|------|-------------------|-------------------|-------|-----------|----------------|
-| `executor.py` | F1: halt-on-critical `break` exits wrong loop scope | Add `halted` flag, check after inner loop, break outer loop, mark remaining steps SKIP | R1-A | **Blocking** | halt-on-critical test (FAIL + halts_workflow → subsequent SKIP) |
-| `executor.py` | F3: artifact_writer not imported or called | Import `write_artifact_envelope`, call after in-memory recording, emit `artifact_produced` trace | R2-A | **Blocking** | artifact envelope disk-write integration test |
-| `executor.py` | F10: trace events missing (partial) | Emit `backend_invocation_started/completed/failed`, `artifact_produced`, `blocking_event_raised` | R3-D | Non-blocking | trace event presence tests |
-| `cli.py` | F2: imports non-existent `load_run_state_from_path` | No CLI change needed once `state_store.py` provides the function | R1-B | **Blocking** | continuation round-trip test |
-| `cli.py` | F5: drift detection not integrated | Import `detect_drift`, call between validate and plan, block on critical | R2-B | **Blocking** | drift blocking CLI test |
-| `cli.py` | F6: diagnostics not integrated | Import `build_diagnostic_report`, include in JSON and text output | R2-C | **Blocking** | diagnostics in JSON output test |
-| `cli.py` | F7: exit codes only 0/1 | Implement exit code mapping per plan table | R3-A | Non-blocking | exit code mapping tests |
-| `state_store.py` | F2: `load_run_state_from_path` does not exist | Add function: load JSON → reconstruct GovernanceRunState | R1-B | **Blocking** | round-trip write-load-continue test |
-| `state_store.py` | F9: `StoredNodeResult` missing `latency_ms`, `token_count` | Add fields with defaults, populate in `build_stored_run_state()` | R3-C | Non-blocking | V2 metadata persistence test |
-| `planner.py` | F8: `layer_groups()` missing, `--phase` non-functional | Either implement `layer_groups()` or document `--phase` as deferred with CLI warning | R3-B | Non-blocking | phase scoping or warning test |
+| File | Defect | Remediation Action | Phase | Status | Tests |
+|------|--------|-------------------|-------|--------|-------|
+| `executor.py` | F1: halt-on-critical `break` exits wrong loop scope | Added `halted` flag, outer loop break, remaining steps SKIP | R1-A | **FIXED** | 6 in `test_executor_halt.py` |
+| `executor.py` | F3: artifact_writer not imported or called | Imported `write_artifact_envelope`, disk-write loop, `artifact_produced` trace | R2-A | **FIXED** | 15 in `test_executor_artifacts.py` |
+| `executor.py` | F10: trace events missing (partial) | Emitting `backend_invocation_started/completed/failed`, `artifact_produced`, `blocking_event_raised` | R3-D | **FIXED** | 6 in `test_trace_events.py` |
+| `cli.py` | F2: imports non-existent `load_run_state_from_path` | Function added to `state_store.py`; import resolved | R1-B | **FIXED** | 5 in `test_state_store.py` |
+| `cli.py` | F5: drift detection not integrated | Imported `detect_drift`, call between validate and plan, blocks on critical | R2-B | **FIXED** | 5 in `test_cli_drift.py` |
+| `cli.py` | F6: diagnostics not integrated | Imported `build_diagnostic_report`, included in JSON and text output | R2-C | **FIXED** | 4 in `test_cli_diagnostics.py` |
+| `cli.py` | F7: exit codes only 0/1 | Exit code mapping implemented per plan table (0/1/2/3/4/5/10/11) | R3-A | **FIXED** | 8 in `test_cli_exit_codes.py` |
+| `state_store.py` | F2: `load_run_state_from_path` does not exist | Added function: load JSON → reconstruct GovernanceRunState | R1-B | **FIXED** | 5 in `test_state_store.py` |
+| `state_store.py` | F9: `StoredNodeResult` missing `latency_ms`, `token_count` | Added fields with defaults, populated in `build_stored_run_state()` | R3-C | **FIXED** | 2 in `test_state_store_v2_metadata.py` |
+| `planner.py` | F8: `layer_groups()` missing, `--phase` non-functional | Option B: `--phase` emits warning, documented as deferred | R3-B | **FIXED** | 2 in `test_cli_phase_warning.py` |
 
 ---
 
 ## 6. Test Recovery Plan
 
-### Missing tests to add
+### Tests added during remediation
 
-| Test | Phase | File | Priority | Description |
-|------|-------|------|----------|-------------|
-| T1: halt-on-critical-failure | R1-A | `tests/governance/test_executor_halt.py` (new) or extend `test_execution_modes.py` | **P0** | Force step FAIL with `halts_workflow=True` blocker. Assert all subsequent steps SKIP. Assert halt trace event recorded. |
-| T2: halt-on-critical-failure (non-halting) | R1-A | same | **P0** | Force step FAIL with `halts_workflow=False`. Assert subsequent steps continue. |
-| T3: continuation round-trip | R1-B | `tests/governance/test_state_store.py` (extend) | **P0** | Write run state → load via `load_run_state_from_path` → verify GovernanceRunState fields. |
-| T4: continuation corrupt JSON | R1-B | same | **P0** | `load_run_state_from_path` with invalid JSON → `StateStoreError`. |
-| T5: CLI continuation | R1-B | `tests/governance/test_cli_continuation.py` (new) or extend existing | **P0** | End-to-end: write state from partial run, CLI `--continue-from`, verify resumed execution. |
-| T6: artifact envelope disk write | R2-A | `tests/governance/test_artifact_writer.py` (extend) or new integration test | **P1** | Execute with MockExecutionBackend, verify `.claude/run/artifacts/` files exist with correct envelope schema. |
-| T7: artifact write dry-run bypass | R2-A | same | **P1** | Dry-run mode produces no disk artifacts. |
-| T8: artifact write failure → step FAIL | R2-A | same | **P1** | Simulate write failure, verify step status is FAIL. |
-| T9: drift detection CLI blocking | R2-B | `tests/governance/test_cli_drift.py` (new) or extend existing | **P1** | CLI with synthetic critical drift → nonzero exit, no execution. |
-| T10: drift detection CLI pass-through | R2-B | same | **P1** | CLI with clean drift → execution proceeds normally. |
-| T11: diagnostics in JSON output | R2-C | extend existing CLI tests | **P1** | `--json` output includes `diagnostics` key with expected structure. |
-| T12: exit code 0 (ready) | R3-A | `tests/governance/test_cli_exit_codes.py` (new) | **P2** | Clean run → exit 0. |
-| T13: exit code 1 (structural/drift) | R3-A | same | **P2** | Validation failure → exit 1. |
-| T14: exit code 2 (halt-on-critical) | R3-A | same | **P2** | Halt-on-critical → exit 2. |
-| T15: exit code 10 (review_only) | R3-A | same | **P2** | verdict=review_only → exit 10. |
-| T16: exit code 11 (blocked) | R3-A | same | **P2** | verdict=blocked → exit 11. |
-| T17: StoredNodeResult V2 metadata | R3-C | extend `test_state_store.py` | **P2** | V2 execution → persisted state has `latency_ms`, `token_count`. |
-| T18: phase scope warning (if Option B) | R3-B | extend CLI tests | **P2** | `--phase` emits warning. |
-| T19: trace event coverage | R3-D | extend execution tests | **P2** | V2 trace contains `backend_invocation_started`, `backend_invocation_completed`, `artifact_produced`. |
+**All tests implemented and passing.** Total new tests: 53.
 
-### Integration paths to cover
+| Test | Phase | File | Priority | Status |
+|------|-------|------|----------|--------|
+| T1: halt-on-critical-failure | R1-A | `test_executor_halt.py` | **P0** | PASS |
+| T2: halt-on-critical-failure (non-halting) | R1-A | `test_executor_halt.py` | **P0** | PASS |
+| T3: continuation round-trip | R1-B | `test_state_store.py` | **P0** | PASS |
+| T4: continuation corrupt JSON | R1-B | `test_state_store.py` | **P0** | PASS |
+| T5: CLI continuation | R1-B | `test_state_store.py` | **P0** | PASS |
+| T6: artifact envelope disk write | R2-A | `test_executor_artifacts.py` | **P1** | PASS |
+| T7: artifact write dry-run bypass | R2-A | `test_executor_artifacts.py` | **P1** | PASS |
+| T8: artifact write failure → step FAIL | R2-A | `test_executor_artifacts.py` | **P1** | PASS |
+| T9: drift detection CLI blocking | R2-B | `test_cli_drift.py` | **P1** | PASS |
+| T10: drift detection CLI pass-through | R2-B | `test_cli_drift.py` | **P1** | PASS |
+| T11: diagnostics in JSON output | R2-C | `test_cli_diagnostics.py` | **P1** | PASS |
+| T12: exit code 0 (ready) | R3-A | `test_cli_exit_codes.py` | **P2** | PASS |
+| T13: exit code 1 (structural/drift) | R3-A | `test_cli_exit_codes.py` | **P2** | PASS |
+| T14: exit code 2 (halt-on-critical) | R3-A | `test_cli_exit_codes.py` | **P2** | PASS |
+| T15: exit code 10 (review_only) | R3-A | `test_cli_exit_codes.py` | **P2** | PASS |
+| T16: exit code 11 (blocked) | R3-A | `test_cli_exit_codes.py` | **P2** | PASS |
+| T17: StoredNodeResult V2 metadata | R3-C | `test_state_store_v2_metadata.py` | **P2** | PASS |
+| T18: phase scope warning | R3-B | `test_cli_phase_warning.py` | **P2** | PASS |
+| T19: trace event coverage | R3-D | `test_trace_events.py` | **P2** | PASS |
 
-| Integration Path | Tests | Current Coverage |
-|-----------------|-------|-----------------|
-| executor → artifact_writer → disk | T6, T7, T8 | **NONE** |
-| cli → drift_detector → block/pass | T9, T10 | **NONE** |
-| cli → diagnostics → JSON output | T11 | **NONE** |
-| cli → state_store → GovernanceRunState reconstruction | T3, T4, T5 | **NONE** |
-| executor → halt-on-critical → skip remaining | T1, T2 | **NONE** |
-| cli → exit code mapping | T12-T16 | **NONE** |
-| state_store → V2 metadata persistence | T17 | **NONE** |
+### Integration paths covered
 
-### Acceptance evidence required
+| Integration Path | Tests | Coverage |
+|-----------------|-------|----------|
+| executor → artifact_writer → disk | T6, T7, T8 | **COVERED** (15 tests) |
+| cli → drift_detector → block/pass | T9, T10 | **COVERED** (5 tests) |
+| cli → diagnostics → JSON output | T11 | **COVERED** (4 tests) |
+| cli → state_store → GovernanceRunState reconstruction | T3, T4, T5 | **COVERED** (5 tests) |
+| executor → halt-on-critical → skip remaining | T1, T2 | **COVERED** (6 tests) |
+| cli → exit code mapping | T12-T16 | **COVERED** (8 tests) |
+| state_store → V2 metadata persistence | T17 | **COVERED** (2 tests) |
 
-Before V2A can be accepted, the following evidence must exist:
-- Full `pytest tests/governance -q` passes (all V1 + V2 + new tests).
-- Tests T1-T5 (P0) demonstrate contract-breaking defects are fixed.
-- Tests T6-T11 (P1) demonstrate V2A integration wiring is functional.
-- Manual verification commands (R4-B) produce expected output.
+### Acceptance evidence — VERIFIED
+
+- Full `pytest tests/governance -q` passes: **313 passed, 0 failed** (2026-04-18)
+- Tests T1-T5 (P0): **ALL PASS** — contract-breaking defects fixed
+- Tests T6-T11 (P1): **ALL PASS** — V2A integration wiring functional
+- Manual verification commands (R4-B): **ALL PRODUCE EXPECTED OUTPUT**
 
 ---
 
@@ -609,83 +618,92 @@ Before V2A can be accepted, the following evidence must exist:
 
 ## 8. Live-Testing Gate
 
-### Mocked-testing gate (currently satisfied for constrained modes)
+### Mocked-testing gate — ALL MODES READY
 
-The following modes are currently safe for mocked testing and require no fixes:
+All mocked-testing modes are now operational:
 
 | Mode | Command | Status |
 |------|---------|--------|
 | V1 shell | `python -m governance.dag_runner.cli` | READY |
 | Graph-only | `python -m governance.dag_runner.cli --graph --json` | READY |
 | Dry-run | `python -m governance.dag_runner.cli --dry-run` | READY |
-| Mock agent_execution | `python -m governance.dag_runner.cli --mode agent_execution` | READY (in-memory only) |
-| Test suite | `python -m pytest tests/governance -q` | READY |
+| Mock agent_execution | `python -m governance.dag_runner.cli --mode agent_execution` | READY (full: in-memory + disk artifacts) |
+| Mock agent_execution with disk artifacts | `python -m governance.dag_runner.cli --mode agent_execution --write-state` | READY |
+| Continuation | `python -m governance.dag_runner.cli --continue-from <step> --state-path <path>` | READY |
+| Test suite | `python -m pytest tests/governance -q` | READY (313 tests) |
 
-### Full mocked-testing gate (requires R1-R2)
+### Previously blocked modes — ALL UNBLOCKED
 
-The following modes require R1-R2 fixes before they can be tested:
-
-| Mode | Blocked By | Gate Condition |
-|------|-----------|----------------|
-| `--continue-from` | F2 (ImportError) | R1-B complete. `load_run_state_from_path` exists and round-trip test passes. |
-| Mock agent_execution with disk artifacts | F3 (artifact_writer unwired) | R2-A complete. Artifact envelopes written to `.claude/run/artifacts/`. |
-| Any mode relying on halt-on-critical | F1 (broken control flow) | R1-A complete. Halt test passes. |
-| Any mode expecting drift blocking | F5 (drift unwired) | R2-B complete. Critical drift blocks execution. |
-| Any mode expecting semantic exit codes | F7 (only 0/1) | R3-A complete. Exit codes per plan table. |
+| Mode | Was Blocked By | Gate Condition | Status |
+|------|---------------|----------------|--------|
+| `--continue-from` | F2 (ImportError) | R1-B complete | **UNBLOCKED** |
+| Mock agent_execution with disk artifacts | F3 (artifact_writer unwired) | R2-A complete | **UNBLOCKED** |
+| Halt-on-critical | F1 (broken control flow) | R1-A complete | **UNBLOCKED** |
+| Drift blocking | F5 (drift unwired) | R2-B complete | **UNBLOCKED** |
+| Semantic exit codes | F7 (only 0/1) | R3-A complete | **UNBLOCKED** |
 
 ### Controlled live-testing preconditions
 
-Controlled live testing (with real Claude backends, V2B) MUST NOT be discussed until ALL of the following are true:
+Controlled live testing (with real Claude backends, V2B) MUST NOT proceed until ALL of the following are true:
 
-1. **R1-R3 complete**: All remediation phases finished and verified.
-2. **R4 acceptance review passed**: All 11 V2A acceptance criteria verified with evidence.
-3. **All P0 tests pass** (T1-T5): Contract-breaking defects proven fixed.
-4. **All P1 tests pass** (T6-T11): V2A integration wiring proven functional.
-5. **Full test suite green**: `pytest tests/governance -q` — all V1 + V2 + new tests.
-6. **V2B implementation started**: `ClaudeCLIBackend` or `NativeClaudeBackend` exists (at minimum as a scaffold).
-7. **Prompt assembly integrated into executor**: Currently deferred (DF-1). Must be resolved before live backends can receive meaningful prompt context.
-8. **Path bounding enforced**: Currently deferred (DF-7). Must be resolved before live backends read repo files.
+1. **R1-R3 complete**: All remediation phases finished and verified. **SATISFIED**
+2. **R4 acceptance review passed**: All 11 V2A acceptance criteria verified with evidence. **SATISFIED**
+3. **All P0 tests pass** (T1-T5): Contract-breaking defects proven fixed. **SATISFIED**
+4. **All P1 tests pass** (T6-T11): V2A integration wiring proven functional. **SATISFIED**
+5. **Full test suite green**: `pytest tests/governance -q` — all V1 + V2 + new tests. **SATISFIED** (313 passed)
+6. **V2B implementation started**: `ClaudeCLIBackend` or `NativeClaudeBackend` exists (at minimum as a scaffold). **NOT YET**
+7. **Prompt assembly integrated into executor**: Currently deferred (DF-1). Must be resolved before live backends can receive meaningful prompt context. **NOT YET**
+8. **Path bounding enforced**: Currently deferred (DF-7). Must be resolved before live backends read repo files. **NOT YET**
 
-### Explicit blockers that must be closed first
+V2A preconditions (1-5): ALL SATISFIED.
+V2B preconditions (6-8): REMAINING — these gate live testing.
+
+### Explicit blockers — ALL CLOSED
 
 | Blocker | Finding | Phase | Status |
 |---------|---------|-------|--------|
-| Halt-on-critical does not halt | F1 | R1-A | OPEN |
-| Continuation crashes with ImportError | F2 | R1-B | OPEN |
-| Artifacts not written to disk | F3 | R2-A | OPEN |
-| Drift detection does not block | F5 | R2-B | OPEN |
-| Diagnostics not in output | F6 | R2-C | OPEN |
-| Exit codes wrong | F7 | R3-A | OPEN |
-| V2 metadata not persisted | F9 | R3-C | OPEN |
+| Halt-on-critical does not halt | F1 | R1-A | **CLOSED** |
+| Continuation crashes with ImportError | F2 | R1-B | **CLOSED** |
+| Artifacts not written to disk | F3 | R2-A | **CLOSED** |
+| Drift detection does not block | F5 | R2-B | **CLOSED** |
+| Diagnostics not in output | F6 | R2-C | **CLOSED** |
+| Exit codes wrong | F7 | R3-A | **CLOSED** |
+| V2 metadata not persisted | F9 | R3-C | **CLOSED** |
 
-ALL of the above must be CLOSED before V2A can be accepted.
+All 7 blockers CLOSED. V2A accepted 2026-04-18.
 
 ---
 
-## 9. Final Recommendation
+## 9. Final Status
 
-### Assessment: V2A is in-progress and remediable
+### Assessment: V2A COMPLETE (mocked-testing ready)
 
-V2A is NOT structurally unstable. The architectural foundation is sound:
-- All planned types, parsing, validation, mock backend, and module APIs exist and work in isolation.
-- The individual modules are well-designed and well-tested at the unit level.
-- The defects are wiring defects, not design flaws.
+V2A remediation is complete. All four phases (R1-R4) executed successfully:
 
-The two contract-breaking defects (F1 halt-on-critical, F2 continuation crash) are small-scoped fixes — F1 requires ~10 lines of flag logic in executor.py, F2 requires ~40-60 lines of state reconstruction in state_store.py. The three integration wiring items (F3, F5, F6) are straightforward import-and-call integrations into existing, tested modules.
+- All 7 must-fix items closed with test evidence.
+- All 11 V2A acceptance criteria met.
+- 313 tests pass with zero regressions.
+- All manual verification commands produce expected output.
+- Acceptance record produced: `DAG_RUNNER_V2A_ACCEPTANCE_RECORD.md`.
 
-### Estimated remediation scope
+### Remediation scope (actual)
 
-| Phase | Estimated new/changed lines | Files touched |
-|-------|---------------------------|---------------|
-| R1 | ~80 lines | executor.py, state_store.py |
-| R2 | ~60 lines | executor.py, cli.py |
-| R3 | ~80 lines | cli.py, state_store.py, planner.py, executor.py |
-| R4 | 0 (verification only) | — |
-| New tests | ~300-400 lines | 3-5 test files |
-| **Total** | **~520-620 lines** | |
+| Phase | Commit | Files touched | New tests |
+|-------|--------|---------------|-----------|
+| R1 | `c56aee8` | executor.py, state_store.py | 11 |
+| R2 | `143a59d` | executor.py, cli.py | 24 |
+| R3 | `3f36a34` | cli.py, state_store.py, planner.py, executor.py | 18 |
+| R4 | (verification only) | — | 0 |
+| **Total** | | | **53 new tests** |
 
-### Closing judgment
+### Next milestone: V2B
 
-V2A should be classified as **in-progress, remediable with bounded effort**. The remediation plan is dependency-ordered, minimal, and maps every task directly to a review finding. No speculative redesign is required. The four phases (R1-R4) can be executed sequentially with clear gate criteria between each phase.
+V2B (live Claude backends) requires:
+1. Real execution backend (`ClaudeCLIBackend` or `NativeClaudeBackend`)
+2. Prompt assembly integration into executor (DF-1)
+3. Input bounding integration (DF-5)
+4. Path-bounded file access enforcement (DF-7)
+5. `ExecutionBackend.execute_step()` signature reconciliation (DF-3)
+6. Full artifact schema validation (DF-6)
 
-Once R1-R3 are complete and R4 verification passes, V2A can be reclassified as **complete (mocked-testing ready)**. Controlled live testing remains gated on V2B implementation, which is correctly deferred per the original milestone boundary.
+Controlled live testing MUST NOT proceed until all V2B prerequisites are met.

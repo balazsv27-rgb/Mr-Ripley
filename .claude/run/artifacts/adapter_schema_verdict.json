@@ -2,9 +2,9 @@
   "artifact": "adapter_schema_verdict",
   "produced_by": "adapter-schema-check",
   "session": "",
-  "timestamp": "2026-04-18T19:38:51.498157Z",
+  "timestamp": "2026-04-18T19:44:33.835885Z",
   "data": {
-    "file_path": "C:\\Code\\Mr-Ripley\\DAG_RUNNER_V2A_ACCEPTANCE_RECORD.md",
+    "file_path": "C:\\Code\\Mr-Ripley\\DAG_RUNNER_V2A_REMEDIATION_PLAN.md",
     "scanned": false,
     "registry_driven": true,
     "hardcoded_series_detected": false,

@@ -2,9 +2,9 @@
   "artifact": "runtime_boundary_verdict",
   "produced_by": "runtime-boundary-check",
   "session": "",
-  "timestamp": "2026-04-18T19:38:51.474613Z",
+  "timestamp": "2026-04-18T19:44:33.817372Z",
   "data": {
-    "file_path": "C:\\Code\\Mr-Ripley\\DAG_RUNNER_V2A_ACCEPTANCE_RECORD.md",
+    "file_path": "C:\\Code\\Mr-Ripley\\DAG_RUNNER_V2A_REMEDIATION_PLAN.md",
     "scanned": false,
     "layer2_file": false,
     "raw_observation_access_detected": false,
