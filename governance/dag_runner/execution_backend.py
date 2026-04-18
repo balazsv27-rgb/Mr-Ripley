@@ -105,6 +105,35 @@ class MockExecutionBackend(ExecutionBackend):
         return AgentExecutionResult(success=True, artifacts_produced=artifacts)
 
 
+def _strip_code_fences(text: str) -> str:
+    """Strip markdown code fences from LLM response text.
+
+    Claude CLI ``result`` text frequently wraps JSON in fences like:
+
+        ```json
+        {"artifacts": {...}}
+        ```
+
+    This function extracts the inner content.  If no fences are found,
+    the original text is returned unchanged (stripped).
+    """
+    stripped = text.strip()
+    if not stripped.startswith("```"):
+        return stripped
+
+    # Remove opening fence line (```json, ```JSON, or bare ```)
+    first_newline = stripped.find("\n")
+    if first_newline == -1:
+        return stripped
+    inner = stripped[first_newline + 1:]
+
+    # Remove closing fence
+    if inner.rstrip().endswith("```"):
+        inner = inner.rstrip()[:-3].rstrip()
+
+    return inner
+
+
 def _parse_backend_response(
     raw_output: str,
     expected_artifacts: list[str],
@@ -114,6 +143,9 @@ def _parse_backend_response(
     The CLI returns a JSON envelope with a ``result`` field containing the
     LLM's response text.  That text must itself be a JSON object with an
     ``artifacts`` key mapping artifact names to their payloads.
+
+    The result text may be raw JSON or wrapped in markdown code fences
+    (e.g. `` ```json ... ``` ``).  Both forms are accepted.
 
     Returns a dict of artifact name → payload.  On any parse failure returns
     an empty dict (fail-closed: the step will fail artifact validation).
@@ -133,6 +165,10 @@ def _parse_backend_response(
     result_text = envelope.get("result", "")
     if not isinstance(result_text, str) or not result_text.strip():
         return {}
+
+    # Strip markdown code fences if present (Claude frequently wraps JSON
+    # in ```json ... ``` even when instructed not to).
+    result_text = _strip_code_fences(result_text)
 
     try:
         result_obj = json.loads(result_text)

@@ -50,7 +50,9 @@
       "Bash(claude -p --help)",
       "Bash(claude -p --output-format json --model haiku --bare --no-session-persistence --tools)",
       "Bash(claude -p --output-format json --model haiku --no-session-persistence --tools)",
-      "Bash(claude:*)"
+      "Bash(claude:*)",
+      "Bash(echo \"Respond with exactly: {\"\"test\"\": true}\")",
+      "Bash(echo \"Classify the word ''''hello'''' as a greeting or farewell. You MUST respond with ONLY a valid JSON object. No markdown, no code fences. Required format: {\"\"artifacts\"\": {\"\"result\"\": {\"\"produced_by\"\": \"\"test\"\", \"\"classification\"\": \"\"...\"\"}}}\")"
     ]
   }
 }
