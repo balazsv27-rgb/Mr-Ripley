@@ -227,6 +227,8 @@ def assemble_step_prompt(
 
     return {
         "agent": agent,
+        "step_name": step.name,
+        "expected_outputs": list(step.outputs),
         "skill_content": skill_content if not any(
             b.name == "skill_instructions" and b.truncated for b in bounding_result.inputs
         ) else next(
@@ -276,6 +278,28 @@ def build_prompt_text(context: dict[str, Any]) -> str:
     doc_paths = context.get("document_paths", [])
     if doc_paths:
         sections.append(f"[DOCUMENT PATHS]{_SECTION_DELIM}" + "\n".join(doc_paths))
+
+    # Output format specification — required for backend-dispatched steps
+    expected_outputs = context.get("expected_outputs", [])
+    step_name = context.get("step_name", "")
+    if expected_outputs and step_name:
+        artifact_examples = ", ".join(
+            f'"{o}": {{"produced_by": "{step_name}", ...your analysis fields...}}'
+            for o in expected_outputs
+        )
+        format_section = (
+            f"[REQUIRED OUTPUT FORMAT]{_SECTION_DELIM}"
+            f"You MUST respond with ONLY a valid JSON object. "
+            f"No markdown, no explanation, no code fences, no text before or after the JSON.\n\n"
+            f"Required structure:\n"
+            f'{{"artifacts": {{{artifact_examples}}}}}\n\n'
+            f"Rules:\n"
+            f'- Each artifact MUST be a JSON object with a "produced_by" field set to "{step_name}".\n'
+            f"- Include your analysis results as additional fields within each artifact object.\n"
+            f"- You must produce ALL of the listed artifacts: {', '.join(expected_outputs)}.\n"
+            f"- The top-level response must be a single JSON object with one key: \"artifacts\"."
+        )
+        sections.append(format_section)
 
     return (_SECTION_DELIM).join(sections)
 

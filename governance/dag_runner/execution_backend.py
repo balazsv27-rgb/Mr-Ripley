@@ -213,6 +213,7 @@ class ClaudeCodeCLIBackend(ExecutionBackend):
                 capture_output=True,
                 text=True,
                 timeout=timeout_s,
+                encoding="utf-8",
             )
         except subprocess.TimeoutExpired:
             latency = (time.monotonic() - t0) * 1000.0

@@ -530,6 +530,43 @@ def _execute_v2_step(
             payload=artifact_data,
         )
 
+    # Fail-close: backend-dispatched step with declared outputs must produce them.
+    # A step that declares outputs but produces none indicates a backend response
+    # parsing failure — the step should not silently PASS.
+    if not dry_run and kind in _BACKEND_KINDS and step.outputs:
+        missing_outputs = [
+            o for o in step.outputs if o not in result.artifacts_produced
+        ]
+        if missing_outputs:
+            _append_trace(
+                run_state,
+                node_name=step.name,
+                event_type="declared_outputs_missing",
+                detail={
+                    "missing_outputs": missing_outputs,
+                    "declared_outputs": list(step.outputs),
+                    "produced_outputs": list(result.artifacts_produced.keys()),
+                },
+            )
+            return NodeResult(
+                node_name=step.name,
+                node_type=step.component,
+                status="FAIL",
+                summary=(
+                    f"Declared outputs not produced by backend: "
+                    f"{', '.join(missing_outputs)}"
+                ),
+                evidence=[
+                    f"component_kind={kind}",
+                    f"backend={type(backend).__name__}",
+                ] + [f"missing_output={o}" for o in missing_outputs],
+                produced_artifacts=list(result.artifacts_produced.keys()),
+                triggered_blocks=list(step.raises),
+                inference_used=kind in _BACKEND_KINDS,
+                latency_ms=result.latency_ms,
+                token_count=result.token_count,
+            )
+
     return NodeResult(
         node_name=step.name,
         node_type=step.component,
