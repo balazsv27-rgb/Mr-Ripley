@@ -2,9 +2,9 @@
   "artifact": "adapter_schema_verdict",
   "produced_by": "adapter-schema-check",
   "session": "",
-  "timestamp": "2026-04-11T22:06:32.786602Z",
+  "timestamp": "2026-04-18T11:49:01.048117Z",
   "data": {
-    "file_path": "C:\\Code\\Mr-Ripley\\.claude\\agents\\VALIDATION_STEPS_6_7.md",
+    "file_path": "C:\\Code\\Mr-Ripley\\governance\\CONSOLIDATED_AUDIT_AND_REFACTOR_REPORT.md",
     "scanned": false,
     "registry_driven": true,
     "hardcoded_series_detected": false,
