@@ -2,9 +2,9 @@
   "artifact": "runtime_boundary_verdict",
   "produced_by": "runtime-boundary-check",
   "session": "",
-  "timestamp": "2026-04-18T14:15:11.476044Z",
+  "timestamp": "2026-04-18T14:54:32.238791Z",
   "data": {
-    "file_path": "C:\\Code\\Mr-Ripley\\Documentation\\SYSTEM_IMPLEMENTATION_RECORD_v1.md",
+    "file_path": "C:\\Code\\Mr-Ripley\\governance\\CONSOLIDATED_AUDIT_AND_REFACTOR_REPORT.md",
     "scanned": false,
     "layer2_file": false,
     "raw_observation_access_detected": false,

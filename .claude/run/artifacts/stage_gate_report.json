@@ -2,9 +2,9 @@
   "artifact": "stage_gate_report",
   "produced_by": "stage-gate-check",
   "session": "",
-  "timestamp": "2026-04-18T14:15:11.489325Z",
+  "timestamp": "2026-04-18T14:54:32.274031Z",
   "data": {
-    "file_path": "C:\\Code\\Mr-Ripley\\Documentation\\SYSTEM_IMPLEMENTATION_RECORD_v1.md",
+    "file_path": "C:\\Code\\Mr-Ripley\\governance\\CONSOLIDATED_AUDIT_AND_REFACTOR_REPORT.md",
     "scanned": true,
     "live_readiness_claim_detected": false,
     "execution_capability_claim_detected": false,
