@@ -1,14 +1,9 @@
 {
   "artifact": "adapter_schema_verdict",
   "produced_by": "adapter-schema-check",
-  "session": "",
-  "timestamp": "2026-04-18T20:30:05.480522Z",
+  "session": "700cb828-9baa-4c1d-8d87-3e68b608ee92",
+  "timestamp": "2026-04-18T21:03:31.244491Z",
   "data": {
-    "file_path": "C:\\Code\\Mr-Ripley\\DAG_RUNNER_V2B_IMPLEMENTATION_PLAN.md",
-    "scanned": false,
-    "registry_driven": true,
-    "hardcoded_series_detected": false,
-    "implicit_interpretation_detected": false,
-    "violations": []
+    "produced_by": "adapter-schema-check"
   }
 }

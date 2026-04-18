@@ -157,6 +157,27 @@ class ExecutionConfig:
 
 
 @dataclass(frozen=True)
+class PromptContext:
+    """Assembled and bounded prompt context for a single step.
+
+    Built by prompt_assembly.py, consumed by ExecutionBackend.execute_step().
+    MockExecutionBackend ignores this; live backends (ClaudeCodeCLIBackend)
+    use assembled_prompt as the text sent to the subprocess.
+    """
+
+    assembled_prompt: str
+    agent: AgentSpec | None = None
+    skill_content: str = ""
+    agent_instructions: str = ""
+    artifact_inputs: dict[str, dict[str, Any]] = field(default_factory=dict)
+    document_paths: list[str] = field(default_factory=list)
+    token_budget: int = 100_000
+    token_estimate: int = 0
+    truncated: bool = False
+    truncation_events: list[dict[str, str | int]] = field(default_factory=list)
+
+
+@dataclass(frozen=True)
 class ArtifactEnvelope:
     """Canonical artifact envelope — the ONE write format for V2.
 

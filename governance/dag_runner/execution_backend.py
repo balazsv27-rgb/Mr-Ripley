@@ -3,7 +3,7 @@ execution_backend.py — Pluggable execution backend interface.
 
 The executor depends on this interface, not on Claude directly.
 V2A ships with MockExecutionBackend only.
-V2B adds ClaudeCLIBackend and NativeClaudeBackend.
+V2B adds ClaudeCodeCLIBackend.
 """
 from __future__ import annotations
 
@@ -16,6 +16,7 @@ from governance.dag_runner.models import (
     AssembledWorkflowSpec,
     ExecutionConfig,
     GovernanceRunState,
+    PromptContext,
     WorkflowStep,
 )
 
@@ -37,6 +38,7 @@ class ExecutionBackend(ABC):
         config: ExecutionConfig,
         run_state: GovernanceRunState,
         spec: AssembledWorkflowSpec,
+        prompt_context: PromptContext | None = None,
     ) -> AgentExecutionResult:
         """Execute a skill-bound or coordinator-agent step."""
 
@@ -73,6 +75,7 @@ class MockExecutionBackend(ExecutionBackend):
         config: ExecutionConfig,
         run_state: GovernanceRunState,
         spec: AssembledWorkflowSpec,
+        prompt_context: PromptContext | None = None,
     ) -> AgentExecutionResult:
         artifacts: dict[str, dict[str, Any]] = {}
         for output_name in step.outputs:

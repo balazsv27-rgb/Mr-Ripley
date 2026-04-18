@@ -448,22 +448,68 @@ All phases target the CLI backend only. TAPM is deferred to V2C.
 
 ### Claude CLI Subprocess Contract (Frozen after B0)
 
+**Status**: VERIFIED 2026-04-18
+
 **Command**:
 ```
-claude -p --model <model>
+claude -p --output-format json --model <model> --no-session-persistence --tools ""
 ```
 
+**Flags**:
+- `-p` / `--print`: One-shot print mode. Non-interactive. Reads prompt, responds, exits.
+- `--output-format json`: Returns a single JSON envelope on stdout (not raw text).
+- `--model <model>`: Accepts alias (`sonnet`, `opus`, `haiku`) or full model ID.
+- `--no-session-persistence`: Prevents session disk writes (subprocess hygiene).
+- `--tools ""`: Disables all built-in tools (enforces one-shot, no tool loop).
+
 **Input (stdin)**:
-- Full assembled prompt text
+- Full assembled prompt text (plain text, UTF-8).
 
 **Output (stdout)**:
-- Single JSON object OR text containing a JSON artifact block (must be standardized)
+- Single JSON object with the following structure:
+
+```json
+{
+  "type": "result",
+  "subtype": "success",
+  "is_error": false,
+  "result": "<response text from LLM>",
+  "duration_ms": 4248,
+  "duration_api_ms": 3670,
+  "num_turns": 1,
+  "stop_reason": "end_turn",
+  "session_id": "<uuid>",
+  "total_cost_usd": 0.0246865,
+  "usage": {
+    "input_tokens": 9,
+    "output_tokens": 41,
+    ...
+  }
+}
+```
+
+**Key response fields for backend parsing**:
+- `result`: The LLM's response text. This is where artifact JSON will appear.
+- `is_error`: `true` if the CLI itself errored (auth failure, etc.).
+- `usage.output_tokens`: Token count for the response.
+- `duration_api_ms`: API latency in milliseconds.
+- `stop_reason`: `"end_turn"` for normal completion.
+
+**Exit codes**:
+- 0: Success (check `is_error` for logical errors).
+- 1: CLI-level failure (auth, config, etc.).
+
+**Canonical example** (verified 2026-04-18):
+```
+Input:  echo "Reply with exactly: hello" | claude -p --output-format json --model haiku --no-session-persistence --tools ""
+Output: {"type":"result","result":"hello","is_error":false,...}
+```
 
 ---
 
 ### Backend Output / Artifact JSON Protocol (Frozen)
 
-The backend MUST return a strict JSON structure:
+The backend instructs the LLM (via prompt) to return a strict JSON structure within its `result` text:
 
 ```
 {
@@ -477,15 +523,22 @@ The backend MUST return a strict JSON structure:
 ```
 
 **Rules**:
-- Exactly one top-level JSON object
+- Exactly one top-level JSON object in the `result` text
 - `artifacts` key is REQUIRED
 - Each artifact MUST:
   - match a declared output
   - include `produced_by`
   - contain a `data` object
 - No additional top-level keys unless explicitly allowed
-- Any extra text outside JSON → PARSE FAILURE
+- Any extra text outside JSON in `result` → PARSE FAILURE
 - Missing expected artifacts → VALIDATION FAILURE
+
+**Parsing strategy**:
+1. Parse CLI JSON envelope from stdout → extract `result` field.
+2. Parse `result` text as JSON → extract `artifacts` dict.
+3. If step 1 fails → subprocess parse failure.
+4. If `is_error` is true → runtime failure.
+5. If step 2 fails → artifact parse failure (fail-closed).
 
 ---
 

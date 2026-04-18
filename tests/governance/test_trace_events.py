@@ -37,7 +37,7 @@ class FailingMockBackend(MockExecutionBackend):
         super().__init__()
         self._failing = failing_steps
 
-    def execute_step(self, step, agent, config, run_state, spec):
+    def execute_step(self, step, agent, config, run_state, spec, prompt_context=None):
         if step.name in self._failing:
             return AgentExecutionResult(
                 success=False,
@@ -46,7 +46,7 @@ class FailingMockBackend(MockExecutionBackend):
                     detail="forced failure",
                 ),
             )
-        return super().execute_step(step, agent, config, run_state, spec)
+        return super().execute_step(step, agent, config, run_state, spec, prompt_context=prompt_context)
 
     def execute_structural_step(self, step, component_kind, run_state, spec):
         if step.name in self._failing:

@@ -46,7 +46,10 @@
       "Bash(find /c/Code/Mr-Ripley -name *agent* -type f)",
       "Bash(git status:*)",
       "Bash(git add:*)",
-      "Bash(find /c/Code/Mr-Ripley -type f -name *.yaml -o -name *.yml)"
+      "Bash(find /c/Code/Mr-Ripley -type f -name *.yaml -o -name *.yml)",
+      "Bash(claude -p --help)",
+      "Bash(claude -p --output-format json --model haiku --bare --no-session-persistence --tools)",
+      "Bash(claude -p --output-format json --model haiku --no-session-persistence --tools)"
     ]
   }
 }

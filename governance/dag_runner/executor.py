@@ -358,6 +358,7 @@ def _execute_v2_step(
                 config=config,
                 run_state=run_state,
                 spec=spec,
+                prompt_context=None,
             )
         else:
             # Fallback: no agent binding, treat as structural
