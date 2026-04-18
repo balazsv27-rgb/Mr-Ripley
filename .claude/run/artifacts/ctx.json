@@ -1,0 +1,10 @@
+{
+  "artifact": "ctx",
+  "produced_by": "step-a",
+  "session": "fe6de6d1-0789-4c14-8fb0-01039cb34c79",
+  "timestamp": "2026-04-18T21:38:47.610727Z",
+  "data": {
+    "produced_by": "step-a",
+    "structural": true
+  }
+}

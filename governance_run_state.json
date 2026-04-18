@@ -1,0 +1,1095 @@
+{
+  "workflow_name": "mr-ripley-governance-orchestration",
+  "workflow_file": "C:\\Code\\Mr-Ripley\\.claude\\workflows\\system-orchestration.yaml",
+  "loaded_packages": 14,
+  "workflow_steps": 18,
+  "skills": 13,
+  "artifacts": 19,
+  "blocking_conditions": 12,
+  "stage_gates": 4,
+  "subagents": 8,
+  "validation_passed": true,
+  "validation_issue_count": 0,
+  "validation_issues": [],
+  "blocker_declared_count": 12,
+  "blocker_referenced_count": 17,
+  "blocker_orphan_count": 0,
+  "blocker_unknown_reference_count": 0,
+  "blocker_structurally_consistent": true,
+  "verdict_status": "ready",
+  "verdict_reasons": [
+    "Validation passed and blocker structure is consistent."
+  ],
+  "planned_steps": 18,
+  "execution_order": [
+    {
+      "step_id": "load-context",
+      "component": "constitution",
+      "depends_on": []
+    },
+    {
+      "step_id": "classify-claims",
+      "component": "skill:doc-truth-classification",
+      "depends_on": [
+        "load-context"
+      ]
+    },
+    {
+      "step_id": "normalize-terminology",
+      "component": "skill:canonical-terminology-map",
+      "depends_on": [
+        "classify-claims"
+      ]
+    },
+    {
+      "step_id": "route-claims-by-role",
+      "component": "skill:role-matched-citation-check",
+      "depends_on": [
+        "normalize-terminology"
+      ]
+    },
+    {
+      "step_id": "phase-check",
+      "component": "skill:build-sequence-compliance-check",
+      "depends_on": [
+        "route-claims-by-role"
+      ]
+    },
+    {
+      "step_id": "snapshot-contract-check",
+      "component": "skill:snapshot-contract-check",
+      "depends_on": [
+        "phase-check"
+      ]
+    },
+    {
+      "step_id": "stage-gate-enforcement",
+      "component": "stage_gates",
+      "depends_on": [
+        "snapshot-contract-check"
+      ]
+    },
+    {
+      "step_id": "runtime-boundary-check",
+      "component": "skill:snapshot-boundary-check",
+      "depends_on": [
+        "stage-gate-enforcement"
+      ]
+    },
+    {
+      "step_id": "adapter-schema-check",
+      "component": "skill:adapter-schema-review",
+      "depends_on": [
+        "runtime-boundary-check"
+      ]
+    },
+    {
+      "step_id": "runtime-guards-summary",
+      "component": "hooks",
+      "depends_on": [
+        "adapter-schema-check"
+      ]
+    },
+    {
+      "step_id": "deep-audit",
+      "component": "subagents",
+      "depends_on": [
+        "runtime-guards-summary"
+      ]
+    },
+    {
+      "step_id": "change-impact-audit",
+      "component": "skill:change-impact-audit",
+      "depends_on": [
+        "deep-audit"
+      ]
+    },
+    {
+      "step_id": "doc-code-sync-check",
+      "component": "skill:doc-code-sync-rules",
+      "depends_on": [
+        "change-impact-audit"
+      ]
+    },
+    {
+      "step_id": "rename-invariance-check",
+      "component": "skill:rename-invariance-check",
+      "depends_on": [
+        "change-impact-audit"
+      ]
+    },
+    {
+      "step_id": "update-verification-matrix",
+      "component": "skill:verification-matrix-update-method",
+      "depends_on": [
+        "doc-code-sync-check"
+      ]
+    },
+    {
+      "step_id": "update-verification-ledger",
+      "component": "skill:verification-ledger-update",
+      "depends_on": [
+        "update-verification-matrix"
+      ]
+    },
+    {
+      "step_id": "runtime-artifact-hygiene-check",
+      "component": "skill:runtime-artifact-hygiene-check",
+      "depends_on": [
+        "update-verification-ledger"
+      ]
+    },
+    {
+      "step_id": "pre-pr-governance-readiness",
+      "component": "hooks",
+      "depends_on": [
+        "runtime-artifact-hygiene-check"
+      ]
+    }
+  ],
+  "run_id": "a1440eff-dc97-4f69-bdb4-e12ad84862cc",
+  "started_at": "2026-04-18T21:36:07.615507+00:00",
+  "final_verdict": "ready",
+  "recorded_node_results": 18,
+  "recorded_artifacts": 18,
+  "recorded_trace_events": 39,
+  "node_results": [
+    {
+      "node_name": "load-context",
+      "node_type": "constitution",
+      "status": "PASS",
+      "summary": "Step recorded successfully in V1 shell execution.",
+      "evidence": [
+        "component=constitution"
+      ],
+      "produced_artifacts": [
+        "governance_context"
+      ],
+      "triggered_blocks": [],
+      "inference_used": false,
+      "latency_ms": 0.0,
+      "token_count": 0
+    },
+    {
+      "node_name": "classify-claims",
+      "node_type": "skill:doc-truth-classification",
+      "status": "PASS",
+      "summary": "Step recorded successfully in V1 shell execution.",
+      "evidence": [
+        "component=skill:doc-truth-classification"
+      ],
+      "produced_artifacts": [
+        "claim_classification_map"
+      ],
+      "triggered_blocks": [
+        "canonical_conflict_unresolved"
+      ],
+      "inference_used": false,
+      "latency_ms": 0.0,
+      "token_count": 0
+    },
+    {
+      "node_name": "normalize-terminology",
+      "node_type": "skill:canonical-terminology-map",
+      "status": "PASS",
+      "summary": "Step recorded successfully in V1 shell execution.",
+      "evidence": [
+        "component=skill:canonical-terminology-map"
+      ],
+      "produced_artifacts": [
+        "normalized_terminology_map"
+      ],
+      "triggered_blocks": [],
+      "inference_used": false,
+      "latency_ms": 0.0,
+      "token_count": 0
+    },
+    {
+      "node_name": "route-claims-by-role",
+      "node_type": "skill:role-matched-citation-check",
+      "status": "PASS",
+      "summary": "Step recorded successfully in V1 shell execution.",
+      "evidence": [
+        "component=skill:role-matched-citation-check"
+      ],
+      "produced_artifacts": [
+        "role_citation_verdict"
+      ],
+      "triggered_blocks": [
+        "canonical_conflict_unresolved",
+        "role_mismatch_for_strong_claim",
+        "readme_layer2_used_as_override"
+      ],
+      "inference_used": false,
+      "latency_ms": 0.0,
+      "token_count": 0
+    },
+    {
+      "node_name": "phase-check",
+      "node_type": "skill:build-sequence-compliance-check",
+      "status": "PASS",
+      "summary": "Step recorded successfully in V1 shell execution.",
+      "evidence": [
+        "component=skill:build-sequence-compliance-check"
+      ],
+      "produced_artifacts": [
+        "phase_alignment_status"
+      ],
+      "triggered_blocks": [
+        "unsupported_current_state_claim"
+      ],
+      "inference_used": false,
+      "latency_ms": 0.0,
+      "token_count": 0
+    },
+    {
+      "node_name": "snapshot-contract-check",
+      "node_type": "skill:snapshot-contract-check",
+      "status": "PASS",
+      "summary": "Step recorded successfully in V1 shell execution.",
+      "evidence": [
+        "component=skill:snapshot-contract-check"
+      ],
+      "produced_artifacts": [
+        "contract_compliance_verdict"
+      ],
+      "triggered_blocks": [
+        "snapshot_boundary_violation",
+        "raw_observations_used_in_layer3"
+      ],
+      "inference_used": false,
+      "latency_ms": 0.0,
+      "token_count": 0
+    },
+    {
+      "node_name": "stage-gate-enforcement",
+      "node_type": "stage_gates",
+      "status": "PASS",
+      "summary": "Step recorded successfully in V1 shell execution.",
+      "evidence": [
+        "component=stage_gates"
+      ],
+      "produced_artifacts": [
+        "stage_gate_report"
+      ],
+      "triggered_blocks": [
+        "unsupported_current_state_claim"
+      ],
+      "inference_used": false,
+      "latency_ms": 0.0,
+      "token_count": 0
+    },
+    {
+      "node_name": "runtime-boundary-check",
+      "node_type": "skill:snapshot-boundary-check",
+      "status": "PASS",
+      "summary": "Step recorded successfully in V1 shell execution.",
+      "evidence": [
+        "component=skill:snapshot-boundary-check"
+      ],
+      "produced_artifacts": [
+        "runtime_boundary_verdict"
+      ],
+      "triggered_blocks": [
+        "snapshot_boundary_violation",
+        "raw_observations_used_in_layer3"
+      ],
+      "inference_used": false,
+      "latency_ms": 0.0,
+      "token_count": 0
+    },
+    {
+      "node_name": "adapter-schema-check",
+      "node_type": "skill:adapter-schema-review",
+      "status": "PASS",
+      "summary": "Step recorded successfully in V1 shell execution.",
+      "evidence": [
+        "component=skill:adapter-schema-review"
+      ],
+      "produced_artifacts": [
+        "adapter_schema_verdict"
+      ],
+      "triggered_blocks": [
+        "registry_violation",
+        "schema_drift_detected"
+      ],
+      "inference_used": false,
+      "latency_ms": 0.0,
+      "token_count": 0
+    },
+    {
+      "node_name": "runtime-guards-summary",
+      "node_type": "hooks",
+      "status": "PASS",
+      "summary": "Step recorded successfully in V1 shell execution.",
+      "evidence": [
+        "component=hooks"
+      ],
+      "produced_artifacts": [
+        "guard_report"
+      ],
+      "triggered_blocks": [],
+      "inference_used": false,
+      "latency_ms": 0.0,
+      "token_count": 0
+    },
+    {
+      "node_name": "deep-audit",
+      "node_type": "subagents",
+      "status": "PASS",
+      "summary": "Step recorded successfully in V1 shell execution.",
+      "evidence": [
+        "component=subagents"
+      ],
+      "produced_artifacts": [
+        "audit_summary"
+      ],
+      "triggered_blocks": [],
+      "inference_used": false,
+      "latency_ms": 0.0,
+      "token_count": 0
+    },
+    {
+      "node_name": "change-impact-audit",
+      "node_type": "skill:change-impact-audit",
+      "status": "PASS",
+      "summary": "Step recorded successfully in V1 shell execution.",
+      "evidence": [
+        "component=skill:change-impact-audit"
+      ],
+      "produced_artifacts": [
+        "change_impact_report",
+        "doc_update_plan"
+      ],
+      "triggered_blocks": [
+        "missing_alias_mapping"
+      ],
+      "inference_used": false,
+      "latency_ms": 0.0,
+      "token_count": 0
+    },
+    {
+      "node_name": "doc-code-sync-check",
+      "node_type": "skill:doc-code-sync-rules",
+      "status": "PASS",
+      "summary": "Step recorded successfully in V1 shell execution.",
+      "evidence": [
+        "component=skill:doc-code-sync-rules"
+      ],
+      "produced_artifacts": [
+        "doc_code_sync_status"
+      ],
+      "triggered_blocks": [
+        "verification_without_evidence"
+      ],
+      "inference_used": false,
+      "latency_ms": 0.0,
+      "token_count": 0
+    },
+    {
+      "node_name": "rename-invariance-check",
+      "node_type": "skill:rename-invariance-check",
+      "status": "SKIP",
+      "summary": "Condition not satisfied: Field 'change_type' is absent from artifact 'change_impact_report'.",
+      "evidence": [
+        "condition_type=artifact_field_equals",
+        "condition_artifact=change_impact_report",
+        "condition_detail=Field 'change_type' is absent from artifact 'change_impact_report'."
+      ],
+      "produced_artifacts": [],
+      "triggered_blocks": [],
+      "inference_used": false,
+      "latency_ms": 0.0,
+      "token_count": 0
+    },
+    {
+      "node_name": "update-verification-matrix",
+      "node_type": "skill:verification-matrix-update-method",
+      "status": "PASS",
+      "summary": "Step recorded successfully in V1 shell execution.",
+      "evidence": [
+        "component=skill:verification-matrix-update-method"
+      ],
+      "produced_artifacts": [
+        "verification_matrix_delta"
+      ],
+      "triggered_blocks": [],
+      "inference_used": false,
+      "latency_ms": 0.0,
+      "token_count": 0
+    },
+    {
+      "node_name": "update-verification-ledger",
+      "node_type": "skill:verification-ledger-update",
+      "status": "PASS",
+      "summary": "Step recorded successfully in V1 shell execution.",
+      "evidence": [
+        "component=skill:verification-ledger-update"
+      ],
+      "produced_artifacts": [
+        "verification_ledger_delta"
+      ],
+      "triggered_blocks": [
+        "verification_without_evidence"
+      ],
+      "inference_used": false,
+      "latency_ms": 0.0,
+      "token_count": 0
+    },
+    {
+      "node_name": "runtime-artifact-hygiene-check",
+      "node_type": "skill:runtime-artifact-hygiene-check",
+      "status": "PASS",
+      "summary": "Step recorded successfully in V1 shell execution.",
+      "evidence": [
+        "component=skill:runtime-artifact-hygiene-check"
+      ],
+      "produced_artifacts": [
+        "artifact_hygiene_verdict"
+      ],
+      "triggered_blocks": [],
+      "inference_used": false,
+      "latency_ms": 0.0,
+      "token_count": 0
+    },
+    {
+      "node_name": "pre-pr-governance-readiness",
+      "node_type": "hooks",
+      "status": "PASS",
+      "summary": "Step recorded successfully in V1 shell execution.",
+      "evidence": [
+        "component=hooks"
+      ],
+      "produced_artifacts": [
+        "pr_readiness_verdict"
+      ],
+      "triggered_blocks": [
+        "pr_governance_not_satisfied"
+      ],
+      "inference_used": false,
+      "latency_ms": 0.0,
+      "token_count": 0
+    }
+  ],
+  "artifact_records": [
+    {
+      "name": "governance_context",
+      "producer_step": "load-context",
+      "status": "present",
+      "payload": {
+        "produced_by": "load-context"
+      }
+    },
+    {
+      "name": "claim_classification_map",
+      "producer_step": "classify-claims",
+      "status": "present",
+      "payload": {
+        "produced_by": "classify-claims"
+      }
+    },
+    {
+      "name": "normalized_terminology_map",
+      "producer_step": "normalize-terminology",
+      "status": "present",
+      "payload": {
+        "produced_by": "normalize-terminology"
+      }
+    },
+    {
+      "name": "role_citation_verdict",
+      "producer_step": "route-claims-by-role",
+      "status": "present",
+      "payload": {
+        "produced_by": "route-claims-by-role"
+      }
+    },
+    {
+      "name": "phase_alignment_status",
+      "producer_step": "phase-check",
+      "status": "present",
+      "payload": {
+        "produced_by": "phase-check"
+      }
+    },
+    {
+      "name": "contract_compliance_verdict",
+      "producer_step": "snapshot-contract-check",
+      "status": "present",
+      "payload": {
+        "produced_by": "snapshot-contract-check"
+      }
+    },
+    {
+      "name": "stage_gate_report",
+      "producer_step": "stage-gate-enforcement",
+      "status": "present",
+      "payload": {
+        "produced_by": "stage-gate-enforcement"
+      }
+    },
+    {
+      "name": "runtime_boundary_verdict",
+      "producer_step": "runtime-boundary-check",
+      "status": "present",
+      "payload": {
+        "produced_by": "runtime-boundary-check"
+      }
+    },
+    {
+      "name": "adapter_schema_verdict",
+      "producer_step": "adapter-schema-check",
+      "status": "present",
+      "payload": {
+        "produced_by": "adapter-schema-check"
+      }
+    },
+    {
+      "name": "guard_report",
+      "producer_step": "runtime-guards-summary",
+      "status": "present",
+      "payload": {
+        "produced_by": "runtime-guards-summary"
+      }
+    },
+    {
+      "name": "audit_summary",
+      "producer_step": "deep-audit",
+      "status": "present",
+      "payload": {
+        "produced_by": "deep-audit"
+      }
+    },
+    {
+      "name": "change_impact_report",
+      "producer_step": "change-impact-audit",
+      "status": "present",
+      "payload": {
+        "produced_by": "change-impact-audit"
+      }
+    },
+    {
+      "name": "doc_update_plan",
+      "producer_step": "change-impact-audit",
+      "status": "present",
+      "payload": {
+        "produced_by": "change-impact-audit"
+      }
+    },
+    {
+      "name": "doc_code_sync_status",
+      "producer_step": "doc-code-sync-check",
+      "status": "present",
+      "payload": {
+        "produced_by": "doc-code-sync-check"
+      }
+    },
+    {
+      "name": "verification_matrix_delta",
+      "producer_step": "update-verification-matrix",
+      "status": "present",
+      "payload": {
+        "produced_by": "update-verification-matrix"
+      }
+    },
+    {
+      "name": "verification_ledger_delta",
+      "producer_step": "update-verification-ledger",
+      "status": "present",
+      "payload": {
+        "produced_by": "update-verification-ledger"
+      }
+    },
+    {
+      "name": "artifact_hygiene_verdict",
+      "producer_step": "runtime-artifact-hygiene-check",
+      "status": "present",
+      "payload": {
+        "produced_by": "runtime-artifact-hygiene-check"
+      }
+    },
+    {
+      "name": "pr_readiness_verdict",
+      "producer_step": "pre-pr-governance-readiness",
+      "status": "present",
+      "payload": {
+        "produced_by": "pre-pr-governance-readiness"
+      }
+    }
+  ],
+  "execution_trace": [
+    {
+      "timestamp": "2026-04-18T21:36:07.615507+00:00",
+      "node_name": "__run__",
+      "event_type": "run_started",
+      "detail": {
+        "workflow_name": "mr-ripley-governance-orchestration",
+        "planned_steps": 18,
+        "mode": "shell_v1"
+      }
+    },
+    {
+      "timestamp": "2026-04-18T21:36:07.615507+00:00",
+      "node_name": "load-context",
+      "event_type": "step_started",
+      "detail": {
+        "component": "constitution",
+        "depends_on": []
+      }
+    },
+    {
+      "timestamp": "2026-04-18T21:36:07.615507+00:00",
+      "node_name": "load-context",
+      "event_type": "step_completed",
+      "detail": {
+        "component": "constitution",
+        "produced_artifacts": [
+          "governance_context"
+        ],
+        "triggered_blocks": []
+      }
+    },
+    {
+      "timestamp": "2026-04-18T21:36:07.615507+00:00",
+      "node_name": "classify-claims",
+      "event_type": "step_started",
+      "detail": {
+        "component": "skill:doc-truth-classification",
+        "depends_on": [
+          "load-context"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-18T21:36:07.615507+00:00",
+      "node_name": "classify-claims",
+      "event_type": "step_completed",
+      "detail": {
+        "component": "skill:doc-truth-classification",
+        "produced_artifacts": [
+          "claim_classification_map"
+        ],
+        "triggered_blocks": [
+          "canonical_conflict_unresolved"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-18T21:36:07.615507+00:00",
+      "node_name": "normalize-terminology",
+      "event_type": "step_started",
+      "detail": {
+        "component": "skill:canonical-terminology-map",
+        "depends_on": [
+          "classify-claims"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-18T21:36:07.615507+00:00",
+      "node_name": "normalize-terminology",
+      "event_type": "step_completed",
+      "detail": {
+        "component": "skill:canonical-terminology-map",
+        "produced_artifacts": [
+          "normalized_terminology_map"
+        ],
+        "triggered_blocks": []
+      }
+    },
+    {
+      "timestamp": "2026-04-18T21:36:07.615507+00:00",
+      "node_name": "route-claims-by-role",
+      "event_type": "step_started",
+      "detail": {
+        "component": "skill:role-matched-citation-check",
+        "depends_on": [
+          "normalize-terminology"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-18T21:36:07.615507+00:00",
+      "node_name": "route-claims-by-role",
+      "event_type": "step_completed",
+      "detail": {
+        "component": "skill:role-matched-citation-check",
+        "produced_artifacts": [
+          "role_citation_verdict"
+        ],
+        "triggered_blocks": [
+          "canonical_conflict_unresolved",
+          "role_mismatch_for_strong_claim",
+          "readme_layer2_used_as_override"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-18T21:36:07.615507+00:00",
+      "node_name": "phase-check",
+      "event_type": "step_started",
+      "detail": {
+        "component": "skill:build-sequence-compliance-check",
+        "depends_on": [
+          "route-claims-by-role"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-18T21:36:07.615507+00:00",
+      "node_name": "phase-check",
+      "event_type": "step_completed",
+      "detail": {
+        "component": "skill:build-sequence-compliance-check",
+        "produced_artifacts": [
+          "phase_alignment_status"
+        ],
+        "triggered_blocks": [
+          "unsupported_current_state_claim"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-18T21:36:07.615507+00:00",
+      "node_name": "snapshot-contract-check",
+      "event_type": "step_started",
+      "detail": {
+        "component": "skill:snapshot-contract-check",
+        "depends_on": [
+          "phase-check"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-18T21:36:07.615507+00:00",
+      "node_name": "snapshot-contract-check",
+      "event_type": "step_completed",
+      "detail": {
+        "component": "skill:snapshot-contract-check",
+        "produced_artifacts": [
+          "contract_compliance_verdict"
+        ],
+        "triggered_blocks": [
+          "snapshot_boundary_violation",
+          "raw_observations_used_in_layer3"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-18T21:36:07.615507+00:00",
+      "node_name": "stage-gate-enforcement",
+      "event_type": "step_started",
+      "detail": {
+        "component": "stage_gates",
+        "depends_on": [
+          "snapshot-contract-check"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-18T21:36:07.615507+00:00",
+      "node_name": "stage-gate-enforcement",
+      "event_type": "step_completed",
+      "detail": {
+        "component": "stage_gates",
+        "produced_artifacts": [
+          "stage_gate_report"
+        ],
+        "triggered_blocks": [
+          "unsupported_current_state_claim"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-18T21:36:07.615507+00:00",
+      "node_name": "runtime-boundary-check",
+      "event_type": "step_started",
+      "detail": {
+        "component": "skill:snapshot-boundary-check",
+        "depends_on": [
+          "stage-gate-enforcement"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-18T21:36:07.615507+00:00",
+      "node_name": "runtime-boundary-check",
+      "event_type": "step_completed",
+      "detail": {
+        "component": "skill:snapshot-boundary-check",
+        "produced_artifacts": [
+          "runtime_boundary_verdict"
+        ],
+        "triggered_blocks": [
+          "snapshot_boundary_violation",
+          "raw_observations_used_in_layer3"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-18T21:36:07.615507+00:00",
+      "node_name": "adapter-schema-check",
+      "event_type": "step_started",
+      "detail": {
+        "component": "skill:adapter-schema-review",
+        "depends_on": [
+          "runtime-boundary-check"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-18T21:36:07.615507+00:00",
+      "node_name": "adapter-schema-check",
+      "event_type": "step_completed",
+      "detail": {
+        "component": "skill:adapter-schema-review",
+        "produced_artifacts": [
+          "adapter_schema_verdict"
+        ],
+        "triggered_blocks": [
+          "registry_violation",
+          "schema_drift_detected"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-18T21:36:07.615507+00:00",
+      "node_name": "runtime-guards-summary",
+      "event_type": "step_started",
+      "detail": {
+        "component": "hooks",
+        "depends_on": [
+          "adapter-schema-check"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-18T21:36:07.615507+00:00",
+      "node_name": "runtime-guards-summary",
+      "event_type": "step_completed",
+      "detail": {
+        "component": "hooks",
+        "produced_artifacts": [
+          "guard_report"
+        ],
+        "triggered_blocks": []
+      }
+    },
+    {
+      "timestamp": "2026-04-18T21:36:07.615507+00:00",
+      "node_name": "deep-audit",
+      "event_type": "step_started",
+      "detail": {
+        "component": "subagents",
+        "depends_on": [
+          "runtime-guards-summary"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-18T21:36:07.615507+00:00",
+      "node_name": "deep-audit",
+      "event_type": "step_completed",
+      "detail": {
+        "component": "subagents",
+        "produced_artifacts": [
+          "audit_summary"
+        ],
+        "triggered_blocks": []
+      }
+    },
+    {
+      "timestamp": "2026-04-18T21:36:07.615507+00:00",
+      "node_name": "change-impact-audit",
+      "event_type": "step_started",
+      "detail": {
+        "component": "skill:change-impact-audit",
+        "depends_on": [
+          "deep-audit"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-18T21:36:07.615507+00:00",
+      "node_name": "change-impact-audit",
+      "event_type": "step_completed",
+      "detail": {
+        "component": "skill:change-impact-audit",
+        "produced_artifacts": [
+          "change_impact_report",
+          "doc_update_plan"
+        ],
+        "triggered_blocks": [
+          "missing_alias_mapping"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-18T21:36:07.615507+00:00",
+      "node_name": "doc-code-sync-check",
+      "event_type": "step_started",
+      "detail": {
+        "component": "skill:doc-code-sync-rules",
+        "depends_on": [
+          "change-impact-audit"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-18T21:36:07.615507+00:00",
+      "node_name": "doc-code-sync-check",
+      "event_type": "step_completed",
+      "detail": {
+        "component": "skill:doc-code-sync-rules",
+        "produced_artifacts": [
+          "doc_code_sync_status"
+        ],
+        "triggered_blocks": [
+          "verification_without_evidence"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-18T21:36:07.615507+00:00",
+      "node_name": "rename-invariance-check",
+      "event_type": "step_started",
+      "detail": {
+        "component": "skill:rename-invariance-check",
+        "depends_on": [
+          "change-impact-audit"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-18T21:36:07.619504+00:00",
+      "node_name": "rename-invariance-check",
+      "event_type": "condition_evaluated",
+      "detail": {
+        "predicate_type": "artifact_field_equals",
+        "artifact": "change_impact_report",
+        "field": "change_type",
+        "matched": false,
+        "detail": "Field 'change_type' is absent from artifact 'change_impact_report'."
+      }
+    },
+    {
+      "timestamp": "2026-04-18T21:36:07.619504+00:00",
+      "node_name": "rename-invariance-check",
+      "event_type": "step_skipped",
+      "detail": {
+        "reason": "Condition not satisfied: Field 'change_type' is absent from artifact 'change_impact_report'."
+      }
+    },
+    {
+      "timestamp": "2026-04-18T21:36:07.619504+00:00",
+      "node_name": "update-verification-matrix",
+      "event_type": "step_started",
+      "detail": {
+        "component": "skill:verification-matrix-update-method",
+        "depends_on": [
+          "doc-code-sync-check"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-18T21:36:07.619504+00:00",
+      "node_name": "update-verification-matrix",
+      "event_type": "step_completed",
+      "detail": {
+        "component": "skill:verification-matrix-update-method",
+        "produced_artifacts": [
+          "verification_matrix_delta"
+        ],
+        "triggered_blocks": []
+      }
+    },
+    {
+      "timestamp": "2026-04-18T21:36:07.619504+00:00",
+      "node_name": "update-verification-ledger",
+      "event_type": "step_started",
+      "detail": {
+        "component": "skill:verification-ledger-update",
+        "depends_on": [
+          "update-verification-matrix"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-18T21:36:07.619504+00:00",
+      "node_name": "update-verification-ledger",
+      "event_type": "step_completed",
+      "detail": {
+        "component": "skill:verification-ledger-update",
+        "produced_artifacts": [
+          "verification_ledger_delta"
+        ],
+        "triggered_blocks": [
+          "verification_without_evidence"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-18T21:36:07.619504+00:00",
+      "node_name": "runtime-artifact-hygiene-check",
+      "event_type": "step_started",
+      "detail": {
+        "component": "skill:runtime-artifact-hygiene-check",
+        "depends_on": [
+          "update-verification-ledger"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-18T21:36:07.619504+00:00",
+      "node_name": "runtime-artifact-hygiene-check",
+      "event_type": "step_completed",
+      "detail": {
+        "component": "skill:runtime-artifact-hygiene-check",
+        "produced_artifacts": [
+          "artifact_hygiene_verdict"
+        ],
+        "triggered_blocks": []
+      }
+    },
+    {
+      "timestamp": "2026-04-18T21:36:07.619504+00:00",
+      "node_name": "pre-pr-governance-readiness",
+      "event_type": "step_started",
+      "detail": {
+        "component": "hooks",
+        "depends_on": [
+          "runtime-artifact-hygiene-check"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-18T21:36:07.619504+00:00",
+      "node_name": "pre-pr-governance-readiness",
+      "event_type": "step_completed",
+      "detail": {
+        "component": "hooks",
+        "produced_artifacts": [
+          "pr_readiness_verdict"
+        ],
+        "triggered_blocks": [
+          "pr_governance_not_satisfied"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-18T21:36:07.619504+00:00",
+      "node_name": "__run__",
+      "event_type": "run_completed",
+      "detail": {
+        "final_verdict": "ready",
+        "recorded_steps": 18,
+        "recorded_artifacts": 18
+      }
+    }
+  ],
+  "workflow_completed": true,
+  "required_outputs_present": true,
+  "unresolved_blocking_conditions": [],
+  "fatal_unresolved_block_count": 0,
+  "pr_readiness": "ready"
+}

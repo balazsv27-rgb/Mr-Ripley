@@ -1,0 +1,12 @@
+{
+  "artifact": "art_a",
+  "produced_by": "step-a",
+  "session": "0865ad0a-e11b-48e0-9214-b3cdd2ab3cb7",
+  "timestamp": "2026-04-18T21:38:47.607726Z",
+  "data": {
+    "produced_by": "step-a",
+    "data": {
+      "ok": true
+    }
+  }
+}

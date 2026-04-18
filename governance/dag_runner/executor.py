@@ -312,6 +312,7 @@ def _execute_v2_step(
     config: ExecutionConfig,
     dry_run: bool = False,
     path_policy: "PathPolicy | None" = None,
+    strict_artifact_validation: bool = False,
 ) -> NodeResult:
     """Execute one step via the V2 backend-driven path.
 
@@ -464,6 +465,61 @@ def _execute_v2_step(
                 "failure": str(result.failure) if result.failure else "unknown",
             },
         )
+
+    # B5: Artifact schema validation
+    if result.success and result.artifacts_produced:
+        from governance.dag_runner.artifact_schema import validate_artifact_output
+
+        all_violations = []
+        for art_name, art_data in result.artifacts_produced.items():
+            art_violations = validate_artifact_output(art_name, art_data, step, spec)
+            all_violations.extend(art_violations)
+
+        if all_violations:
+            violation_details = [
+                {"artifact": v.artifact_name, "violation": v.violation, **v.detail}
+                for v in all_violations
+            ]
+            _append_trace(
+                run_state,
+                node_name=step.name,
+                event_type="artifact_validated",
+                detail={
+                    "passed": False,
+                    "violations": violation_details,
+                    "strict": strict_artifact_validation,
+                },
+            )
+            if strict_artifact_validation:
+                return NodeResult(
+                    node_name=step.name,
+                    node_type=step.component,
+                    status="FAIL",
+                    summary=(
+                        f"Artifact schema validation failed: "
+                        f"{len(all_violations)} violation(s)."
+                    ),
+                    evidence=[
+                        f"artifact_schema_violation={v.artifact_name}"
+                        for v in all_violations
+                    ],
+                    produced_artifacts=[],
+                    triggered_blocks=list(step.raises),
+                    inference_used=kind in _BACKEND_KINDS,
+                    latency_ms=result.latency_ms,
+                    token_count=result.token_count,
+                )
+            # else: warn only — continue to record artifacts
+        else:
+            _append_trace(
+                run_state,
+                node_name=step.name,
+                event_type="artifact_validated",
+                detail={
+                    "passed": True,
+                    "artifact_count": len(result.artifacts_produced),
+                },
+            )
 
     # Record produced artifacts into run state
     for artifact_name, artifact_data in result.artifacts_produced.items():
@@ -717,6 +773,9 @@ def execute_plan(
                 from governance.dag_runner.path_policy import default_governance_policy
                 step_path_policy = default_governance_policy(_get_repo_root())
 
+            # B5: Strict artifact validation for live (non-Mock) backends
+            strict_validation = not isinstance(backend, MockExecutionBackend)
+
             try:
                 node_result = _execute_v2_step(
                     step=step,
@@ -726,6 +785,7 @@ def execute_plan(
                     config=effective_config,
                     dry_run=is_dry_run,
                     path_policy=step_path_policy,
+                    strict_artifact_validation=strict_validation,
                 )
             except PathPolicyViolation as exc:
                 # B3-C: Fail-closed on path policy violation
