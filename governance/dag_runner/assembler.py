@@ -4,6 +4,7 @@ from typing import Any
 
 from governance.dag_runner.loader import LoadedWorkflowPackages
 from governance.dag_runner.models import (
+    AgentSpec,
     ArtifactSpec,
     AssembledWorkflowSpec,
     BlockingCondition,
@@ -226,6 +227,70 @@ def _assemble_stage_gates(payload: dict[str, Any]) -> dict[str, StageGateSpec]:
     return result
 
 
+def _assemble_agents(payload: dict[str, Any]) -> dict[str, AgentSpec]:
+    if not payload:
+        return {}
+
+    data = _get_data_section(payload, "agents.yaml")
+    if not isinstance(data, list):
+        raise AssemblerError("agents.yaml: 'data' must be a list.")
+
+    raw_map = _coerce_named_mapping(data, required_name_key="name")
+    result: dict[str, AgentSpec] = {}
+
+    for name, item in raw_map.items():
+        tools = item.get("tools", []) or []
+        if not isinstance(tools, list):
+            tools = [tools]
+
+        workflow_steps = item.get("workflow_steps", []) or []
+        if not isinstance(workflow_steps, list):
+            workflow_steps = [workflow_steps]
+
+        skill_bindings = item.get("skill_bindings", []) or []
+        if not isinstance(skill_bindings, list):
+            skill_bindings = [skill_bindings]
+
+        produces = item.get("produces", []) or []
+        if not isinstance(produces, list):
+            produces = [produces]
+
+        consumes = item.get("consumes", []) or []
+        if not isinstance(consumes, list):
+            consumes = [consumes]
+
+        escalation_targets = item.get("escalation_targets", []) or []
+        if not isinstance(escalation_targets, list):
+            escalation_targets = [escalation_targets]
+
+        hook_reinforcement = item.get("hook_reinforcement")
+        if hook_reinforcement is None or hook_reinforcement == "null":
+            hook_reinforcement = None
+
+        failure_mode = item.get("failure_mode")
+        if isinstance(failure_mode, str):
+            failure_mode = failure_mode.strip() or None
+
+        result[name] = AgentSpec(
+            name=name,
+            role=item.get("role"),
+            layer=item.get("layer"),
+            model=str(item.get("model", "sonnet")),
+            tools=[str(t) for t in tools],
+            workflow_steps=[str(s) for s in workflow_steps],
+            skill_bindings=[str(s) for s in skill_bindings],
+            produces=[str(p) for p in produces],
+            consumes=[str(c) for c in consumes],
+            hook_reinforcement=hook_reinforcement,
+            escalation_targets=escalation_targets,
+            failure_mode=failure_mode,
+            activation_predicate=item.get("activation_predicate"),
+            raw=item,
+        )
+
+    return result
+
+
 def _assemble_workflow_steps(payload: dict[str, Any]) -> dict[str, WorkflowStep]:
     data = _get_data_section(payload, "workflow-steps.yaml")
     if not isinstance(data, list):
@@ -287,6 +352,7 @@ def assemble_workflow_spec(loaded: LoadedWorkflowPackages) -> AssembledWorkflowS
     execution_metadata_payload = pkg.get("execution-metadata.yaml", {})
     constitution_payload = pkg.get("constitution.yaml", {})
     hooks_payload = pkg.get("hooks.yaml", {})
+    agents_payload = pkg.get("agents.yaml", {})
 
     return AssembledWorkflowSpec(
         manifest=loaded.manifest,
@@ -301,6 +367,7 @@ def assemble_workflow_spec(loaded: LoadedWorkflowPackages) -> AssembledWorkflowS
         interpretation_policy=InterpretationPolicy(raw=interpretation_payload),
         verification_ledger=VerificationLedgerSpec(raw=verification_payload),
         execution_metadata=ExecutionMetadataSpec(raw=execution_metadata_payload),
+        agents=_assemble_agents(agents_payload),
         hooks=hooks_payload,
         raw_sections=pkg,
     )

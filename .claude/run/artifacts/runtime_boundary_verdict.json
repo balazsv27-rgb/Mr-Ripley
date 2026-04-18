@@ -2,10 +2,10 @@
   "artifact": "runtime_boundary_verdict",
   "produced_by": "runtime-boundary-check",
   "session": "",
-  "timestamp": "2026-04-18T14:54:32.238791Z",
+  "timestamp": "2026-04-18T18:38:15.475306Z",
   "data": {
-    "file_path": "C:\\Code\\Mr-Ripley\\governance\\CONSOLIDATED_AUDIT_AND_REFACTOR_REPORT.md",
-    "scanned": false,
+    "file_path": "C:\\Code\\Mr-Ripley\\tests\\governance\\test_executor_halt.py",
+    "scanned": true,
     "layer2_file": false,
     "raw_observation_access_detected": false,
     "latest_snapshot_misuse_detected": false,

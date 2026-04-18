@@ -12,8 +12,14 @@ from pathlib import Path
 
 import pytest
 
+from datetime import datetime
+
 from governance.dag_runner.loader import DEFAULT_WORKFLOW_PATH
-from governance.dag_runner.state_store import generate_and_write_run_state
+from governance.dag_runner.state_store import (
+    StateStoreError,
+    generate_and_write_run_state,
+    load_run_state_from_path,
+)
 
 
 # ---------------------------------------------------------------------------
@@ -191,7 +197,7 @@ def test_run_state_contains_run_metadata(run_state: dict) -> None:
     assert run_state["workflow_file"]  # non-empty string
 
     assert "loaded_packages" in run_state
-    assert run_state["loaded_packages"] == 13
+    assert run_state["loaded_packages"] == 14
 
     # Run identity
     assert "run_id" in run_state
@@ -343,3 +349,71 @@ def test_run_state_existing_detailed_fields_still_present(run_state: dict) -> No
     assert "workflow_name" in run_state
     assert "run_id" in run_state
     assert "started_at" in run_state
+
+
+# ---------------------------------------------------------------------------
+# load_run_state_from_path — R1-B round-trip and error tests
+# ---------------------------------------------------------------------------
+
+
+def test_load_run_state_from_path_round_trip(state_path: Path) -> None:
+    """Write → load → verify GovernanceRunState fields match stored data."""
+    reloaded = load_run_state_from_path(state_path)
+
+    assert reloaded.run_id, "run_id should be non-empty"
+    assert isinstance(reloaded.started_at, datetime)
+    assert reloaded.current_phase is not None
+
+    # Node results round-trip
+    assert len(reloaded.node_results) > 0
+    for key, nr in reloaded.node_results.items():
+        assert key == nr.node_name, "dict key must match node_name"
+        assert nr.status in ("PASS", "WARN", "FAIL", "SKIP")
+
+    # Artifacts round-trip
+    assert len(reloaded.artifacts) > 0
+    for key, ar in reloaded.artifacts.items():
+        assert key == ar.name, "dict key must match artifact name"
+        assert ar.status in ("present", "missing", "blocked", "stale")
+
+    # Execution trace round-trip
+    assert len(reloaded.execution_trace) > 0
+    event_types = [e.event_type for e in reloaded.execution_trace]
+    assert "run_started" in event_types
+    assert "run_completed" in event_types
+    for event in reloaded.execution_trace:
+        assert isinstance(event.timestamp, datetime)
+
+    # Final verdict
+    assert reloaded.final_verdict is not None
+
+
+def test_load_run_state_from_path_defaults_latency_fields(state_path: Path) -> None:
+    """V1 stored state lacks latency_ms/token_count — defaults to zero."""
+    reloaded = load_run_state_from_path(state_path)
+    for nr in reloaded.node_results.values():
+        assert nr.latency_ms == 0.0
+        assert nr.token_count == 0
+
+
+def test_load_run_state_from_path_corrupt_json(tmp_path: Path) -> None:
+    corrupt_file = tmp_path / "corrupt.json"
+    corrupt_file.write_text("{not valid json", encoding="utf-8")
+    with pytest.raises(StateStoreError):
+        load_run_state_from_path(corrupt_file)
+
+
+def test_load_run_state_from_path_missing_file(tmp_path: Path) -> None:
+    with pytest.raises(StateStoreError):
+        load_run_state_from_path(tmp_path / "nonexistent.json")
+
+
+def test_load_run_state_from_path_missing_fields(tmp_path: Path) -> None:
+    """Missing required fields in node_results should raise StateStoreError."""
+    bad_file = tmp_path / "bad.json"
+    bad_file.write_text(
+        '{"node_results": [{"status": "PASS"}]}',
+        encoding="utf-8",
+    )
+    with pytest.raises(StateStoreError):
+        load_run_state_from_path(bad_file)

@@ -45,7 +45,8 @@
       "Bash(done)",
       "Bash(find /c/Code/Mr-Ripley -name *agent* -type f)",
       "Bash(git status:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(find /c/Code/Mr-Ripley -type f -name *.yaml -o -name *.yml)"
     ]
   }
 }

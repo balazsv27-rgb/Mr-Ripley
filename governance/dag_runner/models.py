@@ -8,6 +8,18 @@ from typing import Any, Literal
 NodeStatus = Literal["PASS", "WARN", "FAIL", "SKIP"]
 ArtifactStatus = Literal["present", "missing", "blocked", "stale"]
 FinalVerdict = Literal["ready", "review_only", "blocked", "invalid"]
+
+# Component kinds — the execution dispatch discriminator.
+# Must cover all bare component names and prefixed component patterns
+# accepted by the validator.
+ComponentKind = Literal[
+    "constitution", "stage_gates", "hooks", "subagents",
+    "skill", "stage_gate", "hook", "subagent",
+    "final_gate", "blocking_evaluator", "verification_update",
+    "artifact_gate", "predicate_gate", "workflow_step",
+]
+
+ExecutionMode = Literal["shell_v1", "dry_run", "agent_execution", "graph_only"]
  
 
 @dataclass(frozen=True)
@@ -56,6 +68,26 @@ class SubagentSpec:
 
     name: str
     description: str | None = None
+    raw: dict[str, Any] = field(default_factory=dict)
+
+
+@dataclass(frozen=True)
+class AgentSpec:
+    """Declared agent from agents.yaml."""
+
+    name: str
+    role: str | None = None
+    layer: str | None = None
+    model: str = "sonnet"
+    tools: list[str] = field(default_factory=list)
+    workflow_steps: list[str] = field(default_factory=list)
+    skill_bindings: list[str] = field(default_factory=list)
+    produces: list[str] = field(default_factory=list)
+    consumes: list[str] = field(default_factory=list)
+    hook_reinforcement: str | None = None
+    escalation_targets: list[dict[str, Any]] = field(default_factory=list)
+    failure_mode: str | None = None
+    activation_predicate: str | None = None
     raw: dict[str, Any] = field(default_factory=dict)
 
 
@@ -112,6 +144,55 @@ class ExecutionMetadataSpec:
 
 
 @dataclass(frozen=True)
+class ExecutionConfig:
+    """Configuration for DAG runner execution mode and behaviour."""
+
+    mode: ExecutionMode = "shell_v1"
+    json_output: bool = False
+    timeout_per_step_ms: int = 120_000
+    timeout_total_ms: int = 1_800_000
+    continue_from: str | None = None
+    phase_scope: str | None = None
+    state_bootstrap_path: str | None = None
+
+
+@dataclass(frozen=True)
+class ArtifactEnvelope:
+    """Canonical artifact envelope — the ONE write format for V2.
+
+    Must match .claude/hooks/lib/artifact_store.py exactly.
+    """
+
+    artifact: str
+    produced_by: str
+    session: str
+    timestamp: str
+    data: dict[str, Any] = field(default_factory=dict)
+
+
+@dataclass(frozen=True)
+class FailureClassification:
+    """Categorised failure raised during execution."""
+
+    origin: Literal["structural", "contract", "runtime", "artifact", "timeout"]
+    step_id: str
+    detail: str
+    recoverable: bool = False
+
+
+@dataclass(frozen=True)
+class AgentExecutionResult:
+    """Result returned by an ExecutionBackend for one step."""
+
+    success: bool
+    artifacts_produced: dict[str, dict[str, Any]] = field(default_factory=dict)
+    raw_output: str = ""
+    failure: FailureClassification | None = None
+    latency_ms: float = 0.0
+    token_count: int = 0
+
+
+@dataclass(frozen=True)
 class WorkflowStep:
     """Compiled workflow step from workflow-steps.yaml."""
 
@@ -148,6 +229,7 @@ class AssembledWorkflowSpec:
     execution_metadata: ExecutionMetadataSpec = field(
         default_factory=ExecutionMetadataSpec
     )
+    agents: dict[str, AgentSpec] = field(default_factory=dict)
     hooks: dict[str, Any] = field(default_factory=dict)
     raw_sections: dict[str, Any] = field(default_factory=dict)
 
@@ -195,6 +277,8 @@ class NodeResult:
     produced_artifacts: list[str] = field(default_factory=list)
     triggered_blocks: list[str] = field(default_factory=list)
     inference_used: bool = False
+    latency_ms: float = 0.0
+    token_count: int = 0
 
 
 @dataclass

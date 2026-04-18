@@ -5,5 +5,5 @@ def test_loader_loads_root_workflow_and_packages() -> None:
     loaded = load_workflow_packages()
 
     assert loaded.manifest.workflow_name == "mr-ripley-governance-orchestration"
-    assert len(loaded.packages) == 13
+    assert len(loaded.packages) == 14
     assert loaded.workflow_path.name == "system-orchestration.yaml"

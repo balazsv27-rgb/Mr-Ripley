@@ -1,52 +1,40 @@
 """
-executor.py — V1 governance DAG runner executor.
+executor.py — Governance DAG runner executor.
 
-Execution policy
-----------------
-For each planned step the executor evaluates runtime predicates in this order:
+Supports two execution paths:
 
-1. ``condition`` (if present):
-   - Evaluate using ``predicates.evaluate_condition()``.
-   - If NOT matched → emit SKIP; do not execute the step.
-   - If matched (or absent) → proceed to ``skip_if`` check.
+**V1 shell mode** (``backend=None``, default):
+    Evaluates predicates, materialises placeholder artifacts, records trace.
+    No real skill or agent invocation.
 
-2. ``skip_if`` (if present, evaluated only when condition passed or was absent):
-   - Evaluate using ``predicates.evaluate_condition()``.
-   - If matched → emit SKIP; do not execute the step.
-   - If NOT matched (or absent) → execute the step normally.
+**V2 backend-driven mode** (``backend`` provided):
+    Routes each step by parsed component kind (not step name).
+    Structural steps execute deterministically.
+    Skill-bound and coordinator steps dispatch to the ``ExecutionBackend``.
 
-3. Normal V1 shell execution:
-   - Record a ``NodeResult`` with status ``PASS``.
-   - Materialise all declared output artifacts.
-
-Fail-closed predicate handling
--------------------------------
-If a runtime predicate is unsupported, malformed, or structurally invalid,
-``ExecutorError`` is raised (fail closed).  Before raising, a trace event is
-recorded and a ``BlockingEvent`` is appended to ``run_state.blocking_conditions``
-for each ``raises`` entry declared on the step.
-
-Normal SKIP (condition not met, or skip_if matched) does not emit blocking events
-— those represent intentional control flow, not runtime errors.
-
-Skipped steps do not produce artifacts.
+Both paths share predicate evaluation and fail-closed semantics.
 """
 from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import datetime, timezone
-from typing import Any
+from typing import Any, TYPE_CHECKING
 from uuid import uuid4
 
 from governance.dag_runner.models import (
     ArtifactRecord,
+    AssembledWorkflowSpec,
     BlockingEvent,
+    ExecutionConfig,
     ExecutionTraceEvent,
     GovernanceRunState,
     NodeResult,
     WorkflowStep,
 )
 from governance.dag_runner.planner import ExecutionPlan
+
+if TYPE_CHECKING:
+    from governance.dag_runner.execution_backend import ExecutionBackend
 
 
 class ExecutorError(RuntimeError):
@@ -239,36 +227,182 @@ def _raise_blocking_events(
 
 
 # ---------------------------------------------------------------------------
+# Component-kind classification (V2)
+# ---------------------------------------------------------------------------
+
+# Structural component kinds — executed deterministically, no LLM.
+_STRUCTURAL_KINDS: frozenset[str] = frozenset({
+    "constitution", "stage_gates", "hooks",
+    "final_gate", "blocking_evaluator", "verification_update",
+    "artifact_gate", "predicate_gate", "workflow_step",
+})
+
+# Backend-dispatched component kinds — require ExecutionBackend.
+_BACKEND_KINDS: frozenset[str] = frozenset({
+    "skill", "subagents",
+})
+
+
+def _parse_component_kind(component: str) -> tuple[str, str | None]:
+    """Parse ``step.component`` into ``(kind, name_or_none)``.
+
+    Examples:
+        ``"constitution"`` → ``("constitution", None)``
+        ``"skill:doc-truth-classification"`` → ``("skill", "doc-truth-classification")``
+        ``"stage_gates"`` → ``("stage_gates", None)``
+    """
+    if ":" not in component:
+        return component.strip(), None
+    kind, value = component.split(":", 1)
+    return kind.strip(), value.strip() or None
+
+
+def _is_structural_step(component: str) -> bool:
+    """Return True if the step should be executed structurally (no LLM)."""
+    kind, _ = _parse_component_kind(component)
+    return kind in _STRUCTURAL_KINDS
+
+
+def _execute_v2_step(
+    step: WorkflowStep,
+    run_state: GovernanceRunState,
+    spec: AssembledWorkflowSpec,
+    backend: ExecutionBackend,
+    config: ExecutionConfig,
+    dry_run: bool = False,
+) -> NodeResult:
+    """Execute one step via the V2 backend-driven path.
+
+    Routes by component kind:
+    - structural kinds → ``backend.execute_structural_step()``
+    - skill / subagents → resolve agent, ``backend.execute_step()``
+
+    In dry-run mode, no backend invocation occurs.
+    """
+    kind, _name = _parse_component_kind(step.component)
+
+    if dry_run:
+        return NodeResult(
+            node_name=step.name,
+            node_type=step.component,
+            status="PASS",
+            summary=f"Dry-run: step would execute via {kind} dispatch.",
+            evidence=[f"component_kind={kind}", "dry_run=True"],
+            produced_artifacts=[],
+            triggered_blocks=[],
+            inference_used=False,
+        )
+
+    if _is_structural_step(step.component):
+        result = backend.execute_structural_step(
+            step=step,
+            component_kind=kind,
+            run_state=run_state,
+            spec=spec,
+        )
+    else:
+        # Resolve agent for backend dispatch
+        from governance.dag_runner.agent_resolver import resolve_agent
+        agent = resolve_agent(step, spec)
+
+        if agent is not None:
+            _append_trace(
+                run_state,
+                node_name=step.name,
+                event_type="agent_resolved",
+                detail={"agent": agent.name, "model": agent.model},
+            )
+            result = backend.execute_step(
+                step=step,
+                agent=agent,
+                config=config,
+                run_state=run_state,
+                spec=spec,
+            )
+        else:
+            # Fallback: no agent binding, treat as structural
+            result = backend.execute_structural_step(
+                step=step,
+                component_kind=kind,
+                run_state=run_state,
+                spec=spec,
+            )
+
+    # Record produced artifacts into run state
+    for artifact_name, artifact_data in result.artifacts_produced.items():
+        run_state.artifacts[artifact_name] = ArtifactRecord(
+            name=artifact_name,
+            producer_step=step.name,
+            status="present",
+            payload=artifact_data,
+        )
+
+    return NodeResult(
+        node_name=step.name,
+        node_type=step.component,
+        status="PASS" if result.success else "FAIL",
+        summary=(
+            f"V2 {kind} execution completed."
+            if result.success
+            else f"V2 {kind} execution failed: {result.failure}"
+        ),
+        evidence=[f"component_kind={kind}", f"backend={type(backend).__name__}"],
+        produced_artifacts=list(result.artifacts_produced.keys()),
+        triggered_blocks=list(step.raises),
+        inference_used=kind in _BACKEND_KINDS,
+        latency_ms=result.latency_ms,
+        token_count=result.token_count,
+    )
+
+
+# ---------------------------------------------------------------------------
 # Public API
 # ---------------------------------------------------------------------------
 
 
 def execute_plan(
-    spec,
+    spec: AssembledWorkflowSpec,
     plan: ExecutionPlan,
     *,
     verdict_status: str | None = None,
+    config: ExecutionConfig | None = None,
+    backend: ExecutionBackend | None = None,
+    prior_state: GovernanceRunState | None = None,
 ) -> ExecutionResult:
     """
     Execute a validated and planned workflow.
 
-    V1 behavior:
-    - Evaluates ``condition`` and ``skip_if`` predicates for each step.
-    - Records ``SKIP`` for steps whose predicate prevents execution.
-    - Does not execute real skill logic (shell mode).
-    - Records execution trace events including predicate evaluations.
-    - Materialises declared output artifacts for each executed (non-skipped) step.
-    - Populates ``run_state.blocking_conditions`` on predicate evaluation errors.
-    - Stores the final verdict string when provided.
+    When ``backend is None`` (default): V1 shell mode (unchanged).
+    When ``backend`` is provided: V2 component-kind dispatch mode.
+    When ``prior_state`` is provided: continuation from a prior run.
     """
     if not plan.ordered_steps:
         raise ExecutorError("Cannot execute empty execution plan.")
 
-    run_state = _build_initial_run_state(
-        workflow_name=plan.workflow_name,
-        orchestration_version=spec.manifest.workflow_version,
-        constitution_version=None,
-    )
+    effective_config = config or ExecutionConfig()
+
+    # Continuation: carry forward prior state
+    completed_steps: set[str] = set()
+    if prior_state is not None and effective_config.continue_from:
+        run_state = prior_state
+        # Mark all previously completed steps
+        completed_steps = set(prior_state.node_results.keys())
+        _append_trace(
+            run_state,
+            node_name="__run__",
+            event_type="continuation_started",
+            detail={
+                "continue_from": effective_config.continue_from,
+                "prior_completed_steps": len(completed_steps),
+                "prior_artifacts": len(prior_state.artifacts),
+            },
+        )
+    else:
+        run_state = _build_initial_run_state(
+            workflow_name=plan.workflow_name,
+            orchestration_version=spec.manifest.workflow_version,
+            constitution_version=None,
+        )
 
     _append_trace(
         run_state,
@@ -277,10 +411,16 @@ def execute_plan(
         detail={
             "workflow_name": plan.workflow_name,
             "planned_steps": len(plan.ordered_steps),
+            "mode": effective_config.mode,
         },
     )
 
+    halted = False
+
     for node in plan.ordered_steps:
+        # Skip already-completed steps in continuation mode
+        if node.step_id in completed_steps:
+            continue
         step = spec.workflow_steps.get(node.step_id)
         if step is None:
             raise ExecutorError(
@@ -374,7 +514,68 @@ def execute_plan(
             )
             continue
 
-        # Normal V1 shell execution — step ran; materialise artifacts and record result.
+        # -----------------------------------------------------------------
+        # Execution dispatch
+        # -----------------------------------------------------------------
+        if backend is not None:
+            # V2 backend-driven path — component-kind routing
+            is_dry_run = effective_config.mode == "dry_run"
+            node_result = _execute_v2_step(
+                step=step,
+                run_state=run_state,
+                spec=spec,
+                backend=backend,
+                config=effective_config,
+                dry_run=is_dry_run,
+            )
+            run_state.node_results[node.step_id] = node_result
+
+            _append_trace(
+                run_state,
+                node_name=node.step_id,
+                event_type="step_completed" if node_result.status == "PASS" else "step_failed",
+                detail={
+                    "component": node.component,
+                    "component_kind": _parse_component_kind(step.component)[0],
+                    "produced_artifacts": node_result.produced_artifacts,
+                    "triggered_blocks": node_result.triggered_blocks,
+                    "status": node_result.status,
+                },
+            )
+
+            # Halt-on-critical-failure: if a step FAIL raises a blocker
+            # with halts_workflow=True, stop DAG traversal.
+            if node_result.status == "FAIL":
+                for blocker_id in step.raises:
+                    blocker_def = spec.blocking_conditions.get(blocker_id)
+                    if blocker_def and blocker_def.halts_workflow:
+                        run_state.blocking_conditions.append(
+                            BlockingEvent(
+                                blocking_id=blocker_id,
+                                raised_by=step.name,
+                                severity="critical",
+                                message=node_result.summary,
+                                resolved=False,
+                            )
+                        )
+                        _append_trace(
+                            run_state,
+                            node_name=node.step_id,
+                            event_type="halt_on_critical_failure",
+                            detail={
+                                "blocking_id": blocker_id,
+                                "reason": node_result.summary,
+                            },
+                        )
+                        # Skip all remaining steps
+                        halted = True
+                        break
+
+            if halted:
+                break
+            continue
+
+        # V1 shell execution — step ran; materialise artifacts and record result.
         _record_artifacts_for_step(run_state, node.step_id, list(step.outputs))
 
         node_result = NodeResult(
@@ -399,6 +600,21 @@ def execute_plan(
                 "triggered_blocks": list(step.raises),
             },
         )
+
+    # Record remaining unexecuted steps as SKIP if halted by critical blocker
+    if halted:
+        executed_ids = set(run_state.node_results.keys())
+        for remaining_node in plan.ordered_steps:
+            if remaining_node.step_id not in executed_ids:
+                remaining_step = spec.workflow_steps.get(remaining_node.step_id)
+                if remaining_step is not None:
+                    run_state.node_results[remaining_node.step_id] = (
+                        _build_skipped_node_result(
+                            remaining_step,
+                            reason="Skipped due to halt-on-critical-failure.",
+                            evidence=["halt_on_critical_failure=True"],
+                        )
+                    )
 
     run_state.final_verdict = verdict_status
 

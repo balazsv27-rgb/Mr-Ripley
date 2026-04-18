@@ -399,6 +399,150 @@ def _validate_step_validates(spec: AssembledWorkflowSpec) -> list[ValidationIssu
     return issues
 
 
+def _get_hook_names(spec: AssembledWorkflowSpec) -> set[str]:
+    """Extract declared hook names from the raw hooks payload."""
+    hooks_data = spec.hooks.get("data", []) if isinstance(spec.hooks, dict) else []
+    names: set[str] = set()
+    for item in hooks_data:
+        if isinstance(item, dict):
+            name = item.get("name")
+            if isinstance(name, str) and name.strip():
+                names.add(name.strip())
+    return names
+
+
+def _validate_agent_bindings(spec: AssembledWorkflowSpec) -> list[ValidationIssue]:
+    """Validate that every step's agent_binding resolves to a declared agent."""
+    issues: list[ValidationIssue] = []
+
+    for step_id, step in spec.workflow_steps.items():
+        agent_binding = step.raw.get("agent_binding")
+        if agent_binding is None:
+            continue
+
+        if not isinstance(agent_binding, str) or not agent_binding.strip():
+            issues.append(
+                ValidationIssue(
+                    code="invalid_agent_binding",
+                    message=f"agent_binding is not a valid string: {agent_binding!r}.",
+                    step_id=step_id,
+                    detail={"agent_binding": agent_binding},
+                )
+            )
+            continue
+
+        if agent_binding.strip() not in spec.agents:
+            issues.append(
+                ValidationIssue(
+                    code="unknown_agent_binding",
+                    message=f"agent_binding references unknown agent '{agent_binding}'.",
+                    step_id=step_id,
+                    detail={"agent_binding": agent_binding},
+                )
+            )
+
+    return issues
+
+
+def _validate_agent_skill_bindings(spec: AssembledWorkflowSpec) -> list[ValidationIssue]:
+    """Validate that every agent's skill_bindings resolve to declared skills."""
+    issues: list[ValidationIssue] = []
+
+    for agent_name, agent in spec.agents.items():
+        for skill_name in agent.skill_bindings:
+            if skill_name not in spec.skills:
+                issues.append(
+                    ValidationIssue(
+                        code="unknown_agent_skill_binding",
+                        message=(
+                            f"Agent '{agent_name}' skill_binding '{skill_name}' "
+                            "not found in declared skills."
+                        ),
+                        detail={"agent": agent_name, "skill": skill_name},
+                    )
+                )
+
+    return issues
+
+
+def _validate_agent_artifact_production(spec: AssembledWorkflowSpec) -> list[ValidationIssue]:
+    """Validate that every agent's produces entries exist in declared artifacts."""
+    issues: list[ValidationIssue] = []
+    known_artifacts = set(spec.artifacts.keys())
+
+    for agent_name, agent in spec.agents.items():
+        for artifact_name in agent.produces:
+            if artifact_name not in known_artifacts:
+                issues.append(
+                    ValidationIssue(
+                        code="agent_produces_undeclared_artifact",
+                        message=(
+                            f"Agent '{agent_name}' produces undeclared artifact "
+                            f"'{artifact_name}'."
+                        ),
+                        detail={"agent": agent_name, "artifact": artifact_name},
+                    )
+                )
+
+    return issues
+
+
+def _validate_hook_reinforcements(spec: AssembledWorkflowSpec) -> list[ValidationIssue]:
+    """Validate that every step's reinforced_by_hook resolves to a declared hook."""
+    issues: list[ValidationIssue] = []
+    known_hooks = _get_hook_names(spec)
+
+    for step_id, step in spec.workflow_steps.items():
+        hook_name = step.raw.get("reinforced_by_hook")
+        if hook_name is None:
+            continue
+
+        if not isinstance(hook_name, str) or not hook_name.strip():
+            continue
+
+        if hook_name.strip() not in known_hooks:
+            issues.append(
+                ValidationIssue(
+                    code="unknown_hook_reinforcement",
+                    message=(
+                        f"reinforced_by_hook references unknown hook '{hook_name}'."
+                    ),
+                    step_id=step_id,
+                    detail={"hook": hook_name},
+                )
+            )
+
+    return issues
+
+
+def _validate_escalation_targets(spec: AssembledWorkflowSpec) -> list[ValidationIssue]:
+    """Validate that every escalates_to subagent resolves to declared subagents."""
+    issues: list[ValidationIssue] = []
+    known_subagents = set(spec.subagents.keys())
+
+    # Check agent-level escalation targets
+    for agent_name, agent in spec.agents.items():
+        for target in agent.escalation_targets:
+            if not isinstance(target, dict):
+                continue
+            subagent_name = target.get("subagent")
+            if not isinstance(subagent_name, str) or not subagent_name.strip():
+                continue
+            if subagent_name.strip() not in known_subagents:
+                issues.append(
+                    ValidationIssue(
+                        code="unknown_escalation_target",
+                        message=(
+                            f"Agent '{agent_name}' escalates to unknown subagent "
+                            f"'{subagent_name}'."
+                        ),
+                        detail={"agent": agent_name, "subagent": subagent_name},
+                    )
+                )
+
+    return issues
+
+
 def _validate_predicate_references(spec: AssembledWorkflowSpec) -> list[ValidationIssue]:
     """
     Validate that named predicate references in condition/skip_if fields resolve
@@ -461,6 +605,11 @@ def validate_workflow_spec(spec: AssembledWorkflowSpec) -> ValidationResult:
     issues.extend(_validate_dependency_cycles(spec))
     issues.extend(_validate_step_validates(spec))
     issues.extend(_validate_predicate_references(spec))
+    issues.extend(_validate_agent_bindings(spec))
+    issues.extend(_validate_agent_skill_bindings(spec))
+    issues.extend(_validate_agent_artifact_production(spec))
+    issues.extend(_validate_hook_reinforcements(spec))
+    issues.extend(_validate_escalation_targets(spec))
 
     return ValidationResult(
         is_valid=len(issues) == 0,

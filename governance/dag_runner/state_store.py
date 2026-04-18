@@ -5,9 +5,18 @@ from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import Any
 
+from datetime import datetime, timezone
+
 from governance.dag_runner.artifacts import build_artifact_summary
 from governance.dag_runner.assembler import assemble_workflow_spec
 from governance.dag_runner.blockers import analyze_blockers, analyze_runtime_blockers
+from governance.dag_runner.models import (
+    ArtifactRecord,
+    BlockingEvent,
+    ExecutionTraceEvent,
+    GovernanceRunState,
+    NodeResult,
+)
 from governance.dag_runner.executor import ExecutionResult, execute_plan
 from governance.dag_runner.loader import load_workflow_packages
 from governance.dag_runner.planner import build_execution_plan
@@ -341,6 +350,109 @@ def load_run_state(output_path: str | Path = DEFAULT_STATE_PATH) -> dict[str, An
         )
 
     return payload
+
+
+def load_run_state_from_path(path: Path) -> GovernanceRunState:
+    """Load persisted run state JSON and reconstruct a ``GovernanceRunState``.
+
+    This is the reverse of ``build_stored_run_state`` followed by
+    ``write_run_state``.  Fields not preserved in the stored format
+    (``latency_ms``, ``token_count``) default to zero.  Fields not
+    stored at all (``orchestration_version``, ``constitution_version``)
+    default to ``None``.
+
+    Raises ``StateStoreError`` on any structural or parsing issue (fail closed).
+    """
+    raw = load_run_state(path)  # validates file, JSON, dict
+
+    try:
+        # --- metadata ---
+        run_id = raw.get("run_id", "")
+        started_at_str = raw.get("started_at", "")
+        started_at = (
+            datetime.fromisoformat(started_at_str)
+            if started_at_str
+            else datetime.now(timezone.utc)
+        )
+        current_phase = raw.get("workflow_name")
+        final_verdict = raw.get("final_verdict")
+
+        # --- node_results: list[dict] -> dict[str, NodeResult] ---
+        node_results: dict[str, NodeResult] = {}
+        for nr_dict in raw.get("node_results", []):
+            nr = NodeResult(
+                node_name=nr_dict["node_name"],
+                node_type=nr_dict["node_type"],
+                status=nr_dict["status"],
+                summary=nr_dict["summary"],
+                evidence=list(nr_dict.get("evidence", [])),
+                produced_artifacts=list(nr_dict.get("produced_artifacts", [])),
+                triggered_blocks=list(nr_dict.get("triggered_blocks", [])),
+                inference_used=bool(nr_dict.get("inference_used", False)),
+                latency_ms=float(nr_dict.get("latency_ms", 0.0)),
+                token_count=int(nr_dict.get("token_count", 0)),
+            )
+            node_results[nr.node_name] = nr
+
+        # --- artifacts: list[dict] -> dict[str, ArtifactRecord] ---
+        artifacts: dict[str, ArtifactRecord] = {}
+        for ar_dict in raw.get("artifact_records", []):
+            ar = ArtifactRecord(
+                name=ar_dict["name"],
+                producer_step=ar_dict["producer_step"],
+                status=ar_dict["status"],
+                payload=dict(ar_dict.get("payload", {})),
+            )
+            artifacts[ar.name] = ar
+
+        # --- blocking_conditions: list[dict] -> list[BlockingEvent] ---
+        blocking_conditions: list[BlockingEvent] = []
+        for bc_dict in raw.get("unresolved_blocking_conditions", []):
+            blocking_conditions.append(
+                BlockingEvent(
+                    blocking_id=bc_dict["blocking_id"],
+                    raised_by=bc_dict["raised_by"],
+                    severity=bc_dict.get("severity"),
+                    message=bc_dict.get("message"),
+                    resolved=bool(bc_dict.get("resolved", False)),
+                )
+            )
+
+        # --- execution_trace: list[dict] -> list[ExecutionTraceEvent] ---
+        execution_trace: list[ExecutionTraceEvent] = []
+        for et_dict in raw.get("execution_trace", []):
+            ts_str = et_dict.get("timestamp", "")
+            ts = (
+                datetime.fromisoformat(ts_str)
+                if ts_str
+                else datetime.now(timezone.utc)
+            )
+            execution_trace.append(
+                ExecutionTraceEvent(
+                    timestamp=ts,
+                    node_name=et_dict["node_name"],
+                    event_type=et_dict["event_type"],
+                    detail=dict(et_dict.get("detail", {})),
+                )
+            )
+
+        return GovernanceRunState(
+            run_id=run_id,
+            started_at=started_at,
+            constitution_version=None,
+            orchestration_version=None,
+            current_phase=current_phase,
+            node_results=node_results,
+            artifacts=artifacts,
+            blocking_conditions=blocking_conditions,
+            execution_trace=execution_trace,
+            final_verdict=final_verdict,
+        )
+
+    except (KeyError, TypeError, ValueError) as exc:
+        raise StateStoreError(
+            f"Failed to reconstruct GovernanceRunState from {path}: {exc}"
+        ) from exc
 
 
 def generate_and_write_run_state(

@@ -1,12 +1,13 @@
 from __future__ import annotations
 
 import argparse
+import json
 import sys
 from pathlib import Path
 
 from governance.dag_runner.assembler import AssemblerError, assemble_workflow_spec
 from governance.dag_runner.blockers import BlockerError, analyze_blockers
-from governance.dag_runner.executor import ExecutorError, execute_plan
+from governance.dag_runner.executor import ExecutorError, execute_plan, _parse_component_kind
 from governance.dag_runner.loader import DEFAULT_WORKFLOW_PATH, LoaderError, load_workflow_packages
 from governance.dag_runner.planner import PlannerError, build_execution_plan
 from governance.dag_runner.state_store import (
@@ -22,7 +23,7 @@ from governance.dag_runner.verdict import VerdictError, compute_verdict
 def _build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="dag-runner",
-        description="Mr. Ripley governance DAG runner v1 CLI",
+        description="Mr. Ripley governance DAG runner CLI",
     )
     parser.add_argument(
         "--workflow",
@@ -46,7 +47,116 @@ def _build_parser() -> argparse.ArgumentParser:
         default=str(DEFAULT_STATE_PATH),
         help="Output path for persisted run state JSON.",
     )
+    # V2 execution mode flags
+    parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Walk plan and evaluate predicates without producing artifacts.",
+    )
+    parser.add_argument(
+        "--json",
+        action="store_true",
+        dest="json_output",
+        help="Emit JSON output to stdout.",
+    )
+    parser.add_argument(
+        "--graph",
+        action="store_true",
+        help="Emit DAG structure as JSON without execution.",
+    )
+    parser.add_argument(
+        "--mode",
+        type=str,
+        default="shell_v1",
+        choices=["shell_v1", "agent_execution"],
+        help="Execution mode (default: shell_v1).",
+    )
+    parser.add_argument(
+        "--continue-from",
+        type=str,
+        default=None,
+        help="Resume execution from the given step ID.",
+    )
+    parser.add_argument(
+        "--timeout",
+        type=int,
+        default=None,
+        help="Total run timeout in milliseconds.",
+    )
+    parser.add_argument(
+        "--phase",
+        type=str,
+        default=None,
+        help="Execute only steps in the given layer (A-E).",
+    )
     return parser
+
+
+def _build_graph_json(spec, plan) -> dict:
+    """Build machine-readable DAG structure."""
+    steps = []
+    edges = []
+
+    for node in plan.ordered_steps:
+        step = spec.workflow_steps.get(node.step_id)
+        if step is None:
+            continue
+        kind, name = _parse_component_kind(step.component)
+        step_dict = {
+            "id": node.step_id,
+            "component": step.component,
+            "component_kind": kind,
+            "component_name": name,
+            "depends_on": list(step.depends_on),
+            "outputs": list(step.outputs),
+            "agent_binding": step.raw.get("agent_binding"),
+            "layer": step.raw.get("layer"),
+        }
+        steps.append(step_dict)
+
+        for dep in step.depends_on:
+            edges.append({"from": dep, "to": node.step_id})
+
+    agents = {}
+    for agent_name, agent in spec.agents.items():
+        agents[agent_name] = {
+            "model": agent.model,
+            "layer": agent.layer,
+            "skill_bindings": agent.skill_bindings,
+            "produces": agent.produces,
+            "consumes": agent.consumes,
+        }
+
+    skills = {}
+    for skill_name, skill in spec.skills.items():
+        skills[skill_name] = {
+            "produces": skill.produces,
+            "description": skill.description,
+        }
+
+    artifacts = {}
+    for artifact_name, artifact in spec.artifacts.items():
+        artifacts[artifact_name] = {
+            "producer_step": artifact.producer_step,
+            "required": artifact.required,
+        }
+
+    blocking_conditions = {}
+    for bc_id, bc in spec.blocking_conditions.items():
+        blocking_conditions[bc_id] = {
+            "severity": bc.severity,
+            "halts_workflow": bc.halts_workflow,
+        }
+
+    return {
+        "workflow_name": plan.workflow_name,
+        "steps": steps,
+        "edges": edges,
+        "agents": agents,
+        "skills": skills,
+        "artifacts": artifacts,
+        "blocking_conditions": blocking_conditions,
+    }
 
 
 def main() -> int:
@@ -62,9 +172,66 @@ def main() -> int:
         validate_or_raise(spec)
         validation_result = validate_workflow_spec(spec)
         plan = build_execution_plan(spec)
+
+        # Graph-only mode: emit DAG JSON and exit
+        if args.graph:
+            graph = _build_graph_json(spec, plan)
+            if args.json_output:
+                print(json.dumps(graph, indent=2))
+            else:
+                print(json.dumps(graph, indent=2))
+            return 0
+
         blocker_summary = analyze_blockers(spec, plan)
         verdict = compute_verdict(validation_result, blocker_summary)
-        execution_result = execute_plan(spec, plan, verdict_status=verdict.status)
+
+        # Build execution config for V2 modes
+        from governance.dag_runner.execution_modes import build_config_from_args
+        exec_config = build_config_from_args(
+            mode=args.mode,
+            dry_run=args.dry_run,
+            json_output=args.json_output,
+            graph=False,
+            continue_from=args.continue_from,
+            timeout=args.timeout,
+            phase=args.phase,
+            state_path=args.state_path,
+        )
+
+        # Determine backend
+        backend = None
+        prior_state = None
+        if exec_config.mode in ("agent_execution", "dry_run"):
+            from governance.dag_runner.execution_backend import MockExecutionBackend
+            backend = MockExecutionBackend()
+
+            # Handle continuation
+            if exec_config.continue_from:
+                from governance.dag_runner.state_store import load_run_state_from_path
+                from governance.dag_runner.execution_modes import (
+                    ContinuationError,
+                    validate_continuation,
+                )
+                try:
+                    prior_state = load_run_state_from_path(state_path)
+                except Exception as exc:
+                    print(f"Continuation failed: cannot load prior state: {exc}", file=sys.stderr)
+                    return 1
+
+                failures = validate_continuation(prior_state, spec, plan, exec_config.continue_from)
+                if failures:
+                    print("Continuation guardrail violations:", file=sys.stderr)
+                    for f in failures:
+                        print(f"  - {f}", file=sys.stderr)
+                    return 1
+
+        execution_result = execute_plan(
+            spec, plan,
+            verdict_status=verdict.status,
+            config=exec_config,
+            backend=backend,
+            prior_state=prior_state,
+        )
 
     except (
         LoaderError,
@@ -79,6 +246,29 @@ def main() -> int:
         print(str(exc), file=sys.stderr)
         return 1
 
+    # JSON output mode
+    if args.json_output:
+        output = {
+            "workflow_name": plan.workflow_name,
+            "mode": exec_config.mode if backend else "shell_v1",
+            "loaded_packages": len(loaded.packages),
+            "workflow_steps": len(spec.workflow_steps),
+            "agents": len(spec.agents),
+            "skills": len(spec.skills),
+            "artifacts_declared": len(spec.artifacts),
+            "artifacts_produced": len(execution_result.run_state.artifacts),
+            "blocking_conditions": len(spec.blocking_conditions),
+            "stage_gates": len(spec.stage_gates),
+            "planned_steps": len(plan.ordered_steps),
+            "executed_steps": len(execution_result.run_state.node_results),
+            "trace_events": len(execution_result.run_state.execution_trace),
+            "verdict": verdict.status,
+            "verdict_reasons": verdict.reasons,
+        }
+        print(json.dumps(output, indent=2))
+        return 0
+
+    # Text output (default)
     print("DAG runner summary")
     print("------------------")
     print(f"Workflow: {plan.workflow_name}")
@@ -86,6 +276,7 @@ def main() -> int:
     print(f"Loaded packages: {len(loaded.packages)}")
     print(f"Workflow steps: {len(spec.workflow_steps)}")
     print(f"Skills: {len(spec.skills)}")
+    print(f"Agents: {len(spec.agents)}")
     print(f"Artifacts: {len(spec.artifacts)}")
     print(f"Blocking conditions: {len(spec.blocking_conditions)}")
     print(f"Stage gates: {len(spec.stage_gates)}")
