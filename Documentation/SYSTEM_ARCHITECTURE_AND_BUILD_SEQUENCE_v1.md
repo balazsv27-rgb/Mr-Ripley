@@ -87,6 +87,7 @@ Current Layer-2 components are operational:
 - alignment
 - quality gate
 - snapshot publisher
+- `index_suite.py` — Layer-2 internal pre-publication computation tool (provisional M1 indices from point-in-time aligned observations; distinct from the planned Layer-3 Index Suite which will consume published snapshots)
 
 A successful **non-forced snapshot publication** has been executed with a valid `snapshot_id`, DB write, and `latest_snapshot.json` handoff file.
 
@@ -124,7 +125,7 @@ Passing the handoff gate means:
 
 It does **not** mean:
 
-- Layer-3 exists already
+- any downstream computation layer has been built
 - Layer-2 is fully hardened
 - revision handling is complete
 - operational readiness is complete
@@ -352,7 +353,7 @@ Current Layer-2 success must not be misread as live readiness.
 
 Live execution remains blocked until:
 
-- Layer-3 exists
+- the full downstream computation layer has been built
 - paper validation is complete
 - calibration is complete
 - operational readiness exists

@@ -33,9 +33,15 @@ If this document conflicts with a more role-matched canonical document on those 
 
 ---
 
-## 2. Current-State Addendum (2026-03-22)
+## 2. Current-State Addendum (2026-04-18)
 
 This addendum supersedes earlier addenda where they conflict.
+
+### 2.0 Layer-2 refactor (2026-04-18)
+
+- All four ingestion adapters (`gold_adapter.py`, `move_adapter.py`, `fred_loader.py`, `gld_holdings_adapter.py`) migrated from `layer2.adapters.v0.db` / `layer2.adapters.v0.clock` to canonical `layer2.db` / `layer2.clock`
+- `layer2/adapters/v0/` directory removed (zero external dependencies confirmed)
+- `layer2/index_suite.py` canonically classified as a Layer-2 internal pre-publication computation tool (distinct from the planned Layer-3 Index Suite)
 
 ### 2.1 Layer-2 status (unchanged from 2026-03-15 / 2026-03-16)
 
@@ -48,6 +54,7 @@ The following remain true:
 - snapshot publisher uses the aligned quality-gate payload path
 - a successful **non-forced snapshot publication** has been executed
 - snapshot publication wrote both a DB snapshot record and `latest_snapshot.json`
+- `layer2/index_suite.py` computes provisional M1 indices (stress, drift, correlation-break, data-freshness) from point-in-time aligned observations — classified as a **Layer-2 internal pre-publication computation tool**, distinct from the planned Layer-3 Index Suite (which will consume published snapshots, not raw observations)
 
 Observed successful publication:
 

@@ -81,7 +81,8 @@ Important distinction:
 | Layer-3 decision model | Planned / target architecture | State-driven / event-driven model. Three inputs: Snapshot Truth, Live Market State, Event Risk Stream. Frozen 2026-03-22. Full design in `SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md` section 7. |
 | DecisionPacket v0 schema | Planned / target architecture | Governed action contract. Schema frozen 2026-03-22. Full field reference in `SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md` section 7. |
 | Feature Builder | Planned / target architecture | Layer-3 component, not current Layer-2 implementation |
-| Index Suite | Planned / target architecture | Layer-3 component |
+| `layer2/index_suite.py` (Layer-2 provisional tool) | Verified in canonical current-state documentation set | Layer-2 internal pre-publication computation tool. Reads observations with point-in-time alignment. Distinct from the planned Layer-3 Index Suite. |
+| Index Suite (Layer-3) | Planned / target architecture | Layer-3 component — will consume published snapshots, not raw observations |
 | Regime Gate | Planned / target architecture | Layer-3 component |
 | Supervisor Engine | Planned / target architecture | Layer-3 component |
 | DecisionPacket generation | Planned / target architecture | Layer-3 component — v0 schema defined, implementation not yet started |

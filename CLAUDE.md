@@ -124,7 +124,7 @@ The system is explicitly **multi-stage**.
 The following are **planned only**:
 
 - Feature Builder
-- Index Suite
+- Index Suite (Layer-3 snapshot-consuming computation; distinct from the existing Layer-2 `layer2/index_suite.py` provisional pre-publication tool)
 - Regime Gate
 - Supervisor Engine
 - Decision Engine

@@ -511,6 +511,9 @@ python layer2\alignment.py --show-sql
 Flags: `--clock-date`, `--db`, `--timezone`, `--cut-hour`, `--cut-minute`, `--cut-second`, `--exceptions-file`, `--policy-version`, `--json`, `--show-sql`.
 
 **Index suite** (`index_suite.py`) — clock-aligned index computation:
+
+> Layer-2 internal pre-publication computation tool. Reads from observations with point-in-time alignment (same data access pattern as snapshot publisher). The planned Layer-3 Index Suite (which will consume published snapshots) is not yet built — see §16.
+
 ```bash
 python layer2\index_suite.py --clock-date 2026-03-06 --json
 ```
@@ -906,6 +909,7 @@ Use `SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md` section 7 as the authoritativ
 | v4 | 2026-03-06 | @balazsv27-rgb | Post-Audit 4: force flag behavior, GLD source fix |
 | v5 | 2026-03-07 | Architecture audit | Post-Audit 5: engine_version/config_version, scorecard, Layer-3 separation, stale to-do corrections |
 | v6 | 2026-03-22 | Architecture audit | Layer-3 decision philosophy frozen (state-driven / event-driven). DecisionPacket schema v0 defined. Layer-3 build order updated. Old timeframe-centric DecisionPacket example superseded. |
+| v7 | 2026-04-18 | Layer-2 refactor | All adapters migrated from `layer2.adapters.v0.*` to canonical `layer2.db` / `layer2.clock`. `layer2/adapters/v0/` removed. `index_suite.py` classified as Layer-2 internal pre-publication tool. |
 
 ---
 

@@ -74,12 +74,12 @@ for _candidate in [_HERE.parent.parent, _HERE.parent]:
             sys.path.insert(0, str(_candidate))
         break
 
-from layer2.adapters.v0.db import (  # noqa: E402
+from layer2.db import (  # noqa: E402
     get_connection, upsert_observations, filter_new_rows,
     latest_obs_date, count_rows,
 )
 from layer2.config.registry import get_registry  # noqa: E402
-from layer2.adapters.v0.clock import get_latest_completed_clock  # noqa: E402
+from layer2.clock import get_latest_completed_clock  # noqa: E402
 
 # ---------------------------------------------------------------------------
 # Configuration
