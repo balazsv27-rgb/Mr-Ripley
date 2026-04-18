@@ -147,8 +147,8 @@
       ]
     }
   ],
-  "run_id": "a1440eff-dc97-4f69-bdb4-e12ad84862cc",
-  "started_at": "2026-04-18T21:36:07.615507+00:00",
+  "run_id": "61bb2a61-8331-4de5-825f-270375dd7f2f",
+  "started_at": "2026-04-18T21:59:09.642252+00:00",
   "final_verdict": "ready",
   "recorded_node_results": 18,
   "recorded_artifacts": 18,
@@ -619,7 +619,7 @@
   ],
   "execution_trace": [
     {
-      "timestamp": "2026-04-18T21:36:07.615507+00:00",
+      "timestamp": "2026-04-18T21:59:09.642252+00:00",
       "node_name": "__run__",
       "event_type": "run_started",
       "detail": {
@@ -629,7 +629,7 @@
       }
     },
     {
-      "timestamp": "2026-04-18T21:36:07.615507+00:00",
+      "timestamp": "2026-04-18T21:59:09.642252+00:00",
       "node_name": "load-context",
       "event_type": "step_started",
       "detail": {
@@ -638,7 +638,7 @@
       }
     },
     {
-      "timestamp": "2026-04-18T21:36:07.615507+00:00",
+      "timestamp": "2026-04-18T21:59:09.642252+00:00",
       "node_name": "load-context",
       "event_type": "step_completed",
       "detail": {
@@ -650,7 +650,7 @@
       }
     },
     {
-      "timestamp": "2026-04-18T21:36:07.615507+00:00",
+      "timestamp": "2026-04-18T21:59:09.642252+00:00",
       "node_name": "classify-claims",
       "event_type": "step_started",
       "detail": {
@@ -661,7 +661,7 @@
       }
     },
     {
-      "timestamp": "2026-04-18T21:36:07.615507+00:00",
+      "timestamp": "2026-04-18T21:59:09.642252+00:00",
       "node_name": "classify-claims",
       "event_type": "step_completed",
       "detail": {
@@ -675,7 +675,7 @@
       }
     },
     {
-      "timestamp": "2026-04-18T21:36:07.615507+00:00",
+      "timestamp": "2026-04-18T21:59:09.642252+00:00",
       "node_name": "normalize-terminology",
       "event_type": "step_started",
       "detail": {
@@ -686,7 +686,7 @@
       }
     },
     {
-      "timestamp": "2026-04-18T21:36:07.615507+00:00",
+      "timestamp": "2026-04-18T21:59:09.642252+00:00",
       "node_name": "normalize-terminology",
       "event_type": "step_completed",
       "detail": {
@@ -698,7 +698,7 @@
       }
     },
     {
-      "timestamp": "2026-04-18T21:36:07.615507+00:00",
+      "timestamp": "2026-04-18T21:59:09.642252+00:00",
       "node_name": "route-claims-by-role",
       "event_type": "step_started",
       "detail": {
@@ -709,7 +709,7 @@
       }
     },
     {
-      "timestamp": "2026-04-18T21:36:07.615507+00:00",
+      "timestamp": "2026-04-18T21:59:09.642252+00:00",
       "node_name": "route-claims-by-role",
       "event_type": "step_completed",
       "detail": {
@@ -725,7 +725,7 @@
       }
     },
     {
-      "timestamp": "2026-04-18T21:36:07.615507+00:00",
+      "timestamp": "2026-04-18T21:59:09.642252+00:00",
       "node_name": "phase-check",
       "event_type": "step_started",
       "detail": {
@@ -736,7 +736,7 @@
       }
     },
     {
-      "timestamp": "2026-04-18T21:36:07.615507+00:00",
+      "timestamp": "2026-04-18T21:59:09.642252+00:00",
       "node_name": "phase-check",
       "event_type": "step_completed",
       "detail": {
@@ -750,7 +750,7 @@
       }
     },
     {
-      "timestamp": "2026-04-18T21:36:07.615507+00:00",
+      "timestamp": "2026-04-18T21:59:09.642252+00:00",
       "node_name": "snapshot-contract-check",
       "event_type": "step_started",
       "detail": {
@@ -761,7 +761,7 @@
       }
     },
     {
-      "timestamp": "2026-04-18T21:36:07.615507+00:00",
+      "timestamp": "2026-04-18T21:59:09.642252+00:00",
       "node_name": "snapshot-contract-check",
       "event_type": "step_completed",
       "detail": {
@@ -776,7 +776,7 @@
       }
     },
     {
-      "timestamp": "2026-04-18T21:36:07.615507+00:00",
+      "timestamp": "2026-04-18T21:59:09.642252+00:00",
       "node_name": "stage-gate-enforcement",
       "event_type": "step_started",
       "detail": {
@@ -787,7 +787,7 @@
       }
     },
     {
-      "timestamp": "2026-04-18T21:36:07.615507+00:00",
+      "timestamp": "2026-04-18T21:59:09.642252+00:00",
       "node_name": "stage-gate-enforcement",
       "event_type": "step_completed",
       "detail": {
@@ -801,7 +801,7 @@
       }
     },
     {
-      "timestamp": "2026-04-18T21:36:07.615507+00:00",
+      "timestamp": "2026-04-18T21:59:09.642252+00:00",
       "node_name": "runtime-boundary-check",
       "event_type": "step_started",
       "detail": {
@@ -812,7 +812,7 @@
       }
     },
     {
-      "timestamp": "2026-04-18T21:36:07.615507+00:00",
+      "timestamp": "2026-04-18T21:59:09.642252+00:00",
       "node_name": "runtime-boundary-check",
       "event_type": "step_completed",
       "detail": {
@@ -827,7 +827,7 @@
       }
     },
     {
-      "timestamp": "2026-04-18T21:36:07.615507+00:00",
+      "timestamp": "2026-04-18T21:59:09.642252+00:00",
       "node_name": "adapter-schema-check",
       "event_type": "step_started",
       "detail": {
@@ -838,7 +838,7 @@
       }
     },
     {
-      "timestamp": "2026-04-18T21:36:07.615507+00:00",
+      "timestamp": "2026-04-18T21:59:09.642252+00:00",
       "node_name": "adapter-schema-check",
       "event_type": "step_completed",
       "detail": {
@@ -853,7 +853,7 @@
       }
     },
     {
-      "timestamp": "2026-04-18T21:36:07.615507+00:00",
+      "timestamp": "2026-04-18T21:59:09.642252+00:00",
       "node_name": "runtime-guards-summary",
       "event_type": "step_started",
       "detail": {
@@ -864,7 +864,7 @@
       }
     },
     {
-      "timestamp": "2026-04-18T21:36:07.615507+00:00",
+      "timestamp": "2026-04-18T21:59:09.642252+00:00",
       "node_name": "runtime-guards-summary",
       "event_type": "step_completed",
       "detail": {
@@ -876,7 +876,7 @@
       }
     },
     {
-      "timestamp": "2026-04-18T21:36:07.615507+00:00",
+      "timestamp": "2026-04-18T21:59:09.642252+00:00",
       "node_name": "deep-audit",
       "event_type": "step_started",
       "detail": {
@@ -887,7 +887,7 @@
       }
     },
     {
-      "timestamp": "2026-04-18T21:36:07.615507+00:00",
+      "timestamp": "2026-04-18T21:59:09.642252+00:00",
       "node_name": "deep-audit",
       "event_type": "step_completed",
       "detail": {
@@ -899,7 +899,7 @@
       }
     },
     {
-      "timestamp": "2026-04-18T21:36:07.615507+00:00",
+      "timestamp": "2026-04-18T21:59:09.642252+00:00",
       "node_name": "change-impact-audit",
       "event_type": "step_started",
       "detail": {
@@ -910,7 +910,7 @@
       }
     },
     {
-      "timestamp": "2026-04-18T21:36:07.615507+00:00",
+      "timestamp": "2026-04-18T21:59:09.642252+00:00",
       "node_name": "change-impact-audit",
       "event_type": "step_completed",
       "detail": {
@@ -925,7 +925,7 @@
       }
     },
     {
-      "timestamp": "2026-04-18T21:36:07.615507+00:00",
+      "timestamp": "2026-04-18T21:59:09.642252+00:00",
       "node_name": "doc-code-sync-check",
       "event_type": "step_started",
       "detail": {
@@ -936,7 +936,7 @@
       }
     },
     {
-      "timestamp": "2026-04-18T21:36:07.615507+00:00",
+      "timestamp": "2026-04-18T21:59:09.642252+00:00",
       "node_name": "doc-code-sync-check",
       "event_type": "step_completed",
       "detail": {
@@ -950,7 +950,7 @@
       }
     },
     {
-      "timestamp": "2026-04-18T21:36:07.615507+00:00",
+      "timestamp": "2026-04-18T21:59:09.642252+00:00",
       "node_name": "rename-invariance-check",
       "event_type": "step_started",
       "detail": {
@@ -961,7 +961,7 @@
       }
     },
     {
-      "timestamp": "2026-04-18T21:36:07.619504+00:00",
+      "timestamp": "2026-04-18T21:59:09.646253+00:00",
       "node_name": "rename-invariance-check",
       "event_type": "condition_evaluated",
       "detail": {
@@ -973,7 +973,7 @@
       }
     },
     {
-      "timestamp": "2026-04-18T21:36:07.619504+00:00",
+      "timestamp": "2026-04-18T21:59:09.646253+00:00",
       "node_name": "rename-invariance-check",
       "event_type": "step_skipped",
       "detail": {
@@ -981,7 +981,7 @@
       }
     },
     {
-      "timestamp": "2026-04-18T21:36:07.619504+00:00",
+      "timestamp": "2026-04-18T21:59:09.646253+00:00",
       "node_name": "update-verification-matrix",
       "event_type": "step_started",
       "detail": {
@@ -992,7 +992,7 @@
       }
     },
     {
-      "timestamp": "2026-04-18T21:36:07.619504+00:00",
+      "timestamp": "2026-04-18T21:59:09.646253+00:00",
       "node_name": "update-verification-matrix",
       "event_type": "step_completed",
       "detail": {
@@ -1004,7 +1004,7 @@
       }
     },
     {
-      "timestamp": "2026-04-18T21:36:07.619504+00:00",
+      "timestamp": "2026-04-18T21:59:09.646253+00:00",
       "node_name": "update-verification-ledger",
       "event_type": "step_started",
       "detail": {
@@ -1015,7 +1015,7 @@
       }
     },
     {
-      "timestamp": "2026-04-18T21:36:07.619504+00:00",
+      "timestamp": "2026-04-18T21:59:09.646253+00:00",
       "node_name": "update-verification-ledger",
       "event_type": "step_completed",
       "detail": {
@@ -1029,7 +1029,7 @@
       }
     },
     {
-      "timestamp": "2026-04-18T21:36:07.619504+00:00",
+      "timestamp": "2026-04-18T21:59:09.646253+00:00",
       "node_name": "runtime-artifact-hygiene-check",
       "event_type": "step_started",
       "detail": {
@@ -1040,7 +1040,7 @@
       }
     },
     {
-      "timestamp": "2026-04-18T21:36:07.619504+00:00",
+      "timestamp": "2026-04-18T21:59:09.646253+00:00",
       "node_name": "runtime-artifact-hygiene-check",
       "event_type": "step_completed",
       "detail": {
@@ -1052,7 +1052,7 @@
       }
     },
     {
-      "timestamp": "2026-04-18T21:36:07.619504+00:00",
+      "timestamp": "2026-04-18T21:59:09.646253+00:00",
       "node_name": "pre-pr-governance-readiness",
       "event_type": "step_started",
       "detail": {
@@ -1063,7 +1063,7 @@
       }
     },
     {
-      "timestamp": "2026-04-18T21:36:07.619504+00:00",
+      "timestamp": "2026-04-18T21:59:09.646253+00:00",
       "node_name": "pre-pr-governance-readiness",
       "event_type": "step_completed",
       "detail": {
@@ -1077,7 +1077,7 @@
       }
     },
     {
-      "timestamp": "2026-04-18T21:36:07.619504+00:00",
+      "timestamp": "2026-04-18T21:59:09.646253+00:00",
       "node_name": "__run__",
       "event_type": "run_completed",
       "detail": {

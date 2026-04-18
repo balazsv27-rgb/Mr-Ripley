@@ -128,6 +128,13 @@ def _build_parser() -> argparse.ArgumentParser:
         default=None,
         help="Execute only steps in the given layer (A-E).",
     )
+    parser.add_argument(
+        "--backend",
+        type=str,
+        default=None,
+        choices=["mock", "claude_code_cli"],
+        help="Execution backend (default: mock). 'claude_code_cli' uses local Claude CLI.",
+    )
     return parser
 
 
@@ -271,8 +278,14 @@ def main() -> int:
         backend = None
         prior_state = None
         if exec_config.mode in ("agent_execution", "dry_run"):
-            from governance.dag_runner.execution_backend import MockExecutionBackend
-            backend = MockExecutionBackend()
+            if getattr(args, "backend", None) == "claude_code_cli":
+                from governance.dag_runner.execution_backend import ClaudeCodeCLIBackend
+                backend = ClaudeCodeCLIBackend(
+                    timeout_ms=exec_config.timeout_per_step_ms,
+                )
+            else:
+                from governance.dag_runner.execution_backend import MockExecutionBackend
+                backend = MockExecutionBackend()
 
             # Handle continuation
             if exec_config.continue_from:
