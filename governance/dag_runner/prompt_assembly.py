@@ -13,7 +13,10 @@ Assembly order (priority, highest first):
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any
+from typing import Any, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from governance.dag_runner.path_policy import PathPolicy
 
 from governance.dag_runner.agent_resolver import (
     AgentResolverError,
@@ -21,6 +24,7 @@ from governance.dag_runner.agent_resolver import (
     resolve_agent,
     resolve_skill_content,
 )
+from governance.dag_runner.skill_resolver import SkillResolverError
 from governance.dag_runner.input_bounding import (
     BoundedInput,
     bound_inputs,
@@ -30,12 +34,17 @@ from governance.dag_runner.models import (
     AgentSpec,
     AssembledWorkflowSpec,
     GovernanceRunState,
+    PromptContext,
     WorkflowStep,
 )
 
 
 class PromptAssemblyError(RuntimeError):
     """Raised when prompt assembly fails."""
+
+
+# Section delimiters for the assembled prompt text.
+_SECTION_DELIM = "\n\n" + "=" * 60 + "\n"
 
 
 def _get_repo_root() -> Path:
@@ -99,12 +108,28 @@ def _gather_document_paths(
     return paths
 
 
+def _validate_file_read(
+    path: Path,
+    path_policy: "PathPolicy | None",
+) -> None:
+    """Validate a file path against the active policy, if any.
+
+    Raises ``PathPolicyViolation`` when the path violates the policy.
+    No-op when ``path_policy is None`` (V2A backward compat / mock usage).
+    """
+    if path_policy is None:
+        return
+    from governance.dag_runner.path_policy import validate_path
+    validate_path(path, path_policy)
+
+
 def assemble_step_prompt(
     step: WorkflowStep,
     spec: AssembledWorkflowSpec,
     run_state: GovernanceRunState,
     repo_root: Path | None = None,
     token_budget: int = 100_000,
+    path_policy: "PathPolicy | None" = None,
 ) -> dict[str, Any]:
     """Assemble bounded prompt context for a single workflow step.
 
@@ -115,8 +140,13 @@ def assemble_step_prompt(
       - ``artifact_inputs``: upstream artifact payloads
       - ``document_paths``: resolved canonical doc paths
       - ``token_budget``: the budget
+      - ``token_estimate``: estimated total token count after bounding
       - ``truncated``: whether any input was truncated
       - ``truncation_events``: list of truncation events (if any)
+
+    When ``path_policy`` is provided, every file read is validated
+    against the policy before reading.  Violations raise
+    ``PathPolicyViolation`` (fail-closed).
     """
     if repo_root is None:
         repo_root = _get_repo_root()
@@ -124,18 +154,26 @@ def assemble_step_prompt(
     # Resolve agent
     agent = resolve_agent(step, spec)
 
-    # Resolve skill content
+    # Resolve skill content (path policy validated inside agent_resolver
+    # at the skill_resolver level; we validate the resolved paths here)
     skill_content = ""
     if agent is not None:
         try:
+            # Validate skill file paths before reading
+            if path_policy is not None and agent.skill_bindings:
+                for skill_name in agent.skill_bindings:
+                    skill_path = repo_root / ".claude" / "skills" / skill_name / "SKILL.md"
+                    _validate_file_read(skill_path, path_policy)
             skill_content = resolve_skill_content(agent, repo_root)
-        except AgentResolverError:
+        except (AgentResolverError, SkillResolverError):
             skill_content = ""
 
     # Load agent instructions
     agent_instructions = ""
     if agent is not None:
         try:
+            agent_path = repo_root / ".claude" / "agents" / f"{agent.name}.md"
+            _validate_file_read(agent_path, path_policy)
             agent_instructions = load_agent_file(agent.name, repo_root)
         except AgentResolverError:
             agent_instructions = ""
@@ -170,10 +208,12 @@ def assemble_step_prompt(
             priority=3,
         ))
 
-    # Document content (read files)
+    # Document content (read files with path policy validation)
     for doc_path in document_paths:
         try:
-            doc_content = Path(doc_path).read_text(encoding="utf-8")
+            resolved = Path(doc_path).resolve()
+            _validate_file_read(resolved, path_policy)
+            doc_content = resolved.read_text(encoding="utf-8")
             bounded.append(BoundedInput(
                 name=f"doc:{doc_path}",
                 content=doc_content,
@@ -199,6 +239,58 @@ def assemble_step_prompt(
         "artifact_inputs": artifact_inputs,
         "document_paths": document_paths,
         "token_budget": token_budget,
+        "token_estimate": bounding_result.total_tokens,
         "truncated": bounding_result.truncated,
         "truncation_events": bounding_result.truncation_events,
     }
+
+
+def build_prompt_text(context: dict[str, Any]) -> str:
+    """Build the assembled prompt text from a prompt assembly context dict.
+
+    Concatenates sections in priority order with clear delimiters:
+    1. Skill instructions (highest priority)
+    2. Agent instructions
+    3. Upstream artifact payloads (serialized JSON)
+    4. Document content
+
+    Each non-empty section is separated by a delimiter for parseability.
+    """
+    import json
+
+    sections: list[str] = []
+
+    skill = context.get("skill_content", "")
+    if skill:
+        sections.append(f"[SKILL INSTRUCTIONS]{_SECTION_DELIM}{skill}")
+
+    agent_inst = context.get("agent_instructions", "")
+    if agent_inst:
+        sections.append(f"[AGENT INSTRUCTIONS]{_SECTION_DELIM}{agent_inst}")
+
+    artifacts = context.get("artifact_inputs", {})
+    if artifacts:
+        art_text = json.dumps(artifacts, indent=2)
+        sections.append(f"[UPSTREAM ARTIFACTS]{_SECTION_DELIM}{art_text}")
+
+    doc_paths = context.get("document_paths", [])
+    if doc_paths:
+        sections.append(f"[DOCUMENT PATHS]{_SECTION_DELIM}" + "\n".join(doc_paths))
+
+    return (_SECTION_DELIM).join(sections)
+
+
+def build_prompt_context(context: dict[str, Any]) -> PromptContext:
+    """Convert a prompt assembly dict to a ``PromptContext``."""
+    return PromptContext(
+        assembled_prompt=build_prompt_text(context),
+        agent=context.get("agent"),
+        skill_content=context.get("skill_content", ""),
+        agent_instructions=context.get("agent_instructions", ""),
+        artifact_inputs=context.get("artifact_inputs", {}),
+        document_paths=context.get("document_paths", []),
+        token_budget=context.get("token_budget", 100_000),
+        token_estimate=context.get("token_estimate", 0),
+        truncated=context.get("truncated", False),
+        truncation_events=context.get("truncation_events", []),
+    )

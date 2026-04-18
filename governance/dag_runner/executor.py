@@ -41,9 +41,18 @@ from governance.dag_runner.planner import ExecutionPlan
 
 if TYPE_CHECKING:
     from governance.dag_runner.execution_backend import ExecutionBackend
+    from governance.dag_runner.path_policy import PathPolicy
 
 
 _DEFAULT_ARTIFACT_DIR = Path(".claude/run/artifacts")
+
+
+def _get_repo_root() -> Path:
+    """Resolve the project repo root (two levels up from governance/dag_runner/)."""
+    return Path(__file__).resolve().parent.parent.parent
+
+
+from governance.dag_runner.path_policy import PathPolicyViolation
 
 
 class ExecutorError(RuntimeError):
@@ -302,18 +311,54 @@ def _execute_v2_step(
     backend: ExecutionBackend,
     config: ExecutionConfig,
     dry_run: bool = False,
+    path_policy: "PathPolicy | None" = None,
 ) -> NodeResult:
     """Execute one step via the V2 backend-driven path.
 
     Routes by component kind:
     - structural kinds → ``backend.execute_structural_step()``
-    - skill / subagents → resolve agent, ``backend.execute_step()``
+    - skill / subagents → resolve agent, assemble prompt, ``backend.execute_step()``
 
-    In dry-run mode, no backend invocation occurs.
+    In dry-run mode, prompt is assembled for diagnostics but backend is not invoked.
     """
+    from governance.dag_runner.prompt_assembly import (
+        assemble_step_prompt,
+        build_prompt_context,
+    )
+
     kind, _name = _parse_component_kind(step.component)
 
     if dry_run:
+        # B2: In dry-run, assemble prompt for diagnostics/trace if non-structural
+        if not _is_structural_step(step.component):
+            try:
+                ctx_dict = assemble_step_prompt(
+                    step, spec, run_state, path_policy=path_policy,
+                )
+                prompt_ctx = build_prompt_context(ctx_dict)
+                _append_trace(
+                    run_state,
+                    node_name=step.name,
+                    event_type="prompt_assembled",
+                    detail={
+                        "token_estimate": prompt_ctx.token_estimate,
+                        "truncated": prompt_ctx.truncated,
+                    },
+                )
+                _append_trace(
+                    run_state,
+                    node_name=step.name,
+                    event_type="input_bounded",
+                    detail={
+                        "budget": prompt_ctx.token_budget,
+                        "actual": prompt_ctx.token_estimate,
+                        "truncated": prompt_ctx.truncated,
+                        "truncation_events": prompt_ctx.truncation_events,
+                    },
+                )
+            except Exception:
+                pass  # dry-run: prompt assembly failure is non-fatal
+
         return NodeResult(
             node_name=step.name,
             node_type=step.component,
@@ -352,13 +397,41 @@ def _execute_v2_step(
                 event_type="agent_resolved",
                 detail={"agent": agent.name, "model": agent.model},
             )
+
+            # B2: Assemble prompt and build PromptContext
+            ctx_dict = assemble_step_prompt(
+                step, spec, run_state, path_policy=path_policy,
+            )
+            prompt_ctx = build_prompt_context(ctx_dict)
+
+            _append_trace(
+                run_state,
+                node_name=step.name,
+                event_type="prompt_assembled",
+                detail={
+                    "token_estimate": prompt_ctx.token_estimate,
+                    "truncated": prompt_ctx.truncated,
+                },
+            )
+            _append_trace(
+                run_state,
+                node_name=step.name,
+                event_type="input_bounded",
+                detail={
+                    "budget": prompt_ctx.token_budget,
+                    "actual": prompt_ctx.token_estimate,
+                    "truncated": prompt_ctx.truncated,
+                    "truncation_events": prompt_ctx.truncation_events,
+                },
+            )
+
             result = backend.execute_step(
                 step=step,
                 agent=agent,
                 config=config,
                 run_state=run_state,
                 spec=spec,
-                prompt_context=None,
+                prompt_context=prompt_ctx,
             )
         else:
             # Fallback: no agent binding, treat as structural
@@ -635,14 +708,43 @@ def execute_plan(
                     break
                 continue
 
-            node_result = _execute_v2_step(
-                step=step,
-                run_state=run_state,
-                spec=spec,
-                backend=backend,
-                config=effective_config,
-                dry_run=is_dry_run,
-            )
+            # B3: Determine path policy for prompt assembly.
+            # MockExecutionBackend does not need path enforcement
+            # (its output is deterministic, no real file access at runtime).
+            from governance.dag_runner.execution_backend import MockExecutionBackend
+            step_path_policy: PathPolicy | None = None
+            if not isinstance(backend, MockExecutionBackend):
+                from governance.dag_runner.path_policy import default_governance_policy
+                step_path_policy = default_governance_policy(_get_repo_root())
+
+            try:
+                node_result = _execute_v2_step(
+                    step=step,
+                    run_state=run_state,
+                    spec=spec,
+                    backend=backend,
+                    config=effective_config,
+                    dry_run=is_dry_run,
+                    path_policy=step_path_policy,
+                )
+            except PathPolicyViolation as exc:
+                # B3-C: Fail-closed on path policy violation
+                node_result = NodeResult(
+                    node_name=step.name,
+                    node_type=step.component,
+                    status="FAIL",
+                    summary=f"Path policy violation: {exc}",
+                    evidence=["path_policy_violation=True"],
+                    produced_artifacts=[],
+                    triggered_blocks=list(step.raises),
+                    inference_used=False,
+                )
+                _append_trace(
+                    run_state,
+                    node_name=node.step_id,
+                    event_type="path_policy_violation",
+                    detail={"error": str(exc)},
+                )
             run_state.node_results[node.step_id] = node_result
 
             # R2-A: Write artifact envelopes to disk (V2, non-dry-run, PASS)
