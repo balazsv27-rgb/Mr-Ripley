@@ -1,9 +1,15 @@
 {
   "artifact": "runtime_boundary_verdict",
   "produced_by": "runtime-boundary-check",
-  "session": "4df79916-edcb-458f-97a5-a15ebefbd49a",
-  "timestamp": "2026-04-18T19:33:48.172544Z",
+  "session": "",
+  "timestamp": "2026-04-18T19:38:51.474613Z",
   "data": {
-    "produced_by": "runtime-boundary-check"
+    "file_path": "C:\\Code\\Mr-Ripley\\DAG_RUNNER_V2A_ACCEPTANCE_RECORD.md",
+    "scanned": false,
+    "layer2_file": false,
+    "raw_observation_access_detected": false,
+    "latest_snapshot_misuse_detected": false,
+    "layer2_storage_coupling_detected": false,
+    "violations": []
   }
 }

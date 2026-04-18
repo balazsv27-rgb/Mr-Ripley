@@ -1,9 +1,0 @@
-{
-  "artifact": "artifact_hygiene_verdict",
-  "produced_by": "runtime-artifact-hygiene-check",
-  "session": "4df79916-edcb-458f-97a5-a15ebefbd49a",
-  "timestamp": "2026-04-18T19:33:48.177544Z",
-  "data": {
-    "produced_by": "runtime-artifact-hygiene-check"
-  }
-}

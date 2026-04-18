@@ -1,10 +1,14 @@
 {
   "artifact": "stage_gate_report",
-  "produced_by": "stage-gate-enforcement",
-  "session": "4df79916-edcb-458f-97a5-a15ebefbd49a",
-  "timestamp": "2026-04-18T19:33:48.172544Z",
+  "produced_by": "stage-gate-check",
+  "session": "",
+  "timestamp": "2026-04-18T19:38:51.522916Z",
   "data": {
-    "produced_by": "stage-gate-enforcement",
-    "structural": true
+    "file_path": "C:\\Code\\Mr-Ripley\\DAG_RUNNER_V2A_ACCEPTANCE_RECORD.md",
+    "scanned": true,
+    "live_readiness_claim_detected": false,
+    "execution_capability_claim_detected": false,
+    "production_ready_claim_detected": false,
+    "violations": []
   }
 }
