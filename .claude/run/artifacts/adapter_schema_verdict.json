@@ -1,14 +1,9 @@
 {
   "artifact": "adapter_schema_verdict",
   "produced_by": "adapter-schema-check",
-  "session": "",
-  "timestamp": "2026-04-18T18:38:15.488595Z",
+  "session": "edf6dc8b-e56d-40ce-b0d2-8be93b02d52f",
+  "timestamp": "2026-04-18T19:00:06.690864Z",
   "data": {
-    "file_path": "C:\\Code\\Mr-Ripley\\tests\\governance\\test_executor_halt.py",
-    "scanned": false,
-    "registry_driven": true,
-    "hardcoded_series_detected": false,
-    "implicit_interpretation_detected": false,
-    "violations": []
+    "produced_by": "adapter-schema-check"
   }
 }

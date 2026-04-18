@@ -7,6 +7,8 @@ from pathlib import Path
 
 from governance.dag_runner.assembler import AssemblerError, assemble_workflow_spec
 from governance.dag_runner.blockers import BlockerError, analyze_blockers
+from governance.dag_runner.diagnostics import build_diagnostic_report, diagnostic_report_to_dict
+from governance.dag_runner.drift_detector import detect_drift
 from governance.dag_runner.executor import ExecutorError, execute_plan, _parse_component_kind
 from governance.dag_runner.loader import DEFAULT_WORKFLOW_PATH, LoaderError, load_workflow_packages
 from governance.dag_runner.planner import PlannerError, build_execution_plan
@@ -18,6 +20,8 @@ from governance.dag_runner.state_store import (
 )
 from governance.dag_runner.validator import ValidationError, validate_or_raise, validate_workflow_spec
 from governance.dag_runner.verdict import VerdictError, compute_verdict
+
+_REPO_ROOT = Path(__file__).resolve().parent.parent.parent
 
 
 def _build_parser() -> argparse.ArgumentParser:
@@ -171,6 +175,28 @@ def main() -> int:
         spec = assemble_workflow_spec(loaded)
         validate_or_raise(spec)
         validation_result = validate_workflow_spec(spec)
+
+        # R2-B: Drift detection gate — critical drifts block execution
+        drift_result = detect_drift(spec, _REPO_ROOT)
+        for issue in drift_result.informational_drifts:
+            print(f"DRIFT WARNING: {issue.message}", file=sys.stderr)
+        if not drift_result.is_clean:
+            for issue in drift_result.critical_drifts:
+                print(f"CRITICAL DRIFT: {issue.message}", file=sys.stderr)
+            if args.json_output:
+                print(json.dumps({
+                    "error": "critical_drift_detected",
+                    "critical_drifts": [
+                        {
+                            "check": d.check,
+                            "severity": d.severity,
+                            "message": d.message,
+                        }
+                        for d in drift_result.critical_drifts
+                    ],
+                }, indent=2))
+            return 1
+
         plan = build_execution_plan(spec)
 
         # Graph-only mode: emit DAG JSON and exit
@@ -233,6 +259,11 @@ def main() -> int:
             prior_state=prior_state,
         )
 
+        # R2-C: Build diagnostic report from execution results
+        diagnostic_report = build_diagnostic_report(
+            spec, plan, execution_result.run_state,
+        )
+
     except (
         LoaderError,
         AssemblerError,
@@ -264,6 +295,9 @@ def main() -> int:
             "trace_events": len(execution_result.run_state.execution_trace),
             "verdict": verdict.status,
             "verdict_reasons": verdict.reasons,
+            "drift_clean": drift_result.is_clean,
+            "drift_informational_count": len(drift_result.informational_drifts),
+            "diagnostics": diagnostic_report_to_dict(diagnostic_report),
         }
         print(json.dumps(output, indent=2))
         return 0
@@ -291,6 +325,20 @@ def main() -> int:
         print("Verdict reasons:")
         for reason in verdict.reasons:
             print(f"  - {reason}")
+
+    # R2-C: Diagnostics summary in text output
+    print()
+    print("Diagnostics")
+    print("-----------")
+    print(f"Total latency: {diagnostic_report.total_latency_ms:.0f}ms")
+    print(f"Total tokens: {diagnostic_report.total_tokens}")
+    if diagnostic_report.bottleneck_step:
+        print(
+            f"Bottleneck: {diagnostic_report.bottleneck_step} "
+            f"({diagnostic_report.bottleneck_latency_ms:.0f}ms)"
+        )
+    print(f"Critical path: {' -> '.join(diagnostic_report.critical_path)}")
+    print(f"Failed steps: {diagnostic_report.failed_steps}")
 
     if args.show_steps:
         print()

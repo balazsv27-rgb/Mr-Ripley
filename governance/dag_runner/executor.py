@@ -18,9 +18,15 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import datetime, timezone
+from pathlib import Path
 from typing import Any, TYPE_CHECKING
 from uuid import uuid4
 
+from governance.dag_runner.artifacts import artifact_exists
+from governance.dag_runner.artifact_writer import (
+    ArtifactWriterError,
+    write_artifact_envelope,
+)
 from governance.dag_runner.models import (
     ArtifactRecord,
     AssembledWorkflowSpec,
@@ -35,6 +41,9 @@ from governance.dag_runner.planner import ExecutionPlan
 
 if TYPE_CHECKING:
     from governance.dag_runner.execution_backend import ExecutionBackend
+
+
+_DEFAULT_ARTIFACT_DIR = Path(".claude/run/artifacts")
 
 
 class ExecutorError(RuntimeError):
@@ -224,6 +233,29 @@ def _raise_blocking_events(
                 resolved=False,
             )
         )
+
+
+def _check_required_inputs(
+    step: WorkflowStep,
+    run_state: GovernanceRunState,
+    spec: AssembledWorkflowSpec,
+) -> list[str]:
+    """Return names of required input artifacts not present in run state.
+
+    Only checks inputs that are declared in ``spec.artifacts`` (the registry).
+    Non-artifact inputs (doc paths like ``CLAUDE.md``) are silently skipped.
+    Returns an empty list when all declared artifact inputs are present.
+    """
+    raw_inputs = step.raw.get("inputs", []) or []
+    missing: list[str] = []
+    for name in raw_inputs:
+        if not isinstance(name, str):
+            continue
+        if name not in spec.artifacts:
+            continue  # not a registry artifact — skip
+        if not artifact_exists(run_state, name):
+            missing.append(name)
+    return missing
 
 
 # ---------------------------------------------------------------------------
@@ -520,6 +552,57 @@ def execute_plan(
         if backend is not None:
             # V2 backend-driven path — component-kind routing
             is_dry_run = effective_config.mode == "dry_run"
+
+            # R2-A.1: Required-input artifact validation (V2 only, not dry-run)
+            # In dry-run mode, no step produces real artifacts, so checking
+            # inputs would false-positive every downstream step.
+            missing_inputs = (
+                _check_required_inputs(step, run_state, spec)
+                if not is_dry_run
+                else []
+            )
+            if missing_inputs:
+                node_result = NodeResult(
+                    node_name=step.name,
+                    node_type=step.component,
+                    status="FAIL",
+                    summary=(
+                        f"Missing required input artifacts: "
+                        f"{', '.join(missing_inputs)}"
+                    ),
+                    evidence=[
+                        f"missing_input={n}" for n in missing_inputs
+                    ],
+                    produced_artifacts=[],
+                    triggered_blocks=list(step.raises),
+                    inference_used=False,
+                )
+                run_state.node_results[node.step_id] = node_result
+                _append_trace(
+                    run_state,
+                    node_name=node.step_id,
+                    event_type="required_input_missing",
+                    detail={"missing_inputs": missing_inputs},
+                )
+                # Apply halt-on-critical (same pattern as FAIL path below)
+                for blocker_id in step.raises:
+                    blocker_def = spec.blocking_conditions.get(blocker_id)
+                    if blocker_def and blocker_def.halts_workflow:
+                        run_state.blocking_conditions.append(
+                            BlockingEvent(
+                                blocking_id=blocker_id,
+                                raised_by=step.name,
+                                severity="critical",
+                                message=node_result.summary,
+                                resolved=False,
+                            )
+                        )
+                        halted = True
+                        break
+                if halted:
+                    break
+                continue
+
             node_result = _execute_v2_step(
                 step=step,
                 run_state=run_state,
@@ -529,6 +612,67 @@ def execute_plan(
                 dry_run=is_dry_run,
             )
             run_state.node_results[node.step_id] = node_result
+
+            # R2-A: Write artifact envelopes to disk (V2, non-dry-run, PASS)
+            if node_result.status == "PASS" and not is_dry_run:
+                artifact_write_failures: list[str] = []
+                for art_name in node_result.produced_artifacts:
+                    art_record = run_state.artifacts.get(art_name)
+                    if art_record is None:
+                        continue
+                    try:
+                        write_artifact_envelope(
+                            name=art_name,
+                            data=dict(art_record.payload),
+                            produced_by=step.name,
+                            session=run_state.run_id,
+                            artifact_dir=_DEFAULT_ARTIFACT_DIR,
+                        )
+                        _append_trace(
+                            run_state,
+                            node_name=node.step_id,
+                            event_type="artifact_produced",
+                            detail={
+                                "artifact": art_name,
+                                "path": str(
+                                    _DEFAULT_ARTIFACT_DIR / f"{art_name}.json"
+                                ),
+                            },
+                        )
+                    except ArtifactWriterError as exc:
+                        artifact_write_failures.append(art_name)
+                        _append_trace(
+                            run_state,
+                            node_name=node.step_id,
+                            event_type="artifact_write_failed",
+                            detail={
+                                "artifact": art_name,
+                                "error": str(exc),
+                            },
+                        )
+
+                if artifact_write_failures:
+                    # Overwrite node_result with FAIL — artifact write is
+                    # fail-closed per CLAUDE.md §7.
+                    node_result = NodeResult(
+                        node_name=node_result.node_name,
+                        node_type=node_result.node_type,
+                        status="FAIL",
+                        summary=(
+                            f"Artifact write failed for: "
+                            f"{', '.join(artifact_write_failures)}"
+                        ),
+                        evidence=list(node_result.evidence) + [
+                            f"artifact_write_failed={n}"
+                            for n in artifact_write_failures
+                        ],
+                        produced_artifacts=node_result.produced_artifacts,
+                        triggered_blocks=node_result.triggered_blocks,
+                        inference_used=node_result.inference_used,
+                        latency_ms=node_result.latency_ms,
+                        token_count=node_result.token_count,
+                    )
+                    run_state.node_results[node.step_id] = node_result
 
             _append_trace(
                 run_state,
