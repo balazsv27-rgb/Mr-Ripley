@@ -60,6 +60,8 @@ class StoredNodeResult:
     produced_artifacts: list[str] = field(default_factory=list)
     triggered_blocks: list[str] = field(default_factory=list)
     inference_used: bool = False
+    latency_ms: float = 0.0
+    token_count: int = 0
 
 
 @dataclass(frozen=True)
@@ -203,6 +205,8 @@ def build_stored_run_state(
                 produced_artifacts=list(result.produced_artifacts),
                 triggered_blocks=list(result.triggered_blocks),
                 inference_used=result.inference_used,
+                latency_ms=result.latency_ms,
+                token_count=result.token_count,
             )
             for result in run_state.node_results.values()
         ]

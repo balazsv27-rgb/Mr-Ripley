@@ -325,6 +325,14 @@ def _execute_v2_step(
             inference_used=False,
         )
 
+    # R3-D: backend_invocation_started trace event
+    _append_trace(
+        run_state,
+        node_name=step.name,
+        event_type="backend_invocation_started",
+        detail={"component_kind": kind, "backend": type(backend).__name__},
+    )
+
     if _is_structural_step(step.component):
         result = backend.execute_structural_step(
             step=step,
@@ -359,6 +367,29 @@ def _execute_v2_step(
                 run_state=run_state,
                 spec=spec,
             )
+
+    # R3-D: backend_invocation_completed / backend_invocation_failed
+    if result.success:
+        _append_trace(
+            run_state,
+            node_name=step.name,
+            event_type="backend_invocation_completed",
+            detail={
+                "component_kind": kind,
+                "artifacts_produced": list(result.artifacts_produced.keys()),
+                "latency_ms": result.latency_ms,
+            },
+        )
+    else:
+        _append_trace(
+            run_state,
+            node_name=step.name,
+            event_type="backend_invocation_failed",
+            detail={
+                "component_kind": kind,
+                "failure": str(result.failure) if result.failure else "unknown",
+            },
+        )
 
     # Record produced artifacts into run state
     for artifact_name, artifact_data in result.artifacts_produced.items():
@@ -701,6 +732,17 @@ def execute_plan(
                                 message=node_result.summary,
                                 resolved=False,
                             )
+                        )
+                        # R3-D: blocking_event_raised trace event
+                        _append_trace(
+                            run_state,
+                            node_name=node.step_id,
+                            event_type="blocking_event_raised",
+                            detail={
+                                "blocking_id": blocker_id,
+                                "severity": "critical",
+                                "halts_workflow": True,
+                            },
                         )
                         _append_trace(
                             run_state,

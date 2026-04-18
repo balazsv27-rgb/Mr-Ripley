@@ -23,6 +23,41 @@ from governance.dag_runner.verdict import VerdictError, compute_verdict
 
 _REPO_ROOT = Path(__file__).resolve().parent.parent.parent
 
+# ---------------------------------------------------------------------------
+# R3-A: Semantic exit codes
+# ---------------------------------------------------------------------------
+EXIT_OK = 0
+EXIT_STRUCTURAL_FAILURE = 1        # loader, assembler, validator, drift
+EXIT_CONTRACT_FAILURE = 2          # halt-on-critical (halts_workflow blocker)
+EXIT_RUNTIME_FAILURE = 3           # backend invocation error
+EXIT_ARTIFACT_FAILURE = 4          # artifact write / validation failure
+EXIT_TIMEOUT = 5                   # timeout exceeded
+EXIT_VERDICT_REVIEW_ONLY = 10      # verdict = review_only
+EXIT_VERDICT_BLOCKED = 11          # verdict = blocked (governance, not structural)
+
+
+def _exit_code_for_execution(run_state, verdict_status: str) -> int:
+    """Derive the appropriate exit code after successful execution."""
+    # Check for halt-on-critical (contract failure)
+    for bc in run_state.blocking_conditions:
+        if not bc.resolved and bc.severity == "critical":
+            return EXIT_CONTRACT_FAILURE
+
+    # Check for artifact write failures
+    for nr in run_state.node_results.values():
+        if nr.status == "FAIL" and any(
+            e.startswith("artifact_write_failed=") for e in nr.evidence
+        ):
+            return EXIT_ARTIFACT_FAILURE
+
+    # Map verdict status
+    if verdict_status == "review_only":
+        return EXIT_VERDICT_REVIEW_ONLY
+    if verdict_status == "blocked":
+        return EXIT_VERDICT_BLOCKED
+
+    return EXIT_OK
+
 
 def _build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
@@ -195,9 +230,17 @@ def main() -> int:
                         for d in drift_result.critical_drifts
                     ],
                 }, indent=2))
-            return 1
+            return EXIT_STRUCTURAL_FAILURE
 
         plan = build_execution_plan(spec)
+
+        # R3-B: --phase is accepted but not yet functional (Option B deferral)
+        if args.phase:
+            print(
+                "WARNING: Phase scoping (--phase) is not yet implemented. "
+                "Flag ignored; all steps will execute.",
+                file=sys.stderr,
+            )
 
         # Graph-only mode: emit DAG JSON and exit
         if args.graph:
@@ -242,14 +285,14 @@ def main() -> int:
                     prior_state = load_run_state_from_path(state_path)
                 except Exception as exc:
                     print(f"Continuation failed: cannot load prior state: {exc}", file=sys.stderr)
-                    return 1
+                    return EXIT_STRUCTURAL_FAILURE
 
                 failures = validate_continuation(prior_state, spec, plan, exec_config.continue_from)
                 if failures:
                     print("Continuation guardrail violations:", file=sys.stderr)
                     for f in failures:
                         print(f"  - {f}", file=sys.stderr)
-                    return 1
+                    return EXIT_STRUCTURAL_FAILURE
 
         execution_result = execute_plan(
             spec, plan,
@@ -275,7 +318,7 @@ def main() -> int:
     ) as exc:
         print("DAG runner failed.", file=sys.stderr)
         print(str(exc), file=sys.stderr)
-        return 1
+        return EXIT_STRUCTURAL_FAILURE
 
     # JSON output mode
     if args.json_output:
@@ -300,7 +343,9 @@ def main() -> int:
             "diagnostics": diagnostic_report_to_dict(diagnostic_report),
         }
         print(json.dumps(output, indent=2))
-        return 0
+        return _exit_code_for_execution(
+            execution_result.run_state, verdict.status,
+        )
 
     # Text output (default)
     print("DAG runner summary")
@@ -362,12 +407,12 @@ def main() -> int:
         except StateStoreError as exc:
             print("Failed to persist run state.", file=sys.stderr)
             print(str(exc), file=sys.stderr)
-            return 1
+            return EXIT_STRUCTURAL_FAILURE
 
         print()
         print(f"Run state written: {written_path}")
 
-    return 0
+    return _exit_code_for_execution(execution_result.run_state, verdict.status)
 
 
 if __name__ == "__main__":
