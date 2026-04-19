@@ -92,7 +92,7 @@ class _LiveStubBackend(ExecutionBackend):
         self._artifacts = artifacts or {}
 
     def execute_step(
-        self, step, agent, config, run_state, spec, prompt_context=None,
+        self, step, agent, config, run_state, spec, prompt_context=None, **kwargs,
     ) -> AgentExecutionResult:
         return AgentExecutionResult(
             success=True,
@@ -100,7 +100,7 @@ class _LiveStubBackend(ExecutionBackend):
         )
 
     def execute_structural_step(
-        self, step, component_kind, run_state, spec,
+        self, step, component_kind, run_state, spec, **kwargs,
     ) -> AgentExecutionResult:
         return AgentExecutionResult(success=True)
 
@@ -311,7 +311,7 @@ class TestArtifactValidationInExecutor:
 
         result = execute_plan(
             spec, plan,
-            config=ExecutionConfig(mode="agent_execution"),
+            config=ExecutionConfig(mode="agent_execution", request_text="test"),
             backend=backend,
         )
         assert result.run_state.node_results["step-a"].status == "PASS"
@@ -339,7 +339,7 @@ class TestArtifactValidationInExecutor:
 
         result = execute_plan(
             spec, plan,
-            config=ExecutionConfig(mode="agent_execution"),
+            config=ExecutionConfig(mode="agent_execution", request_text="test"),
             backend=backend,
         )
         # Mock → warn only, step still passes
@@ -372,7 +372,7 @@ class TestArtifactValidationInExecutor:
 
         result = execute_plan(
             spec, plan,
-            config=ExecutionConfig(mode="agent_execution"),
+            config=ExecutionConfig(mode="agent_execution", request_text="test"),
             backend=backend,
         )
         assert result.run_state.node_results["step-a"].status == "FAIL"
@@ -405,7 +405,7 @@ class TestArtifactValidationInExecutor:
 
         result = execute_plan(
             spec, plan,
-            config=ExecutionConfig(mode="agent_execution"),
+            config=ExecutionConfig(mode="agent_execution", request_text="test"),
             backend=backend,
         )
         assert result.run_state.node_results["step-a"].status == "PASS"
@@ -455,7 +455,7 @@ class TestArtifactValidationInExecutor:
 
         result = execute_plan(
             spec, plan,
-            config=ExecutionConfig(mode="agent_execution"),
+            config=ExecutionConfig(mode="agent_execution", request_text="test"),
             backend=backend,
         )
         assert result.run_state.node_results["step-a"].status == "PASS"
@@ -464,10 +464,10 @@ class TestArtifactValidationInExecutor:
         """When backend returns success=False, no artifact validation occurs."""
 
         class _FailBackend(ExecutionBackend):
-            def execute_step(self, step, agent, config, run_state, spec, prompt_context=None):
+            def execute_step(self, step, agent, config, run_state, spec, prompt_context=None, **kwargs):
                 return AgentExecutionResult(success=False)
 
-            def execute_structural_step(self, step, component_kind, run_state, spec):
+            def execute_structural_step(self, step, component_kind, run_state, spec, **kwargs):
                 return AgentExecutionResult(success=False)
 
         step = _make_step("step-a", outputs=["art_a"])
@@ -477,7 +477,7 @@ class TestArtifactValidationInExecutor:
 
         result = execute_plan(
             spec, plan,
-            config=ExecutionConfig(mode="agent_execution"),
+            config=ExecutionConfig(mode="agent_execution", request_text="test"),
             backend=backend,
         )
         assert result.run_state.node_results["step-a"].status == "FAIL"

@@ -13,10 +13,7 @@ import pytest
 
 from governance.dag_runner.artifact_writer import ArtifactWriterError
 from governance.dag_runner.execution_backend import MockExecutionBackend
-from governance.dag_runner.executor import (
-    _DEFAULT_ARTIFACT_DIR,
-    execute_plan,
-)
+from governance.dag_runner.executor import execute_plan
 from governance.dag_runner.models import (
     ArtifactSpec,
     AssembledWorkflowSpec,
@@ -84,7 +81,7 @@ def _make_plan(step_ids: list[str], components: dict[str, str] | None = None) ->
 
 
 def _agent_config() -> ExecutionConfig:
-    return ExecutionConfig(mode="agent_execution")
+    return ExecutionConfig(mode="agent_execution", request_text="test request")
 
 
 def _dry_run_config() -> ExecutionConfig:
@@ -228,27 +225,23 @@ class TestRequiredInputValidation:
 class TestArtifactDiskWrite:
     """Artifact envelope disk-write integration in V2 mode."""
 
-    def test_artifact_envelope_written_to_disk(self, tmp_path: Path) -> None:
-        """V2 execution writes envelope files to artifact_dir."""
+    def test_artifact_envelope_written_to_disk(self) -> None:
+        """V2 execution writes envelope files to session artifact_dir."""
         steps = {
             "step-a": _make_step("step-a", outputs=["alpha_out"]),
         }
         spec = _make_spec(steps)
         plan = _make_plan(["step-a"])
         backend = MockExecutionBackend()
-        artifact_dir = tmp_path / "artifacts"
 
-        with patch(
-            "governance.dag_runner.executor._DEFAULT_ARTIFACT_DIR",
-            artifact_dir,
-        ):
-            result = execute_plan(
-                spec, plan, config=_agent_config(), backend=backend,
-            )
+        result = execute_plan(
+            spec, plan, config=_agent_config(), backend=backend,
+        )
 
         assert result.run_state.node_results["step-a"].status == "PASS"
 
-        # Verify envelope file exists
+        # Verify envelope file exists in session directory
+        artifact_dir = Path(result.run_state.session_dir) / "artifacts"
         envelope_path = artifact_dir / "alpha_out.json"
         assert envelope_path.is_file()
 
@@ -261,7 +254,7 @@ class TestArtifactDiskWrite:
         assert envelope["artifact"] == "alpha_out"
         assert envelope["produced_by"] == "step-a"
 
-    def test_multiple_artifacts_written(self, tmp_path: Path) -> None:
+    def test_multiple_artifacts_written(self) -> None:
         """All produced artifacts are written to disk."""
         steps = {
             "step-a": _make_step("step-a", outputs=["out_1", "out_2"]),
@@ -269,18 +262,14 @@ class TestArtifactDiskWrite:
         spec = _make_spec(steps)
         plan = _make_plan(["step-a"])
         backend = MockExecutionBackend()
-        artifact_dir = tmp_path / "artifacts"
 
-        with patch(
-            "governance.dag_runner.executor._DEFAULT_ARTIFACT_DIR",
-            artifact_dir,
-        ):
-            execute_plan(spec, plan, config=_agent_config(), backend=backend)
+        result = execute_plan(spec, plan, config=_agent_config(), backend=backend)
+        artifact_dir = Path(result.run_state.session_dir) / "artifacts"
 
         assert (artifact_dir / "out_1.json").is_file()
         assert (artifact_dir / "out_2.json").is_file()
 
-    def test_dry_run_no_disk_artifacts(self, tmp_path: Path) -> None:
+    def test_dry_run_no_disk_artifacts(self) -> None:
         """Dry-run mode does NOT write artifact files to disk."""
         steps = {
             "step-a": _make_step("step-a", outputs=["alpha_out"]),
@@ -288,18 +277,14 @@ class TestArtifactDiskWrite:
         spec = _make_spec(steps)
         plan = _make_plan(["step-a"])
         backend = MockExecutionBackend()
-        artifact_dir = tmp_path / "artifacts"
 
-        with patch(
-            "governance.dag_runner.executor._DEFAULT_ARTIFACT_DIR",
-            artifact_dir,
-        ):
-            execute_plan(spec, plan, config=_dry_run_config(), backend=backend)
+        result = execute_plan(spec, plan, config=_dry_run_config(), backend=backend)
+        artifact_dir = Path(result.run_state.session_dir) / "artifacts"
 
-        # Directory should not even exist
-        assert not artifact_dir.exists() or not list(artifact_dir.iterdir())
+        # No artifact files should be written (directory exists but is empty)
+        assert not list(artifact_dir.iterdir())
 
-    def test_artifact_write_failure_fails_step(self, tmp_path: Path) -> None:
+    def test_artifact_write_failure_fails_step(self) -> None:
         """ArtifactWriterError causes step to FAIL (fail-closed)."""
         steps = {
             "step-a": _make_step("step-a", outputs=["alpha_out"]),
@@ -319,7 +304,7 @@ class TestArtifactDiskWrite:
         assert result.run_state.node_results["step-a"].status == "FAIL"
         assert "alpha_out" in result.run_state.node_results["step-a"].summary
 
-    def test_artifact_produced_trace_event(self, tmp_path: Path) -> None:
+    def test_artifact_produced_trace_event(self) -> None:
         """Trace contains 'artifact_produced' events after disk write."""
         steps = {
             "step-a": _make_step("step-a", outputs=["alpha_out"]),
@@ -327,15 +312,10 @@ class TestArtifactDiskWrite:
         spec = _make_spec(steps)
         plan = _make_plan(["step-a"])
         backend = MockExecutionBackend()
-        artifact_dir = tmp_path / "artifacts"
 
-        with patch(
-            "governance.dag_runner.executor._DEFAULT_ARTIFACT_DIR",
-            artifact_dir,
-        ):
-            result = execute_plan(
-                spec, plan, config=_agent_config(), backend=backend,
-            )
+        result = execute_plan(
+            spec, plan, config=_agent_config(), backend=backend,
+        )
 
         event_types = [e.event_type for e in result.run_state.execution_trace]
         assert "artifact_produced" in event_types
@@ -360,24 +340,20 @@ class TestArtifactDiskWrite:
         event_types = [e.event_type for e in result.run_state.execution_trace]
         assert "artifact_write_failed" in event_types
 
-    def test_v1_shell_no_disk_write(self, tmp_path: Path) -> None:
-        """V1 shell mode (backend=None) does NOT write artifact files."""
+    def test_v1_shell_no_disk_write(self) -> None:
+        """V1 shell mode (backend=None) does NOT write artifact files to session dir."""
         steps = {
             "step-a": _make_step("step-a", outputs=["alpha_out"]),
         }
         spec = _make_spec(steps)
         plan = _make_plan(["step-a"])
-        artifact_dir = tmp_path / "artifacts"
 
-        with patch(
-            "governance.dag_runner.executor._DEFAULT_ARTIFACT_DIR",
-            artifact_dir,
-        ):
-            execute_plan(spec, plan)  # no backend = V1 shell
+        result = execute_plan(spec, plan)  # no backend = V1 shell
+        artifact_dir = Path(result.run_state.session_dir) / "artifacts"
 
-        assert not artifact_dir.exists() or not list(artifact_dir.iterdir())
+        assert not list(artifact_dir.iterdir())
 
-    def test_envelope_session_matches_run_id(self, tmp_path: Path) -> None:
+    def test_envelope_session_matches_run_id(self) -> None:
         """Envelope 'session' field matches the run's run_id."""
         steps = {
             "step-a": _make_step("step-a", outputs=["alpha_out"]),
@@ -385,16 +361,12 @@ class TestArtifactDiskWrite:
         spec = _make_spec(steps)
         plan = _make_plan(["step-a"])
         backend = MockExecutionBackend()
-        artifact_dir = tmp_path / "artifacts"
 
-        with patch(
-            "governance.dag_runner.executor._DEFAULT_ARTIFACT_DIR",
-            artifact_dir,
-        ):
-            result = execute_plan(
-                spec, plan, config=_agent_config(), backend=backend,
-            )
+        result = execute_plan(
+            spec, plan, config=_agent_config(), backend=backend,
+        )
 
+        artifact_dir = Path(result.run_state.session_dir) / "artifacts"
         with (artifact_dir / "alpha_out.json").open() as f:
             envelope = json.load(f)
         assert envelope["session"] == result.run_state.run_id

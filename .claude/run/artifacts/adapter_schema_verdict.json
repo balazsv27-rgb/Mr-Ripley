@@ -1,9 +1,14 @@
 {
   "artifact": "adapter_schema_verdict",
   "produced_by": "adapter-schema-check",
-  "session": "fcea9aab-6297-4884-b7df-87181586451b",
-  "timestamp": "2026-04-19T00:06:57.483063Z",
+  "session": "",
+  "timestamp": "2026-04-19T21:09:51.317501Z",
   "data": {
-    "produced_by": "adapter-schema-check"
+    "file_path": "C:\\Code\\Mr-Ripley\\tests\\governance\\test_executor_artifacts.py",
+    "scanned": false,
+    "registry_driven": true,
+    "hardcoded_series_detected": false,
+    "implicit_interpretation_detected": false,
+    "violations": []
   }
 }

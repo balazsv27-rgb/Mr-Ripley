@@ -1,7 +1,12 @@
 """
 Shared artifact store for Mr. Ripley governance hooks.
 
-Artifacts live at: .claude/run/artifacts/<name>.json
+Artifacts are resolved via the active-session pointer at:
+    .claude/run/current_session.json
+
+When the pointer exists, artifacts are read from/written to the session's
+artifact directory.  When absent, falls back to the legacy flat directory
+at .claude/run/artifacts/ for backward compatibility.
 
 Envelope schema:
   {
@@ -22,7 +27,33 @@ from pathlib import Path
 # Resolved relative to the project root (two levels up from .claude/hooks/lib/)
 _HOOKS_LIB_DIR = Path(__file__).resolve().parent
 _PROJECT_ROOT = _HOOKS_LIB_DIR.parent.parent.parent
+
+# Legacy flat directory (backward compat)
 ARTIFACT_DIR = _PROJECT_ROOT / ".claude" / "run" / "artifacts"
+
+# Active-session pointer path
+_POINTER_PATH = _PROJECT_ROOT / ".claude" / "run" / "current_session.json"
+
+
+def _resolve_artifact_dir() -> Path:
+    """Resolve the active session's artifact directory.
+
+    Reads the session pointer file.  If it exists and points to a valid
+    session directory, returns that session's ``artifacts/`` path.
+    Otherwise falls back to the legacy flat directory.
+    """
+    if _POINTER_PATH.is_file():
+        try:
+            with _POINTER_PATH.open("r", encoding="utf-8") as f:
+                pointer = json.load(f)
+            session_dir = pointer.get("session_dir", "")
+            if session_dir:
+                candidate = Path(session_dir) / "artifacts"
+                if candidate.is_dir():
+                    return candidate
+        except (json.JSONDecodeError, OSError, KeyError):
+            pass
+    return ARTIFACT_DIR
 
 
 class ArtifactNotFound(Exception):
@@ -37,11 +68,15 @@ def read_artifact(name: str) -> dict:
     """
     Read an artifact's data block by name.
 
+    Resolves the active session directory via the pointer file, falling
+    back to the legacy flat directory when no pointer is available.
+
     Raises:
         ArtifactNotFound  — file does not exist
         ArtifactMalformed — file exists but is not valid JSON or has no 'data' key
     """
-    path = ARTIFACT_DIR / f"{name}.json"
+    art_dir = _resolve_artifact_dir()
+    path = art_dir / f"{name}.json"
     if not path.exists():
         raise ArtifactNotFound(
             f"Artifact '{name}' not found at {path}. "
@@ -65,17 +100,22 @@ def read_artifact(name: str) -> dict:
 
 def artifact_exists(name: str) -> bool:
     """Return True if the artifact file exists in the store."""
-    return (ARTIFACT_DIR / f"{name}.json").exists()
+    art_dir = _resolve_artifact_dir()
+    return (art_dir / f"{name}.json").exists()
 
 
 def write_artifact(name: str, data: dict, produced_by: str = "", session: str = "") -> None:
     """
     Write an artifact envelope to the store.
+
+    Resolves the active session directory via the pointer file, falling
+    back to the legacy flat directory when no pointer is available.
     Creates the artifact directory if it does not exist.
     """
     import datetime
 
-    ARTIFACT_DIR.mkdir(parents=True, exist_ok=True)
+    art_dir = _resolve_artifact_dir()
+    art_dir.mkdir(parents=True, exist_ok=True)
     envelope = {
         "artifact": name,
         "produced_by": produced_by,
@@ -83,6 +123,6 @@ def write_artifact(name: str, data: dict, produced_by: str = "", session: str = 
         "timestamp": datetime.datetime.utcnow().isoformat() + "Z",
         "data": data,
     }
-    path = ARTIFACT_DIR / f"{name}.json"
+    path = art_dir / f"{name}.json"
     with path.open("w", encoding="utf-8") as f:
         json.dump(envelope, f, indent=2)

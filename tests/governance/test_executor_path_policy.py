@@ -42,12 +42,12 @@ class _LiveStubBackend(ExecutionBackend):
     """
 
     def execute_step(
-        self, step, agent, config, run_state, spec, prompt_context=None,
+        self, step, agent, config, run_state, spec, prompt_context=None, **kwargs,
     ) -> AgentExecutionResult:
         return AgentExecutionResult(success=True)
 
     def execute_structural_step(
-        self, step, component_kind, run_state, spec,
+        self, step, component_kind, run_state, spec, **kwargs,
     ) -> AgentExecutionResult:
         return AgentExecutionResult(success=True)
 
@@ -97,7 +97,7 @@ def _make_plan(step_ids: list[str]) -> ExecutionPlan:
 
 
 def _config() -> ExecutionConfig:
-    return ExecutionConfig(mode="agent_execution")
+    return ExecutionConfig(mode="agent_execution", request_text="test")
 
 
 # ---------------------------------------------------------------------------

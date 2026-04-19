@@ -113,7 +113,7 @@ def test_dry_run_all_steps_pass(pipeline) -> None:
 
 def test_agent_execution_produces_artifacts(pipeline) -> None:
     spec, plan, verdict = pipeline
-    config = ExecutionConfig(mode="agent_execution")
+    config = ExecutionConfig(mode="agent_execution", request_text="test")
     backend = MockExecutionBackend()
     result = execute_plan(spec, plan, verdict_status=verdict.status, config=config, backend=backend)
     # Should have artifacts for non-skipped steps
@@ -122,7 +122,7 @@ def test_agent_execution_produces_artifacts(pipeline) -> None:
 
 def test_agent_execution_records_component_kind_in_trace(pipeline) -> None:
     spec, plan, verdict = pipeline
-    config = ExecutionConfig(mode="agent_execution")
+    config = ExecutionConfig(mode="agent_execution", request_text="test")
     backend = MockExecutionBackend()
     result = execute_plan(spec, plan, verdict_status=verdict.status, config=config, backend=backend)
     completed_events = [

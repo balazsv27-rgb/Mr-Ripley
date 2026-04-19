@@ -28,6 +28,9 @@ def build_config_from_args(
     timeout: int | None = None,
     phase: str | None = None,
     state_path: str | None = None,
+    request_text: str | None = None,
+    request_id: str | None = None,
+    request_source: str | None = None,
 ) -> ExecutionConfig:
     """Map CLI flags to an ``ExecutionConfig``."""
     if graph:
@@ -46,6 +49,9 @@ def build_config_from_args(
         continue_from=continue_from,
         phase_scope=phase,
         state_bootstrap_path=state_path if continue_from else None,
+        request_text=request_text,
+        request_id=request_id,
+        request_source=request_source,
     )
 
 

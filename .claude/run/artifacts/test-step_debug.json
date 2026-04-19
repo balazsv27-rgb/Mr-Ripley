@@ -1,0 +1,33 @@
+{
+  "step_name": "test-step",
+  "returncode": 0,
+  "stdout_length": 296,
+  "stdout_first_1000": "{\"type\": \"result\", \"subtype\": \"success\", \"is_error\": false, \"result\": \"I am plain text, not JSON\", \"duration_ms\": 1234, \"duration_api_ms\": 1000, \"num_turns\": 1, \"stop_reason\": \"end_turn\", \"session_id\": \"test-session-id\", \"total_cost_usd\": 0.01, \"usage\": {\"input_tokens\": 10, \"output_tokens\": 42}}",
+  "stderr_length": 12,
+  "stderr_first_1000": "some warning",
+  "parsed_artifact_keys": [],
+  "parse_failure": "inner_result_no_json_object: direct parse failed and no balanced JSON object found in result text",
+  "result_preview": "I am plain text, not JSON",
+  "usage": {
+    "input_tokens": 10,
+    "output_tokens": 42
+  },
+  "envelope_keys": [
+    "duration_api_ms",
+    "duration_ms",
+    "is_error",
+    "num_turns",
+    "result",
+    "session_id",
+    "stop_reason",
+    "subtype",
+    "total_cost_usd",
+    "type",
+    "usage"
+  ],
+  "envelope_type": "result",
+  "envelope_is_error": false,
+  "result_type": "str",
+  "result_length": 25,
+  "result_first_1000": "I am plain text, not JSON"
+}

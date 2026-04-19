@@ -104,6 +104,7 @@ class StoredRunState:
     run_id: str = ""
     started_at: str = ""
     final_verdict: str | None = None
+    session_dir: str = ""
     recorded_node_results: int = 0
     recorded_artifacts: int = 0
     recorded_trace_events: int = 0
@@ -173,6 +174,7 @@ def build_stored_run_state(
     run_id = ""
     started_at = ""
     final_verdict = verdict.status
+    session_dir_value = ""
     recorded_node_results = 0
     recorded_artifacts = 0
     recorded_trace_events = 0
@@ -190,6 +192,7 @@ def build_stored_run_state(
     if execution_result is not None:
         run_state = execution_result.run_state
         run_id = run_state.run_id
+        session_dir_value = run_state.session_dir or ""
         started_at = run_state.started_at.isoformat()
         final_verdict = run_state.final_verdict
         recorded_node_results = len(run_state.node_results)
@@ -293,6 +296,7 @@ def build_stored_run_state(
         run_id=run_id,
         started_at=started_at,
         final_verdict=final_verdict,
+        session_dir=session_dir_value,
         recorded_node_results=recorded_node_results,
         recorded_artifacts=recorded_artifacts,
         recorded_trace_events=recorded_trace_events,
@@ -454,6 +458,7 @@ def load_run_state_from_path(path: Path) -> GovernanceRunState:
             blocking_conditions=blocking_conditions,
             execution_trace=execution_trace,
             final_verdict=final_verdict,
+            session_dir=raw.get("session_dir") or None,
         )
 
     except (KeyError, TypeError, ValueError) as exc:

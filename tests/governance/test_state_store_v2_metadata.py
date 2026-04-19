@@ -44,7 +44,7 @@ class TestStoredNodeResultV2Metadata:
         self, pipeline, tmp_path: Path,
     ) -> None:
         loaded, spec, validation, plan, blocker_summary, verdict = pipeline
-        config = ExecutionConfig(mode="agent_execution")
+        config = ExecutionConfig(mode="agent_execution", request_text="test")
         backend = MockExecutionBackend()
 
         execution_result = execute_plan(

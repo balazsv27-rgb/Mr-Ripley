@@ -35,7 +35,7 @@ def test_diagnostic_report_from_v1_run(pipeline) -> None:
 
 def test_diagnostic_report_from_v2_run(pipeline) -> None:
     spec, plan = pipeline
-    config = ExecutionConfig(mode="agent_execution")
+    config = ExecutionConfig(mode="agent_execution", request_text="test")
     backend = MockExecutionBackend()
     result = execute_plan(spec, plan, verdict_status="ready", config=config, backend=backend)
     report = build_diagnostic_report(spec, plan, result.run_state)

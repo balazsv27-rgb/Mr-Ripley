@@ -44,6 +44,7 @@ class ExecutionBackend(ABC):
         run_state: GovernanceRunState,
         spec: AssembledWorkflowSpec,
         prompt_context: PromptContext | None = None,
+        debug_dir: "Path | None" = None,
     ) -> AgentExecutionResult:
         """Execute a skill-bound or coordinator-agent step."""
 
@@ -54,8 +55,14 @@ class ExecutionBackend(ABC):
         component_kind: str,
         run_state: GovernanceRunState,
         spec: AssembledWorkflowSpec,
+        bootstrap_payload: dict[str, dict[str, Any]] | None = None,
     ) -> AgentExecutionResult:
-        """Execute a structural step (no LLM) deterministically."""
+        """Execute a structural step (no LLM) deterministically.
+
+        When *bootstrap_payload* is provided, it maps artifact names to
+        their payload dicts.  The step uses these instead of generating
+        default structural placeholders.
+        """
 
 
 class MockExecutionBackend(ExecutionBackend):
@@ -81,6 +88,7 @@ class MockExecutionBackend(ExecutionBackend):
         run_state: GovernanceRunState,
         spec: AssembledWorkflowSpec,
         prompt_context: PromptContext | None = None,
+        debug_dir: "Path | None" = None,
     ) -> AgentExecutionResult:
         artifacts: dict[str, dict[str, Any]] = {}
         for output_name in step.outputs:
@@ -96,13 +104,18 @@ class MockExecutionBackend(ExecutionBackend):
         component_kind: str,
         run_state: GovernanceRunState,
         spec: AssembledWorkflowSpec,
+        bootstrap_payload: dict[str, dict[str, Any]] | None = None,
     ) -> AgentExecutionResult:
         artifacts: dict[str, dict[str, Any]] = {}
         for output_name in step.outputs:
-            artifacts[output_name] = self._payloads.get(
-                output_name,
-                {"produced_by": step.name, "structural": True},
-            )
+            # Bootstrap payload takes priority, then configured payloads, then default
+            if bootstrap_payload and output_name in bootstrap_payload:
+                artifacts[output_name] = bootstrap_payload[output_name]
+            else:
+                artifacts[output_name] = self._payloads.get(
+                    output_name,
+                    {"produced_by": step.name, "structural": True},
+                )
         return AgentExecutionResult(success=True, artifacts_produced=artifacts)
 
 
@@ -206,7 +219,7 @@ class ParseResult:
 
 _PREVIEW_MAX = 500
 
-_DEBUG_DIR = ".claude/run/artifacts"
+_LEGACY_DEBUG_DIR = ".claude/run/artifacts"
 
 
 def _write_step_debug(
@@ -219,17 +232,19 @@ def _write_step_debug(
     parse_failure: str | None,
     result_preview: str,
     usage: dict[str, Any] | None,
+    debug_dir: str | None = None,
 ) -> None:
     """Persist raw subprocess output for a failed backend step.
 
-    Writes ``<step_name>_debug.json`` to the artifact directory so the
+    Writes ``<step_name>_debug.json`` to the debug directory so the
     exact response can be inspected without re-running the live backend.
     Best-effort: failures here are silently ignored (diagnostic, not critical).
     """
     import os
     from pathlib import Path
 
-    debug_path = Path(_DEBUG_DIR) / f"{step_name}_debug.json"
+    target_dir = debug_dir or _LEGACY_DEBUG_DIR
+    debug_path = Path(target_dir) / f"{step_name}_debug.json"
     try:
         debug_path.parent.mkdir(parents=True, exist_ok=True)
         payload = {
@@ -431,6 +446,7 @@ class ClaudeCodeCLIBackend(ExecutionBackend):
         run_state: GovernanceRunState,
         spec: AssembledWorkflowSpec,
         prompt_context: PromptContext | None = None,
+        debug_dir: "Path | None" = None,
     ) -> AgentExecutionResult:
         # Fail closed when no prompt context is provided
         if prompt_context is None:
@@ -524,7 +540,7 @@ class ClaudeCodeCLIBackend(ExecutionBackend):
         except (json.JSONDecodeError, TypeError, AttributeError):
             envelope = None
 
-        # --- Diagnostic capture (written to .claude/run/artifacts/) ---
+        # --- Diagnostic capture (written to session debug dir) ---
         # Persists subprocess output for failed backend-dispatched steps
         # so the exact response contract violation can be inspected.
         if not parse.artifacts or parse.failure:
@@ -537,6 +553,7 @@ class ClaudeCodeCLIBackend(ExecutionBackend):
                 parse_failure=parse.failure,
                 result_preview=parse.result_preview,
                 usage=envelope.get("usage") if isinstance(envelope, dict) else None,
+                debug_dir=str(debug_dir) if debug_dir else None,
             )
 
         return AgentExecutionResult(
@@ -555,9 +572,13 @@ class ClaudeCodeCLIBackend(ExecutionBackend):
         component_kind: str,
         run_state: GovernanceRunState,
         spec: AssembledWorkflowSpec,
+        bootstrap_payload: dict[str, dict[str, Any]] | None = None,
     ) -> AgentExecutionResult:
         """Structural steps are deterministic — no LLM needed even in live mode."""
         artifacts: dict[str, dict[str, Any]] = {}
         for output_name in step.outputs:
-            artifacts[output_name] = {"produced_by": step.name, "structural": True}
+            if bootstrap_payload and output_name in bootstrap_payload:
+                artifacts[output_name] = bootstrap_payload[output_name]
+            else:
+                artifacts[output_name] = {"produced_by": step.name, "structural": True}
         return AgentExecutionResult(success=True, artifacts_produced=artifacts)

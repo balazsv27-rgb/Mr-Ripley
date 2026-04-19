@@ -45,7 +45,7 @@ if TYPE_CHECKING:
     from governance.dag_runner.path_policy import PathPolicy
 
 
-_DEFAULT_ARTIFACT_DIR = Path(".claude/run/artifacts")
+_LEGACY_ARTIFACT_DIR = Path(".claude/run/artifacts")
 
 
 def _get_repo_root() -> Path:
@@ -75,6 +75,7 @@ def _build_initial_run_state(
     workflow_name: str,
     orchestration_version: str | None = None,
     constitution_version: str | None = None,
+    session_dir: str | None = None,
 ) -> GovernanceRunState:
     return GovernanceRunState(
         run_id=str(uuid4()),
@@ -82,6 +83,7 @@ def _build_initial_run_state(
         orchestration_version=orchestration_version,
         constitution_version=constitution_version,
         current_phase=workflow_name,
+        session_dir=session_dir,
     )
 
 
@@ -100,6 +102,38 @@ def _append_trace(
             detail=detail,
         )
     )
+
+
+def _build_governance_context_payload(
+    run_state: GovernanceRunState,
+    config: ExecutionConfig,
+    workflow_name: str,
+) -> dict[str, Any]:
+    """Build a request-bearing governance_context artifact payload.
+
+    When bootstrap input is available, the payload contains the real
+    request text, source, and run metadata.  Otherwise, falls back to
+    a structural-only payload (backward compat for non-semantic modes).
+    """
+    if config.request_text:
+        return {
+            "produced_by": "load-context",
+            "run_id": run_state.run_id,
+            "request_id": config.request_id,
+            "request_text": config.request_text,
+            "request_source": config.request_source,
+            "workflow_name": workflow_name,
+            "execution_mode": config.mode,
+            "bootstrap_status": "request_bearing",
+        }
+    return {
+        "produced_by": "load-context",
+        "structural": True,
+        "run_id": run_state.run_id,
+        "workflow_name": workflow_name,
+        "execution_mode": config.mode,
+        "bootstrap_status": "structural_only",
+    }
 
 
 def _record_artifacts_for_step(
@@ -314,6 +348,7 @@ def _execute_v2_step(
     dry_run: bool = False,
     path_policy: "PathPolicy | None" = None,
     strict_artifact_validation: bool = False,
+    debug_dir: Path | None = None,
 ) -> NodeResult:
     """Execute one step via the V2 backend-driven path.
 
@@ -381,11 +416,20 @@ def _execute_v2_step(
     )
 
     if _is_structural_step(step.component):
+        # Build bootstrap payload for load-context step
+        bootstrap_payload: dict[str, dict[str, Any]] | None = None
+        if step.name == "load-context" and "governance_context" in step.outputs:
+            ctx_payload = _build_governance_context_payload(
+                run_state, config, run_state.current_phase or "",
+            )
+            bootstrap_payload = {"governance_context": ctx_payload}
+
         result = backend.execute_structural_step(
             step=step,
             component_kind=kind,
             run_state=run_state,
             spec=spec,
+            bootstrap_payload=bootstrap_payload,
         )
     else:
         # Resolve agent for backend dispatch
@@ -434,6 +478,7 @@ def _execute_v2_step(
                 run_state=run_state,
                 spec=spec,
                 prompt_context=prompt_ctx,
+                debug_dir=debug_dir,
             )
         else:
             # Fallback: no agent binding, treat as structural
@@ -689,12 +734,33 @@ def execute_plan(
 
     effective_config = config or ExecutionConfig()
 
+    from governance.dag_runner.session import (
+        SessionError,
+        create_session_dir,
+        write_session_pointer,
+    )
+
     # Continuation: carry forward prior state
     completed_steps: set[str] = set()
     if prior_state is not None and effective_config.continue_from:
         run_state = prior_state
         # Mark all previously completed steps
         completed_steps = set(prior_state.node_results.keys())
+
+        # Ensure session dir is set (backward compat with old state files)
+        if run_state.session_dir is None:
+            session_root = create_session_dir(run_state.run_id)
+            run_state.session_dir = str(session_root)
+            write_session_pointer(session_root, run_state.run_id)
+            _append_trace(
+                run_state,
+                node_name="__run__",
+                event_type="session_created_for_legacy_continuation",
+                detail={"session_dir": run_state.session_dir},
+            )
+        else:
+            write_session_pointer(Path(run_state.session_dir), run_state.run_id)
+
         _append_trace(
             run_state,
             node_name="__run__",
@@ -703,6 +769,7 @@ def execute_plan(
                 "continue_from": effective_config.continue_from,
                 "prior_completed_steps": len(completed_steps),
                 "prior_artifacts": len(prior_state.artifacts),
+                "session_dir": run_state.session_dir,
             },
         )
     else:
@@ -710,6 +777,21 @@ def execute_plan(
             workflow_name=plan.workflow_name,
             orchestration_version=spec.manifest.workflow_version,
             constitution_version=None,
+        )
+        # Create session directory for fresh run
+        session_root = create_session_dir(run_state.run_id)
+        run_state.session_dir = str(session_root)
+        write_session_pointer(session_root, run_state.run_id)
+
+    # Fail-closed: agent_execution mode requires bootstrap input on fresh runs
+    if (
+        effective_config.mode == "agent_execution"
+        and not effective_config.continue_from
+        and not effective_config.request_text
+    ):
+        raise ExecutorError(
+            "agent_execution mode requires bootstrap input on fresh runs. "
+            "Provide --request-text or --request-file."
         )
 
     _append_trace(
@@ -720,8 +802,14 @@ def execute_plan(
             "workflow_name": plan.workflow_name,
             "planned_steps": len(plan.ordered_steps),
             "mode": effective_config.mode,
+            "session_dir": run_state.session_dir,
+            "has_bootstrap_input": effective_config.request_text is not None,
         },
     )
+
+    # Resolve artifact and debug directories from session
+    artifact_dir = Path(run_state.session_dir) / "artifacts"
+    debug_dir = Path(run_state.session_dir) / "debug"
 
     halted = False
 
@@ -901,6 +989,7 @@ def execute_plan(
                     dry_run=is_dry_run,
                     path_policy=step_path_policy,
                     strict_artifact_validation=strict_validation,
+                    debug_dir=debug_dir,
                 )
             except PathPolicyViolation as exc:
                 # B3-C: Fail-closed on path policy violation
@@ -935,7 +1024,7 @@ def execute_plan(
                             data=dict(art_record.payload),
                             produced_by=step.name,
                             session=run_state.run_id,
-                            artifact_dir=_DEFAULT_ARTIFACT_DIR,
+                            artifact_dir=artifact_dir,
                         )
                         _append_trace(
                             run_state,
@@ -944,7 +1033,7 @@ def execute_plan(
                             detail={
                                 "artifact": art_name,
                                 "path": str(
-                                    _DEFAULT_ARTIFACT_DIR / f"{art_name}.json"
+                                    artifact_dir / f"{art_name}.json"
                                 ),
                             },
                         )

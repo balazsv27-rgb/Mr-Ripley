@@ -93,7 +93,7 @@ def _make_plan(*steps: WorkflowStep) -> ExecutionPlan:
 
 
 def _config(mode: str = "agent_execution") -> ExecutionConfig:
-    return ExecutionConfig(mode=mode)
+    return ExecutionConfig(mode=mode, request_text="test")
 
 
 def _get_event_types(result, node_name: str | None = None) -> list[str]:

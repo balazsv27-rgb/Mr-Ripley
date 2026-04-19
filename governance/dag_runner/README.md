@@ -18,10 +18,13 @@ python -m governance.dag_runner.cli --graph --json
 python -m governance.dag_runner.cli --dry-run --json
 
 # 3. Mock execution — deterministic placeholder artifacts, full pipeline
-python -m governance.dag_runner.cli --mode agent_execution --write-state --json
+python -m governance.dag_runner.cli --mode agent_execution --request-text "Evaluate change X" --write-state --json
 
 # 4. Live execution — real Claude CLI invocations per step (requires local `claude` auth)
-python -m governance.dag_runner.cli --mode agent_execution --backend claude_code_cli --write-state --json
+python -m governance.dag_runner.cli --mode agent_execution --backend claude_code_cli --request-text "Evaluate change X" --write-state --json
+
+# 5. Live execution with request file
+python -m governance.dag_runner.cli --mode agent_execution --backend claude_code_cli --request-file request.json --write-state --json
 ```
 
 ---
@@ -43,6 +46,18 @@ python -m governance.dag_runner.cli [OPTIONS]
 | `--json` | — | off | Machine-readable JSON output |
 | `--show-steps` | — | off | Print ordered step list (text mode) |
 | `--write-state` | — | off | Persist `governance_run_state.json` after execution |
+
+### Bootstrap Input
+
+| Flag | Description |
+|------|-------------|
+| `--request-text <text>` | Governance request text for evaluation (mutually exclusive with `--request-file`) |
+| `--request-file <path>` | Path to file containing the governance request (JSON with `request_text` key, or plain text) |
+| `--request-id <id>` | Optional correlation ID for the governance request |
+| `--request-source <source>` | Optional source tag (e.g. `pr`, `manual`, `hook`) |
+
+In `agent_execution` mode, `--request-text` or `--request-file` is **required** for fresh runs (fail-closed).
+Continuation runs (`--continue-from`) and non-semantic modes (`dry-run`, `graph`, `shell_v1`) do not require bootstrap input.
 
 ### Continuation & Timeout
 
@@ -117,7 +132,7 @@ python -m governance.dag_runner.cli --mode agent_execution --backend claude_code
 7. `claude -p --output-format json --model <model> --no-session-persistence --tools ""` invoked
 8. Response parsed: CLI envelope -> result text -> artifact JSON
 9. Artifact schema validated (produced_by, no envelope keys, declared outputs)
-10. Artifacts written to `.claude/run/artifacts/<name>.json`
+10. Artifacts written to session directory: `.claude/run/sessions/<run_id>/artifacts/<name>.json`
 
 ---
 
@@ -242,7 +257,7 @@ governance/dag_runner/                 # DAG runner engine (this directory)
 ## Hooks
 
 Hooks are wired in `.claude/settings.json` and fire automatically during Claude Code sessions.
-They read governance artifacts from `.claude/run/artifacts/` and enforce constraints.
+They read governance artifacts from the active session directory (resolved via `.claude/run/current_session.json`) and enforce constraints.
 
 | Hook | Trigger | What It Does |
 |------|---------|-------------|
@@ -255,19 +270,54 @@ They read governance artifacts from `.claude/run/artifacts/` and enforce constra
 
 **Hook execution flow:**
 1. Claude Code fires the hook event (PreToolUse/PostToolUse/Stop)
-2. Hook script reads the relevant governance artifact from `.claude/run/artifacts/`
-3. Hook checks specific fields in the artifact data
-4. If check fails: exit 2 (block) or print warning (warn)
-5. If check passes: exit 0 (allow)
+2. Hook script reads the active-session pointer at `.claude/run/current_session.json`
+3. Hook reads the relevant governance artifact from the session's `artifacts/` directory
+4. Hook checks specific fields in the artifact data
+5. If check fails: exit 2 (block) or print warning (warn)
+6. If check passes: exit 0 (allow)
+
+**Fallback:** If no session pointer exists, hooks fall back to the legacy flat directory `.claude/run/artifacts/`.
 
 **Important:** Hooks depend on governance artifacts being present. Run the DAG first
 to produce artifacts, then hooks enforce them during subsequent editing.
 
 ---
 
+## Session-Scoped Artifact Layout
+
+Each DAG run creates a unique session directory keyed by the run UUID:
+
+```
+.claude/run/
+  current_session.json            # pointer to active session
+  sessions/
+    <run_id>/
+      artifacts/                  # governance artifact envelopes
+        governance_context.json
+        claim_classification_map.json
+        ...
+      debug/                      # debug dumps (parse failures)
+        classify-claims_debug.json
+        ...
+```
+
+**Fresh runs** always start with a clean, empty session directory. No artifacts from prior runs are inherited.
+
+**Continuation runs** (`--continue-from`) reuse the prior session directory, preserving previously produced artifacts.
+
+The active-session pointer (`.claude/run/current_session.json`) is written at the start of each run and contains:
+
+```json
+{
+  "run_id": "<uuid>",
+  "session_dir": ".claude/run/sessions/<uuid>",
+  "started_at": "<ISO-8601>"
+}
+```
+
 ## Artifacts
 
-All governance artifacts are written to `.claude/run/artifacts/` as JSON envelopes:
+All governance artifacts are written as JSON envelopes:
 
 ```json
 {
@@ -283,7 +333,7 @@ All governance artifacts are written to `.claude/run/artifacts/` as JSON envelop
 
 These must be present for the pre-PR governance gate to pass:
 
-- `governance_context` — Constitutional context from CLAUDE.md
+- `governance_context` — Request-bearing bootstrap context (includes `request_text`, `run_id`, `request_source`)
 - `claim_classification_map` — Claim type classification
 - `normalized_terminology_map` — Terminology normalization verdicts
 - `role_citation_verdict` — Role-matched citation check

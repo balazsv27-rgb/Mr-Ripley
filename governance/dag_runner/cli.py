@@ -135,6 +135,32 @@ def _build_parser() -> argparse.ArgumentParser:
         choices=["mock", "claude_code_cli"],
         help="Execution backend (default: mock). 'claude_code_cli' uses local Claude CLI.",
     )
+    # Bootstrap input flags
+    bootstrap = parser.add_mutually_exclusive_group()
+    bootstrap.add_argument(
+        "--request-text",
+        type=str,
+        default=None,
+        help="Governance request text for evaluation.",
+    )
+    bootstrap.add_argument(
+        "--request-file",
+        type=str,
+        default=None,
+        help="Path to file containing the governance request (JSON or plain text).",
+    )
+    parser.add_argument(
+        "--request-id",
+        type=str,
+        default=None,
+        help="Optional correlation ID for the governance request.",
+    )
+    parser.add_argument(
+        "--request-source",
+        type=str,
+        default=None,
+        help="Optional source tag (e.g. 'pr', 'manual', 'hook').",
+    )
     return parser
 
 
@@ -212,6 +238,31 @@ def main() -> int:
     workflow_path = Path(args.workflow)
     state_path = Path(args.state_path)
 
+    # Resolve bootstrap input: --request-file -> request_text
+    resolved_request_text = args.request_text
+    if args.request_file:
+        request_path = Path(args.request_file)
+        if not request_path.is_file():
+            print(f"Request file not found: {request_path}", file=sys.stderr)
+            return EXIT_STRUCTURAL_FAILURE
+        try:
+            raw = request_path.read_text(encoding="utf-8").strip()
+            if not raw:
+                print(f"Request file is empty: {request_path}", file=sys.stderr)
+                return EXIT_STRUCTURAL_FAILURE
+            # If the file is JSON, extract "request_text" field; otherwise use raw text
+            try:
+                parsed = json.loads(raw)
+                if isinstance(parsed, dict) and "request_text" in parsed:
+                    resolved_request_text = parsed["request_text"]
+                else:
+                    resolved_request_text = raw
+            except json.JSONDecodeError:
+                resolved_request_text = raw
+        except OSError as exc:
+            print(f"Failed to read request file: {exc}", file=sys.stderr)
+            return EXIT_STRUCTURAL_FAILURE
+
     try:
         loaded = load_workflow_packages(workflow_path)
         spec = assemble_workflow_spec(loaded)
@@ -272,6 +323,9 @@ def main() -> int:
             timeout=args.timeout,
             phase=args.phase,
             state_path=args.state_path,
+            request_text=resolved_request_text,
+            request_id=args.request_id,
+            request_source=args.request_source,
         )
 
         # Determine backend
@@ -354,6 +408,7 @@ def main() -> int:
             "drift_clean": drift_result.is_clean,
             "drift_informational_count": len(drift_result.informational_drifts),
             "diagnostics": diagnostic_report_to_dict(diagnostic_report),
+            "session_dir": execution_result.run_state.session_dir,
         }
         print(json.dumps(output, indent=2))
         return _exit_code_for_execution(
@@ -378,6 +433,8 @@ def main() -> int:
     print(f"Executed steps: {len(execution_result.run_state.node_results)}")
     print(f"Recorded trace events: {len(execution_result.run_state.execution_trace)}")
     print(f"Verdict: {verdict.status.upper()}")
+    if execution_result.run_state.session_dir:
+        print(f"Session: {execution_result.run_state.session_dir}")
 
     if verdict.reasons:
         print("Verdict reasons:")

@@ -154,6 +154,10 @@ class ExecutionConfig:
     continue_from: str | None = None
     phase_scope: str | None = None
     state_bootstrap_path: str | None = None
+    # Bootstrap input for governance evaluation
+    request_text: str | None = None
+    request_id: str | None = None
+    request_source: str | None = None
 
 
 @dataclass(frozen=True)
@@ -321,3 +325,4 @@ class GovernanceRunState:
     warnings: list[str] = field(default_factory=list)
     execution_trace: list[ExecutionTraceEvent] = field(default_factory=list)
     final_verdict: FinalVerdict | None = None
+    session_dir: str | None = None
