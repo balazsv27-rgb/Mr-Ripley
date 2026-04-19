@@ -15,6 +15,7 @@ from governance.dag_runner.execution_backend import (
     ClaudeCodeCLIBackend,
     ExecutionBackend,
     MockExecutionBackend,
+    ParseResult,
     _parse_backend_response,
 )
 from governance.dag_runner.models import (
@@ -403,6 +404,8 @@ class TestFailureScenarios:
         # Exit code 0 → success=True at subprocess level, but no artifacts parsed
         assert result.success is True
         assert result.artifacts_produced == {}
+        assert result.parse_failure is not None
+        assert "cli_is_error_flag" in result.parse_failure
 
 
 # ---------------------------------------------------------------------------
@@ -417,8 +420,10 @@ class TestParseBackendResponse:
             "ctx": {"produced_by": "step-1", "data": {"key": "val"}},
         })
         result = _parse_backend_response(raw, ["ctx"])
-        assert "ctx" in result
-        assert result["ctx"]["data"]["key"] == "val"
+        assert isinstance(result, ParseResult)
+        assert result.failure is None
+        assert "ctx" in result.artifacts
+        assert result.artifacts["ctx"]["data"]["key"] == "val"
 
     def test_valid_multiple_artifacts(self) -> None:
         raw = _make_artifact_response({
@@ -426,39 +431,53 @@ class TestParseBackendResponse:
             "b": {"produced_by": "s", "data": {}},
         })
         result = _parse_backend_response(raw, ["a", "b"])
-        assert len(result) == 2
+        assert result.failure is None
+        assert len(result.artifacts) == 2
 
     def test_malformed_outer_json(self) -> None:
         result = _parse_backend_response("not json at all", ["x"])
-        assert result == {}
+        assert result.artifacts == {}
+        assert result.failure is not None
+        assert "outer_envelope_invalid_json" in result.failure
 
     def test_empty_string(self) -> None:
         result = _parse_backend_response("", ["x"])
-        assert result == {}
+        assert result.artifacts == {}
+        assert result.failure is not None
 
     def test_none_input(self) -> None:
         result = _parse_backend_response(None, ["x"])  # type: ignore[arg-type]
-        assert result == {}
+        assert result.artifacts == {}
+        assert result.failure is not None
 
     def test_is_error_true(self) -> None:
         raw = _make_cli_envelope("irrelevant", is_error=True)
         result = _parse_backend_response(raw, ["x"])
-        assert result == {}
+        assert result.artifacts == {}
+        assert result.failure is not None
+        assert "cli_is_error_flag" in result.failure
 
     def test_result_not_json(self) -> None:
         raw = _make_cli_envelope("plain text, not JSON")
         result = _parse_backend_response(raw, ["x"])
-        assert result == {}
+        assert result.artifacts == {}
+        assert result.failure is not None
+        assert "no_json_object" in result.failure
+        assert result.result_preview != ""
 
     def test_result_json_without_artifacts_key(self) -> None:
         raw = _make_cli_envelope(json.dumps({"no_artifacts": True}))
         result = _parse_backend_response(raw, ["x"])
-        assert result == {}
+        assert result.artifacts == {}
+        assert result.failure is not None
+        assert "artifacts_dict_empty" in result.failure
 
     def test_artifacts_not_dict(self) -> None:
         raw = _make_cli_envelope(json.dumps({"artifacts": "string"}))
         result = _parse_backend_response(raw, ["x"])
-        assert result == {}
+        assert result.artifacts == {}
+        assert result.failure is not None
+        assert "artifacts_key_not_dict" in result.failure
 
     def test_non_dict_artifact_payload_filtered(self) -> None:
         raw = _make_cli_envelope(json.dumps({
@@ -468,13 +487,109 @@ class TestParseBackendResponse:
             },
         }))
         result = _parse_backend_response(raw, ["good", "bad"])
-        assert "good" in result
-        assert "bad" not in result
+        assert "good" in result.artifacts
+        assert "bad" not in result.artifacts
 
     def test_empty_result_field(self) -> None:
         raw = _make_cli_envelope("")
         result = _parse_backend_response(raw, ["x"])
-        assert result == {}
+        assert result.artifacts == {}
+        assert result.failure is not None
+        assert "result_field_empty" in result.failure
+
+    def test_prose_prefixed_json_extracted(self) -> None:
+        """Parser extracts JSON when the model prefixes prose explanation."""
+        inner_json = json.dumps({
+            "artifacts": {
+                "claim_classification_map": {
+                    "produced_by": "classify-claims",
+                    "classifications": [{"claim": "test", "type": "current-state"}],
+                },
+            },
+        })
+        prose_response = (
+            "I was unable to read ctx.json directly. Based on the upstream "
+            "artifacts provided in the prompt, here is my classification:\n\n"
+            + inner_json
+        )
+        raw = _make_cli_envelope(prose_response)
+        result = _parse_backend_response(raw, ["claim_classification_map"])
+        assert result.failure is None, f"Expected no failure, got: {result.failure}"
+        assert "claim_classification_map" in result.artifacts
+        assert result.artifacts["claim_classification_map"]["produced_by"] == "classify-claims"
+
+    def test_wrong_artifact_name_detected(self) -> None:
+        """Parser flags when produced artifact names differ from expected."""
+        raw = _make_artifact_response({
+            "claim_classification": {"produced_by": "classify-claims", "data": {}},
+        })
+        result = _parse_backend_response(raw, ["claim_classification_map"])
+        # Artifacts ARE extracted (parser doesn't gate on name)
+        assert "claim_classification" in result.artifacts
+        # But failure is set explaining the name mismatch
+        assert result.failure is not None
+        assert "wrong_artifact_names" in result.failure
+        assert "claim_classification_map" in result.failure  # missing
+        assert "claim_classification" in result.failure  # unexpected
+
+    def test_correct_artifact_name_no_failure(self) -> None:
+        """No failure when produced names match expected."""
+        raw = _make_artifact_response({
+            "claim_classification_map": {"produced_by": "classify-claims", "data": {}},
+        })
+        result = _parse_backend_response(raw, ["claim_classification_map"])
+        assert "claim_classification_map" in result.artifacts
+        assert result.failure is None
+
+    def test_parse_failure_propagated_to_backend_result(self) -> None:
+        """Backend execute_step must propagate parse_failure from ParseResult."""
+        mock_proc = subprocess.CompletedProcess(
+            args=[], returncode=0,
+            stdout=_make_cli_envelope("I am plain text, not JSON"),
+            stderr="some warning",
+        )
+        with mock.patch(
+            "governance.dag_runner.execution_backend.subprocess.run",
+            return_value=mock_proc,
+        ):
+            backend = ClaudeCodeCLIBackend()
+            result = backend.execute_step(
+                step=_make_step(),
+                agent=_make_agent(),
+                config=ExecutionConfig(),
+                run_state=_make_run_state(),
+                spec=_make_spec(),
+                prompt_context=_make_prompt_context(),
+            )
+        assert result.success is True
+        assert result.artifacts_produced == {}
+        assert result.parse_failure is not None
+        assert "no_json_object" in result.parse_failure
+        assert result.stderr == "some warning"
+
+    def test_stderr_captured_on_nonzero_exit(self) -> None:
+        """Backend must capture and surface stderr on non-zero exit."""
+        mock_proc = subprocess.CompletedProcess(
+            args=[], returncode=1,
+            stdout="",
+            stderr="Error: authentication required",
+        )
+        with mock.patch(
+            "governance.dag_runner.execution_backend.subprocess.run",
+            return_value=mock_proc,
+        ):
+            backend = ClaudeCodeCLIBackend()
+            result = backend.execute_step(
+                step=_make_step(),
+                agent=_make_agent(),
+                config=ExecutionConfig(),
+                run_state=_make_run_state(),
+                spec=_make_spec(),
+                prompt_context=_make_prompt_context(),
+            )
+        assert result.success is False
+        assert result.stderr == "Error: authentication required"
+        assert "authentication required" in result.failure.detail
 
 
 # ---------------------------------------------------------------------------

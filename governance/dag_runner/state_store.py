@@ -62,6 +62,7 @@ class StoredNodeResult:
     inference_used: bool = False
     latency_ms: float = 0.0
     token_count: int = 0
+    failure_detail: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass(frozen=True)
@@ -207,6 +208,7 @@ def build_stored_run_state(
                 inference_used=result.inference_used,
                 latency_ms=result.latency_ms,
                 token_count=result.token_count,
+                failure_detail=dict(result.failure_detail) if result.failure_detail else {},
             )
             for result in run_state.node_results.values()
         ]
@@ -395,6 +397,7 @@ def load_run_state_from_path(path: Path) -> GovernanceRunState:
                 inference_used=bool(nr_dict.get("inference_used", False)),
                 latency_ms=float(nr_dict.get("latency_ms", 0.0)),
                 token_count=int(nr_dict.get("token_count", 0)),
+                failure_detail=dict(nr_dict.get("failure_detail", {})),
             )
             node_results[nr.node_name] = nr
 

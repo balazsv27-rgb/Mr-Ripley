@@ -32,6 +32,9 @@ class StepDiagnostic:
     token_count: int
     component_kind: str
     inference_used: bool
+    summary: str = ""
+    evidence: list[str] = field(default_factory=list)
+    failure_detail: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass(frozen=True)
@@ -134,6 +137,9 @@ def build_diagnostic_report(
             token_count=nr.token_count,
             component_kind=kind,
             inference_used=nr.inference_used,
+            summary=nr.summary if nr.status in ("FAIL", "SKIP") else "",
+            evidence=list(nr.evidence) if nr.status == "FAIL" else [],
+            failure_detail=dict(nr.failure_detail) if nr.status == "FAIL" and nr.failure_detail else {},
         )
         step_diags.append(diag)
 
@@ -188,6 +194,9 @@ def diagnostic_report_to_dict(report: DiagnosticReport) -> dict[str, Any]:
                 "token_count": d.token_count,
                 "component_kind": d.component_kind,
                 "inference_used": d.inference_used,
+                **({"summary": d.summary} if d.summary else {}),
+                **({"evidence": d.evidence} if d.evidence else {}),
+                **({"failure_detail": d.failure_detail} if d.failure_detail else {}),
             }
             for d in report.step_diagnostics
         ],

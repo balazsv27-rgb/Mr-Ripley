@@ -211,6 +211,8 @@ class AgentExecutionResult:
     failure: FailureClassification | None = None
     latency_ms: float = 0.0
     token_count: int = 0
+    stderr: str = ""
+    parse_failure: str | None = None
 
 
 @dataclass(frozen=True)
@@ -300,6 +302,7 @@ class NodeResult:
     inference_used: bool = False
     latency_ms: float = 0.0
     token_count: int = 0
+    failure_detail: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass

@@ -16,6 +16,7 @@ Both paths share predicate evaluation and fail-closed semantics.
 """
 from __future__ import annotations
 
+import json
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
@@ -445,25 +446,33 @@ def _execute_v2_step(
 
     # R3-D: backend_invocation_completed / backend_invocation_failed
     if result.success:
+        completed_detail: dict[str, Any] = {
+            "component_kind": kind,
+            "artifacts_produced": list(result.artifacts_produced.keys()),
+            "latency_ms": result.latency_ms,
+        }
+        if result.parse_failure:
+            completed_detail["parse_failure"] = result.parse_failure
+        if result.stderr:
+            completed_detail["stderr_preview"] = result.stderr[:500]
         _append_trace(
             run_state,
             node_name=step.name,
             event_type="backend_invocation_completed",
-            detail={
-                "component_kind": kind,
-                "artifacts_produced": list(result.artifacts_produced.keys()),
-                "latency_ms": result.latency_ms,
-            },
+            detail=completed_detail,
         )
     else:
+        fail_detail: dict[str, Any] = {
+            "component_kind": kind,
+            "failure": str(result.failure) if result.failure else "unknown",
+        }
+        if result.stderr:
+            fail_detail["stderr_preview"] = result.stderr[:500]
         _append_trace(
             run_state,
             node_name=step.name,
             event_type="backend_invocation_failed",
-            detail={
-                "component_kind": kind,
-                "failure": str(result.failure) if result.failure else "unknown",
-            },
+            detail=fail_detail,
         )
 
     # B5: Artifact schema validation
@@ -491,23 +500,42 @@ def _execute_v2_step(
                 },
             )
             if strict_artifact_validation:
+                schema_evidence = [
+                    f"component_kind={kind}",
+                    f"backend={type(backend).__name__}",
+                ]
+                schema_fd: dict[str, Any] = {
+                    "violation_count": len(all_violations),
+                    "violations": violation_details,
+                }
+                for v in all_violations:
+                    detail_str = ", ".join(
+                        f"{k}={v2}" for k, v2 in v.detail.items()
+                    ) if v.detail else ""
+                    schema_evidence.append(
+                        f"schema_violation={v.artifact_name}:"
+                        f"{v.violation}"
+                        + (f"({detail_str})" if detail_str else "")
+                    )
                 return NodeResult(
                     node_name=step.name,
                     node_type=step.component,
                     status="FAIL",
                     summary=(
                         f"Artifact schema validation failed: "
-                        f"{len(all_violations)} violation(s)."
+                        f"{len(all_violations)} violation(s) — "
+                        + "; ".join(
+                            f"{v.artifact_name}: {v.violation}"
+                            for v in all_violations
+                        )
                     ),
-                    evidence=[
-                        f"artifact_schema_violation={v.artifact_name}"
-                        for v in all_violations
-                    ],
+                    evidence=schema_evidence,
                     produced_artifacts=[],
                     triggered_blocks=list(step.raises),
                     inference_used=kind in _BACKEND_KINDS,
                     latency_ms=result.latency_ms,
                     token_count=result.token_count,
+                    failure_detail=schema_fd,
                 )
             # else: warn only — continue to record artifacts
         else:
@@ -538,33 +566,83 @@ def _execute_v2_step(
             o for o in step.outputs if o not in result.artifacts_produced
         ]
         if missing_outputs:
+            produced = list(result.artifacts_produced.keys())
+
+            # Detect "wrong artifact name" — artifacts were extracted from
+            # the response but under names that don't match declared outputs.
+            unexpected_names = [n for n in produced if n not in step.outputs]
+
+            # Extract inner result text preview from raw output
+            raw_output_preview = ""
+            if result.raw_output:
+                try:
+                    _env = json.loads(result.raw_output)
+                    _rt = _env.get("result", "")
+                    if isinstance(_rt, str):
+                        raw_output_preview = _rt[:500]
+                except Exception:
+                    raw_output_preview = result.raw_output[:500]
+
+            # Build structured failure_detail for machine-readable diagnostics
+            fd: dict[str, Any] = {
+                "missing_outputs": missing_outputs,
+                "declared_outputs": list(step.outputs),
+                "produced_outputs": produced,
+            }
+            if unexpected_names:
+                fd["unexpected_artifact_names"] = unexpected_names
+            if result.parse_failure:
+                fd["parse_failure_reason"] = result.parse_failure
+            if raw_output_preview:
+                fd["raw_output_preview"] = raw_output_preview
+            if result.stderr:
+                fd["stderr_preview"] = result.stderr[:500]
+
             _append_trace(
                 run_state,
                 node_name=step.name,
                 event_type="declared_outputs_missing",
-                detail={
-                    "missing_outputs": missing_outputs,
-                    "declared_outputs": list(step.outputs),
-                    "produced_outputs": list(result.artifacts_produced.keys()),
-                },
+                detail=fd,
             )
+
+            # Build summary with actionable detail
+            summary = (
+                f"Declared outputs not produced by backend: "
+                f"{', '.join(missing_outputs)}"
+            )
+            if unexpected_names:
+                summary += (
+                    f" (backend produced [{', '.join(unexpected_names)}]"
+                    f" — expected [{', '.join(step.outputs)}])"
+                )
+            elif result.parse_failure:
+                summary += f" (parse: {result.parse_failure})"
+
+            # Evidence list — concise tags for backward compat
+            evidence = [
+                f"component_kind={kind}",
+                f"backend={type(backend).__name__}",
+            ]
+            evidence.extend(f"missing_output={o}" for o in missing_outputs)
+            if unexpected_names:
+                evidence.extend(
+                    f"unexpected_output={n}" for n in unexpected_names
+                )
+            if result.parse_failure:
+                evidence.append(f"parse_failure={result.parse_failure}")
+
             return NodeResult(
                 node_name=step.name,
                 node_type=step.component,
                 status="FAIL",
-                summary=(
-                    f"Declared outputs not produced by backend: "
-                    f"{', '.join(missing_outputs)}"
-                ),
-                evidence=[
-                    f"component_kind={kind}",
-                    f"backend={type(backend).__name__}",
-                ] + [f"missing_output={o}" for o in missing_outputs],
-                produced_artifacts=list(result.artifacts_produced.keys()),
+                summary=summary,
+                evidence=evidence,
+                produced_artifacts=produced,
                 triggered_blocks=list(step.raises),
                 inference_used=kind in _BACKEND_KINDS,
                 latency_ms=result.latency_ms,
                 token_count=result.token_count,
+                failure_detail=fd,
             )
 
     return NodeResult(
