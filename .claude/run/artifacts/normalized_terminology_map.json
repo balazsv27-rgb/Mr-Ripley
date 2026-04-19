@@ -1,9 +1,52 @@
 {
   "artifact": "normalized_terminology_map",
   "produced_by": "normalize-terminology",
-  "session": "fcea9aab-6297-4884-b7df-87181586451b",
-  "timestamp": "2026-04-19T00:06:57.473071Z",
+  "session": "274ec4f0-a284-4c55-ad75-b9942bbc9860",
+  "timestamp": "2026-04-19T01:20:06.629122Z",
   "data": {
-    "produced_by": "normalize-terminology"
+    "produced_by": "normalize-terminology",
+    "status": "inconclusive",
+    "reason": "no_claims_to_normalize",
+    "detail": "The upstream claim_classification_map has status 'inconclusive' with reason 'no_user_request_provided' and an empty claims array. Terminology normalization requires at least one classified claim as input. Per the fail-closed principle (CLAUDE.md Section 7), no normalization map is produced when no input claims are available.",
+    "canonical_terminology_status": {
+      "overall_status": "review_only",
+      "inference_used": true,
+      "canonical_terms": [],
+      "checked_items": [
+        {
+          "item_id": "meta-01",
+          "target": "upstream claim_classification_map",
+          "observed_terms": [],
+          "normalization_actions": [],
+          "ambiguity_detected": false,
+          "governance_sensitive": false,
+          "unrecognized_term_detected": false,
+          "affected_artifacts": [
+            "claim_classification_map"
+          ],
+          "assessment": "review",
+          "canonical_source": "CLAUDE.md Section 7 (fail-closed principle)",
+          "notes": [
+            "The upstream classifier returned status 'inconclusive' with reason 'no_user_request_provided'. No claim text is available for terminology evaluation.",
+            "inference_used is set true because request_classification was effectively absent \u2014 no classified claims propagated from the prior step.",
+            "This is a holding state. No terminology verdicts can be issued without input claims. Downstream gating layers should treat this output as a pass-through pending a valid classify-claims result."
+          ]
+        }
+      ],
+      "summary": {
+        "normalization_required": false,
+        "ambiguity_detected": false,
+        "governance_sensitive_term_conflict_detected": false,
+        "unrecognized_terms_detected": false,
+        "requires_doc_sync_review": false,
+        "requires_verification_followup": false,
+        "source_authority_conflict_detected": false,
+        "notes": [
+          "No claims were provided for terminology normalization. The upstream classify-claims step produced an empty claims array due to no_user_request_provided.",
+          "Per the fail-closed principle, this skill emits no normalization actions and no compliance verdict when input claims are absent.",
+          "To produce a valid normalized_terminology_map, a user request must be submitted so that classify-claims can produce a non-empty claims array for this step to consume."
+        ]
+      }
+    }
   }
 }

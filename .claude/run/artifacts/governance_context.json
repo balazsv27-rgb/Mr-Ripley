@@ -1,8 +1,8 @@
 {
   "artifact": "governance_context",
   "produced_by": "load-context",
-  "session": "d7fc152d-e38b-43e6-933d-c74c69747118",
-  "timestamp": "2026-04-19T00:07:56.707790Z",
+  "session": "274ec4f0-a284-4c55-ad75-b9942bbc9860",
+  "timestamp": "2026-04-19T01:18:13.266135Z",
   "data": {
     "produced_by": "load-context",
     "structural": true

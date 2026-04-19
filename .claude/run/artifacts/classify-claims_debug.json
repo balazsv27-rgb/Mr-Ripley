@@ -1,0 +1,51 @@
+{
+  "step_name": "classify-claims",
+  "returncode": 0,
+  "stdout_length": 1665,
+  "stdout_first_1000": "{\"type\":\"result\",\"subtype\":\"success\",\"is_error\":false,\"duration_ms\":22581,\"duration_api_ms\":22386,\"num_turns\":3,\"result\":\"I need to read the governance context to understand what request/claims need classification. Could you grant read permission so I can access `.claude/run/artifacts/governance_context.json`? Without it, I don't know what user request triggered this workflow step and therefore can't classify any claims.\\n\\nAlternatively, if you can share what the original user request was that this DAG is processing, I can proceed with classification directly.\",\"stop_reason\":\"end_turn\",\"session_id\":\"2e1430ed-f3e0-4ec0-8e2b-449d4b56d45c\",\"total_cost_usd\":0.14622075,\"usage\":{\"input_tokens\":5,\"cache_creation_input_tokens\":15501,\"cache_read_input_tokens\":56479,\"output_tokens\":843,\"server_tool_use\":{\"web_search_requests\":0,\"web_fetch_requests\":0},\"service_tier\":\"standard\",\"cache_creation\":{\"ephemeral_1h_input_tokens\":15501,\"ephemeral_5m_input_tokens\":0},\"inference_geo\":\"\",\"iterations\":[],\"",
+  "stderr_length": 0,
+  "stderr_first_1000": "",
+  "parsed_artifact_keys": [],
+  "parse_failure": "inner_result_no_json_object: direct parse failed and no balanced JSON object found in result text",
+  "result_preview": "I need to read the governance context to understand what request/claims need classification. Could you grant read permission so I can access `.claude/run/artifacts/governance_context.json`? Without it, I don't know what user request triggered this workflow step and therefore can't classify any claims.\n\nAlternatively, if you can share what the original user request was that this DAG is processing, I can proceed with classification directly.",
+  "usage": {
+    "input_tokens": 5,
+    "cache_creation_input_tokens": 15501,
+    "cache_read_input_tokens": 56479,
+    "output_tokens": 843,
+    "server_tool_use": {
+      "web_search_requests": 0,
+      "web_fetch_requests": 0
+    },
+    "service_tier": "standard",
+    "cache_creation": {
+      "ephemeral_1h_input_tokens": 15501,
+      "ephemeral_5m_input_tokens": 0
+    },
+    "inference_geo": "",
+    "iterations": [],
+    "speed": "standard"
+  },
+  "envelope_keys": [
+    "duration_api_ms",
+    "duration_ms",
+    "fast_mode_state",
+    "is_error",
+    "modelUsage",
+    "num_turns",
+    "permission_denials",
+    "result",
+    "session_id",
+    "stop_reason",
+    "subtype",
+    "total_cost_usd",
+    "type",
+    "usage",
+    "uuid"
+  ],
+  "envelope_type": "result",
+  "envelope_is_error": false,
+  "result_type": "str",
+  "result_length": 443,
+  "result_first_1000": "I need to read the governance context to understand what request/claims need classification. Could you grant read permission so I can access `.claude/run/artifacts/governance_context.json`? Without it, I don't know what user request triggered this workflow step and therefore can't classify any claims.\n\nAlternatively, if you can share what the original user request was that this DAG is processing, I can proceed with classification directly."
+}

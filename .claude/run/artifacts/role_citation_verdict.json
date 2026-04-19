@@ -1,9 +1,30 @@
 {
   "artifact": "role_citation_verdict",
   "produced_by": "route-claims-by-role",
-  "session": "fcea9aab-6297-4884-b7df-87181586451b",
-  "timestamp": "2026-04-19T00:06:57.476465Z",
+  "session": "274ec4f0-a284-4c55-ad75-b9942bbc9860",
+  "timestamp": "2026-04-19T01:20:16.738906Z",
   "data": {
-    "produced_by": "route-claims-by-role"
+    "produced_by": "route-claims-by-role",
+    "role_matched_citation_status": {
+      "overall_status": "review_only",
+      "inference_used": true,
+      "source_authority_conflict_detected": false,
+      "checked_claims": [],
+      "summary": {
+        "role_mismatch_detected": false,
+        "canonical_conflict_unresolved": false,
+        "readme_layer2_used_as_override": false,
+        "requires_conflict_note": false,
+        "requires_doc_sync_escalation": false,
+        "recommended_guard_action": "none",
+        "notes": [
+          "No claims were available for role-matched citation validation. The upstream claim_classification_map has status 'inconclusive' with reason 'no_user_request_provided' and an empty claims array. The upstream normalized_terminology_map has status 'inconclusive' with reason 'no_claims_to_normalize'.",
+          "Per the fail-closed principle (CLAUDE.md Section 7), no citation verdicts are issued when no input claims are available. This is a holding state.",
+          "inference_used is set true because request_classification was effectively absent \u2014 no classified claims propagated from upstream steps.",
+          "To produce a valid role_citation_verdict, a user request must be submitted so that classify-claims produces a non-empty claims array for downstream skills to consume.",
+          "No canonical documents were evaluated. No artifacts were modified. This skill produced a structured verdict only."
+        ]
+      }
+    }
   }
 }

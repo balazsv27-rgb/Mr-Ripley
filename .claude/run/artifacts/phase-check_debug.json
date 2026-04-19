@@ -1,0 +1,51 @@
+{
+  "step_name": "phase-check",
+  "returncode": 0,
+  "stdout_length": 2907,
+  "stdout_first_1000": "{\"type\":\"result\",\"subtype\":\"success\",\"is_error\":false,\"duration_ms\":17518,\"duration_api_ms\":17491,\"num_turns\":1,\"result\":\"{\\\"artifacts\\\": {\\\"phase_alignment_status\\\": {\\\"produced_by\\\": \\\"phase-check\\\", \\\"phase_alignment_status\\\": {\\\"current_phase\\\": \\\"inferred:Phase A complete at contract boundary; Phase B bootstrap allowed but not completed\\\", \\\"requested_phase\\\": \\\"inferred:undetermined — no user request propagated from upstream\\\", \\\"allowed\\\": null, \\\"alignment_status\\\": \\\"ambiguous_requires_block\\\", \\\"gate_reference\\\": [\\\"phase_a_layer2_closure\\\", \\\"phase_b_layer3_bootstrap\\\"], \\\"blocking_reason_if_any\\\": \\\"no_claims_available_for_phase_alignment — upstream claim_classification_map status is inconclusive with reason no_user_request_provided and an empty claims array; no effective requested capability can be determined; per fail-closed principle (CLAUDE.md Section 7), phase alignment defaults to no output rather than incorrect alignment\\\", \\\"checked_claims\\\": [], \\\"summary\\\": {\\\"pha",
+  "stderr_length": 0,
+  "stderr_first_1000": "",
+  "parsed_artifact_keys": [],
+  "parse_failure": "inner_result_no_json_object: direct parse failed and no balanced JSON object found in result text",
+  "result_preview": "{\"artifacts\": {\"phase_alignment_status\": {\"produced_by\": \"phase-check\", \"phase_alignment_status\": {\"current_phase\": \"inferred:Phase A complete at contract boundary; Phase B bootstrap allowed but not completed\", \"requested_phase\": \"inferred:undetermined — no user request propagated from upstream\", \"allowed\": null, \"alignment_status\": \"ambiguous_requires_block\", \"gate_reference\": [\"phase_a_layer2_closure\", \"phase_b_layer3_bootstrap\"], \"blocking_reason_if_any\": \"no_claims_available_for_phase_alignm",
+  "usage": {
+    "input_tokens": 3,
+    "cache_creation_input_tokens": 11098,
+    "cache_read_input_tokens": 2541,
+    "output_tokens": 764,
+    "server_tool_use": {
+      "web_search_requests": 0,
+      "web_fetch_requests": 0
+    },
+    "service_tier": "standard",
+    "cache_creation": {
+      "ephemeral_1h_input_tokens": 11098,
+      "ephemeral_5m_input_tokens": 0
+    },
+    "inference_geo": "",
+    "iterations": [],
+    "speed": "standard"
+  },
+  "envelope_keys": [
+    "duration_api_ms",
+    "duration_ms",
+    "fast_mode_state",
+    "is_error",
+    "modelUsage",
+    "num_turns",
+    "permission_denials",
+    "result",
+    "session_id",
+    "stop_reason",
+    "subtype",
+    "total_cost_usd",
+    "type",
+    "usage",
+    "uuid"
+  ],
+  "envelope_type": "result",
+  "envelope_is_error": false,
+  "result_type": "str",
+  "result_length": 1962,
+  "result_first_1000": "{\"artifacts\": {\"phase_alignment_status\": {\"produced_by\": \"phase-check\", \"phase_alignment_status\": {\"current_phase\": \"inferred:Phase A complete at contract boundary; Phase B bootstrap allowed but not completed\", \"requested_phase\": \"inferred:undetermined — no user request propagated from upstream\", \"allowed\": null, \"alignment_status\": \"ambiguous_requires_block\", \"gate_reference\": [\"phase_a_layer2_closure\", \"phase_b_layer3_bootstrap\"], \"blocking_reason_if_any\": \"no_claims_available_for_phase_alignment — upstream claim_classification_map status is inconclusive with reason no_user_request_provided and an empty claims array; no effective requested capability can be determined; per fail-closed principle (CLAUDE.md Section 7), phase alignment defaults to no output rather than incorrect alignment\", \"checked_claims\": [], \"summary\": {\"phase_jump_detected\": false, \"live_readiness_implication_detected\": false, \"scope_exceeds_current_allowance\": false, \"snapshot_boundary_risk\": false, \"followup_audi"
+}
