@@ -217,6 +217,7 @@ class AgentExecutionResult:
     token_count: int = 0
     stderr: str = ""
     parse_failure: str | None = None
+    returncode: int | None = None
 
 
 @dataclass(frozen=True)

@@ -53,6 +53,7 @@ def _get_repo_root() -> Path:
     return Path(__file__).resolve().parent.parent.parent
 
 
+from governance.dag_runner.execution_backend import write_failure_debug_artifact
 from governance.dag_runner.path_policy import PathPolicyViolation
 
 
@@ -339,6 +340,62 @@ def _is_structural_step(component: str) -> bool:
     return kind in _STRUCTURAL_KINDS
 
 
+def _build_failure_detail(
+    *,
+    failure_origin: str,
+    failure_stage: str,
+    returncode: int | None = None,
+    parse_failure_reason: str | None = None,
+    stderr_preview: str = "",
+    raw_output_preview: str = "",
+    debug_artifact_written: bool = False,
+    debug_artifact_path: str | None = None,
+    **extra: Any,
+) -> dict[str, Any]:
+    """Build a standardized failure_detail dict with all required fields."""
+    fd: dict[str, Any] = {
+        "failure_origin": failure_origin,
+        "failure_stage": failure_stage,
+        "returncode": returncode,
+        "parse_failure_reason": parse_failure_reason,
+        "stderr_preview": stderr_preview,
+        "raw_output_preview": raw_output_preview,
+        "debug_artifact_written": debug_artifact_written,
+        "debug_artifact_path": debug_artifact_path,
+    }
+    fd.update(extra)
+    return fd
+
+
+def _write_debug_and_update(
+    fd: dict[str, Any],
+    *,
+    step_name: str,
+    run_state: GovernanceRunState,
+    raw_output: str = "",
+    stderr: str = "",
+    debug_dir: Path | None = None,
+) -> None:
+    """Write a failure debug artifact and update *fd* in place with write results."""
+    written, path, err = write_failure_debug_artifact(
+        step_name=step_name,
+        failure_detail=fd,
+        raw_output=raw_output,
+        stderr=stderr,
+        debug_dir=str(debug_dir) if debug_dir else None,
+    )
+    fd["debug_artifact_written"] = written
+    fd["debug_artifact_path"] = path
+    if err:
+        fd["debug_write_error"] = err
+        _append_trace(
+            run_state,
+            node_name=step_name,
+            event_type="debug_write_failed",
+            detail={"error": err},
+        )
+
+
 def _execute_v2_step(
     step: WorkflowStep,
     run_state: GovernanceRunState,
@@ -406,6 +463,9 @@ def _execute_v2_step(
             triggered_blocks=[],
             inference_used=False,
         )
+
+    # Track prompt context for timeout diagnostics (set when agent is resolved)
+    prompt_ctx = None
 
     # R3-D: backend_invocation_started trace event
     _append_trace(
@@ -489,6 +549,24 @@ def _execute_v2_step(
                 spec=spec,
             )
 
+    # Structured trace of raw backend result for diagnostics
+    _append_trace(
+        run_state,
+        node_name=step.name,
+        event_type="backend_result_received",
+        detail={
+            "success": result.success,
+            "failure_origin": result.failure.origin if result.failure else None,
+            "returncode": result.returncode,
+            "raw_output_len": len(result.raw_output) if result.raw_output else 0,
+            "stderr_len": len(result.stderr) if result.stderr else 0,
+            "parse_failure": result.parse_failure,
+            "produced_artifact_count": len(result.artifacts_produced),
+            "latency_ms": result.latency_ms,
+            "token_count": result.token_count,
+        },
+    )
+
     # R3-D: backend_invocation_completed / backend_invocation_failed
     if result.success:
         completed_detail: dict[str, Any] = {
@@ -549,10 +627,24 @@ def _execute_v2_step(
                     f"component_kind={kind}",
                     f"backend={type(backend).__name__}",
                 ]
-                schema_fd: dict[str, Any] = {
-                    "violation_count": len(all_violations),
-                    "violations": violation_details,
-                }
+                schema_fd = _build_failure_detail(
+                    failure_origin="contract",
+                    failure_stage="schema_validation",
+                    returncode=result.returncode,
+                    parse_failure_reason=result.parse_failure,
+                    stderr_preview=result.stderr[:500] if result.stderr else "",
+                    raw_output_preview=result.raw_output[:500] if result.raw_output else "",
+                    violation_count=len(all_violations),
+                    violations=violation_details,
+                )
+                _write_debug_and_update(
+                    schema_fd,
+                    step_name=step.name,
+                    run_state=run_state,
+                    raw_output=result.raw_output,
+                    stderr=result.stderr,
+                    debug_dir=debug_dir,
+                )
                 for v in all_violations:
                     detail_str = ", ".join(
                         f"{k}={v2}" for k, v2 in v.detail.items()
@@ -606,7 +698,11 @@ def _execute_v2_step(
     # Fail-close: backend-dispatched step with declared outputs must produce them.
     # A step that declares outputs but produces none indicates a backend response
     # parsing failure — the step should not silently PASS.
-    if not dry_run and kind in _BACKEND_KINDS and step.outputs:
+    # CRITICAL: only check declared outputs when the backend invocation itself
+    # succeeded (result.success=True).  Backend failures (timeout, spawn error,
+    # nonzero exit) must NOT fall into this block — they are handled later at
+    # the backend_invocation failure path with their true failure_origin preserved.
+    if not dry_run and result.success and kind in _BACKEND_KINDS and step.outputs:
         missing_outputs = [
             o for o in step.outputs if o not in result.artifacts_produced
         ]
@@ -628,20 +724,42 @@ def _execute_v2_step(
                 except Exception:
                     raw_output_preview = result.raw_output[:500]
 
+            # Classify failure stage by root cause.
+            # When the backend parse itself is the source of zero/wrong
+            # artifacts, attribute to backend_parse or
+            # backend_response_contract — not executor_declared_output_check.
+            # executor_declared_output_check is reserved for cases where
+            # the backend successfully produced artifact objects but
+            # declared outputs were still not fully satisfied.
+            if result.parse_failure:
+                _failure_stage = "backend_parse"
+            elif not produced and (result.raw_output or result.stderr):
+                _failure_stage = "backend_response_contract"
+            else:
+                _failure_stage = "executor_declared_output_check"
+
             # Build structured failure_detail for machine-readable diagnostics
-            fd: dict[str, Any] = {
-                "missing_outputs": missing_outputs,
-                "declared_outputs": list(step.outputs),
-                "produced_outputs": produced,
-            }
+            fd = _build_failure_detail(
+                failure_origin="runtime",
+                failure_stage=_failure_stage,
+                returncode=result.returncode,
+                parse_failure_reason=result.parse_failure,
+                stderr_preview=result.stderr[:500] if result.stderr else "",
+                raw_output_preview=raw_output_preview,
+                missing_outputs=missing_outputs,
+                declared_outputs=list(step.outputs),
+                produced_outputs=produced,
+            )
             if unexpected_names:
                 fd["unexpected_artifact_names"] = unexpected_names
-            if result.parse_failure:
-                fd["parse_failure_reason"] = result.parse_failure
-            if raw_output_preview:
-                fd["raw_output_preview"] = raw_output_preview
-            if result.stderr:
-                fd["stderr_preview"] = result.stderr[:500]
+            _write_debug_and_update(
+                fd,
+                step_name=step.name,
+                run_state=run_state,
+                raw_output=result.raw_output,
+                stderr=result.stderr,
+                debug_dir=debug_dir,
+            )
 
             _append_trace(
                 run_state,
@@ -690,21 +808,93 @@ def _execute_v2_step(
                 failure_detail=fd,
             )
 
+    if result.success:
+        return NodeResult(
+            node_name=step.name,
+            node_type=step.component,
+            status="PASS",
+            summary=f"V2 {kind} execution completed.",
+            evidence=[f"component_kind={kind}", f"backend={type(backend).__name__}"],
+            produced_artifacts=list(result.artifacts_produced.keys()),
+            triggered_blocks=list(step.raises),
+            inference_used=kind in _BACKEND_KINDS,
+            latency_ms=result.latency_ms,
+            token_count=result.token_count,
+        )
+
+    # Backend invocation failure — map origin to specific failure_stage
+    _origin = result.failure.origin if result.failure else "runtime"
+    _stage_map = {
+        "timeout": "backend_timeout",
+        "runtime": "backend_invocation",
+        "artifact": "backend_artifact",
+        "contract": "backend_contract",
+    }
+    _backend_stage = _stage_map.get(_origin, "backend_invocation")
+
+    fd = _build_failure_detail(
+        failure_origin=_origin,
+        failure_stage=_backend_stage,
+        returncode=result.returncode,
+        parse_failure_reason=result.parse_failure,
+        stderr_preview=result.stderr[:500] if result.stderr else "",
+        raw_output_preview=result.raw_output[:500] if result.raw_output else "",
+        backend_failure_detail=result.failure.detail if result.failure else None,
+        raw_output_len=len(result.raw_output) if result.raw_output else 0,
+        stderr_len=len(result.stderr) if result.stderr else 0,
+    )
+
+    # For timeout failures, include execution context metadata
+    if _origin == "timeout":
+        fd["timeout_ms"] = result.latency_ms
+        try:
+            ctx = backend.get_execution_context() if hasattr(backend, "get_execution_context") else {}
+            if ctx:
+                fd["subprocess_cwd"] = ctx.get("subprocess_cwd", "")
+                fd["model"] = ctx.get("model", "")
+                fd["backend"] = ctx.get("backend", "")
+        except Exception:
+            pass
+        # Include prompt context summary for timeout diagnosis
+        if prompt_ctx is not None:
+            fd["prompt_token_estimate"] = prompt_ctx.token_estimate
+            fd["prompt_token_budget"] = prompt_ctx.token_budget
+            fd["prompt_truncated"] = prompt_ctx.truncated
+
+        _append_trace(
+            run_state,
+            node_name=step.name,
+            event_type="backend_timeout",
+            detail={
+                "timeout_ms": result.latency_ms,
+                "step_name": step.name,
+                "model": fd.get("model", ""),
+                "subprocess_cwd": fd.get("subprocess_cwd", ""),
+                "raw_output_len": fd.get("raw_output_len", 0),
+                "stderr_len": fd.get("stderr_len", 0),
+            },
+        )
+
+    _write_debug_and_update(
+        fd,
+        step_name=step.name,
+        run_state=run_state,
+        raw_output=result.raw_output,
+        stderr=result.stderr,
+        debug_dir=debug_dir,
+    )
     return NodeResult(
         node_name=step.name,
         node_type=step.component,
-        status="PASS" if result.success else "FAIL",
-        summary=(
-            f"V2 {kind} execution completed."
-            if result.success
-            else f"V2 {kind} execution failed: {result.failure}"
-        ),
+        status="FAIL",
+        summary=f"V2 {kind} execution failed: {result.failure}",
         evidence=[f"component_kind={kind}", f"backend={type(backend).__name__}"],
         produced_artifacts=list(result.artifacts_produced.keys()),
         triggered_blocks=list(step.raises),
         inference_used=kind in _BACKEND_KINDS,
         latency_ms=result.latency_ms,
         token_count=result.token_count,
+        failure_detail=fd,
     )
 
 
@@ -926,6 +1116,17 @@ def execute_plan(
                 else []
             )
             if missing_inputs:
+                mi_fd = _build_failure_detail(
+                    failure_origin="contract",
+                    failure_stage="input_validation",
+                    missing_inputs=missing_inputs,
+                )
+                _write_debug_and_update(
+                    mi_fd,
+                    step_name=step.name,
+                    run_state=run_state,
+                    debug_dir=debug_dir,
+                )
                 node_result = NodeResult(
                     node_name=step.name,
                     node_type=step.component,
@@ -940,6 +1141,7 @@ def execute_plan(
                     produced_artifacts=[],
                     triggered_blocks=list(step.raises),
                     inference_used=False,
+                    failure_detail=mi_fd,
                 )
                 run_state.node_results[node.step_id] = node_result
                 _append_trace(
@@ -1052,6 +1254,17 @@ def execute_plan(
                 if artifact_write_failures:
                     # Overwrite node_result with FAIL — artifact write is
                     # fail-closed per CLAUDE.md §7.
+                    aw_fd = _build_failure_detail(
+                        failure_origin="artifact",
+                        failure_stage="artifact_write",
+                        failed_artifacts=artifact_write_failures,
+                    )
+                    _write_debug_and_update(
+                        aw_fd,
+                        step_name=step.name,
+                        run_state=run_state,
+                        debug_dir=debug_dir,
+                    )
                     node_result = NodeResult(
                         node_name=node_result.node_name,
                         node_type=node_result.node_type,
@@ -1069,6 +1282,7 @@ def execute_plan(
                         inference_used=node_result.inference_used,
                         latency_ms=node_result.latency_ms,
                         token_count=node_result.token_count,
+                        failure_detail=aw_fd,
                     )
                     run_state.node_results[node.step_id] = node_result
 

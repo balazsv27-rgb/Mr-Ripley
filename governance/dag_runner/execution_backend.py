@@ -119,6 +119,35 @@ class MockExecutionBackend(ExecutionBackend):
         return AgentExecutionResult(success=True, artifacts_produced=artifacts)
 
 
+_TOOL_USE_MARKERS = (
+    "<tool_call",
+    "</tool_call",
+    "<tool_use",
+    "</tool_use",
+    "<tool_result",
+    "</tool_result",
+    "<invoke",
+    "<function_calls",
+    "</function_calls",
+)
+
+
+def _contains_tool_use_markup(text: str) -> bool:
+    """Return True if *text* contains XML-style tool-use tags."""
+    lowered = text.lower()
+    return any(marker in lowered for marker in _TOOL_USE_MARKERS)
+
+
+def _is_tool_call_payload(obj: dict[str, Any]) -> bool:
+    """Return True if *obj* resembles a tool-call, not an artifact container.
+
+    Standard tool-call shape: ``{"name": ..., "arguments": ...}``
+    Artifact container shape: ``{"artifacts": {...}}``
+    """
+    keys = set(obj.keys())
+    return "name" in keys and "arguments" in keys and "artifacts" not in keys
+
+
 def _strip_code_fences(text: str) -> str:
     """Strip markdown code fences from LLM response text.
 
@@ -279,6 +308,62 @@ def _write_step_debug(
         pass  # diagnostic-only — never block execution
 
 
+def write_failure_debug_artifact(
+    *,
+    step_name: str,
+    failure_detail: dict[str, Any],
+    raw_output: str = "",
+    stderr: str = "",
+    debug_dir: str | None = None,
+) -> tuple[bool, str | None, str | None]:
+    """Write structured failure debug artifact to disk.
+
+    When *raw_output* is a Claude CLI JSON envelope, the function
+    extracts envelope metadata and the inner result text so that the
+    actual model response is readable without manual JSON unpacking.
+
+    Returns ``(written, path, error)``.  Never raises to caller.
+    """
+    from pathlib import Path
+
+    target_dir = debug_dir or _LEGACY_DEBUG_DIR
+    debug_path = Path(target_dir) / f"{step_name}_debug.json"
+    try:
+        debug_path.parent.mkdir(parents=True, exist_ok=True)
+        payload: dict[str, Any] = {
+            "step_name": step_name,
+            "failure_detail": failure_detail,
+        }
+        if raw_output:
+            payload["raw_output_length"] = len(raw_output)
+            payload["raw_output_first_1000"] = raw_output[:1000]
+            # Extract envelope structure so the inner result text is
+            # readable without manually parsing escaped JSON.
+            try:
+                env = json.loads(raw_output)
+                if isinstance(env, dict):
+                    payload["envelope_keys"] = sorted(env.keys())
+                    payload["envelope_type"] = env.get("type")
+                    payload["envelope_is_error"] = env.get("is_error")
+                    payload["usage"] = env.get("usage")
+                    result_text = env.get("result", "")
+                    if isinstance(result_text, str):
+                        payload["result_text_length"] = len(result_text)
+                        payload["result_text_first_2000"] = result_text[:2000]
+                    else:
+                        payload["result_text_type"] = type(result_text).__name__
+            except (json.JSONDecodeError, TypeError):
+                payload["envelope_parse_error"] = "raw_output is not valid JSON"
+        if stderr:
+            payload["stderr_length"] = len(stderr)
+            payload["stderr_first_1000"] = stderr[:1000]
+        with debug_path.open("w", encoding="utf-8") as f:
+            json.dump(payload, f, indent=2, ensure_ascii=False)
+        return True, str(debug_path), None
+    except Exception as exc:
+        return False, None, str(exc)
+
+
 def _parse_backend_response(
     raw_output: str,
     expected_artifacts: list[str],
@@ -337,6 +422,21 @@ def _parse_backend_response(
     try:
         result_obj = json.loads(result_text)
     except (json.JSONDecodeError, TypeError):
+        # Before fallback extraction, reject tool-use markup.
+        # The CLI is invoked with --tools "" (no tools).  If the result
+        # text contains XML tool-call tags the model violated the
+        # no-tools contract and extracting JSON from inside those tags
+        # would misclassify a tool-call payload as an empty artifact.
+        if _contains_tool_use_markup(result_text):
+            return ParseResult(
+                artifacts={},
+                failure=(
+                    "disallowed_tool_use_response: result text contains "
+                    "tool-call markup (no-tools contract violation)"
+                ),
+                result_preview=preview,
+            )
+
         # Fallback: extract first JSON object from prose-prefixed text
         extracted_json = _extract_first_json_object(result_text)
         if extracted_json is not None:
@@ -356,6 +456,21 @@ def _parse_backend_response(
         return ParseResult(
             artifacts={},
             failure=f"inner_result_not_dict: got {type(result_obj).__name__}",
+            result_preview=preview,
+        )
+
+    # Reject objects that resemble tool-call payloads rather than
+    # artifact containers.  Catches both direct-parsed and fallback-
+    # extracted tool-call JSON (e.g. {"name": ..., "arguments": ...}).
+    if _is_tool_call_payload(result_obj):
+        top_keys = sorted(result_obj.keys())[:10]
+        return ParseResult(
+            artifacts={},
+            failure=(
+                f"disallowed_tool_use_response: result JSON is a "
+                f"tool-call payload (keys={top_keys}), not an "
+                f"artifact container"
+            ),
             result_preview=preview,
         )
 
@@ -426,6 +541,10 @@ class ClaudeCodeCLIBackend(ExecutionBackend):
     Uses ``claude -p`` (one-shot print mode) with assembled prompt on stdin.
     No direct API calls, no external billing, no repository-managed API
     dependency (uses local Claude Code runtime).
+
+    When *isolation_mode* is ``"isolated"``, the subprocess runs from a
+    neutral temp directory to avoid inheriting repo-local ``.claude/``
+    settings, hooks, and tool context.
     """
 
     def __init__(
@@ -433,10 +552,12 @@ class ClaudeCodeCLIBackend(ExecutionBackend):
         model: str = "sonnet",
         timeout_ms: int = 120_000,
         claude_command: str = "claude",
+        isolation_mode: str = "project",
     ) -> None:
         self._default_model = model
         self._timeout_ms = timeout_ms
         self._claude_command = claude_command
+        self._isolation_mode = isolation_mode
 
     def execute_step(
         self,
@@ -471,6 +592,12 @@ class ClaudeCodeCLIBackend(ExecutionBackend):
             "--tools", "",
         ]
 
+        # Determine subprocess working directory based on isolation mode
+        subprocess_cwd: str | None = None
+        if self._isolation_mode == "isolated":
+            from governance.dag_runner.runtime_info import get_isolated_cwd
+            subprocess_cwd = get_isolated_cwd()
+
         timeout_s = self._timeout_ms / 1000.0
         t0 = time.monotonic()
 
@@ -482,6 +609,7 @@ class ClaudeCodeCLIBackend(ExecutionBackend):
                 text=True,
                 timeout=timeout_s,
                 encoding="utf-8",
+                cwd=subprocess_cwd,
             )
         except subprocess.TimeoutExpired:
             latency = (time.monotonic() - t0) * 1000.0
@@ -493,6 +621,7 @@ class ClaudeCodeCLIBackend(ExecutionBackend):
                     step_id=step.name,
                     detail=f"Claude CLI subprocess timed out after {self._timeout_ms}ms.",
                 ),
+                returncode=None,
             )
         except OSError as exc:
             latency = (time.monotonic() - t0) * 1000.0
@@ -504,6 +633,7 @@ class ClaudeCodeCLIBackend(ExecutionBackend):
                     step_id=step.name,
                     detail=f"Failed to spawn Claude CLI subprocess: {exc}",
                 ),
+                returncode=None,
             )
 
         latency = (time.monotonic() - t0) * 1000.0
@@ -526,6 +656,7 @@ class ClaudeCodeCLIBackend(ExecutionBackend):
                         + (f" stderr: {stderr_preview}" if stderr_preview else "")
                     ),
                 ),
+                returncode=proc.returncode,
             )
 
         # Parse response and extract artifacts
@@ -540,21 +671,11 @@ class ClaudeCodeCLIBackend(ExecutionBackend):
         except (json.JSONDecodeError, TypeError, AttributeError):
             envelope = None
 
-        # --- Diagnostic capture (written to session debug dir) ---
-        # Persists subprocess output for failed backend-dispatched steps
-        # so the exact response contract violation can be inspected.
-        if not parse.artifacts or parse.failure:
-            _write_step_debug(
-                step_name=step.name,
-                returncode=proc.returncode,
-                stdout=raw_output,
-                stderr=stderr_output,
-                parsed_artifact_keys=list(parse.artifacts.keys()),
-                parse_failure=parse.failure,
-                result_preview=parse.result_preview,
-                usage=envelope.get("usage") if isinstance(envelope, dict) else None,
-                debug_dir=str(debug_dir) if debug_dir else None,
-            )
+        # Debug-artifact writing is handled by the executor's
+        # _write_debug_and_update() — the single canonical source for
+        # debug_artifact_written / debug_artifact_path metadata.
+        # The backend no longer writes its own debug file to the same
+        # path, which previously caused an overwrite-and-desync.
 
         return AgentExecutionResult(
             success=True,
@@ -564,6 +685,7 @@ class ClaudeCodeCLIBackend(ExecutionBackend):
             token_count=token_count,
             stderr=stderr_output,
             parse_failure=parse.failure,
+            returncode=proc.returncode,
         )
 
     def execute_structural_step(
@@ -582,3 +704,36 @@ class ClaudeCodeCLIBackend(ExecutionBackend):
             else:
                 artifacts[output_name] = {"produced_by": step.name, "structural": True}
         return AgentExecutionResult(success=True, artifacts_produced=artifacts)
+
+    def get_execution_context(self, model_override: str = "") -> dict[str, Any]:
+        """Return backend execution context metadata for diagnostics."""
+        import os
+        from governance.dag_runner.runtime_info import (
+            build_backend_execution_context,
+            get_isolated_cwd,
+        )
+
+        model = model_override or self._default_model
+        if self._isolation_mode == "isolated":
+            cwd = get_isolated_cwd()
+        else:
+            cwd = os.getcwd()
+
+        limitations: list[str] = []
+        if self._isolation_mode == "isolated":
+            limitations.append(
+                "Claude CLI may still read ~/.claude/ user-level config"
+            )
+            limitations.append(
+                "Model system prompt may still reference Claude Code capabilities"
+            )
+
+        return build_backend_execution_context(
+            backend="claude_code_cli",
+            isolation_mode=self._isolation_mode,
+            subprocess_cwd=cwd,
+            claude_command=self._claude_command,
+            tools_argument="",
+            model=model,
+            isolation_limitations=limitations or None,
+        )

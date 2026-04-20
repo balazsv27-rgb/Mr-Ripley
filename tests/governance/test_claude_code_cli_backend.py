@@ -567,6 +567,93 @@ class TestParseBackendResponse:
         assert "no_json_object" in result.parse_failure
         assert result.stderr == "some warning"
 
+    # ---------------------------------------------------------------
+    # Tool-use / response-contract violation detection
+    # ---------------------------------------------------------------
+
+    def test_tool_call_markup_rejected(self) -> None:
+        """Prose + <tool_call> blocks → disallowed_tool_use_response, not artifacts_dict_empty."""
+        result_text = (
+            "I'll use the Glob tool to find the relevant files.\n\n"
+            "<tool_call>\n"
+            '{"name": "Glob", "arguments": {"pattern": "**/*.json"}}\n'
+            "</tool_call>\n\n"
+            "<tool_call>\n"
+            '{"name": "Grep", "arguments": {"pattern": "series_registry"}}\n'
+            "</tool_call>"
+        )
+        raw = _make_cli_envelope(result_text)
+        result = _parse_backend_response(raw, ["claim_classification_map"])
+        assert result.artifacts == {}
+        assert result.failure is not None
+        assert "disallowed_tool_use_response" in result.failure
+        assert "tool-call markup" in result.failure
+        assert result.result_preview != ""
+
+    def test_invoke_markup_rejected(self) -> None:
+        """<invoke> style markup is also caught."""
+        result_text = (
+            "Let me read the file.\n\n"
+            "<function_calls>\n"
+            '<invoke name="Read">\n'
+            '<parameter name="file_path">README.md</parameter>\n'
+            "</invoke>\n"
+            "</function_calls>"
+        )
+        raw = _make_cli_envelope(result_text)
+        result = _parse_backend_response(raw, ["analysis"])
+        assert result.artifacts == {}
+        assert "disallowed_tool_use_response" in result.failure
+
+    def test_extracted_tool_call_payload_rejected(self) -> None:
+        """First JSON object has name+arguments but no markup tags → still rejected."""
+        result_text = (
+            "Based on my analysis, I need to check the registry.\n\n"
+            '{"name": "Glob", "arguments": {"pattern": "*.json"}}'
+        )
+        raw = _make_cli_envelope(result_text)
+        result = _parse_backend_response(raw, ["claim_classification_map"])
+        assert result.artifacts == {}
+        assert result.failure is not None
+        assert "disallowed_tool_use_response" in result.failure
+        assert "tool-call payload" in result.failure
+
+    def test_direct_parsed_tool_call_payload_rejected(self) -> None:
+        """Result text that IS a tool-call JSON object (no prose) → rejected."""
+        result_text = json.dumps({"name": "Glob", "arguments": {"pattern": "*.json"}})
+        raw = _make_cli_envelope(result_text)
+        result = _parse_backend_response(raw, ["out"])
+        assert result.artifacts == {}
+        assert "disallowed_tool_use_response" in result.failure
+
+    def test_prose_with_artifact_json_still_works(self) -> None:
+        """Prose mentioning tools (not in markup) + valid artifact JSON → succeeds."""
+        inner_json = json.dumps({
+            "artifacts": {
+                "result": {"produced_by": "step-1", "data": {"ok": True}},
+            },
+        })
+        prose = (
+            "I wanted to use Glob but tools are disabled. "
+            "Here is my analysis:\n\n" + inner_json
+        )
+        raw = _make_cli_envelope(prose)
+        result = _parse_backend_response(raw, ["result"])
+        assert result.failure is None
+        assert "result" in result.artifacts
+
+    def test_tool_call_payload_with_artifacts_key_not_rejected(self) -> None:
+        """Object with name+arguments AND artifacts key is NOT a tool-call."""
+        result_text = json.dumps({
+            "name": "meta",
+            "arguments": {},
+            "artifacts": {"out": {"produced_by": "s", "data": {}}},
+        })
+        raw = _make_cli_envelope(result_text)
+        result = _parse_backend_response(raw, ["out"])
+        assert result.failure is None
+        assert "out" in result.artifacts
+
     def test_stderr_captured_on_nonzero_exit(self) -> None:
         """Backend must capture and surface stderr on non-zero exit."""
         mock_proc = subprocess.CompletedProcess(

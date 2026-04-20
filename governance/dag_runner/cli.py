@@ -161,6 +161,27 @@ def _build_parser() -> argparse.ArgumentParser:
         default=None,
         help="Optional source tag (e.g. 'pr', 'manual', 'hook').",
     )
+    parser.add_argument(
+        "--backend-isolation",
+        type=str,
+        default="project",
+        choices=["project", "isolated"],
+        help=(
+            "Backend isolation mode. 'project' inherits repo-local Claude "
+            "Code context (default). 'isolated' runs the subprocess from a "
+            "neutral temp directory to avoid .claude/settings.json, hooks, "
+            "and tool context interference."
+        ),
+    )
+    parser.add_argument(
+        "--runtime-info",
+        action="store_true",
+        help=(
+            "Emit runtime provenance and backend context as JSON, then exit "
+            "without executing the workflow. Use to verify which module files "
+            "are actually loaded."
+        ),
+    )
     return parser
 
 
@@ -234,6 +255,20 @@ def _build_graph_json(spec, plan) -> dict:
 def main() -> int:
     parser = _build_parser()
     args = parser.parse_args()
+
+    # --runtime-info: emit provenance and exit without running the workflow
+    if args.runtime_info:
+        from governance.dag_runner.runtime_info import build_runtime_provenance
+        from governance.dag_runner.execution_backend import ClaudeCodeCLIBackend
+        provenance = build_runtime_provenance()
+        backend_ctx = ClaudeCodeCLIBackend(
+            isolation_mode=args.backend_isolation,
+        ).get_execution_context()
+        print(json.dumps({
+            "runtime_provenance": provenance,
+            "backend_execution_context": backend_ctx,
+        }, indent=2))
+        return EXIT_OK
 
     workflow_path = Path(args.workflow)
     state_path = Path(args.state_path)
@@ -330,13 +365,16 @@ def main() -> int:
 
         # Determine backend
         backend = None
+        backend_ctx = None
         prior_state = None
         if exec_config.mode in ("agent_execution", "dry_run"):
             if getattr(args, "backend", None) == "claude_code_cli":
                 from governance.dag_runner.execution_backend import ClaudeCodeCLIBackend
                 backend = ClaudeCodeCLIBackend(
                     timeout_ms=exec_config.timeout_per_step_ms,
+                    isolation_mode=args.backend_isolation,
                 )
+                backend_ctx = backend.get_execution_context()
             else:
                 from governance.dag_runner.execution_backend import MockExecutionBackend
                 backend = MockExecutionBackend()
@@ -389,6 +427,7 @@ def main() -> int:
 
     # JSON output mode
     if args.json_output:
+        from governance.dag_runner.runtime_info import build_runtime_provenance
         output = {
             "workflow_name": plan.workflow_name,
             "mode": exec_config.mode if backend else "shell_v1",
@@ -409,7 +448,10 @@ def main() -> int:
             "drift_informational_count": len(drift_result.informational_drifts),
             "diagnostics": diagnostic_report_to_dict(diagnostic_report),
             "session_dir": execution_result.run_state.session_dir,
+            "runtime_provenance": build_runtime_provenance(),
         }
+        if backend_ctx:
+            output["backend_execution_context"] = backend_ctx
         print(json.dumps(output, indent=2))
         return _exit_code_for_execution(
             execution_result.run_state, verdict.status,
@@ -464,6 +506,8 @@ def main() -> int:
 
     if args.write_state:
         try:
+            from dataclasses import replace as _dc_replace
+            from governance.dag_runner.runtime_info import build_runtime_provenance
             state = build_stored_run_state(
                 loaded=loaded,
                 spec=spec,
@@ -472,6 +516,11 @@ def main() -> int:
                 blocker_summary=blocker_summary,
                 verdict=verdict,
                 execution_result=execution_result,
+            )
+            state = _dc_replace(
+                state,
+                runtime_provenance=build_runtime_provenance(),
+                backend_execution_context=backend_ctx or {},
             )
             written_path = write_run_state(state, output_path=state_path)
         except StateStoreError as exc:

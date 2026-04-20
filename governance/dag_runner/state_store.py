@@ -120,6 +120,10 @@ class StoredRunState:
     fatal_unresolved_block_count: int = 0
     pr_readiness: str = "blocked"
 
+    # Runtime provenance (additive, optional)
+    runtime_provenance: dict[str, Any] = field(default_factory=dict)
+    backend_execution_context: dict[str, Any] = field(default_factory=dict)
+
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
 

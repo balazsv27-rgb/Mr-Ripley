@@ -1,0 +1,184 @@
+{
+  "artifact": "claim_classification_map",
+  "produced_by": "classify-claims",
+  "session": "243e31c8-b45a-44ce-a847-3760d75fa4b9",
+  "timestamp": "2026-04-20T20:13:07.397759Z",
+  "data": {
+    "produced_by": "classify-claims",
+    "run_id": "243e31c8-b45a-44ce-a847-3760d75fa4b9",
+    "request_id": "rename-layer-terms-2026-04-20",
+    "status": "inconclusive",
+    "status_reason": "Canonical document set not found in working directory. No files under Documentation/, no CLAUDE.md, no README_LAYER2.md, and no other .md files located. All claims classified under reduced confidence with cannot_verify_from_current_materials evidence class where file-dependent verification is required.",
+    "canonical_docs_found": false,
+    "request_classification": {
+      "request_type": "documentation-wide terminology refactor with governance constraints",
+      "claims": [
+        {
+          "claim_id": "c1",
+          "claim_text": "Files under Documentation/ and CLAUDE.md currently use 'Layer 2'/'Layer-2' and 'Layer 3'/'Layer-3' terminology to refer to architectural layers.",
+          "claim_scope": "current-state",
+          "evidence_class": "cannot_verify_from_current_materials",
+          "source_priority": [
+            "README_v1.md",
+            "SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md",
+            "SYSTEM_TECHNICAL_HANDBOOK_v1.md",
+            "CLAUDE.md"
+          ],
+          "confidence_level": "low",
+          "classification_rationale": "This claim asserts the current existence and content of canonical documentation files. No files were found in the working directory. The governance context references these files and a project structure implying they exist somewhere, but they are not accessible for verification. Without being able to read the files, the claim that these terms are used as architectural layer references cannot be confirmed.",
+          "notes": [
+            "No canonical documents found in working directory",
+            "Glob searches for **/*.md returned empty results",
+            "Claim is plausible given governance context references to Layer-2 and Layer-3 architecture, but unverifiable"
+          ]
+        },
+        {
+          "claim_id": "c2",
+          "claim_text": "Replace all occurrences of 'Layer 2' and 'Layer-2' with 'truth_store' where they refer to the project's architectural layers.",
+          "claim_scope": "target-state",
+          "evidence_class": "planned_target_architecture",
+          "source_priority": [
+            "SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md",
+            "README_v1.md",
+            "SYSTEM_TECHNICAL_HANDBOOK_v1.md",
+            "DOCUMENTATION_VERIFICATION_MATRIX_v1.md"
+          ],
+          "confidence_level": "low",
+          "classification_rationale": "This is a requested change \u2014 a target-state terminology refactor. The new term 'truth_store' is proposed as a replacement for 'Layer 2'/'Layer-2'. Whether this rename is architecturally sound, consistent with the system's design intent, and free of ambiguity cannot be assessed without reading the canonical documents. The term 'truth_store' implies a semantic reframing from a layering metaphor to a functional-role metaphor. This could be valid or could introduce architectural drift depending on how 'Layer 2' is defined and used across the documentation set.",
+          "notes": [
+            "Semantic shift from positional layer numbering to functional naming",
+            "Risk of ambiguity if 'truth_store' conflicts with existing terminology",
+            "Cannot assess rename safety without canonical document access"
+          ]
+        },
+        {
+          "claim_id": "c3",
+          "claim_text": "Replace all occurrences of 'Layer 3' and 'Layer-3' with 'decision_layer' where they refer to the project's architectural layers.",
+          "claim_scope": "target-state",
+          "evidence_class": "planned_target_architecture",
+          "source_priority": [
+            "SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md",
+            "README_v1.md",
+            "SYSTEM_TECHNICAL_HANDBOOK_v1.md",
+            "DOCUMENTATION_VERIFICATION_MATRIX_v1.md"
+          ],
+          "confidence_level": "low",
+          "classification_rationale": "Same class as c2. The term 'decision_layer' replaces 'Layer 3'/'Layer-3'. This retains the word 'layer' but prefixes it with a functional descriptor. Cannot assess whether 'decision_layer' aligns with or conflicts with existing terminology (e.g., Decision Engine, DecisionPacket) without reading the canonical documents. Risk of confusion between 'decision_layer' as an architectural tier and 'Decision Engine' or 'DecisionPacket' as components within that tier.",
+          "notes": [
+            "Retains 'layer' suffix unlike c2's 'truth_store' \u2014 inconsistent naming pattern between the two replacements",
+            "Potential terminological collision with DecisionPacket, Decision Engine references",
+            "Cannot assess collision risk without canonical document access"
+          ]
+        },
+        {
+          "claim_id": "c4",
+          "claim_text": "The refactor should be scoped strictly to architectural-layer references and must not blindly alter unrelated literals, code module names, import paths, or historical references.",
+          "claim_scope": "current-state",
+          "evidence_class": "documented_current_state_claim",
+          "source_priority": [
+            "CLAUDE.md",
+            "SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md",
+            "DOCUMENTATION_VERIFICATION_MATRIX_v1.md"
+          ],
+          "confidence_level": "high",
+          "classification_rationale": "This is a governance constraint embedded in the request itself. It aligns with the governance context's evidence model discipline, historical source exclusion rules, and the skill instruction's requirement to not blindly alter historical references. The constraint is self-documenting within the request and consistent with the project's known governance principles. Classification confidence is high because the constraint is explicit and aligns with established governance rules regardless of file availability.",
+          "notes": [
+            "Aligns with CLAUDE.md Section 2.3 historical source exclusion",
+            "Aligns with CLAUDE.md Section 5 evidence model discipline",
+            "Self-documenting constraint within request"
+          ]
+        },
+        {
+          "claim_id": "c5",
+          "claim_text": "README_LAYER2.md and potentially other filenames containing 'Layer2' or 'Layer-2' may require rename handling as part of this refactor.",
+          "claim_scope": "current-state",
+          "evidence_class": "cannot_verify_from_current_materials",
+          "source_priority": [
+            "README_LAYER2.md",
+            "CLAUDE.md",
+            "DOCUMENTATION_VERIFICATION_MATRIX_v1.md"
+          ],
+          "confidence_level": "low",
+          "classification_rationale": "The governance context and skill instructions explicitly reference README_LAYER2.md as a canonical Tier 3 source with a declared role as collaborator guide. Its existence is strongly implied by the governance framework. However, the file was not found in the working directory. Renaming this file would have significant governance implications: it is referenced by name in source priority rules, skill bindings, and the canonical document hierarchy. A filename rename would require updating all cross-references, the canonical source priority list, and potentially the CLAUDE.md governance rules themselves.",
+          "notes": [
+            "README_LAYER2.md is referenced extensively in governance framework",
+            "Filename rename has cascading cross-reference implications",
+            "File not found in working directory \u2014 existence unverifiable",
+            "Rename would affect Tier 3 canonical source designation"
+          ]
+        },
+        {
+          "claim_id": "c6",
+          "claim_text": "The refactor must fail closed if it would introduce ambiguity, architecture drift, or snapshot-boundary confusion.",
+          "claim_scope": "current-state",
+          "evidence_class": "documented_current_state_claim",
+          "source_priority": [
+            "CLAUDE.md",
+            "SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md",
+            "DOCUMENTATION_VERIFICATION_MATRIX_v1.md"
+          ],
+          "confidence_level": "high",
+          "classification_rationale": "This is a fail-closed governance constraint consistent with CLAUDE.md Section 7 fail-closed principle. The constraint is explicit in the request and aligns with the project's established governance model. It does not require file verification to classify \u2014 it is a process constraint, not a content claim.",
+          "notes": [
+            "Directly aligns with CLAUDE.md Section 7 fail-closed principle",
+            "Self-documenting constraint",
+            "Downstream enforcement responsibility, not classification decision"
+          ]
+        },
+        {
+          "claim_id": "c7",
+          "claim_text": "The requested outputs include terminology, role-citation, phase-alignment, change-impact, rename-invariance, and doc-code-sync artifacts.",
+          "claim_scope": "target-state",
+          "evidence_class": "planned_target_architecture",
+          "source_priority": [
+            "CLAUDE.md",
+            "SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md"
+          ],
+          "confidence_level": "medium",
+          "classification_rationale": "These are requested downstream workflow outputs. Whether the governance orchestration workflow supports all of these named artifact types cannot be verified without reading the workflow definitions in CLAUDE.md and related configuration. The artifact names are plausible given the governance context's workflow_name 'mr-ripley-governance-orchestration' and the execution_mode 'agent_execution'. Classification as target-state because these artifacts do not yet exist and are requested products of the refactor governance process.",
+          "notes": [
+            "Artifact types assumed to be defined in governance workflow",
+            "Cannot verify workflow supports all named artifact types",
+            "Some artifact names (rename-invariance, doc-code-sync) may be novel"
+          ]
+        }
+      ],
+      "summary": {
+        "dominant_scope": "mixed",
+        "needs_phase_check": true,
+        "touches_current_truth": true,
+        "touches_target_architecture": true,
+        "touches_historical_reconciliation": true,
+        "touches_verification_matrix": true,
+        "touches_snapshot_contract": true,
+        "possible_blocking_conditions": [
+          "canonical_documents_not_accessible",
+          "cannot_verify_terminology_collision_risk",
+          "filename_rename_cascading_cross_reference_impact",
+          "inconsistent_replacement_naming_pattern_truth_store_vs_decision_layer",
+          "decision_layer_terminological_collision_with_DecisionPacket_Decision_Engine"
+        ]
+      }
+    },
+    "escalations": [
+      {
+        "trigger": "canonical_documents_not_accessible",
+        "target": "load-context",
+        "reason": "The classify-claims step cannot complete with high confidence because no canonical documents were found in the working directory. The load-context step must resolve document locations before classification can be finalized.",
+        "severity": "blocking"
+      },
+      {
+        "trigger": "inconsistent_replacement_naming_pattern",
+        "target": "terminology-consistency-check",
+        "reason": "The two replacement terms follow different naming patterns: 'truth_store' (functional noun, no 'layer' suffix) vs 'decision_layer' (functional adjective + 'layer' suffix). This inconsistency should be evaluated for architectural clarity.",
+        "severity": "warning"
+      },
+      {
+        "trigger": "decision_layer_terminological_collision",
+        "target": "terminology-consistency-check",
+        "reason": "The term 'decision_layer' may collide with existing 'Decision Engine' and 'DecisionPacket' terminology. Collision risk cannot be assessed without canonical document access.",
+        "severity": "warning"
+      }
+    ]
+  }
+}
