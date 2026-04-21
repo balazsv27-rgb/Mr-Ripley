@@ -529,6 +529,9 @@ def _execute_v2_step(
             ctx_dict = assemble_step_prompt(
                 step, spec, run_state, path_policy=path_policy,
             )
+            # Thread structured output flag so prompt format can be simplified
+            if hasattr(backend, "_use_structured_output"):
+                ctx_dict["use_structured_output"] = backend._use_structured_output
             prompt_ctx = build_prompt_context(ctx_dict)
             prompt_composition = build_prompt_composition_metadata(ctx_dict)
 
@@ -586,6 +589,7 @@ def _execute_v2_step(
             "produced_artifact_count": len(result.artifacts_produced),
             "latency_ms": result.latency_ms,
             "token_count": result.token_count,
+            "retry_count": result.retry_count,
         },
     )
 

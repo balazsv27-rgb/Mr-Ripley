@@ -138,6 +138,32 @@ def _contains_tool_use_markup(text: str) -> bool:
     return any(marker in lowered for marker in _TOOL_USE_MARKERS)
 
 
+def _build_artifact_json_schema(expected_outputs: list[str], step_name: str) -> str:
+    """Build a JSON Schema string for --json-schema that constrains output shape.
+
+    Returns a schema requiring ``{"artifacts": {<name>: object, ...}}``
+    where each artifact property is ``{"type": "object"}`` with
+    ``additionalProperties: true``.  Kept minimal (~300 chars) to avoid
+    Windows command-line length limits.
+    """
+    properties: dict[str, Any] = {}
+    for name in expected_outputs:
+        properties[name] = {"type": "object"}
+
+    schema = {
+        "type": "object",
+        "properties": {
+            "artifacts": {
+                "type": "object",
+                "properties": properties,
+                "required": sorted(expected_outputs),
+            },
+        },
+        "required": ["artifacts"],
+    }
+    return json.dumps(schema, separators=(",", ":"))
+
+
 def _is_tool_call_payload(obj: dict[str, Any]) -> bool:
     """Return True if *obj* resembles a tool-call, not an artifact container.
 
@@ -239,11 +265,13 @@ class ParseResult:
     ``artifacts`` — extracted artifact payloads (may be empty on failure).
     ``failure`` — human-readable reason the parse failed (None on success).
     ``result_preview`` — truncated inner result text for diagnostics.
+    ``fallback_used`` — which fallback path was activated (None if direct parse).
     """
 
     artifacts: dict[str, dict[str, Any]]
     failure: str | None = None
     result_preview: str = ""
+    fallback_used: str | None = None
 
 
 _PREVIEW_MAX = 500
@@ -411,9 +439,15 @@ def _parse_backend_response(
 
     preview = result_text[:_PREVIEW_MAX]
 
+    # Track which fallback path is activated (None = direct parse)
+    fallback_used: str | None = None
+
     # Strip markdown code fences if present (Claude frequently wraps JSON
     # in ```json ... ``` even when instructed not to).
-    result_text = _strip_code_fences(result_text)
+    stripped_text = _strip_code_fences(result_text)
+    if stripped_text != result_text.strip():
+        fallback_used = "code_fence_stripped"
+    result_text = stripped_text
 
     # Primary: try direct JSON parse of the full result text.
     # Fallback: if the model prefixed prose before the JSON object,
@@ -442,6 +476,7 @@ def _parse_backend_response(
         if extracted_json is not None:
             try:
                 result_obj = json.loads(extracted_json)
+                fallback_used = "brace_extraction"
             except (json.JSONDecodeError, TypeError):
                 pass
 
@@ -526,6 +561,104 @@ def _parse_backend_response(
                     f"unexpected={unexpected}"
                 ),
                 result_preview=preview,
+                fallback_used=fallback_used,
+            )
+
+    return ParseResult(
+        artifacts=extracted,
+        failure=None,
+        result_preview="",
+        fallback_used=fallback_used,
+    )
+
+
+def _parse_structured_response(
+    raw_output: str,
+    expected_artifacts: list[str],
+) -> ParseResult:
+    """Extract artifacts from envelope.structured_output (--json-schema path).
+
+    When ``--json-schema`` is used, the Claude CLI places the schema-
+    constrained output in ``envelope["structured_output"]`` as a parsed
+    dict, while ``envelope["result"]`` is empty.  This function extracts
+    from that field, falling back to ``_parse_backend_response()`` when
+    ``structured_output`` is absent (flag-off compatibility).
+    """
+    try:
+        envelope = json.loads(raw_output)
+    except (json.JSONDecodeError, TypeError):
+        return _parse_backend_response(raw_output, expected_artifacts)
+
+    if not isinstance(envelope, dict):
+        return _parse_backend_response(raw_output, expected_artifacts)
+
+    structured = envelope.get("structured_output")
+    if structured is None:
+        # No structured_output field → fall back to legacy parser
+        return _parse_backend_response(raw_output, expected_artifacts)
+
+    # Check for CLI-level error (same as _parse_backend_response)
+    if envelope.get("is_error", False):
+        return ParseResult(
+            artifacts={},
+            failure="cli_is_error_flag: envelope.is_error=true",
+            result_preview=str(envelope.get("result", ""))[:_PREVIEW_MAX],
+        )
+
+    if not isinstance(structured, dict):
+        return ParseResult(
+            artifacts={},
+            failure=f"structured_output_not_dict: got {type(structured).__name__}",
+            result_preview=str(structured)[:_PREVIEW_MAX],
+        )
+
+    artifacts_dict = structured.get("artifacts", {})
+    if not isinstance(artifacts_dict, dict):
+        return ParseResult(
+            artifacts={},
+            failure=f"structured_artifacts_not_dict: got {type(artifacts_dict).__name__}",
+            result_preview=str(structured)[:_PREVIEW_MAX],
+        )
+
+    if not artifacts_dict:
+        top_keys = sorted(structured.keys())[:10]
+        return ParseResult(
+            artifacts={},
+            failure=f"structured_artifacts_empty: top-level keys={top_keys}",
+            result_preview=str(structured)[:_PREVIEW_MAX],
+        )
+
+    extracted = {
+        name: payload
+        for name, payload in artifacts_dict.items()
+        if isinstance(payload, dict)
+    }
+
+    filtered = [k for k in artifacts_dict if k not in extracted]
+    if filtered and not extracted:
+        return ParseResult(
+            artifacts={},
+            failure=f"all_structured_artifact_payloads_not_dict: filtered={filtered}",
+            result_preview=str(structured)[:_PREVIEW_MAX],
+        )
+
+    # Name-match check (same logic as _parse_backend_response)
+    if expected_artifacts and extracted:
+        expected_set = set(expected_artifacts)
+        produced_set = set(extracted.keys())
+        missing = sorted(expected_set - produced_set)
+        unexpected = sorted(produced_set - expected_set)
+        if missing and unexpected:
+            return ParseResult(
+                artifacts=extracted,
+                failure=(
+                    f"wrong_artifact_names: "
+                    f"expected={sorted(expected_set)}, "
+                    f"produced={sorted(produced_set)}, "
+                    f"missing={missing}, "
+                    f"unexpected={unexpected}"
+                ),
+                result_preview="",
             )
 
     return ParseResult(
@@ -533,6 +666,28 @@ def _parse_backend_response(
         failure=None,
         result_preview="",
     )
+
+
+def _should_retry(parse: ParseResult, attempt: int, max_retries: int) -> bool:
+    """Decide whether a completed subprocess result warrants a retry.
+
+    Returns True ONLY for transient failures:
+    - Empty/missing ``result`` field with ``is_error=False`` (API glitch)
+
+    Returns False for deterministic failures that would repeat:
+    - ``cli_is_error_flag`` — CLI-level error
+    - ``disallowed_tool_use_response`` — model violated no-tools contract
+    - Parse failures with non-empty result — deterministic for same input
+    - Any successful parse (even wrong artifact names) — not transient
+    """
+    if attempt >= max_retries:
+        return False
+
+    if parse.failure is None:
+        return False  # Successful parse — no retry needed
+
+    # Only retry on empty/missing result (transient API glitch)
+    return "result_field_empty_or_missing" in parse.failure
 
 
 class ClaudeCodeCLIBackend(ExecutionBackend):
@@ -553,11 +708,15 @@ class ClaudeCodeCLIBackend(ExecutionBackend):
         timeout_ms: int = 120_000,
         claude_command: str = "claude",
         isolation_mode: str = "project",
+        use_structured_output: bool = False,
+        max_retries: int = 1,
     ) -> None:
         self._default_model = model
         self._timeout_ms = timeout_ms
         self._claude_command = claude_command
         self._isolation_mode = isolation_mode
+        self._use_structured_output = use_structured_output
+        self._max_retries = max_retries
 
     def execute_step(
         self,
@@ -592,100 +751,140 @@ class ClaudeCodeCLIBackend(ExecutionBackend):
             "--tools", "",
         ]
 
+        # When structured output is enabled and the step declares outputs,
+        # append --json-schema to constrain the model's response shape.
+        if self._use_structured_output and step.outputs:
+            json_schema_str = _build_artifact_json_schema(
+                list(step.outputs), step.name,
+            )
+            cmd.extend(["--json-schema", json_schema_str])
+
+        # Append --bare when bare isolation is requested
+        if self._isolation_mode == "bare":
+            cmd.append("--bare")
+
         # Determine subprocess working directory based on isolation mode
         subprocess_cwd: str | None = None
         if self._isolation_mode == "isolated":
             from governance.dag_runner.runtime_info import get_isolated_cwd
             subprocess_cwd = get_isolated_cwd()
 
-        timeout_s = self._timeout_ms / 1000.0
-        t0 = time.monotonic()
+        # Per-step timeout: agent-level override takes precedence
+        effective_timeout_ms = agent.timeout_ms if agent.timeout_ms else self._timeout_ms
+        timeout_s = effective_timeout_ms / 1000.0
 
-        try:
-            proc = subprocess.run(
-                cmd,
-                input=prompt_context.assembled_prompt,
-                capture_output=True,
-                text=True,
-                timeout=timeout_s,
-                encoding="utf-8",
-                cwd=subprocess_cwd,
-            )
-        except subprocess.TimeoutExpired:
+        # Retry loop: retries only on transient failures (timeout, empty result)
+        for attempt in range(1 + self._max_retries):
+            t0 = time.monotonic()
+
+            try:
+                proc = subprocess.run(
+                    cmd,
+                    input=prompt_context.assembled_prompt,
+                    capture_output=True,
+                    text=True,
+                    timeout=timeout_s,
+                    encoding="utf-8",
+                    cwd=subprocess_cwd,
+                )
+            except subprocess.TimeoutExpired:
+                latency = (time.monotonic() - t0) * 1000.0
+                if attempt < self._max_retries:
+                    time.sleep(2)
+                    continue
+                return AgentExecutionResult(
+                    success=False,
+                    latency_ms=latency,
+                    failure=FailureClassification(
+                        origin="timeout",
+                        step_id=step.name,
+                        detail=f"Claude CLI subprocess timed out after {effective_timeout_ms}ms.",
+                    ),
+                    returncode=None,
+                    retry_count=attempt,
+                )
+            except OSError as exc:
+                # OSError is deterministic — never retry
+                latency = (time.monotonic() - t0) * 1000.0
+                return AgentExecutionResult(
+                    success=False,
+                    latency_ms=latency,
+                    failure=FailureClassification(
+                        origin="runtime",
+                        step_id=step.name,
+                        detail=f"Failed to spawn Claude CLI subprocess: {exc}",
+                    ),
+                    returncode=None,
+                    retry_count=0,
+                )
+
             latency = (time.monotonic() - t0) * 1000.0
-            return AgentExecutionResult(
-                success=False,
-                latency_ms=latency,
-                failure=FailureClassification(
-                    origin="timeout",
-                    step_id=step.name,
-                    detail=f"Claude CLI subprocess timed out after {self._timeout_ms}ms.",
-                ),
-                returncode=None,
-            )
-        except OSError as exc:
-            latency = (time.monotonic() - t0) * 1000.0
-            return AgentExecutionResult(
-                success=False,
-                latency_ms=latency,
-                failure=FailureClassification(
-                    origin="runtime",
-                    step_id=step.name,
-                    detail=f"Failed to spawn Claude CLI subprocess: {exc}",
-                ),
-                returncode=None,
-            )
+            raw_output = proc.stdout or ""
+            stderr_output = proc.stderr or ""
 
-        latency = (time.monotonic() - t0) * 1000.0
-        raw_output = proc.stdout or ""
-        stderr_output = proc.stderr or ""
+            # Non-zero exit code → runtime failure (deterministic, no retry)
+            if proc.returncode != 0:
+                stderr_preview = stderr_output[:_PREVIEW_MAX] if stderr_output else ""
+                return AgentExecutionResult(
+                    success=False,
+                    raw_output=raw_output,
+                    latency_ms=latency,
+                    stderr=stderr_output,
+                    failure=FailureClassification(
+                        origin="runtime",
+                        step_id=step.name,
+                        detail=(
+                            f"Claude CLI exited with code {proc.returncode}."
+                            + (f" stderr: {stderr_preview}" if stderr_preview else "")
+                        ),
+                    ),
+                    returncode=proc.returncode,
+                    retry_count=0,
+                )
 
-        # Non-zero exit code → runtime failure
-        if proc.returncode != 0:
-            stderr_preview = stderr_output[:_PREVIEW_MAX] if stderr_output else ""
+            # Parse response and extract artifacts.
+            # When structured output is active, prefer the structured_output
+            # envelope field (falls back to legacy parser automatically).
+            if self._use_structured_output and step.outputs:
+                parse = _parse_structured_response(raw_output, list(step.outputs))
+            else:
+                parse = _parse_backend_response(raw_output, list(step.outputs))
+
+            # Check if this is a transient failure worth retrying
+            if _should_retry(parse, attempt, self._max_retries):
+                time.sleep(2)
+                continue
+
+            # Extract token count from envelope if available
+            token_count = 0
+            try:
+                envelope = json.loads(raw_output)
+                usage = envelope.get("usage", {})
+                token_count = usage.get("output_tokens", 0)
+            except (json.JSONDecodeError, TypeError, AttributeError):
+                envelope = None
+
             return AgentExecutionResult(
-                success=False,
+                success=True,
+                artifacts_produced=parse.artifacts,
                 raw_output=raw_output,
                 latency_ms=latency,
+                token_count=token_count,
                 stderr=stderr_output,
-                failure=FailureClassification(
-                    origin="runtime",
-                    step_id=step.name,
-                    detail=(
-                        f"Claude CLI exited with code {proc.returncode}."
-                        + (f" stderr: {stderr_preview}" if stderr_preview else "")
-                    ),
-                ),
+                parse_failure=parse.failure,
                 returncode=proc.returncode,
+                retry_count=attempt,
             )
 
-        # Parse response and extract artifacts
-        parse = _parse_backend_response(raw_output, list(step.outputs))
-
-        # Extract token count from envelope if available
-        token_count = 0
-        try:
-            envelope = json.loads(raw_output)
-            usage = envelope.get("usage", {})
-            token_count = usage.get("output_tokens", 0)
-        except (json.JSONDecodeError, TypeError, AttributeError):
-            envelope = None
-
-        # Debug-artifact writing is handled by the executor's
-        # _write_debug_and_update() — the single canonical source for
-        # debug_artifact_written / debug_artifact_path metadata.
-        # The backend no longer writes its own debug file to the same
-        # path, which previously caused an overwrite-and-desync.
-
+        # Should not reach here, but fail closed if it does
         return AgentExecutionResult(
-            success=True,
-            artifacts_produced=parse.artifacts,
-            raw_output=raw_output,
-            latency_ms=latency,
-            token_count=token_count,
-            stderr=stderr_output,
-            parse_failure=parse.failure,
-            returncode=proc.returncode,
+            success=False,
+            failure=FailureClassification(
+                origin="runtime",
+                step_id=step.name,
+                detail="Retry loop exhausted without returning a result.",
+            ),
+            retry_count=self._max_retries,
         )
 
     def execute_structural_step(

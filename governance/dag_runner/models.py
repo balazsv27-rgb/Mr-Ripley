@@ -88,6 +88,7 @@ class AgentSpec:
     escalation_targets: list[dict[str, Any]] = field(default_factory=list)
     failure_mode: str | None = None
     activation_predicate: str | None = None
+    timeout_ms: int | None = None
     raw: dict[str, Any] = field(default_factory=dict)
 
 
@@ -218,6 +219,7 @@ class AgentExecutionResult:
     stderr: str = ""
     parse_failure: str | None = None
     returncode: int | None = None
+    retry_count: int = 0
 
 
 @dataclass(frozen=True)

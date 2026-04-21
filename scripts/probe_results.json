@@ -1,0 +1,290 @@
+{
+  "probe_results": {
+    "A": {
+      "label": "A",
+      "command": [
+        "claude",
+        "-p",
+        "--output-format",
+        "json",
+        "--no-session-persistence",
+        "--tools",
+        "",
+        "--json-schema",
+        "{\"type\": \"object\", \"properties\": {\"artifacts\": {\"type\": \"object\", \"properties\": {\"test_artifact\": {\"type\": \"object\"}}, \"required\": [\"test_artifact\"]}}, \"required\": [\"artifacts\"]}"
+      ],
+      "returncode": 0,
+      "stdout_length": 970,
+      "stderr_length": 0,
+      "stderr_first_500": "",
+      "latency_ms": 15610.0,
+      "envelope_keys": [
+        "duration_api_ms",
+        "duration_ms",
+        "fast_mode_state",
+        "is_error",
+        "modelUsage",
+        "num_turns",
+        "permission_denials",
+        "result",
+        "session_id",
+        "stop_reason",
+        "structured_output",
+        "subtype",
+        "total_cost_usd",
+        "type",
+        "usage",
+        "uuid"
+      ],
+      "envelope_is_error": false,
+      "result_type": "str",
+      "result_first_500": "",
+      "structured_output_type": "dict",
+      "structured_output_first_500": "{'artifacts': {'test_artifact': {'produced_by': 'probe', 'value': 'hello'}}}",
+      "structured_output_keys": [
+        "artifacts"
+      ],
+      "structured_output_has_artifacts": true,
+      "inner_json_parse": "FAILED",
+      "result_starts_with_brace": false,
+      "extra_envelope_fields": [
+        "modelUsage",
+        "permission_denials",
+        "structured_output",
+        "fast_mode_state",
+        "uuid"
+      ],
+      "usage": {
+        "input_tokens": 4,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 19132,
+        "output_tokens": 110,
+        "server_tool_use": {
+          "web_search_requests": 0,
+          "web_fetch_requests": 0
+        },
+        "service_tier": "standard",
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 0,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "inference_geo": "",
+        "iterations": [],
+        "speed": "standard"
+      }
+    },
+    "B": {
+      "label": "B",
+      "command": [
+        "claude",
+        "-p",
+        "--output-format",
+        "json",
+        "--no-session-persistence",
+        "--tools",
+        "",
+        "--bare",
+        "--json-schema",
+        "{\"type\": \"object\", \"properties\": {\"artifacts\": {\"type\": \"object\", \"properties\": {\"test_artifact\": {\"type\": \"object\"}}, \"required\": [\"test_artifact\"]}}, \"required\": [\"artifacts\"]}"
+      ],
+      "returncode": 1,
+      "stdout_length": 693,
+      "stderr_length": 0,
+      "stderr_first_500": "",
+      "latency_ms": 1781.0,
+      "envelope_keys": [
+        "duration_api_ms",
+        "duration_ms",
+        "fast_mode_state",
+        "is_error",
+        "modelUsage",
+        "num_turns",
+        "permission_denials",
+        "result",
+        "session_id",
+        "stop_reason",
+        "subtype",
+        "total_cost_usd",
+        "type",
+        "usage",
+        "uuid"
+      ],
+      "envelope_is_error": true,
+      "result_type": "str",
+      "result_first_500": "Not logged in · Please run /login",
+      "inner_json_parse": "FAILED",
+      "result_starts_with_brace": false,
+      "extra_envelope_fields": [
+        "modelUsage",
+        "permission_denials",
+        "fast_mode_state",
+        "uuid"
+      ],
+      "usage": {
+        "input_tokens": 0,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "output_tokens": 0,
+        "server_tool_use": {
+          "web_search_requests": 0,
+          "web_fetch_requests": 0
+        },
+        "service_tier": "standard",
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 0,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "inference_geo": "",
+        "iterations": [],
+        "speed": "standard"
+      }
+    },
+    "C": {
+      "label": "C",
+      "command": [
+        "claude",
+        "-p",
+        "--output-format",
+        "json",
+        "--no-session-persistence",
+        "--tools",
+        ""
+      ],
+      "returncode": 0,
+      "stdout_length": 1004,
+      "stderr_length": 0,
+      "stderr_first_500": "",
+      "latency_ms": 5484.0,
+      "envelope_keys": [
+        "duration_api_ms",
+        "duration_ms",
+        "fast_mode_state",
+        "is_error",
+        "modelUsage",
+        "num_turns",
+        "permission_denials",
+        "result",
+        "session_id",
+        "stop_reason",
+        "subtype",
+        "total_cost_usd",
+        "type",
+        "usage",
+        "uuid"
+      ],
+      "envelope_is_error": false,
+      "result_type": "str",
+      "result_first_500": "\n\n```json\n{\"artifacts\": {\"test_artifact\": {\"produced_by\": \"probe\", \"value\": \"hello\"}}}\n```",
+      "inner_json_parse": "FAILED",
+      "result_starts_with_brace": false,
+      "extra_envelope_fields": [
+        "modelUsage",
+        "permission_denials",
+        "fast_mode_state",
+        "uuid"
+      ],
+      "usage": {
+        "input_tokens": 3,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 8901,
+        "output_tokens": 32,
+        "server_tool_use": {
+          "web_search_requests": 0,
+          "web_fetch_requests": 0
+        },
+        "service_tier": "standard",
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 0,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "inference_geo": "",
+        "iterations": [],
+        "speed": "standard"
+      }
+    },
+    "D": {
+      "label": "D",
+      "command": [
+        "claude",
+        "-p",
+        "--output-format",
+        "json",
+        "--no-session-persistence",
+        "--tools",
+        "",
+        "--bare"
+      ],
+      "returncode": 1,
+      "stdout_length": 692,
+      "stderr_length": 0,
+      "stderr_first_500": "",
+      "latency_ms": 1578.0,
+      "envelope_keys": [
+        "duration_api_ms",
+        "duration_ms",
+        "fast_mode_state",
+        "is_error",
+        "modelUsage",
+        "num_turns",
+        "permission_denials",
+        "result",
+        "session_id",
+        "stop_reason",
+        "subtype",
+        "total_cost_usd",
+        "type",
+        "usage",
+        "uuid"
+      ],
+      "envelope_is_error": true,
+      "result_type": "str",
+      "result_first_500": "Not logged in · Please run /login",
+      "inner_json_parse": "FAILED",
+      "result_starts_with_brace": false,
+      "extra_envelope_fields": [
+        "modelUsage",
+        "permission_denials",
+        "fast_mode_state",
+        "uuid"
+      ],
+      "usage": {
+        "input_tokens": 0,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "output_tokens": 0,
+        "server_tool_use": {
+          "web_search_requests": 0,
+          "web_fetch_requests": 0
+        },
+        "service_tier": "standard",
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 0,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "inference_geo": "",
+        "iterations": [],
+        "speed": "standard"
+      }
+    }
+  },
+  "validation_answers": {
+    "Q1_json_schema_guarantees_valid_json": true,
+    "Q1_detail": "in_structured_output",
+    "Q2_schema_result_in_result_or_separate_field": "structured_output",
+    "Q3_result_field_type": "str",
+    "Q3_result_is_empty": true,
+    "Q4_schema_eliminates_prose": true,
+    "Q5_bare_changes_envelope_shape": true,
+    "Q5_bare_returncode": 1,
+    "Q5_bare_error": "Not logged in · Please run /login",
+    "Q6_bare_plus_schema_works": false,
+    "Q7_existing_parser_needs_adaptation": true,
+    "Q7_detail": "structured_output field requires new parse path",
+    "Q8_returncodes": {
+      "A": 0,
+      "B": 1,
+      "C": 0,
+      "D": 1
+    }
+  }
+}

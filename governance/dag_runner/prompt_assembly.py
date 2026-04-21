@@ -311,23 +311,36 @@ def build_prompt_text(context: dict[str, Any]) -> str:
             f'"{o}": {{"produced_by": "{step_name}", ...your analysis fields...}}'
             for o in expected_outputs
         )
-        format_section = (
-            f"[REQUIRED OUTPUT FORMAT]{_SECTION_DELIM}"
-            f"CRITICAL: Your entire response must be a single valid JSON object and nothing else.\n"
-            f"Do NOT include any text, explanation, or commentary before or after the JSON.\n"
-            f"Do NOT wrap in markdown code fences.\n"
-            f"Do NOT attempt to read files like ctx.json, governance_context.json, or any artifact files — "
-            f"all upstream artifacts are already provided in the [UPSTREAM ARTIFACTS] section above.\n"
-            f"Even if you cannot fully complete the analysis, you MUST still respond with ONLY the JSON object.\n\n"
-            f"Required structure:\n"
-            f'{{"artifacts": {{{artifact_examples}}}}}\n\n'
-            f"Rules:\n"
-            f'- Each artifact MUST be a JSON object with a "produced_by" field set to "{step_name}".\n'
-            f"- Include your analysis results as additional fields within each artifact object.\n"
-            f"- You must produce ALL of the listed artifacts: {', '.join(expected_outputs)}.\n"
-            f"- The top-level response must be a single JSON object with one key: \"artifacts\".\n"
-            f'- Artifact names must match exactly: {", ".join(expected_outputs)}.'
-        )
+
+        if context.get("use_structured_output"):
+            # Structured output mode: --json-schema enforces shape at the
+            # API level, so the verbose "do NOT wrap / do NOT include" rules
+            # are unnecessary.  Keep only a minimal reminder.
+            format_section = (
+                f"[REQUIRED OUTPUT FORMAT]{_SECTION_DELIM}"
+                f"Respond with a JSON object matching this structure:\n"
+                f'{{"artifacts": {{{artifact_examples}}}}}\n\n'
+                f'Each artifact MUST include "produced_by": "{step_name}".\n'
+                f"Produce ALL listed artifacts: {', '.join(expected_outputs)}."
+            )
+        else:
+            format_section = (
+                f"[REQUIRED OUTPUT FORMAT]{_SECTION_DELIM}"
+                f"CRITICAL: Your entire response must be a single valid JSON object and nothing else.\n"
+                f"Do NOT include any text, explanation, or commentary before or after the JSON.\n"
+                f"Do NOT wrap in markdown code fences.\n"
+                f"Do NOT attempt to read files like ctx.json, governance_context.json, or any artifact files — "
+                f"all upstream artifacts are already provided in the [UPSTREAM ARTIFACTS] section above.\n"
+                f"Even if you cannot fully complete the analysis, you MUST still respond with ONLY the JSON object.\n\n"
+                f"Required structure:\n"
+                f'{{"artifacts": {{{artifact_examples}}}}}\n\n'
+                f"Rules:\n"
+                f'- Each artifact MUST be a JSON object with a "produced_by" field set to "{step_name}".\n'
+                f"- Include your analysis results as additional fields within each artifact object.\n"
+                f"- You must produce ALL of the listed artifacts: {', '.join(expected_outputs)}.\n"
+                f"- The top-level response must be a single JSON object with one key: \"artifacts\".\n"
+                f'- Artifact names must match exactly: {", ".join(expected_outputs)}.'
+            )
         sections.append(format_section)
 
     return (_SECTION_DELIM).join(sections)

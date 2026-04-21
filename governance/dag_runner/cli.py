@@ -165,13 +165,26 @@ def _build_parser() -> argparse.ArgumentParser:
         "--backend-isolation",
         type=str,
         default="project",
-        choices=["project", "isolated"],
+        choices=["project", "isolated", "bare"],
         help=(
             "Backend isolation mode. 'project' inherits repo-local Claude "
             "Code context (default). 'isolated' runs the subprocess from a "
             "neutral temp directory to avoid .claude/settings.json, hooks, "
-            "and tool context interference."
+            "and tool context interference. 'bare' uses --bare CLI flag "
+            "to disable tools and context without changing cwd."
         ),
+    )
+    parser.add_argument(
+        "--use-structured-output",
+        action="store_true",
+        default=False,
+        help="Enable --json-schema for backend-dispatched steps (experimental).",
+    )
+    parser.add_argument(
+        "--max-retries",
+        type=int,
+        default=1,
+        help="Max retries per step on transient failures (default: 1).",
     )
     parser.add_argument(
         "--runtime-info",
@@ -373,6 +386,8 @@ def main() -> int:
                 backend = ClaudeCodeCLIBackend(
                     timeout_ms=exec_config.timeout_per_step_ms,
                     isolation_mode=args.backend_isolation,
+                    use_structured_output=args.use_structured_output,
+                    max_retries=args.max_retries,
                 )
                 backend_ctx = backend.get_execution_context()
             else:

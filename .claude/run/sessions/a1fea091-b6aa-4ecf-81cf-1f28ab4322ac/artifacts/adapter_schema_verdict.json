@@ -2,9 +2,9 @@
   "artifact": "adapter_schema_verdict",
   "produced_by": "adapter-schema-check",
   "session": "",
-  "timestamp": "2026-04-20T22:24:08.770588Z",
+  "timestamp": "2026-04-21T20:19:50.892799Z",
   "data": {
-    "file_path": "C:\\Users\\jozse\\.claude\\plans\\snug-meandering-spindle.md",
+    "file_path": "C:\\Code\\Mr-Ripley\\tests\\governance\\test_claude_code_cli_backend.py",
     "scanned": false,
     "registry_driven": true,
     "hardcoded_series_detected": false,

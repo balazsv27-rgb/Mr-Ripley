@@ -384,3 +384,106 @@ class TestProsePrefixedResponse:
         assert nr.status == "PASS"
         assert _ARTIFACT_NAME in nr.produced_artifacts
         assert nr.failure_detail == {}
+
+
+# ---------------------------------------------------------------------------
+# Phase 1: Structured output integration tests
+# ---------------------------------------------------------------------------
+
+
+def _make_structured_envelope(
+    structured_output: dict | None = None,
+    result_text: str = "",
+    *,
+    is_error: bool = False,
+    output_tokens: int = 150,
+) -> str:
+    """Build a Claude CLI envelope with structured_output field."""
+    env: dict = {
+        "type": "result",
+        "subtype": "success",
+        "is_error": is_error,
+        "result": result_text,
+        "duration_ms": 12000,
+        "duration_api_ms": 11000,
+        "num_turns": 1,
+        "stop_reason": "end_turn",
+        "session_id": "test-session-id",
+        "total_cost_usd": 0.05,
+        "usage": {
+            "input_tokens": 45000,
+            "output_tokens": output_tokens,
+        },
+    }
+    if structured_output is not None:
+        env["structured_output"] = structured_output
+    return json.dumps(env)
+
+
+def _run_step_structured(subprocess_stdout: str, subprocess_stderr: str = "") -> Any:
+    """Run a single step with use_structured_output=True through the full chain."""
+    step = _make_step()
+    spec = _make_spec(step)
+    plan = _make_plan()
+    config = _default_config()
+    backend = ClaudeCodeCLIBackend(timeout_ms=60_000, use_structured_output=True)
+
+    with (
+        mock.patch(
+            "governance.dag_runner.execution_backend.subprocess.run",
+            _mock_subprocess(subprocess_stdout, subprocess_stderr),
+        ),
+        _patched_prompt_and_policy(),
+    ):
+        return execute_plan(
+            spec, plan,
+            verdict_status="ready",
+            config=config,
+            backend=backend,
+        )
+
+
+class TestStructuredOutputIntegration:
+    """End-to-end tests for --json-schema / structured_output path."""
+
+    def test_schema_constrained_result_parses_correctly(self) -> None:
+        """Envelope with structured_output -> artifacts extracted -> PASS."""
+        envelope = _make_structured_envelope(
+            structured_output={
+                "artifacts": {
+                    _ARTIFACT_NAME: {
+                        "produced_by": _STEP_NAME,
+                        "data": {
+                            "classifications": [
+                                {"claim": "Layer 2 is operational", "type": "current-state"},
+                            ],
+                        },
+                    },
+                },
+            },
+        )
+        result = _run_step_structured(envelope)
+        nr = result.run_state.node_results[_STEP_NAME]
+
+        assert nr.status == "PASS"
+        assert _ARTIFACT_NAME in nr.produced_artifacts
+        assert nr.failure_detail == {}
+
+    def test_fallback_when_result_is_prose(self) -> None:
+        """Without structured_output field, old prose+JSON fallback still works."""
+        inner_json = json.dumps({
+            "artifacts": {
+                _ARTIFACT_NAME: {
+                    "produced_by": _STEP_NAME,
+                    "data": {"ok": True},
+                },
+            },
+        })
+        prose = "Based on my analysis:\n\n" + inner_json
+        # No structured_output field -- just a regular envelope
+        envelope = _make_cli_envelope(prose)
+        result = _run_step_structured(envelope)
+        nr = result.run_state.node_results[_STEP_NAME]
+
+        assert nr.status == "PASS"
+        assert _ARTIFACT_NAME in nr.produced_artifacts

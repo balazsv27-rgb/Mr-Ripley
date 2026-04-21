@@ -54,6 +54,7 @@ data:
       target-state, historical, or unverified using canonical source priority
       and evidence-aware confidence rules.
     model: opus
+    timeout_ms: 180000
     tools: [Read, Grep, Glob]
     workflow_steps:
       - classify-claims
@@ -82,6 +83,7 @@ data:
       Detect variant drift (NO_TRADE vs trade signal, layer2_truth.db vs db,
       DecisionPacket vs decision packet, etc.).
     model: sonnet
+    timeout_ms: 180000
     tools: [Read, Grep, Glob]
     workflow_steps:
       - normalize-terminology
@@ -302,6 +304,7 @@ data:
       per CLAUDE.md section 11 document update obligations.
       Produce change_impact_report and doc_update_plan.
     model: opus
+    timeout_ms: 180000
     tools: [Read, Grep, Glob]
     workflow_steps:
       - change-impact-audit

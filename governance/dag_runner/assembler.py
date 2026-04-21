@@ -271,6 +271,10 @@ def _assemble_agents(payload: dict[str, Any]) -> dict[str, AgentSpec]:
         if isinstance(failure_mode, str):
             failure_mode = failure_mode.strip() or None
 
+        # Per-agent timeout override (milliseconds, optional)
+        raw_timeout = item.get("timeout_ms")
+        timeout_ms = int(raw_timeout) if raw_timeout is not None else None
+
         result[name] = AgentSpec(
             name=name,
             role=item.get("role"),
@@ -285,6 +289,7 @@ def _assemble_agents(payload: dict[str, Any]) -> dict[str, AgentSpec]:
             escalation_targets=escalation_targets,
             failure_mode=failure_mode,
             activation_predicate=item.get("activation_predicate"),
+            timeout_ms=timeout_ms,
             raw=item,
         )
 

@@ -2,10 +2,10 @@
   "artifact": "runtime_boundary_verdict",
   "produced_by": "runtime-boundary-check",
   "session": "",
-  "timestamp": "2026-04-20T22:24:08.769591Z",
+  "timestamp": "2026-04-21T20:19:50.892799Z",
   "data": {
-    "file_path": "C:\\Users\\jozse\\.claude\\plans\\snug-meandering-spindle.md",
-    "scanned": false,
+    "file_path": "C:\\Code\\Mr-Ripley\\tests\\governance\\test_claude_code_cli_backend.py",
+    "scanned": true,
     "layer2_file": false,
     "raw_observation_access_detected": false,
     "latest_snapshot_misuse_detected": false,
