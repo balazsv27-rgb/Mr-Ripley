@@ -247,6 +247,30 @@ def assemble_step_prompt(
     }
 
 
+def build_prompt_composition_metadata(context: dict[str, Any]) -> dict[str, Any]:
+    """Extract prompt composition metadata from an assembly context dict.
+
+    Returns a flat dict of diagnostic fields suitable for inclusion in
+    timeout debug artifacts and execution trace events.
+    """
+    artifact_inputs = context.get("artifact_inputs", {})
+    document_paths = context.get("document_paths", [])
+    return {
+        "step_name": context.get("step_name", ""),
+        "skill_content_length": len(context.get("skill_content", "")),
+        "agent_instructions_length": len(context.get("agent_instructions", "")),
+        "artifact_input_names": sorted(artifact_inputs.keys()),
+        "artifact_input_count": len(artifact_inputs),
+        "document_paths": list(document_paths),
+        "document_count": len(document_paths),
+        "token_estimate": context.get("token_estimate", 0),
+        "token_budget": context.get("token_budget", 100_000),
+        "truncated": context.get("truncated", False),
+        "truncation_events": context.get("truncation_events", []),
+        "expected_outputs": context.get("expected_outputs", []),
+    }
+
+
 def build_prompt_text(context: dict[str, Any]) -> str:
     """Build the assembled prompt text from a prompt assembly context dict.
 

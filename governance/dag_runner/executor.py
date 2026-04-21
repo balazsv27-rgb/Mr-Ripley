@@ -376,7 +376,23 @@ def _write_debug_and_update(
     stderr: str = "",
     debug_dir: Path | None = None,
 ) -> None:
-    """Write a failure debug artifact and update *fd* in place with write results."""
+    """Write a failure debug artifact and update *fd* in place with write results.
+
+    Pre-computes the expected path and optimistically updates *fd* before
+    the write so the on-disk debug artifact reflects the final metadata
+    (fixes the sync issue where the written file showed
+    ``debug_artifact_written=false``).
+    """
+    from governance.dag_runner.execution_backend import _LEGACY_DEBUG_DIR
+
+    target_dir = str(debug_dir) if debug_dir else _LEGACY_DEBUG_DIR
+    expected_path = str(Path(target_dir) / f"{step_name}_debug.json")
+
+    # Optimistically update fd before writing so the serialized file
+    # contains the final debug write metadata.
+    fd["debug_artifact_written"] = True
+    fd["debug_artifact_path"] = expected_path
+
     written, path, err = write_failure_debug_artifact(
         step_name=step_name,
         failure_detail=fd,
@@ -384,8 +400,11 @@ def _write_debug_and_update(
         stderr=stderr,
         debug_dir=str(debug_dir) if debug_dir else None,
     )
-    fd["debug_artifact_written"] = written
-    fd["debug_artifact_path"] = path
+
+    if not written:
+        # Correct the optimistic values on write failure
+        fd["debug_artifact_written"] = False
+        fd["debug_artifact_path"] = None
     if err:
         fd["debug_write_error"] = err
         _append_trace(
@@ -418,6 +437,7 @@ def _execute_v2_step(
     from governance.dag_runner.prompt_assembly import (
         assemble_step_prompt,
         build_prompt_context,
+        build_prompt_composition_metadata,
     )
 
     kind, _name = _parse_component_kind(step.component)
@@ -464,8 +484,9 @@ def _execute_v2_step(
             inference_used=False,
         )
 
-    # Track prompt context for timeout diagnostics (set when agent is resolved)
+    # Track prompt context and composition metadata for timeout diagnostics
     prompt_ctx = None
+    prompt_composition = None
 
     # R3-D: backend_invocation_started trace event
     _append_trace(
@@ -509,6 +530,7 @@ def _execute_v2_step(
                 step, spec, run_state, path_policy=path_policy,
             )
             prompt_ctx = build_prompt_context(ctx_dict)
+            prompt_composition = build_prompt_composition_metadata(ctx_dict)
 
             _append_trace(
                 run_state,
@@ -860,6 +882,9 @@ def _execute_v2_step(
             fd["prompt_token_estimate"] = prompt_ctx.token_estimate
             fd["prompt_token_budget"] = prompt_ctx.token_budget
             fd["prompt_truncated"] = prompt_ctx.truncated
+        # Include full prompt composition metadata for timeout diagnosis
+        if prompt_composition is not None:
+            fd["prompt_composition"] = prompt_composition
 
         _append_trace(
             run_state,

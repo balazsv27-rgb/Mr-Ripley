@@ -1,0 +1,15 @@
+{
+  "artifact": "runtime_boundary_verdict",
+  "produced_by": "runtime-boundary-check",
+  "session": "",
+  "timestamp": "2026-04-20T22:24:08.769591Z",
+  "data": {
+    "file_path": "C:\\Users\\jozse\\.claude\\plans\\snug-meandering-spindle.md",
+    "scanned": false,
+    "layer2_file": false,
+    "raw_observation_access_detected": false,
+    "latest_snapshot_misuse_detected": false,
+    "layer2_storage_coupling_detected": false,
+    "violations": []
+  }
+}

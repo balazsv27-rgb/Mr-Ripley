@@ -16,7 +16,10 @@ from governance.dag_runner.input_bounding import (
 from governance.dag_runner.loader import load_workflow_packages
 from governance.dag_runner.models import ExecutionConfig, GovernanceRunState
 from governance.dag_runner.planner import build_execution_plan
-from governance.dag_runner.prompt_assembly import assemble_step_prompt
+from governance.dag_runner.prompt_assembly import (
+    assemble_step_prompt,
+    build_prompt_composition_metadata,
+)
 from governance.dag_runner.validator import validate_or_raise
 
 
@@ -105,3 +108,63 @@ def test_assemble_prompt_respects_token_budget(pipeline) -> None:
     # With a tiny budget, something should get truncated
     assert result["truncated"] is True
     assert len(result["truncation_events"]) > 0
+
+
+# ── prompt_composition_metadata ──
+
+
+def test_build_prompt_composition_metadata_fields(pipeline) -> None:
+    """build_prompt_composition_metadata returns all required diagnostic fields."""
+    spec, plan, run_state = pipeline
+    step = spec.workflow_steps["normalize-terminology"]
+    ctx = assemble_step_prompt(step, spec, run_state, repo_root=_REPO_ROOT)
+    meta = build_prompt_composition_metadata(ctx)
+
+    # All required keys present
+    required_keys = {
+        "step_name",
+        "skill_content_length",
+        "agent_instructions_length",
+        "artifact_input_names",
+        "artifact_input_count",
+        "document_paths",
+        "document_count",
+        "token_estimate",
+        "token_budget",
+        "truncated",
+        "truncation_events",
+        "expected_outputs",
+    }
+    assert required_keys.issubset(meta.keys()), (
+        f"Missing keys: {required_keys - meta.keys()}"
+    )
+
+    # Step-specific assertions for normalize-terminology
+    assert meta["step_name"] == "normalize-terminology"
+    assert meta["skill_content_length"] > 0
+    assert meta["agent_instructions_length"] > 0
+    assert meta["artifact_input_count"] >= 1
+    assert "governance_context" in meta["artifact_input_names"]
+    assert meta["token_estimate"] > 0
+    assert meta["token_budget"] == 100_000
+    assert "normalized_terminology_map" in meta["expected_outputs"]
+
+
+def test_normalize_terminology_prompt_is_bounded(pipeline) -> None:
+    """normalize-terminology prompt size should be inspectable without live backend."""
+    spec, plan, run_state = pipeline
+    step = spec.workflow_steps["normalize-terminology"]
+    ctx = assemble_step_prompt(step, spec, run_state, repo_root=_REPO_ROOT)
+    meta = build_prompt_composition_metadata(ctx)
+
+    # Token estimate should be well within default budget
+    assert meta["token_estimate"] < meta["token_budget"], (
+        f"Token estimate {meta['token_estimate']} exceeds budget {meta['token_budget']}"
+    )
+    assert meta["truncated"] is False
+
+    # Skill content should be substantially smaller after SKILL.md simplification
+    # (was ~51KB / 781 lines, now targeting ~150 lines / <15KB)
+    assert meta["skill_content_length"] < 20_000, (
+        f"Skill content too large: {meta['skill_content_length']} chars"
+    )

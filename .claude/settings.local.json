@@ -54,7 +54,10 @@
       "Bash(echo \"Respond with exactly: {\"\"test\"\": true}\")",
       "Bash(echo \"Classify the word ''''hello'''' as a greeting or farewell. You MUST respond with ONLY a valid JSON object. No markdown, no code fences. Required format: {\"\"artifacts\"\": {\"\"result\"\": {\"\"produced_by\"\": \"\"test\"\", \"\"classification\"\": \"\"...\"\"}}}\")",
       "Bash(find C:CodeMr-Ripley -type f -name README*)",
-      "Bash(find /c/Code/Mr-Ripley -path *workflows* -name *.yaml -o -path *workflows* -name *.yml)"
+      "Bash(find /c/Code/Mr-Ripley -path *workflows* -name *.yaml -o -path *workflows* -name *.yml)",
+      "Bash(find /c/Code/Mr-Ripley/.claude -name *prompt* -type f)",
+      "Bash(find /c/Code/Mr-Ripley/tests -name *normalize* -o -name *terminolog* -o -name *classification*)",
+      "Bash(find /c/Code/Mr-Ripley/.claude/workflows -name *.yaml -o -name *.yml)"
     ]
   }
 }

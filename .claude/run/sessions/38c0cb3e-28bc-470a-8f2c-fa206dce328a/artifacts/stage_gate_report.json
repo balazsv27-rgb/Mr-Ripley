@@ -1,0 +1,14 @@
+{
+  "artifact": "stage_gate_report",
+  "produced_by": "stage-gate-check",
+  "session": "",
+  "timestamp": "2026-04-20T22:24:08.769591Z",
+  "data": {
+    "file_path": "C:\\Users\\jozse\\.claude\\plans\\snug-meandering-spindle.md",
+    "scanned": false,
+    "live_readiness_claim_detected": false,
+    "execution_capability_claim_detected": false,
+    "production_ready_claim_detected": false,
+    "violations": []
+  }
+}

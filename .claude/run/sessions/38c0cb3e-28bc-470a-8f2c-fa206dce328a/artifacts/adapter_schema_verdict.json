@@ -1,0 +1,14 @@
+{
+  "artifact": "adapter_schema_verdict",
+  "produced_by": "adapter-schema-check",
+  "session": "",
+  "timestamp": "2026-04-20T22:24:08.770588Z",
+  "data": {
+    "file_path": "C:\\Users\\jozse\\.claude\\plans\\snug-meandering-spindle.md",
+    "scanned": false,
+    "registry_driven": true,
+    "hardcoded_series_detected": false,
+    "implicit_interpretation_detected": false,
+    "violations": []
+  }
+}
