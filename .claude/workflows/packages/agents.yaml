@@ -108,6 +108,7 @@ data:
       Detect role-mismatched citations and README_LAYER2 override misuse.
       Apply the interpretation_policy.claim_routing table.
     model: sonnet
+    timeout_ms: 180000
     tools: [Read, Grep, Glob]
     workflow_steps:
       - route-claims-by-role

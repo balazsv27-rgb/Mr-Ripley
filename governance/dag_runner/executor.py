@@ -53,7 +53,10 @@ def _get_repo_root() -> Path:
     return Path(__file__).resolve().parent.parent.parent
 
 
-from governance.dag_runner.execution_backend import write_failure_debug_artifact
+from governance.dag_runner.execution_backend import (
+    write_failure_debug_artifact,
+    write_timeout_diagnostic_bundle,
+)
 from governance.dag_runner.path_policy import PathPolicyViolation
 
 
@@ -870,9 +873,14 @@ def _execute_v2_step(
         stderr_len=len(result.stderr) if result.stderr else 0,
     )
 
-    # For timeout failures, include execution context metadata
+    # For timeout failures, include execution context and transport evidence
     if _origin == "timeout":
         fd["timeout_ms"] = result.latency_ms
+        fd["timeout_seconds"] = result.timeout_seconds
+        fd["elapsed_seconds"] = result.elapsed_seconds
+        fd["timeout_command"] = result.timeout_command
+        fd["timeout_stdout_len"] = len(result.timeout_stdout)
+        fd["timeout_stderr_len"] = len(result.timeout_stderr)
         try:
             ctx = backend.get_execution_context() if hasattr(backend, "get_execution_context") else {}
             if ctx:
@@ -890,17 +898,40 @@ def _execute_v2_step(
         if prompt_composition is not None:
             fd["prompt_composition"] = prompt_composition
 
+        # Write dedicated timeout diagnostic bundle with full transport evidence
+        bundle_written, bundle_path, bundle_err = write_timeout_diagnostic_bundle(
+            step_name=step.name,
+            command=result.timeout_command,
+            timeout_seconds=result.timeout_seconds,
+            elapsed_seconds=result.elapsed_seconds,
+            partial_stdout=result.timeout_stdout,
+            partial_stderr=result.timeout_stderr,
+            assembled_prompt=prompt_ctx.assembled_prompt if prompt_ctx else "",
+            prompt_composition=prompt_composition,
+            failure_detail=fd,
+            debug_dir=str(debug_dir) if debug_dir else None,
+        )
+        if bundle_written and bundle_path:
+            fd["timeout_diagnostic_bundle_path"] = bundle_path
+        if bundle_err:
+            fd["timeout_bundle_write_error"] = bundle_err
+
         _append_trace(
             run_state,
             node_name=step.name,
             event_type="backend_timeout",
             detail={
                 "timeout_ms": result.latency_ms,
+                "timeout_seconds": result.timeout_seconds,
+                "elapsed_seconds": result.elapsed_seconds,
                 "step_name": step.name,
                 "model": fd.get("model", ""),
                 "subprocess_cwd": fd.get("subprocess_cwd", ""),
                 "raw_output_len": fd.get("raw_output_len", 0),
                 "stderr_len": fd.get("stderr_len", 0),
+                "timeout_stdout_len": len(result.timeout_stdout),
+                "timeout_stderr_len": len(result.timeout_stderr),
+                "timeout_diagnostic_bundle_path": bundle_path if bundle_written else None,
             },
         )
 

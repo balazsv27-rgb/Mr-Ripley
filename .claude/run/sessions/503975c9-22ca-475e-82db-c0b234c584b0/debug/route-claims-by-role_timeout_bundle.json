@@ -1,0 +1,105 @@
+{
+  "step_name": "route-claims-by-role",
+  "bundle_type": "timeout_transport_diagnostic",
+  "command": [
+    "claude",
+    "-p",
+    "--output-format",
+    "json",
+    "--model",
+    "sonnet",
+    "--no-session-persistence",
+    "--tools",
+    "",
+    "--json-schema",
+    "{\"type\":\"object\",\"properties\":{\"artifacts\":{\"type\":\"object\",\"properties\":{\"role_citation_verdict\":{\"type\":\"object\"}},\"required\":[\"role_citation_verdict\"]}},\"required\":[\"artifacts\"]}"
+  ],
+  "timeout_seconds": 180.0,
+  "elapsed_seconds": 180.0779999999795,
+  "partial_stdout_length": 0,
+  "partial_stdout": "",
+  "partial_stderr_length": 0,
+  "partial_stderr": "",
+  "assembled_prompt_length": 39713,
+  "assembled_prompt_first_2000": "[SKILL INSTRUCTIONS]\n\n============================================================\n---\nname: role-matched-citation-check\ndescription: Enforce use of the canonical document whose role best matches each claim. Determines whether strong claims are supported by the role-correct canonical source, detects role-mismatched overrides, and flags README_LAYER2 used outside its declared collaborator-workflow role. Use after doc-truth-classification and before build-sequence-compliance-check, runtime guards, deep audit, and verification updates.\ndisable-model-invocation: false\n---\n\nYou are the `role-matched-citation-check` skill.\n\nYour job is to verify that each claim in the current request is supported by the canonical document whose declared role best matches that claim type — and to detect when a role-mismatched or unauthorised source supports a strong claim.\n\nThis skill is an **interpretation and source-selection validator**. It is not a truth-classifier, phase-gate, contract validator, impact assessor, matrix updater, or ledger updater. It produces a structured verdict only.\n\nYou must:\n1. consume the upstream `request_classification` (and any cited sources),\n2. identify each claim's type and required primary canonical source,\n3. compare against provided sources,\n4. detect role mismatches, conflicts, and `README_LAYER2.md` override attempts,\n5. emit a single deterministic structured verdict.\n\n---\n\n## Required inputs\n\n| Input | Source | Required |\n|---|---|---|\n| `request_classification` | `doc-truth-classification` | Yes |\n| `interpretation_policy.claim_routing` | interpretation-policy.yaml | Yes |\n| `active_governance_context` | constitution / `CLAUDE.md` | When available |\n| Proposed / cited source documents | upstream request | When available |\n\nIf `request_classification` is absent: set `inference_used: true`, infer claim types from request text directly.\n\n---\n\n## Canonical source priority (claim routing)\n\n| Claim type | Required primary source |\n|---|---|\n| `architectur",
+  "prompt_composition": {
+    "step_name": "route-claims-by-role",
+    "skill_content_length": 9948,
+    "agent_instructions_length": 3178,
+    "artifact_input_names": [
+      "claim_classification_map",
+      "governance_context",
+      "interpretation_policy.claim_routing",
+      "normalized_terminology_map"
+    ],
+    "artifact_input_count": 4,
+    "document_paths": [],
+    "document_count": 0,
+    "token_estimate": 9549,
+    "token_budget": 100000,
+    "truncated": false,
+    "truncation_events": [],
+    "expected_outputs": [
+      "role_citation_verdict"
+    ]
+  },
+  "failure_detail": {
+    "failure_origin": "timeout",
+    "failure_stage": "backend_timeout",
+    "returncode": null,
+    "parse_failure_reason": null,
+    "stderr_preview": "",
+    "raw_output_preview": "",
+    "debug_artifact_written": false,
+    "debug_artifact_path": null,
+    "backend_failure_detail": "Claude CLI subprocess timed out after 180000ms.",
+    "raw_output_len": 0,
+    "stderr_len": 0,
+    "timeout_ms": 180077.9999999795,
+    "timeout_seconds": 180.0,
+    "elapsed_seconds": 180.0779999999795,
+    "timeout_command": [
+      "claude",
+      "-p",
+      "--output-format",
+      "json",
+      "--model",
+      "sonnet",
+      "--no-session-persistence",
+      "--tools",
+      "",
+      "--json-schema",
+      "{\"type\":\"object\",\"properties\":{\"artifacts\":{\"type\":\"object\",\"properties\":{\"role_citation_verdict\":{\"type\":\"object\"}},\"required\":[\"role_citation_verdict\"]}},\"required\":[\"artifacts\"]}"
+    ],
+    "timeout_stdout_len": 0,
+    "timeout_stderr_len": 0,
+    "subprocess_cwd": "C:\\Code\\Mr-Ripley",
+    "model": "sonnet",
+    "backend": "claude_code_cli",
+    "prompt_token_estimate": 9549,
+    "prompt_token_budget": 100000,
+    "prompt_truncated": false,
+    "prompt_composition": {
+      "step_name": "route-claims-by-role",
+      "skill_content_length": 9948,
+      "agent_instructions_length": 3178,
+      "artifact_input_names": [
+        "claim_classification_map",
+        "governance_context",
+        "interpretation_policy.claim_routing",
+        "normalized_terminology_map"
+      ],
+      "artifact_input_count": 4,
+      "document_paths": [],
+      "document_count": 0,
+      "token_estimate": 9549,
+      "token_budget": 100000,
+      "truncated": false,
+      "truncation_events": [],
+      "expected_outputs": [
+        "role_citation_verdict"
+      ]
+    }
+  },
+  "timeout_phase": "before_response"
+}

@@ -150,6 +150,40 @@ def test_build_prompt_composition_metadata_fields(pipeline) -> None:
     assert "normalized_terminology_map" in meta["expected_outputs"]
 
 
+def test_route_claims_by_role_receives_interpretation_policy(pipeline) -> None:
+    """route-claims-by-role must receive interpretation_policy.claim_routing in prompt context.
+
+    Regression test: interpretation_policy.claim_routing is declared as an input
+    in workflow-steps.yaml and agents.yaml, but was silently dropped because
+    _gather_artifact_inputs only looked in run_state.artifacts.  After the fix,
+    the dotted name is resolved from spec.interpretation_policy.raw.
+    """
+    spec, plan, run_state = pipeline
+    step = spec.workflow_steps["route-claims-by-role"]
+    ctx = assemble_step_prompt(step, spec, run_state, repo_root=_REPO_ROOT)
+
+    # The interpretation_policy.claim_routing must appear in artifact_inputs
+    assert "interpretation_policy.claim_routing" in ctx["artifact_inputs"], (
+        "interpretation_policy.claim_routing was not injected into prompt context — "
+        "dotted spec-path resolution is broken"
+    )
+
+    # Verify the payload contains the expected routing keys
+    routing = ctx["artifact_inputs"]["interpretation_policy.claim_routing"]
+    assert "architecture_claims" in routing, (
+        "claim_routing payload missing architecture_claims key"
+    )
+    assert "implementation_claims" in routing, (
+        "claim_routing payload missing implementation_claims key"
+    )
+
+    # Verify it appears in prompt_composition metadata
+    meta = build_prompt_composition_metadata(ctx)
+    assert "interpretation_policy.claim_routing" in meta["artifact_input_names"], (
+        "interpretation_policy.claim_routing missing from prompt_composition metadata"
+    )
+
+
 def test_normalize_terminology_prompt_is_bounded(pipeline) -> None:
     """normalize-terminology prompt size should be inspectable without live backend."""
     spec, plan, run_state = pipeline

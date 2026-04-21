@@ -392,6 +392,71 @@ def write_failure_debug_artifact(
         return False, None, str(exc)
 
 
+def write_timeout_diagnostic_bundle(
+    *,
+    step_name: str,
+    command: list[str],
+    timeout_seconds: float,
+    elapsed_seconds: float,
+    partial_stdout: str = "",
+    partial_stderr: str = "",
+    assembled_prompt: str = "",
+    prompt_composition: dict[str, Any] | None = None,
+    failure_detail: dict[str, Any] | None = None,
+    debug_dir: str | None = None,
+) -> tuple[bool, str | None, str | None]:
+    """Write a dedicated timeout diagnostic bundle to disk.
+
+    Contains transport-level evidence that the standard debug artifact
+    does not capture: partial stdout/stderr from the killed subprocess,
+    the exact command, timing, and the assembled prompt text.
+
+    Returns ``(written, path, error)``.  Never raises to caller.
+    """
+    from pathlib import Path
+
+    target_dir = debug_dir or _LEGACY_DEBUG_DIR
+    bundle_path = Path(target_dir) / f"{step_name}_timeout_bundle.json"
+    try:
+        bundle_path.parent.mkdir(parents=True, exist_ok=True)
+        payload: dict[str, Any] = {
+            "step_name": step_name,
+            "bundle_type": "timeout_transport_diagnostic",
+            "command": command,
+            "timeout_seconds": timeout_seconds,
+            "elapsed_seconds": elapsed_seconds,
+            "partial_stdout_length": len(partial_stdout),
+            "partial_stdout": partial_stdout[:5000] if partial_stdout else "",
+            "partial_stderr_length": len(partial_stderr),
+            "partial_stderr": partial_stderr[:5000] if partial_stderr else "",
+            "assembled_prompt_length": len(assembled_prompt),
+            "assembled_prompt_first_2000": assembled_prompt[:2000] if assembled_prompt else "",
+        }
+        if prompt_composition is not None:
+            payload["prompt_composition"] = prompt_composition
+        if failure_detail is not None:
+            payload["failure_detail"] = failure_detail
+
+        # Detect whether timeout occurred before or during response generation
+        if partial_stdout:
+            payload["timeout_phase"] = "during_response"
+        else:
+            payload["timeout_phase"] = "before_response"
+
+        # Check for partial JSON already in flight
+        if partial_stdout and partial_stdout.strip():
+            stripped = partial_stdout.strip()
+            payload["partial_json_detected"] = (
+                stripped.startswith("{") or stripped.startswith("[")
+            )
+
+        with bundle_path.open("w", encoding="utf-8") as f:
+            json.dump(payload, f, indent=2, ensure_ascii=False)
+        return True, str(bundle_path), None
+    except Exception as exc:
+        return False, None, str(exc)
+
+
 def _parse_backend_response(
     raw_output: str,
     expected_artifacts: list[str],
@@ -787,8 +852,19 @@ class ClaudeCodeCLIBackend(ExecutionBackend):
                     encoding="utf-8",
                     cwd=subprocess_cwd,
                 )
-            except subprocess.TimeoutExpired:
+            except subprocess.TimeoutExpired as exc:
                 latency = (time.monotonic() - t0) * 1000.0
+                # Capture transport evidence from the exception.
+                # subprocess.run() kills the child and re-communicates
+                # on timeout, so exc.stdout/stderr contain partial output.
+                partial_stdout = exc.stdout if isinstance(exc.stdout, str) else (
+                    exc.stdout.decode("utf-8", errors="replace") if exc.stdout else ""
+                )
+                partial_stderr = exc.stderr if isinstance(exc.stderr, str) else (
+                    exc.stderr.decode("utf-8", errors="replace") if exc.stderr else ""
+                )
+                timeout_cmd = list(exc.cmd) if exc.cmd else list(cmd)
+
                 if attempt < self._max_retries:
                     time.sleep(2)
                     continue
@@ -802,6 +878,11 @@ class ClaudeCodeCLIBackend(ExecutionBackend):
                     ),
                     returncode=None,
                     retry_count=attempt,
+                    timeout_stdout=partial_stdout,
+                    timeout_stderr=partial_stderr,
+                    timeout_command=timeout_cmd,
+                    timeout_seconds=timeout_s,
+                    elapsed_seconds=latency / 1000.0,
                 )
             except OSError as exc:
                 # OSError is deterministic — never retry

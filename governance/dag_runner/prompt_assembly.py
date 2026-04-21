@@ -52,12 +52,54 @@ def _get_repo_root() -> Path:
     return Path(__file__).resolve().parent.parent.parent
 
 
+def _resolve_spec_path(
+    spec: AssembledWorkflowSpec,
+    dotted_name: str,
+) -> dict[str, Any] | None:
+    """Resolve a dotted name against spec-level data fields.
+
+    Supports paths like ``interpretation_policy.claim_routing`` which resolve
+    to ``spec.interpretation_policy.raw["data"]["claim_routing"]``.
+
+    Returns ``None`` when the path does not match any spec attribute or field.
+    """
+    parts = dotted_name.split(".", 1)
+    if len(parts) != 2:
+        return None
+    section, field_name = parts
+
+    spec_attr = getattr(spec, section, None)
+    if spec_attr is None:
+        return None
+
+    raw = getattr(spec_attr, "raw", None)
+    if raw is None or not isinstance(raw, dict):
+        return None
+
+    # Prefer data sub-key (standard YAML package layout), fall back to raw root.
+    data = raw.get("data", raw)
+    if field_name not in data:
+        return None
+
+    value = data[field_name]
+    if isinstance(value, dict):
+        return value
+    # Wrap non-dict values for consistent artifact-like shape.
+    return {"value": value}
+
+
 def _gather_artifact_inputs(
     step: WorkflowStep,
     agent: AgentSpec | None,
     run_state: GovernanceRunState,
+    spec: AssembledWorkflowSpec | None = None,
 ) -> dict[str, dict[str, Any]]:
-    """Gather upstream artifact payloads for this step's inputs."""
+    """Gather upstream artifact payloads for this step's inputs.
+
+    When *spec* is provided, dotted input names (e.g.
+    ``interpretation_policy.claim_routing``) that are absent from
+    ``run_state.artifacts`` are resolved against the assembled spec.
+    """
     result: dict[str, dict[str, Any]] = {}
 
     # Collect input names from step.raw and agent.consumes
@@ -75,6 +117,10 @@ def _gather_artifact_inputs(
         artifact = run_state.artifacts.get(name)
         if artifact is not None and artifact.status == "present":
             result[name] = artifact.payload
+        elif spec is not None and "." in name:
+            resolved = _resolve_spec_path(spec, name)
+            if resolved is not None:
+                result[name] = resolved
 
     return result
 
@@ -178,8 +224,8 @@ def assemble_step_prompt(
         except AgentResolverError:
             agent_instructions = ""
 
-    # Gather artifact inputs
-    artifact_inputs = _gather_artifact_inputs(step, agent, run_state)
+    # Gather artifact inputs (pass spec for dotted spec-path resolution)
+    artifact_inputs = _gather_artifact_inputs(step, agent, run_state, spec=spec)
 
     # Gather document paths
     document_paths = _gather_document_paths(agent, repo_root)

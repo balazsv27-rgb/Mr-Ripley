@@ -220,6 +220,12 @@ class AgentExecutionResult:
     parse_failure: str | None = None
     returncode: int | None = None
     retry_count: int = 0
+    # Timeout transport diagnostics (populated only on TimeoutExpired)
+    timeout_stdout: str = ""
+    timeout_stderr: str = ""
+    timeout_command: list[str] = field(default_factory=list)
+    timeout_seconds: float = 0.0
+    elapsed_seconds: float = 0.0
 
 
 @dataclass(frozen=True)

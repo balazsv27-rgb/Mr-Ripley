@@ -57,7 +57,8 @@
       "Bash(find /c/Code/Mr-Ripley -path *workflows* -name *.yaml -o -path *workflows* -name *.yml)",
       "Bash(find /c/Code/Mr-Ripley/.claude -name *prompt* -type f)",
       "Bash(find /c/Code/Mr-Ripley/tests -name *normalize* -o -name *terminolog* -o -name *classification*)",
-      "Bash(find /c/Code/Mr-Ripley/.claude/workflows -name *.yaml -o -name *.yml)"
+      "Bash(find /c/Code/Mr-Ripley/.claude/workflows -name *.yaml -o -name *.yml)",
+      "Bash(find .claude/skills -type f -name *.md)"
     ]
   }
 }
