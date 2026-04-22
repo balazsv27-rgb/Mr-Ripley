@@ -1,5 +1,5 @@
 {
-  "step_name": "phase-check",
+  "step_name": "snapshot-contract-check",
   "failure_detail": {
     "failure_origin": "timeout",
     "failure_stage": "backend_timeout",
@@ -8,13 +8,13 @@
     "stderr_preview": "",
     "raw_output_preview": "",
     "debug_artifact_written": true,
-    "debug_artifact_path": ".claude\\run\\sessions\\37d5b065-cd4e-49f7-bb4b-d5ddb344465b\\debug\\phase-check_debug.json",
+    "debug_artifact_path": ".claude\\run\\sessions\\81c4825f-68b1-408f-9008-c978f568f0fa\\debug\\snapshot-contract-check_debug.json",
     "backend_failure_detail": "Claude CLI subprocess timed out after 120000ms.",
     "raw_output_len": 0,
     "stderr_len": 0,
-    "timeout_ms": 120062.00000003446,
+    "timeout_ms": 120077.99999997951,
     "timeout_seconds": 120.0,
-    "elapsed_seconds": 120.06200000003446,
+    "elapsed_seconds": 120.07799999997951,
     "timeout_command": [
       "claude",
       "-p",
@@ -26,54 +26,57 @@
       "--tools",
       "",
       "--json-schema",
-      "{\"type\":\"object\",\"properties\":{\"artifacts\":{\"type\":\"object\",\"properties\":{\"phase_alignment_status\":{\"type\":\"object\"}},\"required\":[\"phase_alignment_status\"]}},\"required\":[\"artifacts\"]}"
+      "{\"type\":\"object\",\"properties\":{\"artifacts\":{\"type\":\"object\",\"properties\":{\"contract_compliance_verdict\":{\"type\":\"object\"}},\"required\":[\"contract_compliance_verdict\"]}},\"required\":[\"artifacts\"]}"
     ],
     "timeout_stdout_len": 0,
     "timeout_stderr_len": 0,
     "subprocess_cwd": "C:\\Code\\Mr-Ripley",
     "model": "sonnet",
     "backend": "claude_code_cli",
-    "prompt_token_estimate": 10956,
+    "prompt_token_estimate": 15509,
     "prompt_token_budget": 100000,
     "prompt_truncated": false,
     "prompt_composition": {
-      "step_name": "phase-check",
-      "skill_content_length": 13181,
-      "agent_instructions_length": 2678,
+      "step_name": "snapshot-contract-check",
+      "skill_content_length": 31314,
+      "agent_instructions_length": 2403,
       "artifact_input_names": [
-        "claim_classification_map",
+        "phase_alignment_status",
         "role_citation_verdict"
       ],
       "artifact_input_count": 2,
       "document_paths": [],
       "document_count": 0,
-      "token_estimate": 10956,
+      "token_estimate": 15509,
       "token_budget": 100000,
       "truncated": false,
       "truncation_events": [],
       "expected_outputs": [
-        "phase_alignment_status"
+        "contract_compliance_verdict"
       ],
       "input_contributions": {
         "skill_instructions": {
-          "chars": 13181,
-          "estimated_tokens": 3295
+          "chars": 31314,
+          "estimated_tokens": 7828
         },
         "agent_instructions": {
-          "chars": 2678,
-          "estimated_tokens": 669
+          "chars": 2403,
+          "estimated_tokens": 600
+        },
+        "artifact:phase_alignment_status": {
+          "chars": 8935,
+          "estimated_tokens": 2233
         },
         "artifact:role_citation_verdict": {
-          "chars": 15313,
-          "estimated_tokens": 3828
-        },
-        "artifact:claim_classification_map": {
-          "chars": 12656,
-          "estimated_tokens": 3164
+          "chars": 19393,
+          "estimated_tokens": 4848
         }
       },
-      "assembled_prompt_chars": 45291,
-      "assembled_prompt_tokens": 11322
+      "assembled_prompt_chars": 63590,
+      "assembled_prompt_tokens": 15897,
+      "projected_artifact_names": [],
+      "input_contributions_original": {},
+      "input_contributions_projected": {}
     }
   }
 }

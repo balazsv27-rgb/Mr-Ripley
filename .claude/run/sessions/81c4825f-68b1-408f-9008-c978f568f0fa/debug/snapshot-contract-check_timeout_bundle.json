@@ -1,0 +1,147 @@
+{
+  "step_name": "snapshot-contract-check",
+  "bundle_type": "timeout_transport_diagnostic",
+  "command": [
+    "claude",
+    "-p",
+    "--output-format",
+    "json",
+    "--model",
+    "sonnet",
+    "--no-session-persistence",
+    "--tools",
+    "",
+    "--json-schema",
+    "{\"type\":\"object\",\"properties\":{\"artifacts\":{\"type\":\"object\",\"properties\":{\"contract_compliance_verdict\":{\"type\":\"object\"}},\"required\":[\"contract_compliance_verdict\"]}},\"required\":[\"artifacts\"]}"
+  ],
+  "timeout_seconds": 120.0,
+  "elapsed_seconds": 120.07799999997951,
+  "partial_stdout_length": 0,
+  "partial_stdout": "",
+  "partial_stderr_length": 0,
+  "partial_stderr": "",
+  "assembled_prompt_length": 63590,
+  "assembled_prompt_first_2000": "[SKILL INSTRUCTIONS]\n\n============================================================\n---\nname: snapshot-contract-check\ndescription: Validate whether a requested implementation, documentation change, architecture statement, or agent action preserves the Layer-2 → Layer-3 snapshot contract boundary. Determines whether downstream logic consumes only governed published snapshots, never raw Layer-2 observations. Use after doc-truth-classification and build-sequence-compliance-check, and before snapshot-boundary-guard, deep audit routing, and change-impact analysis.\ndisable-model-invocation: false\n---\n\nYou are the `snapshot-contract-check` skill.\n\nYour job is to determine whether a requested change, claim, implementation design, or documentation update preserves the hard invariant that Layer-3 and all downstream decision logic consume only governed published snapshots — never raw Layer-2 `observations`.\n\nThis skill is a **contract-validation method**.\n\nIt is not a phase-gating skill (that is `build-sequence-compliance-check`), not a truth classifier (that is `doc-truth-classification`), and not an enforcer. It emits a structured contract-compliance verdict that downstream hooks and guards can consume.\n\nYou must:\n1. identify each claim or change in the request that touches snapshot access, observation access, Layer-2 storage, or DecisionPacket anchoring,\n2. evaluate each against the snapshot contract invariants,\n3. classify each as `compliant`, `blocked`, or `ambiguous`,\n4. emit a deterministic structured result that downstream skills and hooks can consume.\n\nThis skill exists because the orchestration workflow requires snapshot-contract validation **after**:\n- `doc-truth-classification`\n- `build-sequence-compliance-check`\n\nand **before** or **in support of**:\n- `snapshot-boundary-guard` (hook)\n- deep audit routing\n- change-impact analysis\n\n---\n\n## Governing assumptions\n\nApply these unconditionally throughout.\n\n- The snapshot-only downstream read rule is a **current-state inv",
+  "prompt_composition": {
+    "step_name": "snapshot-contract-check",
+    "skill_content_length": 31314,
+    "agent_instructions_length": 2403,
+    "artifact_input_names": [
+      "phase_alignment_status",
+      "role_citation_verdict"
+    ],
+    "artifact_input_count": 2,
+    "document_paths": [],
+    "document_count": 0,
+    "token_estimate": 15509,
+    "token_budget": 100000,
+    "truncated": false,
+    "truncation_events": [],
+    "expected_outputs": [
+      "contract_compliance_verdict"
+    ],
+    "input_contributions": {
+      "skill_instructions": {
+        "chars": 31314,
+        "estimated_tokens": 7828
+      },
+      "agent_instructions": {
+        "chars": 2403,
+        "estimated_tokens": 600
+      },
+      "artifact:phase_alignment_status": {
+        "chars": 8935,
+        "estimated_tokens": 2233
+      },
+      "artifact:role_citation_verdict": {
+        "chars": 19393,
+        "estimated_tokens": 4848
+      }
+    },
+    "assembled_prompt_chars": 63590,
+    "assembled_prompt_tokens": 15897,
+    "projected_artifact_names": [],
+    "input_contributions_original": {},
+    "input_contributions_projected": {}
+  },
+  "failure_detail": {
+    "failure_origin": "timeout",
+    "failure_stage": "backend_timeout",
+    "returncode": null,
+    "parse_failure_reason": null,
+    "stderr_preview": "",
+    "raw_output_preview": "",
+    "debug_artifact_written": true,
+    "debug_artifact_path": ".claude\\run\\sessions\\81c4825f-68b1-408f-9008-c978f568f0fa\\debug\\snapshot-contract-check_debug.json",
+    "backend_failure_detail": "Claude CLI subprocess timed out after 120000ms.",
+    "raw_output_len": 0,
+    "stderr_len": 0,
+    "timeout_ms": 120077.99999997951,
+    "timeout_seconds": 120.0,
+    "elapsed_seconds": 120.07799999997951,
+    "timeout_command": [
+      "claude",
+      "-p",
+      "--output-format",
+      "json",
+      "--model",
+      "sonnet",
+      "--no-session-persistence",
+      "--tools",
+      "",
+      "--json-schema",
+      "{\"type\":\"object\",\"properties\":{\"artifacts\":{\"type\":\"object\",\"properties\":{\"contract_compliance_verdict\":{\"type\":\"object\"}},\"required\":[\"contract_compliance_verdict\"]}},\"required\":[\"artifacts\"]}"
+    ],
+    "timeout_stdout_len": 0,
+    "timeout_stderr_len": 0,
+    "subprocess_cwd": "C:\\Code\\Mr-Ripley",
+    "model": "sonnet",
+    "backend": "claude_code_cli",
+    "prompt_token_estimate": 15509,
+    "prompt_token_budget": 100000,
+    "prompt_truncated": false,
+    "prompt_composition": {
+      "step_name": "snapshot-contract-check",
+      "skill_content_length": 31314,
+      "agent_instructions_length": 2403,
+      "artifact_input_names": [
+        "phase_alignment_status",
+        "role_citation_verdict"
+      ],
+      "artifact_input_count": 2,
+      "document_paths": [],
+      "document_count": 0,
+      "token_estimate": 15509,
+      "token_budget": 100000,
+      "truncated": false,
+      "truncation_events": [],
+      "expected_outputs": [
+        "contract_compliance_verdict"
+      ],
+      "input_contributions": {
+        "skill_instructions": {
+          "chars": 31314,
+          "estimated_tokens": 7828
+        },
+        "agent_instructions": {
+          "chars": 2403,
+          "estimated_tokens": 600
+        },
+        "artifact:phase_alignment_status": {
+          "chars": 8935,
+          "estimated_tokens": 2233
+        },
+        "artifact:role_citation_verdict": {
+          "chars": 19393,
+          "estimated_tokens": 4848
+        }
+      },
+      "assembled_prompt_chars": 63590,
+      "assembled_prompt_tokens": 15897,
+      "projected_artifact_names": [],
+      "input_contributions_original": {},
+      "input_contributions_projected": {}
+    }
+  },
+  "timeout_phase": "before_response"
+}
