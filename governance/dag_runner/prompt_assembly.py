@@ -285,6 +285,62 @@ def _compact_phase_alignment_for_snapshot_contract(
     return compact
 
 
+# ---------------------------------------------------------------------------
+# Runtime-boundary-check compact transform projections
+# ---------------------------------------------------------------------------
+# Deep structural transforms for runtime-boundary-check.  These retain only
+# boundary-validation-relevant fields from the upstream contract_compliance_verdict,
+# dropping verbose per-claim narratives and checked_claims detail.
+
+
+def _compact_contract_compliance_for_runtime_boundary(
+    payload: dict[str, Any],
+) -> dict[str, Any]:
+    """Extract compact runtime-boundary projection from contract_compliance_verdict.
+
+    Retains top-level contract status, forbidden-access flags, blocking reason,
+    and summary risk flags.  Drops ``checked_claims`` entirely (large, per-claim
+    narratives are low-value for runtime boundary validation).
+
+    Supports two schema shapes:
+    - nested: ``payload["snapshot_contract_status"]`` containing status fields
+    - flat: status fields directly on ``payload``
+    """
+    # Try nested shape first, fall back to flat
+    scs = payload.get("snapshot_contract_status")
+    if scs is not None:
+        root = scs
+    elif "contract_status" in payload or "allowed" in payload:
+        root = payload
+    else:
+        return payload  # structural/minimal payload — pass through
+
+    summary = root.get("summary", {})
+
+    compact: dict[str, Any] = {
+        "produced_by": payload.get("produced_by"),
+        # Top-level contract status
+        "allowed": root.get("allowed"),
+        "contract_status": root.get("contract_status"),
+        "forbidden_access_detected": root.get("forbidden_access_detected"),
+        "snapshot_anchor_required": root.get("snapshot_anchor_required"),
+        "blocking_reason_if_any": root.get("blocking_reason_if_any"),
+        # Summary risk flags
+        "raw_observations_access_risk": summary.get(
+            "raw_observations_access_risk",
+        ),
+        "snapshot_bypass_risk": summary.get("snapshot_bypass_risk"),
+        "layer2_storage_touch_risk": summary.get("layer2_storage_touch_risk"),
+        "decisionpacket_anchor_risk": summary.get(
+            "decisionpacket_anchor_risk",
+        ),
+        "upstream_block_inherited": summary.get("upstream_block_inherited"),
+        "blocked_in_strict_mode": summary.get("blocked_in_strict_mode"),
+        "resolution_required": summary.get("resolution_required"),
+    }
+    return compact
+
+
 # Transform-based projections — step_name → {artifact_name → transform_fn}.
 # Applied before field-list projections in _project_artifact_payload.
 _STEP_INPUT_TRANSFORMS: dict[str, dict[str, Any]] = {
@@ -295,6 +351,9 @@ _STEP_INPUT_TRANSFORMS: dict[str, dict[str, Any]] = {
     "snapshot-contract-check": {
         "role_citation_verdict": _compact_role_citation_for_snapshot_contract,
         "phase_alignment_status": _compact_phase_alignment_for_snapshot_contract,
+    },
+    "runtime-boundary-check": {
+        "contract_compliance_verdict": _compact_contract_compliance_for_runtime_boundary,
     },
 }
 

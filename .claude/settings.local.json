@@ -61,7 +61,9 @@
       "Bash(find .claude/skills -type f -name *.md)",
       "Bash(find /c/Code/Mr-Ripley -type d -name *test*)",
       "Bash(find /c/Code/Mr-Ripley/tests -type f -name *.py)",
-      "Bash(find C:CodeMr-Ripley -type f -name *phase-check*)"
+      "Bash(find C:CodeMr-Ripley -type f -name *phase-check*)",
+      "Bash(find /c/Code/Mr-Ripley -name *.json -path *artifacts* -type f)",
+      "Bash(find /c/Code/Mr-Ripley/.claude/run -name *runtime-boundary* -type f)"
     ]
   }
 }

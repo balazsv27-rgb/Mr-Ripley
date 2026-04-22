@@ -1055,3 +1055,237 @@ def test_snapshot_contract_projection_log_with_rich_payload() -> None:
             f"{entry['artifact']}: projected {entry['projected_chars']} >= "
             f"original {entry['original_chars']}"
         )
+
+
+# ── runtime-boundary-check artifact projection ──
+
+
+def test_runtime_boundary_contract_projection_nested_schema() -> None:
+    """runtime-boundary-check projection extracts compact fields from nested contract_compliance_verdict."""
+    from governance.dag_runner.prompt_assembly import _project_artifact_payload
+
+    full_payload = {
+        "produced_by": "snapshot-contract-check",
+        "snapshot_contract_status": {
+            "allowed": False,
+            "contract_status": "boundary_violation",
+            "valid_interface": "snapshot_db",
+            "forbidden_access_detected": True,
+            "snapshot_anchor_required": True,
+            "blocking_reason_if_any": "raw observation access detected in proposed Layer-3 consumer",
+            "checked_claims": [
+                {
+                    "claim_id": "c1",
+                    "claim_text": "Layer-3 queries observations directly " * 20,
+                    "assessment": "blocked",
+                    "violated_invariants": ["SCC-1"],
+                    "triggered_forbidden_patterns": ["FP-1"],
+                    "valid_interface_if_compliant": "none",
+                    "reason": "Very long reason text about boundary violation " * 30,
+                    "contract_reference": ["SCC-1", "FP-1"],
+                },
+                {
+                    "claim_id": "c2",
+                    "claim_text": "Another claim about snapshot access " * 20,
+                    "assessment": "compliant",
+                    "violated_invariants": [],
+                    "triggered_forbidden_patterns": [],
+                    "valid_interface_if_compliant": "snapshot_db",
+                    "reason": "Compliant because uses snapshot_id anchored query " * 20,
+                    "contract_reference": ["SCC-2"],
+                },
+            ],
+            "summary": {
+                "raw_observations_access_risk": True,
+                "snapshot_bypass_risk": False,
+                "layer2_storage_touch_risk": False,
+                "decisionpacket_anchor_risk": False,
+                "followup_guard_recommended": True,
+                "upstream_block_inherited": False,
+                "blocked_in_strict_mode": True,
+                "resolution_required": True,
+            },
+        },
+    }
+
+    projected = _project_artifact_payload(
+        "runtime-boundary-check", "contract_compliance_verdict", full_payload,
+    )
+
+    # Must not be the same object (projection was applied)
+    assert projected is not full_payload
+
+    # Required top-level fields preserved
+    assert projected["produced_by"] == "snapshot-contract-check"
+    assert projected["allowed"] is False
+    assert projected["contract_status"] == "boundary_violation"
+    assert projected["forbidden_access_detected"] is True
+    assert projected["snapshot_anchor_required"] is True
+    assert "raw observation access" in projected["blocking_reason_if_any"]
+
+    # Summary risk flags preserved
+    assert projected["raw_observations_access_risk"] is True
+    assert projected["snapshot_bypass_risk"] is False
+    assert projected["layer2_storage_touch_risk"] is False
+    assert projected["decisionpacket_anchor_risk"] is False
+    assert projected["blocked_in_strict_mode"] is True
+    assert projected["resolution_required"] is True
+
+    # checked_claims MUST be dropped entirely
+    assert "checked_claims" not in projected
+    assert "snapshot_contract_status" not in projected
+
+    import json
+    serialized = json.dumps(projected)
+    assert "Very long reason text" not in serialized
+    assert "violated_invariants" not in serialized
+
+    # Size reduction: must achieve ≥80% reduction
+    orig_size = len(json.dumps(full_payload, indent=2))
+    proj_size = len(json.dumps(projected, indent=2))
+    assert proj_size < orig_size * 0.2, (
+        f"Projection did not achieve 80% reduction: {proj_size} vs {orig_size}"
+    )
+
+
+def test_runtime_boundary_contract_projection_flat_schema() -> None:
+    """runtime-boundary-check projection works with flat contract_compliance_verdict."""
+    from governance.dag_runner.prompt_assembly import _project_artifact_payload
+
+    full_payload = {
+        "produced_by": "snapshot-contract-check",
+        "allowed": True,
+        "contract_status": "compliant",
+        "valid_interface": "both",
+        "forbidden_access_detected": False,
+        "snapshot_anchor_required": True,
+        "blocking_reason_if_any": None,
+        "checked_claims": [
+            {
+                "claim_id": "c1",
+                "claim_text": "Snapshot consumer reads latest_snapshot.json " * 15,
+                "assessment": "compliant",
+                "reason": "Uses snapshot_id anchor correctly " * 20,
+            },
+        ],
+        "summary": {
+            "raw_observations_access_risk": False,
+            "snapshot_bypass_risk": False,
+            "layer2_storage_touch_risk": False,
+            "decisionpacket_anchor_risk": False,
+        },
+    }
+
+    projected = _project_artifact_payload(
+        "runtime-boundary-check", "contract_compliance_verdict", full_payload,
+    )
+
+    # Must not be same object
+    assert projected is not full_payload
+
+    # Required fields
+    assert projected["produced_by"] == "snapshot-contract-check"
+    assert projected["allowed"] is True
+    assert projected["contract_status"] == "compliant"
+    assert projected["forbidden_access_detected"] is False
+    assert projected["blocking_reason_if_any"] is None
+
+    # Summary flags
+    assert projected["raw_observations_access_risk"] is False
+
+    # checked_claims dropped
+    assert "checked_claims" not in projected
+
+    # Size reduction
+    import json
+    orig_size = len(json.dumps(full_payload, indent=2))
+    proj_size = len(json.dumps(projected, indent=2))
+    assert proj_size < orig_size * 0.5, (
+        f"Projection did not reduce size enough: {proj_size} vs {orig_size}"
+    )
+
+
+def test_runtime_boundary_contract_projection_minimal_passthrough() -> None:
+    """V1 shell minimal payloads pass through transforms unchanged."""
+    from governance.dag_runner.prompt_assembly import _project_artifact_payload
+
+    minimal = {"produced_by": "snapshot-contract-check"}
+    result = _project_artifact_payload(
+        "runtime-boundary-check", "contract_compliance_verdict", minimal,
+    )
+    assert result is minimal  # same object — no transform applied
+
+
+def test_runtime_boundary_projection_metadata(pipeline) -> None:
+    """runtime-boundary-check prompt composition includes projection diagnostic fields."""
+    spec, plan, run_state = pipeline
+    step = spec.workflow_steps["runtime-boundary-check"]
+    ctx = assemble_step_prompt(step, spec, run_state, repo_root=_REPO_ROOT)
+    meta = build_prompt_composition_metadata(ctx)
+
+    # Projection metadata keys must be present
+    assert "projected_artifact_names" in meta
+    assert "input_contributions_original" in meta
+    assert "input_contributions_projected" in meta
+    assert isinstance(meta["projected_artifact_names"], list)
+    assert isinstance(meta["input_contributions_original"], dict)
+    assert isinstance(meta["input_contributions_projected"], dict)
+
+
+def test_runtime_boundary_projection_log_with_rich_payload() -> None:
+    """_apply_step_projections records original vs projected sizes for runtime-boundary-check."""
+    from governance.dag_runner.prompt_assembly import _apply_step_projections
+
+    rich_inputs = {
+        "contract_compliance_verdict": {
+            "produced_by": "snapshot-contract-check",
+            "snapshot_contract_status": {
+                "allowed": False,
+                "contract_status": "boundary_violation",
+                "forbidden_access_detected": True,
+                "snapshot_anchor_required": True,
+                "blocking_reason_if_any": "raw observation access",
+                "checked_claims": [
+                    {
+                        "claim_id": "c1",
+                        "claim_text": "x" * 2000,
+                        "assessment": "blocked",
+                        "reason": "x" * 3000,
+                        "violated_invariants": ["SCC-1"],
+                        "triggered_forbidden_patterns": ["FP-1"],
+                    },
+                    {
+                        "claim_id": "c2",
+                        "claim_text": "x" * 2000,
+                        "assessment": "compliant",
+                        "reason": "x" * 3000,
+                    },
+                ],
+                "summary": {
+                    "raw_observations_access_risk": True,
+                    "snapshot_bypass_risk": False,
+                    "layer2_storage_touch_risk": False,
+                    "decisionpacket_anchor_risk": False,
+                },
+            },
+        },
+        "stage_gate_report": {"produced_by": "stage-gate-enforcement", "gates": []},
+    }
+
+    projected, log = _apply_step_projections(
+        "runtime-boundary-check", rich_inputs,
+    )
+
+    # Only contract_compliance_verdict should be projected
+    assert len(log) == 1
+    assert log[0]["artifact"] == "contract_compliance_verdict"
+
+    # Log entry must show size reduction
+    assert log[0]["original_chars"] > 0
+    assert log[0]["projected_chars"] > 0
+    assert log[0]["projected_chars"] < log[0]["original_chars"], (
+        f"projected {log[0]['projected_chars']} >= original {log[0]['original_chars']}"
+    )
+
+    # stage_gate_report should pass through unchanged
+    assert projected["stage_gate_report"] is rich_inputs["stage_gate_report"]
