@@ -120,7 +120,7 @@ def test_build_prompt_composition_metadata_fields(pipeline) -> None:
     ctx = assemble_step_prompt(step, spec, run_state, repo_root=_REPO_ROOT)
     meta = build_prompt_composition_metadata(ctx)
 
-    # All required keys present
+    # All required keys present (including new per-input contribution fields)
     required_keys = {
         "step_name",
         "skill_content_length",
@@ -134,6 +134,9 @@ def test_build_prompt_composition_metadata_fields(pipeline) -> None:
         "truncated",
         "truncation_events",
         "expected_outputs",
+        "input_contributions",
+        "assembled_prompt_chars",
+        "assembled_prompt_tokens",
     }
     assert required_keys.issubset(meta.keys()), (
         f"Missing keys: {required_keys - meta.keys()}"
@@ -148,6 +151,18 @@ def test_build_prompt_composition_metadata_fields(pipeline) -> None:
     assert meta["token_estimate"] > 0
     assert meta["token_budget"] == 100_000
     assert "normalized_terminology_map" in meta["expected_outputs"]
+
+    # Per-input contribution diagnostics
+    contributions = meta["input_contributions"]
+    assert "skill_instructions" in contributions
+    assert contributions["skill_instructions"]["chars"] > 0
+    assert contributions["skill_instructions"]["estimated_tokens"] > 0
+    assert "agent_instructions" in contributions
+    assert contributions["agent_instructions"]["chars"] > 0
+
+    # Assembled prompt totals
+    assert meta["assembled_prompt_chars"] > 0
+    assert meta["assembled_prompt_tokens"] > 0
 
 
 def test_route_claims_by_role_receives_interpretation_policy(pipeline) -> None:
@@ -182,6 +197,47 @@ def test_route_claims_by_role_receives_interpretation_policy(pipeline) -> None:
     assert "interpretation_policy.claim_routing" in meta["artifact_input_names"], (
         "interpretation_policy.claim_routing missing from prompt_composition metadata"
     )
+
+
+def test_input_projection_filters_fields(pipeline) -> None:
+    """Input projections strip non-essential fields from artifact payloads."""
+    from governance.dag_runner.prompt_assembly import _project_artifact_payload
+
+    # Simulated governance_context with extra fields
+    full_payload = {
+        "produced_by": "load-context",
+        "run_id": "test-run-123",
+        "request_text": "Check the architecture",
+        "request_source": "cli",
+        "bootstrap_status": "request_bearing",
+        "workflow_name": "governance",
+        "execution_mode": "agent_execution",
+        "extra_field_1": "should be stripped",
+        "extra_field_2": {"nested": "data"},
+    }
+
+    projected = _project_artifact_payload(
+        "route-claims-by-role", "governance_context", full_payload,
+    )
+
+    # Projected payload should retain only the declared fields
+    assert "produced_by" in projected
+    assert "request_text" in projected
+    assert "run_id" in projected
+    assert "extra_field_1" not in projected
+    assert "extra_field_2" not in projected
+
+    # Artifacts without a projection pass through unchanged
+    unchanged = _project_artifact_payload(
+        "route-claims-by-role", "interpretation_policy.claim_routing", full_payload,
+    )
+    assert unchanged is full_payload  # same object — no projection defined
+
+    # Steps without any projections pass through unchanged
+    other_step = _project_artifact_payload(
+        "classify-claims", "governance_context", full_payload,
+    )
+    assert other_step is full_payload
 
 
 def test_normalize_terminology_prompt_is_bounded(pipeline) -> None:

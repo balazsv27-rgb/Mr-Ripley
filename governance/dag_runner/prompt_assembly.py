@@ -43,6 +43,59 @@ class PromptAssemblyError(RuntimeError):
     """Raised when prompt assembly fails."""
 
 
+# ---------------------------------------------------------------------------
+# Step-specific artifact input projections
+# ---------------------------------------------------------------------------
+# Maps step_name → {artifact_name → list of field names to keep}.
+# When a projection is defined, only those fields are retained in the
+# assembled prompt payload.  Unlisted artifacts pass through unchanged.
+# This reduces assembled prompt size for steps that consume large upstream
+# artifacts but only need a subset of their fields.
+
+_STEP_INPUT_PROJECTIONS: dict[str, dict[str, list[str]]] = {
+    "route-claims-by-role": {
+        # governance_context: only need request text and run metadata
+        "governance_context": [
+            "produced_by", "run_id", "request_text", "request_source",
+            "bootstrap_status", "workflow_name", "execution_mode",
+        ],
+        # claim_classification_map: keep classified claims and top-level status;
+        # drop verbose evidence chains, source excerpts, and internal notes
+        "claim_classification_map": [
+            "produced_by", "claims", "classifications", "status",
+            "overall_classification", "claim_count", "inference_used",
+        ],
+        # normalized_terminology_map: keep normalized terms and status;
+        # drop per-term analysis detail and variant lists
+        "normalized_terminology_map": [
+            "produced_by", "normalized_terms", "terms", "status",
+            "term_count", "inference_used",
+        ],
+        # interpretation_policy.claim_routing: keep as-is (already small)
+    },
+}
+
+
+def _project_artifact_payload(
+    step_name: str,
+    artifact_name: str,
+    payload: dict[str, Any],
+) -> dict[str, Any]:
+    """Apply step-specific field projection to an artifact payload.
+
+    When a projection is defined for ``(step_name, artifact_name)``, only
+    the listed top-level fields are retained.  Unlisted artifacts or steps
+    without projections return the payload unchanged.
+    """
+    step_projections = _STEP_INPUT_PROJECTIONS.get(step_name)
+    if step_projections is None:
+        return payload
+    fields = step_projections.get(artifact_name)
+    if fields is None:
+        return payload
+    return {k: v for k, v in payload.items() if k in fields}
+
+
 # Section delimiters for the assembled prompt text.
 _SECTION_DELIM = "\n\n" + "=" * 60 + "\n"
 
@@ -116,11 +169,15 @@ def _gather_artifact_inputs(
     for name in input_names:
         artifact = run_state.artifacts.get(name)
         if artifact is not None and artifact.status == "present":
-            result[name] = artifact.payload
+            result[name] = _project_artifact_payload(
+                step.name, name, artifact.payload,
+            )
         elif spec is not None and "." in name:
             resolved = _resolve_spec_path(spec, name)
             if resolved is not None:
-                result[name] = resolved
+                result[name] = _project_artifact_payload(
+                    step.name, name, resolved,
+                )
 
     return result
 
@@ -296,15 +353,48 @@ def assemble_step_prompt(
 def build_prompt_composition_metadata(context: dict[str, Any]) -> dict[str, Any]:
     """Extract prompt composition metadata from an assembly context dict.
 
-    Returns a flat dict of diagnostic fields suitable for inclusion in
+    Returns a dict of diagnostic fields suitable for inclusion in
     timeout debug artifacts and execution trace events.
+
+    Includes ``input_contributions`` — a per-input breakdown of chars and
+    estimated tokens — and ``assembled_prompt_chars`` / ``assembled_prompt_tokens``
+    for the final concatenated prompt text.
     """
+    import json as _json
+
     artifact_inputs = context.get("artifact_inputs", {})
     document_paths = context.get("document_paths", [])
+    skill_content = context.get("skill_content", "")
+    agent_instructions = context.get("agent_instructions", "")
+
+    # Per-input contribution breakdown
+    input_contributions: dict[str, dict[str, int]] = {}
+    if skill_content:
+        input_contributions["skill_instructions"] = {
+            "chars": len(skill_content),
+            "estimated_tokens": estimate_tokens(skill_content),
+        }
+    if agent_instructions:
+        input_contributions["agent_instructions"] = {
+            "chars": len(agent_instructions),
+            "estimated_tokens": estimate_tokens(agent_instructions),
+        }
+    for art_name, art_payload in artifact_inputs.items():
+        serialized = _json.dumps(art_payload, indent=2)
+        input_contributions[f"artifact:{art_name}"] = {
+            "chars": len(serialized),
+            "estimated_tokens": estimate_tokens(serialized),
+        }
+
+    # Assembled prompt total size
+    assembled_text = build_prompt_text(context)
+    assembled_chars = len(assembled_text)
+    assembled_tokens = estimate_tokens(assembled_text)
+
     return {
         "step_name": context.get("step_name", ""),
-        "skill_content_length": len(context.get("skill_content", "")),
-        "agent_instructions_length": len(context.get("agent_instructions", "")),
+        "skill_content_length": len(skill_content),
+        "agent_instructions_length": len(agent_instructions),
         "artifact_input_names": sorted(artifact_inputs.keys()),
         "artifact_input_count": len(artifact_inputs),
         "document_paths": list(document_paths),
@@ -314,6 +404,10 @@ def build_prompt_composition_metadata(context: dict[str, Any]) -> dict[str, Any]
         "truncated": context.get("truncated", False),
         "truncation_events": context.get("truncation_events", []),
         "expected_outputs": context.get("expected_outputs", []),
+        # Per-input contribution diagnostics
+        "input_contributions": input_contributions,
+        "assembled_prompt_chars": assembled_chars,
+        "assembled_prompt_tokens": assembled_tokens,
     }
 
 

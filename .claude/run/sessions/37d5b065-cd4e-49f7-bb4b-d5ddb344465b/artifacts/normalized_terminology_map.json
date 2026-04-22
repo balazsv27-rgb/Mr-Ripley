@@ -1,0 +1,72 @@
+{
+  "artifact": "normalized_terminology_map",
+  "produced_by": "normalize-terminology",
+  "session": "37d5b065-cd4e-49f7-bb4b-d5ddb344465b",
+  "timestamp": "2026-04-21T23:42:38.044318Z",
+  "data": {
+    "produced_by": "normalize-terminology",
+    "overall_status": "governance_sensitive_term_conflict",
+    "inference_used": false,
+    "canonical_term_mappings": [
+      {
+        "from": "truth_store",
+        "to": "Layer-2",
+        "concept_id": "LAYER_2",
+        "reason": "'truth_store' is not in the canonical term table and is not a listed allowed variant of 'Layer-2'. It is an unrecognized proposed replacement. Cannot be adopted without a constitutional amendment establishing it as canonical."
+      },
+      {
+        "from": "decision_layer",
+        "to": "Layer-3",
+        "concept_id": "LAYER_3",
+        "reason": "'decision_layer' is not in the canonical term table and is not a listed allowed variant of 'Layer-3'. It is an unrecognized proposed replacement. Cannot be adopted without a constitutional amendment establishing it as canonical."
+      }
+    ],
+    "scope_constraints": [
+      "request text from governance_context.request_text",
+      "classified claims c1\u2013c6 from claim_classification_map",
+      "canonical term table defined in skill",
+      "CLAUDE.md constitutional rules loaded via governance_context"
+    ],
+    "excluded_reference_types": [
+      "Documentation/ directory files not directly read",
+      "SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md not directly read",
+      "SYSTEM_TECHNICAL_HANDBOOK_v1.md not directly read",
+      "SYSTEM_IMPLEMENTATION_RECORD_v1.md not directly read",
+      "README_LAYER2.md not directly read",
+      "DOCUMENTATION_VERIFICATION_MATRIX_v1.md not directly read",
+      "SYSTEM_LIMITATIONS_AND_APPROXIMATIONS_v1.md not directly read",
+      "series_registry.json not read"
+    ],
+    "filename_rename_candidates": [
+      "README_LAYER2.md \u2014 enumerated by name in CLAUDE.md \u00a72.1 as a canonical source; contains 'LAYER2'; any rename requires atomic cross-reference updates across all seven canonical documents and CLAUDE.md itself"
+    ],
+    "ambiguity_flags": [
+      {
+        "term": "truth_store",
+        "concepts": [
+          "LAYER_2",
+          "SNAPSHOT_TRUTH"
+        ],
+        "governance_sensitive": true,
+        "note": "Category A (snapshot boundary): 'truth_store' carries storage-component semantics that conflict with the existing canonical concept 'Snapshot Truth' (SNAPSHOT_TRUTH). Applying 'truth_store' as a layer identifier conflates the architectural snapshot-boundary layer with the snapshot truth content semantics. One term would cover two distinct governed concepts."
+      },
+      {
+        "term": "decision_layer",
+        "concepts": [
+          "LAYER_3",
+          "DECISION_PACKET"
+        ],
+        "governance_sensitive": true,
+        "note": "Category D (decision vocabulary): 'decision_layer' overlaps with the decision vocabulary domain (DecisionPacket, NO_TRADE, guard/state/trigger taxonomies) and with 'Decision Engine' \u2014 a specifically named planned component within Layer-3 (CLAUDE.md \u00a73.2). A layer-level identifier using 'decision' vocabulary creates ambiguity between the architectural container and specific components and terms within it."
+      },
+      {
+        "term": "Layer 3+",
+        "concepts": [
+          "LAYER_3"
+        ],
+        "governance_sensitive": true,
+        "note": "Category A (snapshot boundary): CLAUDE.md \u00a76.1 uses 'Layer 3+' as the boundary expression in the non-negotiable snapshot consumption rule. The proposed rename has no defined canonical equivalent for this suffix form. Replacing 'Layer 3+' with 'decision_layer+' introduces a novel formulation with no canonical precedent, weakening the clarity of the snapshot boundary constraint."
+      }
+    ]
+  }
+}

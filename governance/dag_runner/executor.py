@@ -898,6 +898,17 @@ def _execute_v2_step(
         if prompt_composition is not None:
             fd["prompt_composition"] = prompt_composition
 
+        # Write debug artifact FIRST so fd.debug_artifact_written/path
+        # are synced when the timeout bundle serializes failure_detail.
+        _write_debug_and_update(
+            fd,
+            step_name=step.name,
+            run_state=run_state,
+            raw_output=result.raw_output,
+            stderr=result.stderr,
+            debug_dir=debug_dir,
+        )
+
         # Write dedicated timeout diagnostic bundle with full transport evidence
         bundle_written, bundle_path, bundle_err = write_timeout_diagnostic_bundle(
             step_name=step.name,
@@ -934,15 +945,15 @@ def _execute_v2_step(
                 "timeout_diagnostic_bundle_path": bundle_path if bundle_written else None,
             },
         )
-
-    _write_debug_and_update(
-        fd,
-        step_name=step.name,
-        run_state=run_state,
-        raw_output=result.raw_output,
-        stderr=result.stderr,
-        debug_dir=debug_dir,
-    )
+    else:
+        _write_debug_and_update(
+            fd,
+            step_name=step.name,
+            run_state=run_state,
+            raw_output=result.raw_output,
+            stderr=result.stderr,
+            debug_dir=debug_dir,
+        )
     return NodeResult(
         node_name=step.name,
         node_type=step.component,
