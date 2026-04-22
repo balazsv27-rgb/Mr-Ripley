@@ -1,0 +1,127 @@
+{
+  "artifact": "claim_classification_map",
+  "produced_by": "classify-claims",
+  "session": "cd8b9271-2059-4aea-a448-8fb3cc719d97",
+  "timestamp": "2026-04-22T12:45:05.426423Z",
+  "data": {
+    "produced_by": "classify-claims",
+    "status": "classified",
+    "reason": "All claims successfully classified using canonical source priority. All claims successfully classified using canonical source priority. All claims successfully classified using canonical source priority. All claims successfully classified using canonical source priority. All claims successfully classified using canonical source priority. ",
+    "detail": "Detailed analysis of the classification process including evidence chains, source document cross-references, and confidence assessments. Detailed analysis of the classification process including evidence chains, source document cross-references, and confidence assessments. Detailed analysis of the classification process including evidence chains, source document cross-references, and confidence assessments. Detailed analysis of the classification process including evidence chains, source document cross-references, and confidence assessments. Detailed analysis of the classification process including evidence chains, source document cross-references, and confidence assessments. Detailed analysis of the classification process including evidence chains, source document cross-references, and confidence assessments. Detailed analysis of the classification process including evidence chains, source document cross-references, and confidence assessments. Detailed analysis of the classification process including evidence chains, source document cross-references, and confidence assessments. Detailed analysis of the classification process including evidence chains, source document cross-references, and confidence assessments. Detailed analysis of the classification process including evidence chains, source document cross-references, and confidence assessments. Detailed analysis of the classification process including evidence chains, source document cross-references, and confidence assessments. Detailed analysis of the classification process including evidence chains, source document cross-references, and confidence assessments. Detailed analysis of the classification process including evidence chains, source document cross-references, and confidence assessments. Detailed analysis of the classification process including evidence chains, source document cross-references, and confidence assessments. Detailed analysis of the classification process including evidence chains, source document cross-references, and confidence assessments. Detailed analysis of the classification process including evidence chains, source document cross-references, and confidence assessments. Detailed analysis of the classification process including evidence chains, source document cross-references, and confidence assessments. Detailed analysis of the classification process including evidence chains, source document cross-references, and confidence assessments. Detailed analysis of the classification process including evidence chains, source document cross-references, and confidence assessments. Detailed analysis of the classification process including evidence chains, source document cross-references, and confidence assessments. Detailed analysis of the classification process including evidence chains, source document cross-references, and confidence assessments. Detailed analysis of the classification process including evidence chains, source document cross-references, and confidence assessments. Detailed analysis of the classification process including evidence chains, source document cross-references, and confidence assessments. Detailed analysis of the classification process including evidence chains, source document cross-references, and confidence assessments. Detailed analysis of the classification process including evidence chains, source document cross-references, and confidence assessments. Detailed analysis of the classification process including evidence chains, source document cross-references, and confidence assessments. Detailed analysis of the classification process including evidence chains, source document cross-references, and confidence assessments. Detailed analysis of the classification process including evidence chains, source document cross-references, and confidence assessments. Detailed analysis of the classification process including evidence chains, source document cross-references, and confidence assessments. Detailed analysis of the classification process including evidence chains, source document cross-references, and confidence assessments. ",
+    "claims": [
+      {
+        "claim_id": "c0",
+        "claim_text": "Claim 0: Rename terminology in Layer-2 subsystem A documentation to use canonical terms defined in the normalized terminology map. Claim 0: Rename terminology in Layer-2 subsystem A documentation to use canonical terms defined in the normalized terminology map. Claim 0: Rename terminology in Layer-2 subsystem A documentation to use canonical terms defined in the normalized terminology map. ",
+        "classification": "current-state",
+        "claim_scope": "documentation",
+        "rationale": "This claim was classified based on analysis of canonical documents. The terminology change affects current documentation structure and requires phase alignment verification. This claim was classified based on analysis of canonical documents. The terminology change affects current documentation structure and requires phase alignment verification. This claim was classified based on analysis of canonical documents. The terminology change affects current documentation structure and requires phase alignment verification. This claim was classified based on analysis of canonical documents. The terminology change affects current documentation structure and requires phase alignment verification. This claim was classified based on analysis of canonical documents. The terminology change affects current documentation structure and requires phase alignment verification. This claim was classified based on analysis of canonical documents. The terminology change affects current documentation structure and requires phase alignment verification. This claim was classified based on analysis of canonical documents. The terminology change affects current documentation structure and requires phase alignment verification. This claim was classified based on analysis of canonical documents. The terminology change affects current documentation structure and requires phase alignment verification. This claim was classified based on analysis of canonical documents. The terminology change affects current documentation structure and requires phase alignment verification. This claim was classified based on analysis of canonical documents. The terminology change affects current documentation structure and requires phase alignment verification. ",
+        "evidence": [
+          {
+            "source": "SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md",
+            "excerpt": "Relevant section text Relevant section text Relevant section text Relevant section text Relevant section text Relevant section text Relevant section text Relevant section text Relevant section text Relevant section text Relevant section text Relevant section text Relevant section text Relevant section text Relevant section text Relevant section text Relevant section text Relevant section text Relevant section text Relevant section text ",
+            "confidence": 0.9
+          },
+          {
+            "source": "README_LAYER2.md",
+            "excerpt": "Layer-2 documentation reference Layer-2 documentation reference Layer-2 documentation reference Layer-2 documentation reference Layer-2 documentation reference Layer-2 documentation reference Layer-2 documentation reference Layer-2 documentation reference Layer-2 documentation reference Layer-2 documentation reference Layer-2 documentation reference Layer-2 documentation reference Layer-2 documentation reference Layer-2 documentation reference Layer-2 documentation reference ",
+            "confidence": 0.85
+          }
+        ],
+        "blocking_conditions": []
+      },
+      {
+        "claim_id": "c1",
+        "claim_text": "Claim 1: Rename terminology in Layer-2 subsystem B documentation to use canonical terms defined in the normalized terminology map. Claim 1: Rename terminology in Layer-2 subsystem B documentation to use canonical terms defined in the normalized terminology map. Claim 1: Rename terminology in Layer-2 subsystem B documentation to use canonical terms defined in the normalized terminology map. ",
+        "classification": "target-state",
+        "claim_scope": "documentation",
+        "rationale": "This claim was classified based on analysis of canonical documents. The terminology change affects current documentation structure and requires phase alignment verification. This claim was classified based on analysis of canonical documents. The terminology change affects current documentation structure and requires phase alignment verification. This claim was classified based on analysis of canonical documents. The terminology change affects current documentation structure and requires phase alignment verification. This claim was classified based on analysis of canonical documents. The terminology change affects current documentation structure and requires phase alignment verification. This claim was classified based on analysis of canonical documents. The terminology change affects current documentation structure and requires phase alignment verification. This claim was classified based on analysis of canonical documents. The terminology change affects current documentation structure and requires phase alignment verification. This claim was classified based on analysis of canonical documents. The terminology change affects current documentation structure and requires phase alignment verification. This claim was classified based on analysis of canonical documents. The terminology change affects current documentation structure and requires phase alignment verification. This claim was classified based on analysis of canonical documents. The terminology change affects current documentation structure and requires phase alignment verification. This claim was classified based on analysis of canonical documents. The terminology change affects current documentation structure and requires phase alignment verification. ",
+        "evidence": [
+          {
+            "source": "SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md",
+            "excerpt": "Relevant section text Relevant section text Relevant section text Relevant section text Relevant section text Relevant section text Relevant section text Relevant section text Relevant section text Relevant section text Relevant section text Relevant section text Relevant section text Relevant section text Relevant section text Relevant section text Relevant section text Relevant section text Relevant section text Relevant section text ",
+            "confidence": 0.9
+          },
+          {
+            "source": "README_LAYER2.md",
+            "excerpt": "Layer-2 documentation reference Layer-2 documentation reference Layer-2 documentation reference Layer-2 documentation reference Layer-2 documentation reference Layer-2 documentation reference Layer-2 documentation reference Layer-2 documentation reference Layer-2 documentation reference Layer-2 documentation reference Layer-2 documentation reference Layer-2 documentation reference Layer-2 documentation reference Layer-2 documentation reference Layer-2 documentation reference ",
+            "confidence": 0.85
+          }
+        ],
+        "blocking_conditions": []
+      },
+      {
+        "claim_id": "c2",
+        "claim_text": "Claim 2: Rename terminology in Layer-2 subsystem C documentation to use canonical terms defined in the normalized terminology map. Claim 2: Rename terminology in Layer-2 subsystem C documentation to use canonical terms defined in the normalized terminology map. Claim 2: Rename terminology in Layer-2 subsystem C documentation to use canonical terms defined in the normalized terminology map. ",
+        "classification": "current-state",
+        "claim_scope": "documentation",
+        "rationale": "This claim was classified based on analysis of canonical documents. The terminology change affects current documentation structure and requires phase alignment verification. This claim was classified based on analysis of canonical documents. The terminology change affects current documentation structure and requires phase alignment verification. This claim was classified based on analysis of canonical documents. The terminology change affects current documentation structure and requires phase alignment verification. This claim was classified based on analysis of canonical documents. The terminology change affects current documentation structure and requires phase alignment verification. This claim was classified based on analysis of canonical documents. The terminology change affects current documentation structure and requires phase alignment verification. This claim was classified based on analysis of canonical documents. The terminology change affects current documentation structure and requires phase alignment verification. This claim was classified based on analysis of canonical documents. The terminology change affects current documentation structure and requires phase alignment verification. This claim was classified based on analysis of canonical documents. The terminology change affects current documentation structure and requires phase alignment verification. This claim was classified based on analysis of canonical documents. The terminology change affects current documentation structure and requires phase alignment verification. This claim was classified based on analysis of canonical documents. The terminology change affects current documentation structure and requires phase alignment verification. ",
+        "evidence": [
+          {
+            "source": "SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md",
+            "excerpt": "Relevant section text Relevant section text Relevant section text Relevant section text Relevant section text Relevant section text Relevant section text Relevant section text Relevant section text Relevant section text Relevant section text Relevant section text Relevant section text Relevant section text Relevant section text Relevant section text Relevant section text Relevant section text Relevant section text Relevant section text ",
+            "confidence": 0.9
+          },
+          {
+            "source": "README_LAYER2.md",
+            "excerpt": "Layer-2 documentation reference Layer-2 documentation reference Layer-2 documentation reference Layer-2 documentation reference Layer-2 documentation reference Layer-2 documentation reference Layer-2 documentation reference Layer-2 documentation reference Layer-2 documentation reference Layer-2 documentation reference Layer-2 documentation reference Layer-2 documentation reference Layer-2 documentation reference Layer-2 documentation reference Layer-2 documentation reference ",
+            "confidence": 0.85
+          }
+        ],
+        "blocking_conditions": []
+      },
+      {
+        "claim_id": "c3",
+        "claim_text": "Claim 3: Rename terminology in Layer-2 subsystem D documentation to use canonical terms defined in the normalized terminology map. Claim 3: Rename terminology in Layer-2 subsystem D documentation to use canonical terms defined in the normalized terminology map. Claim 3: Rename terminology in Layer-2 subsystem D documentation to use canonical terms defined in the normalized terminology map. ",
+        "classification": "target-state",
+        "claim_scope": "documentation",
+        "rationale": "This claim was classified based on analysis of canonical documents. The terminology change affects current documentation structure and requires phase alignment verification. This claim was classified based on analysis of canonical documents. The terminology change affects current documentation structure and requires phase alignment verification. This claim was classified based on analysis of canonical documents. The terminology change affects current documentation structure and requires phase alignment verification. This claim was classified based on analysis of canonical documents. The terminology change affects current documentation structure and requires phase alignment verification. This claim was classified based on analysis of canonical documents. The terminology change affects current documentation structure and requires phase alignment verification. This claim was classified based on analysis of canonical documents. The terminology change affects current documentation structure and requires phase alignment verification. This claim was classified based on analysis of canonical documents. The terminology change affects current documentation structure and requires phase alignment verification. This claim was classified based on analysis of canonical documents. The terminology change affects current documentation structure and requires phase alignment verification. This claim was classified based on analysis of canonical documents. The terminology change affects current documentation structure and requires phase alignment verification. This claim was classified based on analysis of canonical documents. The terminology change affects current documentation structure and requires phase alignment verification. ",
+        "evidence": [
+          {
+            "source": "SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md",
+            "excerpt": "Relevant section text Relevant section text Relevant section text Relevant section text Relevant section text Relevant section text Relevant section text Relevant section text Relevant section text Relevant section text Relevant section text Relevant section text Relevant section text Relevant section text Relevant section text Relevant section text Relevant section text Relevant section text Relevant section text Relevant section text ",
+            "confidence": 0.9
+          },
+          {
+            "source": "README_LAYER2.md",
+            "excerpt": "Layer-2 documentation reference Layer-2 documentation reference Layer-2 documentation reference Layer-2 documentation reference Layer-2 documentation reference Layer-2 documentation reference Layer-2 documentation reference Layer-2 documentation reference Layer-2 documentation reference Layer-2 documentation reference Layer-2 documentation reference Layer-2 documentation reference Layer-2 documentation reference Layer-2 documentation reference Layer-2 documentation reference ",
+            "confidence": 0.85
+          }
+        ],
+        "blocking_conditions": []
+      },
+      {
+        "claim_id": "c4",
+        "claim_text": "Claim 4: Rename terminology in Layer-2 subsystem E documentation to use canonical terms defined in the normalized terminology map. Claim 4: Rename terminology in Layer-2 subsystem E documentation to use canonical terms defined in the normalized terminology map. Claim 4: Rename terminology in Layer-2 subsystem E documentation to use canonical terms defined in the normalized terminology map. ",
+        "classification": "current-state",
+        "claim_scope": "documentation",
+        "rationale": "This claim was classified based on analysis of canonical documents. The terminology change affects current documentation structure and requires phase alignment verification. This claim was classified based on analysis of canonical documents. The terminology change affects current documentation structure and requires phase alignment verification. This claim was classified based on analysis of canonical documents. The terminology change affects current documentation structure and requires phase alignment verification. This claim was classified based on analysis of canonical documents. The terminology change affects current documentation structure and requires phase alignment verification. This claim was classified based on analysis of canonical documents. The terminology change affects current documentation structure and requires phase alignment verification. This claim was classified based on analysis of canonical documents. The terminology change affects current documentation structure and requires phase alignment verification. This claim was classified based on analysis of canonical documents. The terminology change affects current documentation structure and requires phase alignment verification. This claim was classified based on analysis of canonical documents. The terminology change affects current documentation structure and requires phase alignment verification. This claim was classified based on analysis of canonical documents. The terminology change affects current documentation structure and requires phase alignment verification. This claim was classified based on analysis of canonical documents. The terminology change affects current documentation structure and requires phase alignment verification. ",
+        "evidence": [
+          {
+            "source": "SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md",
+            "excerpt": "Relevant section text Relevant section text Relevant section text Relevant section text Relevant section text Relevant section text Relevant section text Relevant section text Relevant section text Relevant section text Relevant section text Relevant section text Relevant section text Relevant section text Relevant section text Relevant section text Relevant section text Relevant section text Relevant section text Relevant section text ",
+            "confidence": 0.9
+          },
+          {
+            "source": "README_LAYER2.md",
+            "excerpt": "Layer-2 documentation reference Layer-2 documentation reference Layer-2 documentation reference Layer-2 documentation reference Layer-2 documentation reference Layer-2 documentation reference Layer-2 documentation reference Layer-2 documentation reference Layer-2 documentation reference Layer-2 documentation reference Layer-2 documentation reference Layer-2 documentation reference Layer-2 documentation reference Layer-2 documentation reference Layer-2 documentation reference ",
+            "confidence": 0.85
+          }
+        ],
+        "blocking_conditions": []
+      }
+    ],
+    "summary": {
+      "dominant_scope": "documentation",
+      "needs_phase_check": true,
+      "touches_current_truth": true,
+      "touches_target_architecture": true,
+      "touches_historical_reconciliation": false,
+      "touches_verification_matrix": true,
+      "touches_snapshot_contract": false,
+      "possible_blocking_conditions": [
+        "rename_scope_ambiguity",
+        "cross_document_consistency"
+      ]
+    }
+  }
+}

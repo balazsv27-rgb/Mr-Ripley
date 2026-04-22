@@ -1,0 +1,99 @@
+{
+  "artifact": "role_citation_verdict",
+  "produced_by": "route-claims-by-role",
+  "session": "cd8b9271-2059-4aea-a448-8fb3cc719d97",
+  "timestamp": "2026-04-22T12:45:05.433602Z",
+  "data": {
+    "produced_by": "route-claims-by-role",
+    "role_matched_citation_status": {
+      "overall_status": "review_only",
+      "inference_used": true,
+      "source_authority_conflict_detected": false,
+      "checked_claims": [
+        {
+          "claim_id": "c0",
+          "verdict": "compliant",
+          "matched_source": "SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md",
+          "alternative_sources_considered": [
+            "README_v1.md",
+            "SYSTEM_TECHNICAL_HANDBOOK_v1.md"
+          ],
+          "notes": [
+            "Claim c0 was evaluated against canonical source priority. Claim c0 was evaluated against canonical source priority. Claim c0 was evaluated against canonical source priority. Claim c0 was evaluated against canonical source priority. Claim c0 was evaluated against canonical source priority. Claim c0 was evaluated against canonical source priority. Claim c0 was evaluated against canonical source priority. Claim c0 was evaluated against canonical source priority. Claim c0 was evaluated against canonical source priority. Claim c0 was evaluated against canonical source priority. ",
+            "The role-matched citation check found the claim aligns with the primary authority document. The role-matched citation check found the claim aligns with the primary authority document. The role-matched citation check found the claim aligns with the primary authority document. The role-matched citation check found the claim aligns with the primary authority document. The role-matched citation check found the claim aligns with the primary authority document. The role-matched citation check found the claim aligns with the primary authority document. The role-matched citation check found the claim aligns with the primary authority document. The role-matched citation check found the claim aligns with the primary authority document. ",
+            "No source authority conflict detected. The claim is within the scope of the matched canonical document role. No source authority conflict detected. The claim is within the scope of the matched canonical document role. No source authority conflict detected. The claim is within the scope of the matched canonical document role. No source authority conflict detected. The claim is within the scope of the matched canonical document role. No source authority conflict detected. The claim is within the scope of the matched canonical document role. "
+          ]
+        },
+        {
+          "claim_id": "c1",
+          "verdict": "compliant",
+          "matched_source": "SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md",
+          "alternative_sources_considered": [
+            "README_v1.md",
+            "SYSTEM_TECHNICAL_HANDBOOK_v1.md"
+          ],
+          "notes": [
+            "Claim c1 was evaluated against canonical source priority. Claim c1 was evaluated against canonical source priority. Claim c1 was evaluated against canonical source priority. Claim c1 was evaluated against canonical source priority. Claim c1 was evaluated against canonical source priority. Claim c1 was evaluated against canonical source priority. Claim c1 was evaluated against canonical source priority. Claim c1 was evaluated against canonical source priority. Claim c1 was evaluated against canonical source priority. Claim c1 was evaluated against canonical source priority. ",
+            "The role-matched citation check found the claim aligns with the primary authority document. The role-matched citation check found the claim aligns with the primary authority document. The role-matched citation check found the claim aligns with the primary authority document. The role-matched citation check found the claim aligns with the primary authority document. The role-matched citation check found the claim aligns with the primary authority document. The role-matched citation check found the claim aligns with the primary authority document. The role-matched citation check found the claim aligns with the primary authority document. The role-matched citation check found the claim aligns with the primary authority document. ",
+            "No source authority conflict detected. The claim is within the scope of the matched canonical document role. No source authority conflict detected. The claim is within the scope of the matched canonical document role. No source authority conflict detected. The claim is within the scope of the matched canonical document role. No source authority conflict detected. The claim is within the scope of the matched canonical document role. No source authority conflict detected. The claim is within the scope of the matched canonical document role. "
+          ]
+        },
+        {
+          "claim_id": "c2",
+          "verdict": "compliant",
+          "matched_source": "SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md",
+          "alternative_sources_considered": [
+            "README_v1.md",
+            "SYSTEM_TECHNICAL_HANDBOOK_v1.md"
+          ],
+          "notes": [
+            "Claim c2 was evaluated against canonical source priority. Claim c2 was evaluated against canonical source priority. Claim c2 was evaluated against canonical source priority. Claim c2 was evaluated against canonical source priority. Claim c2 was evaluated against canonical source priority. Claim c2 was evaluated against canonical source priority. Claim c2 was evaluated against canonical source priority. Claim c2 was evaluated against canonical source priority. Claim c2 was evaluated against canonical source priority. Claim c2 was evaluated against canonical source priority. ",
+            "The role-matched citation check found the claim aligns with the primary authority document. The role-matched citation check found the claim aligns with the primary authority document. The role-matched citation check found the claim aligns with the primary authority document. The role-matched citation check found the claim aligns with the primary authority document. The role-matched citation check found the claim aligns with the primary authority document. The role-matched citation check found the claim aligns with the primary authority document. The role-matched citation check found the claim aligns with the primary authority document. The role-matched citation check found the claim aligns with the primary authority document. ",
+            "No source authority conflict detected. The claim is within the scope of the matched canonical document role. No source authority conflict detected. The claim is within the scope of the matched canonical document role. No source authority conflict detected. The claim is within the scope of the matched canonical document role. No source authority conflict detected. The claim is within the scope of the matched canonical document role. No source authority conflict detected. The claim is within the scope of the matched canonical document role. "
+          ]
+        },
+        {
+          "claim_id": "c3",
+          "verdict": "review_only",
+          "matched_source": "SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md",
+          "alternative_sources_considered": [
+            "README_v1.md",
+            "SYSTEM_TECHNICAL_HANDBOOK_v1.md"
+          ],
+          "notes": [
+            "Claim c3 was evaluated against canonical source priority. Claim c3 was evaluated against canonical source priority. Claim c3 was evaluated against canonical source priority. Claim c3 was evaluated against canonical source priority. Claim c3 was evaluated against canonical source priority. Claim c3 was evaluated against canonical source priority. Claim c3 was evaluated against canonical source priority. Claim c3 was evaluated against canonical source priority. Claim c3 was evaluated against canonical source priority. Claim c3 was evaluated against canonical source priority. ",
+            "The role-matched citation check found the claim aligns with the primary authority document. The role-matched citation check found the claim aligns with the primary authority document. The role-matched citation check found the claim aligns with the primary authority document. The role-matched citation check found the claim aligns with the primary authority document. The role-matched citation check found the claim aligns with the primary authority document. The role-matched citation check found the claim aligns with the primary authority document. The role-matched citation check found the claim aligns with the primary authority document. The role-matched citation check found the claim aligns with the primary authority document. ",
+            "No source authority conflict detected. The claim is within the scope of the matched canonical document role. No source authority conflict detected. The claim is within the scope of the matched canonical document role. No source authority conflict detected. The claim is within the scope of the matched canonical document role. No source authority conflict detected. The claim is within the scope of the matched canonical document role. No source authority conflict detected. The claim is within the scope of the matched canonical document role. "
+          ]
+        },
+        {
+          "claim_id": "c4",
+          "verdict": "review_only",
+          "matched_source": "SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md",
+          "alternative_sources_considered": [
+            "README_v1.md",
+            "SYSTEM_TECHNICAL_HANDBOOK_v1.md"
+          ],
+          "notes": [
+            "Claim c4 was evaluated against canonical source priority. Claim c4 was evaluated against canonical source priority. Claim c4 was evaluated against canonical source priority. Claim c4 was evaluated against canonical source priority. Claim c4 was evaluated against canonical source priority. Claim c4 was evaluated against canonical source priority. Claim c4 was evaluated against canonical source priority. Claim c4 was evaluated against canonical source priority. Claim c4 was evaluated against canonical source priority. Claim c4 was evaluated against canonical source priority. ",
+            "The role-matched citation check found the claim aligns with the primary authority document. The role-matched citation check found the claim aligns with the primary authority document. The role-matched citation check found the claim aligns with the primary authority document. The role-matched citation check found the claim aligns with the primary authority document. The role-matched citation check found the claim aligns with the primary authority document. The role-matched citation check found the claim aligns with the primary authority document. The role-matched citation check found the claim aligns with the primary authority document. The role-matched citation check found the claim aligns with the primary authority document. ",
+            "No source authority conflict detected. The claim is within the scope of the matched canonical document role. No source authority conflict detected. The claim is within the scope of the matched canonical document role. No source authority conflict detected. The claim is within the scope of the matched canonical document role. No source authority conflict detected. The claim is within the scope of the matched canonical document role. No source authority conflict detected. The claim is within the scope of the matched canonical document role. "
+          ]
+        }
+      ],
+      "summary": {
+        "role_mismatch_detected": false,
+        "canonical_conflict_unresolved": false,
+        "readme_layer2_used_as_override": false,
+        "requires_conflict_note": false,
+        "requires_doc_sync_escalation": false,
+        "recommended_guard_action": "none",
+        "notes": [
+          "All 5 claims were evaluated against canonical source priority. All 5 claims were evaluated against canonical source priority. All 5 claims were evaluated against canonical source priority. All 5 claims were evaluated against canonical source priority. All 5 claims were evaluated against canonical source priority. All 5 claims were evaluated against canonical source priority. All 5 claims were evaluated against canonical source priority. All 5 claims were evaluated against canonical source priority. All 5 claims were evaluated against canonical source priority. All 5 claims were evaluated against canonical source priority. All 5 claims were evaluated against canonical source priority. All 5 claims were evaluated against canonical source priority. All 5 claims were evaluated against canonical source priority. All 5 claims were evaluated against canonical source priority. All 5 claims were evaluated against canonical source priority. ",
+          "No role mismatches detected. All citations align with the role-correct canonical document. No role mismatches detected. All citations align with the role-correct canonical document. No role mismatches detected. All citations align with the role-correct canonical document. No role mismatches detected. All citations align with the role-correct canonical document. No role mismatches detected. All citations align with the role-correct canonical document. No role mismatches detected. All citations align with the role-correct canonical document. No role mismatches detected. All citations align with the role-correct canonical document. No role mismatches detected. All citations align with the role-correct canonical document. No role mismatches detected. All citations align with the role-correct canonical document. No role mismatches detected. All citations align with the role-correct canonical document. ",
+          "The review_only status reflects claims that require human review but have no blocking issues. The review_only status reflects claims that require human review but have no blocking issues. The review_only status reflects claims that require human review but have no blocking issues. The review_only status reflects claims that require human review but have no blocking issues. The review_only status reflects claims that require human review but have no blocking issues. The review_only status reflects claims that require human review but have no blocking issues. The review_only status reflects claims that require human review but have no blocking issues. The review_only status reflects claims that require human review but have no blocking issues. "
+        ]
+      }
+    }
+  }
+}

@@ -76,17 +76,125 @@ _STEP_INPUT_PROJECTIONS: dict[str, dict[str, list[str]]] = {
 }
 
 
+# ---------------------------------------------------------------------------
+# Phase-check compact transform projections
+# ---------------------------------------------------------------------------
+# Deep structural transforms for steps that need more than top-level field
+# filtering.  Each function receives the full artifact payload and returns
+# a compact projection retaining only governance-relevant fields.
+
+
+def _compact_claim_classification_for_phase_check(
+    payload: dict[str, Any],
+) -> dict[str, Any]:
+    """Extract compact phase-check projection from claim_classification_map.
+
+    Retains governance-relevant summary fields and compact claim identifiers.
+    Drops verbose detail, reason text, and per-claim rationale/evidence.
+    """
+    if "claims" not in payload and "summary" not in payload:
+        return payload  # structural/minimal payload — pass through
+    summary = payload.get("summary", {})
+    claims = payload.get("claims", [])
+
+    compact: dict[str, Any] = {
+        "produced_by": payload.get("produced_by"),
+        "status": payload.get("status"),
+        "dominant_scope": summary.get("dominant_scope"),
+        "touches_current_truth": summary.get("touches_current_truth"),
+        "touches_target_architecture": summary.get("touches_target_architecture"),
+        "possible_blocking_conditions": summary.get(
+            "possible_blocking_conditions", [],
+        ),
+        "claim_count": len(claims),
+    }
+    if claims:
+        compact["claims_compact"] = [
+            {
+                k: c[k]
+                for k in ("claim_id", "classification", "claim_scope")
+                if k in c
+            }
+            for c in claims
+        ]
+    return compact
+
+
+def _compact_role_citation_for_phase_check(
+    payload: dict[str, Any],
+) -> dict[str, Any]:
+    """Extract compact phase-check projection from role_citation_verdict.
+
+    Retains overall citation status, conflict flags, and guard action.
+    Drops per-claim notes and verbose summary notes.
+    """
+    if "role_matched_citation_status" not in payload:
+        return payload  # structural/minimal payload — pass through
+    rcs = payload.get("role_matched_citation_status", {})
+    summary = rcs.get("summary", {})
+    checked = rcs.get("checked_claims", [])
+
+    compact: dict[str, Any] = {
+        "produced_by": payload.get("produced_by"),
+        "overall_status": rcs.get("overall_status"),
+        "source_authority_conflict_detected": rcs.get(
+            "source_authority_conflict_detected",
+        ),
+        "recommended_guard_action": summary.get("recommended_guard_action"),
+        "role_mismatch_detected": summary.get("role_mismatch_detected"),
+        "canonical_conflict_unresolved": summary.get(
+            "canonical_conflict_unresolved",
+        ),
+        "requires_doc_sync_escalation": summary.get(
+            "requires_doc_sync_escalation",
+        ),
+        "checked_claim_count": len(checked),
+    }
+    if checked:
+        compact["blocking_claims"] = [
+            c.get("claim_id") for c in checked
+            if c.get("verdict") in ("blocking", "block")
+        ]
+        compact["review_only_claims"] = [
+            c.get("claim_id") for c in checked
+            if c.get("verdict") == "review_only"
+        ]
+        compact["compliant_claims"] = [
+            c.get("claim_id") for c in checked
+            if c.get("verdict") in ("compliant", "pass")
+        ]
+    return compact
+
+
+# Transform-based projections — step_name → {artifact_name → transform_fn}.
+# Applied before field-list projections in _project_artifact_payload.
+_STEP_INPUT_TRANSFORMS: dict[str, dict[str, Any]] = {
+    "phase-check": {
+        "claim_classification_map": _compact_claim_classification_for_phase_check,
+        "role_citation_verdict": _compact_role_citation_for_phase_check,
+    },
+}
+
+
 def _project_artifact_payload(
     step_name: str,
     artifact_name: str,
     payload: dict[str, Any],
 ) -> dict[str, Any]:
-    """Apply step-specific field projection to an artifact payload.
+    """Apply step-specific projection to an artifact payload.
 
-    When a projection is defined for ``(step_name, artifact_name)``, only
-    the listed top-level fields are retained.  Unlisted artifacts or steps
-    without projections return the payload unchanged.
+    Checks transform-based projections first (deep structural transforms),
+    then falls back to field-list projections (top-level field filtering).
+    Returns the payload unchanged when no projection is defined.
     """
+    # Transform-based projection (deep structural transforms)
+    transforms = _STEP_INPUT_TRANSFORMS.get(step_name)
+    if transforms is not None:
+        transform_fn = transforms.get(artifact_name)
+        if transform_fn is not None:
+            return transform_fn(payload)
+
+    # Field-list projection (top-level field filtering)
     step_projections = _STEP_INPUT_PROJECTIONS.get(step_name)
     if step_projections is None:
         return payload
@@ -94,6 +202,37 @@ def _project_artifact_payload(
     if fields is None:
         return payload
     return {k: v for k, v in payload.items() if k in fields}
+
+
+def _apply_step_projections(
+    step_name: str,
+    raw_inputs: dict[str, dict[str, Any]],
+) -> tuple[dict[str, dict[str, Any]], list[dict[str, Any]]]:
+    """Apply step-specific projections and collect size metadata.
+
+    Returns ``(projected_inputs, projection_log)`` where each log entry
+    records the artifact name and original/projected char/token counts.
+    """
+    import json as _json
+
+    projected: dict[str, dict[str, Any]] = {}
+    log: list[dict[str, Any]] = []
+
+    for name, payload in raw_inputs.items():
+        result = _project_artifact_payload(step_name, name, payload)
+        projected[name] = result
+        if result is not payload:
+            orig_ser = _json.dumps(payload, indent=2)
+            proj_ser = _json.dumps(result, indent=2)
+            log.append({
+                "artifact": name,
+                "original_chars": len(orig_ser),
+                "original_tokens": estimate_tokens(orig_ser),
+                "projected_chars": len(proj_ser),
+                "projected_tokens": estimate_tokens(proj_ser),
+            })
+
+    return projected, log
 
 
 # Section delimiters for the assembled prompt text.
@@ -169,15 +308,11 @@ def _gather_artifact_inputs(
     for name in input_names:
         artifact = run_state.artifacts.get(name)
         if artifact is not None and artifact.status == "present":
-            result[name] = _project_artifact_payload(
-                step.name, name, artifact.payload,
-            )
+            result[name] = artifact.payload
         elif spec is not None and "." in name:
             resolved = _resolve_spec_path(spec, name)
             if resolved is not None:
-                result[name] = _project_artifact_payload(
-                    step.name, name, resolved,
-                )
+                result[name] = resolved
 
     return result
 
@@ -281,8 +416,11 @@ def assemble_step_prompt(
         except AgentResolverError:
             agent_instructions = ""
 
-    # Gather artifact inputs (pass spec for dotted spec-path resolution)
-    artifact_inputs = _gather_artifact_inputs(step, agent, run_state, spec=spec)
+    # Gather raw artifact inputs then apply step-specific projections
+    raw_artifact_inputs = _gather_artifact_inputs(step, agent, run_state, spec=spec)
+    artifact_inputs, projection_log = _apply_step_projections(
+        step.name, raw_artifact_inputs,
+    )
 
     # Gather document paths
     document_paths = _gather_document_paths(agent, repo_root)
@@ -347,6 +485,7 @@ def assemble_step_prompt(
         "token_estimate": bounding_result.total_tokens,
         "truncated": bounding_result.truncated,
         "truncation_events": bounding_result.truncation_events,
+        "projection_log": projection_log,
     }
 
 
@@ -391,6 +530,22 @@ def build_prompt_composition_metadata(context: dict[str, Any]) -> dict[str, Any]
     assembled_chars = len(assembled_text)
     assembled_tokens = estimate_tokens(assembled_text)
 
+    # Projection diagnostics — original vs projected sizes for transformed artifacts
+    projection_log = context.get("projection_log", [])
+    projected_artifact_names = [p["artifact"] for p in projection_log]
+    input_contributions_original: dict[str, dict[str, int]] = {}
+    input_contributions_projected: dict[str, dict[str, int]] = {}
+    for entry in projection_log:
+        art_key = f"artifact:{entry['artifact']}"
+        input_contributions_original[art_key] = {
+            "chars": entry["original_chars"],
+            "estimated_tokens": entry["original_tokens"],
+        }
+        input_contributions_projected[art_key] = {
+            "chars": entry["projected_chars"],
+            "estimated_tokens": entry["projected_tokens"],
+        }
+
     return {
         "step_name": context.get("step_name", ""),
         "skill_content_length": len(skill_content),
@@ -408,6 +563,10 @@ def build_prompt_composition_metadata(context: dict[str, Any]) -> dict[str, Any]
         "input_contributions": input_contributions,
         "assembled_prompt_chars": assembled_chars,
         "assembled_prompt_tokens": assembled_tokens,
+        # Projection diagnostics
+        "projected_artifact_names": projected_artifact_names,
+        "input_contributions_original": input_contributions_original,
+        "input_contributions_projected": input_contributions_projected,
     }
 
 

@@ -1,0 +1,9 @@
+{
+  "artifact": "verification_ledger_delta",
+  "produced_by": "update-verification-ledger",
+  "session": "62bd6e16-66a9-4950-b03c-56d074bc76d3",
+  "timestamp": "2026-04-22T12:42:34.344483Z",
+  "data": {
+    "produced_by": "update-verification-ledger"
+  }
+}
