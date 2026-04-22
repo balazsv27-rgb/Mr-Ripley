@@ -60,7 +60,8 @@
       "Bash(find /c/Code/Mr-Ripley/.claude/workflows -name *.yaml -o -name *.yml)",
       "Bash(find .claude/skills -type f -name *.md)",
       "Bash(find /c/Code/Mr-Ripley -type d -name *test*)",
-      "Bash(find /c/Code/Mr-Ripley/tests -type f -name *.py)"
+      "Bash(find /c/Code/Mr-Ripley/tests -type f -name *.py)",
+      "Bash(find C:CodeMr-Ripley -type f -name *phase-check*)"
     ]
   }
 }

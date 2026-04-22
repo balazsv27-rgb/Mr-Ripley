@@ -1,0 +1,122 @@
+{
+  "artifact": "contract_compliance_verdict",
+  "produced_by": "snapshot-contract-check",
+  "session": "9a253315-0dfc-493b-b81e-3b2ba9d34a3d",
+  "timestamp": "2026-04-22T14:33:13.050008Z",
+  "data": {
+    "produced_by": "snapshot-contract-check",
+    "upstream_block_inherited": true,
+    "upstream_block_sources": [
+      "phase_alignment_status",
+      "role_citation_verdict"
+    ],
+    "snapshot_contract_status": {
+      "allowed": false,
+      "contract_status": "ambiguous_requires_block",
+      "valid_interface": "none",
+      "forbidden_access_detected": false,
+      "snapshot_anchor_required": false,
+      "blocking_reason_if_any": "The proposed terminology rename ('Layer 2' \u2192 'truth_store'; 'Layer 3' \u2192 'decision_layer') creates unresolved ambiguity in SCC-1 enforcement. SCC-1 is canonically stated as 'Layer-3 consumes snapshots, never raw observations' (Handbook Inv 5; Architecture s7). Renaming the invariant's subject ('Layer-3') without role-matched canonical authorization from SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md breaks the enforcement traceability chain: no canonical document maps 'decision_layer' \u2261 'Layer-3' for contract-enforcement purposes. Documentation updated to reference 'decision_layer' without that mapping constitutes an FP-7 violation \u2014 docs that render the snapshot boundary rule ambiguously applicable are treated as implying forbidden access is permitted. Upstream phase_alignment_status explicitly confirms snapshot_boundary_risk: true. Strict mode promotes ambiguous \u2192 block (B8, SCC-1). Fail-closed principle (CLAUDE.md Section 7) mandates block on unproven safety assertions.",
+      "checked_claims": [
+        {
+          "claim_id": "scc-c1",
+          "claim_text": "Renaming 'Layer 2' \u2192 'truth_store' in documentation does not affect the snapshot contract boundary or the observation-read prohibition enforcement chain",
+          "assessment": "ambiguous",
+          "violated_invariants": [
+            "SCC-1",
+            "SCC-6"
+          ],
+          "triggered_forbidden_patterns": [
+            "FP-7"
+          ],
+          "valid_interface_if_compliant": "none",
+          "reason": "SCC-1's prohibition on Layer-3+ reading raw observations is enforced against the architectural layer designated 'Layer 2' as the storage boundary: the observations table is Layer-2-internal, and no downstream component may query it. If 'Layer 2' is renamed to 'truth_store' without canonical authorization, the scope of 'truth_store storage' versus 'Layer-2 storage' becomes undefined \u2014 which storage boundary does SCC-1 protect? The enforcement chain is broken. Upstream phase_alignment_status confirms snapshot_boundary_risk: true. Strict mode promotes ambiguous \u2192 block per B8.",
+          "contract_reference": [
+            "SCC-1",
+            "SCC-6",
+            "FP-7",
+            "B8"
+          ]
+        },
+        {
+          "claim_id": "scc-c2",
+          "claim_text": "Renaming 'Layer 3' \u2192 'decision_layer' in documentation does not affect the snapshot contract rule that the named architectural layer must consume only governed published snapshots",
+          "assessment": "blocked",
+          "violated_invariants": [
+            "SCC-1",
+            "SCC-6"
+          ],
+          "triggered_forbidden_patterns": [
+            "FP-7"
+          ],
+          "valid_interface_if_compliant": "none",
+          "reason": "SCC-1 is canonically stated as 'Layer-3 consumes snapshots, never raw observations' (Handbook Inv 5; Architecture s7). The invariant's subject is the architectural designation 'Layer-3'. Renaming this designation to 'decision_layer' without: (a) updating the invariant with role-matched canonical authorization from SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md, and (b) explicitly mapping 'decision_layer' \u2261 'Layer-3' for contract-enforcement purposes, breaks the invariant's enforcement traceability. Documentation referencing 'decision_layer' without that mapping is a doc implying the snapshot-only rule may not apply to the renamed layer \u2014 FP-7. Blocking rules B7 and B8 apply. SCC-6 is independently violated: renaming the architectural designation is a form of relaxing the invariant's scope without authorization, which SCC-6 prohibits.",
+          "contract_reference": [
+            "SCC-1",
+            "SCC-6",
+            "FP-7",
+            "B7",
+            "B8"
+          ]
+        },
+        {
+          "claim_id": "scc-c3",
+          "claim_text": "The terminology refactor would not introduce snapshot-boundary confusion (safety assurance claim, inherited from role_citation_verdict C-005)",
+          "assessment": "blocked",
+          "violated_invariants": [
+            "SCC-1",
+            "SCC-6"
+          ],
+          "triggered_forbidden_patterns": [
+            "FP-7"
+          ],
+          "valid_interface_if_compliant": "none",
+          "reason": "This is a safety assurance claim in a fail-closed system. CLAUDE.md Section 7 (Fail-Closed Principle) requires proof that the change does not introduce boundary confusion \u2014 not assumption of safety. No canonical document has been cited to provide this assurance. Upstream phase_alignment_status explicitly confirms snapshot_boundary_risk: true and cites CLAUDE.md Section 3.2's semantic distinction between 'Layer-2 `layer2/index_suite.py` provisional tool' and the architectural 'Layer-2' designation as a concrete example of load-bearing semantic fragility. The fail-closed principle mandates block on unproven safety assertions. B8 applies.",
+          "contract_reference": [
+            "SCC-1",
+            "SCC-6",
+            "FP-7",
+            "B8"
+          ]
+        },
+        {
+          "claim_id": "scc-c4",
+          "claim_text": "The refactor request does not propose any code-level change that causes Layer-3+ components to read directly from the observations table",
+          "assessment": "compliant",
+          "violated_invariants": [],
+          "triggered_forbidden_patterns": [],
+          "valid_interface_if_compliant": "none",
+          "reason": "The request is scoped to terminology and documentation changes \u2014 no downstream data-read logic is implemented. FP-1 (SELECT ... FROM observations by Layer-3+) is not triggered at the code-execution level. This claim is compliant on its own terms. However, the documentation-level risks captured in scc-c1, scc-c2, and scc-c3 remain independently blocking and are not dissolved by this compliance.",
+          "contract_reference": [
+            "SCC-1",
+            "C1"
+          ]
+        },
+        {
+          "claim_id": "scc-c5",
+          "claim_text": "The terminology refactor does not modify DecisionPacket schema field definitions (snapshot_id, snapshot_clock_ts)",
+          "assessment": "compliant",
+          "violated_invariants": [],
+          "triggered_forbidden_patterns": [],
+          "valid_interface_if_compliant": "none",
+          "reason": "The request does not propose changes to DecisionPacket schema or its required anchor fields. SCC-2 (every DecisionPacket carries snapshot_id + snapshot_clock_ts) is not directly touched at the schema level. This claim is compliant. A residual indirect risk exists: if post-rename documentation references 'decision_layer' in DecisionPacket-adjacent contexts without mapping it to SCC-2's enforcement scope, the anchor requirement's traceability weakens \u2014 but this is captured in scc-c2 rather than requiring a separate block here.",
+          "contract_reference": [
+            "SCC-2",
+            "C1"
+          ]
+        }
+      ],
+      "summary": {
+        "raw_observations_access_risk": false,
+        "snapshot_bypass_risk": true,
+        "layer2_storage_touch_risk": false,
+        "decisionpacket_anchor_risk": false,
+        "followup_guard_recommended": true,
+        "escalation_target": "snapshot-boundary-auditor",
+        "escalation_trigger": "ambiguous_requires_block on SCC-1 enforcement traceability chain: invariant subject 'Layer-3' renamed to uncited non-canonical term 'decision_layer' without role-matched canonical authorization; FP-7 triggered at documentation layer",
+        "upstream_inheritance_note": "Both upstream artifacts converge on the same root cause: 'truth_store' and 'decision_layer' are non-canonical terms absent from all canonical documents accessible in this session. phase_alignment_status explicitly flags snapshot_boundary_risk: true. role_citation_verdict confirms C-003 and C-004 have zero role-matched citation. The snapshot-contract-check confirms the contract-specific dimension: SCC-1's enforcement subject is 'Layer-3' \u2014 renaming that subject without canonical mapping breaks the invariant's traceability chain. All three workflow stages are aligned on block.",
+        "unblocking_path": "Per phase_alignment_status recommended_next_step: SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md must first introduce and define both 'truth_store' and 'decision_layer' as canonical architectural layer designations with explicit mappings to existing contract invariants SCC-1 through SCC-6. That canonical update is the mandatory gate-clearing step. Only after a compliant role-citation verdict on those definitions can snapshot contract compliance of the terminology rename be re-evaluated. Phase B implementation work (snapshot consumer, DecisionPacket skeleton) remains independently unblocked under existing 'Layer 2' / 'Layer 3' terminology."
+      }
+    }
+  }
+}

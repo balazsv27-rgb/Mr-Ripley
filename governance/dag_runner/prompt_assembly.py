@@ -91,11 +91,23 @@ def _compact_claim_classification_for_phase_check(
 
     Retains governance-relevant summary fields and compact claim identifiers.
     Drops verbose detail, reason text, and per-claim rationale/evidence.
+
+    Supports two schema shapes:
+    - nested: ``payload["request_classification"]["claims"]`` / ``["summary"]``
+    - flat (legacy): ``payload["claims"]`` / ``payload["summary"]``
     """
-    if "claims" not in payload and "summary" not in payload:
+    # Try nested shape first (real artifact), fall back to flat shape (legacy)
+    rc = payload.get("request_classification", {})
+    claims = rc.get("claims") or payload.get("claims")
+    summary = rc.get("summary") or payload.get("summary")
+
+    if claims is None and summary is None:
         return payload  # structural/minimal payload — pass through
-    summary = payload.get("summary", {})
-    claims = payload.get("claims", [])
+
+    if summary is None:
+        summary = {}
+    if claims is None:
+        claims = []
 
     compact: dict[str, Any] = {
         "produced_by": payload.get("produced_by"),
@@ -120,6 +132,31 @@ def _compact_claim_classification_for_phase_check(
     return compact
 
 
+def _extract_role_citation_fields(
+    payload: dict[str, Any],
+) -> tuple[dict[str, Any] | None, dict[str, Any], list[dict[str, Any]]]:
+    """Extract overall_status, summary, and checked_claims from role_citation_verdict.
+
+    Supports two schema shapes:
+    - nested: ``payload["role_matched_citation_status"]["overall_status"]``, etc.
+    - flat: ``payload["overall_status"]``, ``payload["checked_claims"]``, etc.
+
+    Returns ``(root, summary, checked)`` where *root* contains the top-level
+    status fields.  Returns ``(None, {}, [])`` when neither shape is detected
+    (structural/minimal payload).
+    """
+    rcs = payload.get("role_matched_citation_status")
+    if rcs is not None:
+        # Nested shape
+        return rcs, rcs.get("summary", {}), rcs.get("checked_claims", [])
+
+    # Try flat shape — must have at least overall_status or checked_claims
+    if "overall_status" in payload or "checked_claims" in payload:
+        return payload, payload.get("summary", {}), payload.get("checked_claims", [])
+
+    return None, {}, []
+
+
 def _compact_role_citation_for_phase_check(
     payload: dict[str, Any],
 ) -> dict[str, Any]:
@@ -127,17 +164,17 @@ def _compact_role_citation_for_phase_check(
 
     Retains overall citation status, conflict flags, and guard action.
     Drops per-claim notes and verbose summary notes.
+
+    Supports nested (``role_matched_citation_status``) and flat schemas.
     """
-    if "role_matched_citation_status" not in payload:
+    root, summary, checked = _extract_role_citation_fields(payload)
+    if root is None:
         return payload  # structural/minimal payload — pass through
-    rcs = payload.get("role_matched_citation_status", {})
-    summary = rcs.get("summary", {})
-    checked = rcs.get("checked_claims", [])
 
     compact: dict[str, Any] = {
         "produced_by": payload.get("produced_by"),
-        "overall_status": rcs.get("overall_status"),
-        "source_authority_conflict_detected": rcs.get(
+        "overall_status": root.get("overall_status"),
+        "source_authority_conflict_detected": root.get(
             "source_authority_conflict_detected",
         ),
         "recommended_guard_action": summary.get("recommended_guard_action"),
@@ -166,12 +203,98 @@ def _compact_role_citation_for_phase_check(
     return compact
 
 
+# ---------------------------------------------------------------------------
+# Snapshot-contract-check compact transform projections
+# ---------------------------------------------------------------------------
+# Deep structural transforms for snapshot-contract-check.  These retain only
+# contract-validation-relevant fields from upstream artifacts, dropping verbose
+# per-claim narratives and long-form reasoning.
+
+
+def _compact_role_citation_for_snapshot_contract(
+    payload: dict[str, Any],
+) -> dict[str, Any]:
+    """Extract compact snapshot-contract projection from role_citation_verdict.
+
+    Retains governance status flags, blocking claim ids, escalation info,
+    and block reason summaries.  Drops per-claim narratives, verbose notes,
+    and full checked_claims detail.
+
+    Supports nested (``role_matched_citation_status``) and flat schemas.
+    """
+    root, summary, checked = _extract_role_citation_fields(payload)
+    if root is None:
+        return payload  # structural/minimal payload — pass through
+
+    compact: dict[str, Any] = {
+        "produced_by": payload.get("produced_by"),
+        "overall_status": root.get("overall_status"),
+        "source_authority_conflict_detected": root.get(
+            "source_authority_conflict_detected",
+        ),
+        "recommended_guard_action": summary.get("recommended_guard_action"),
+        "canonical_conflict_unresolved": summary.get(
+            "canonical_conflict_unresolved",
+        ),
+        "checked_claim_count": len(checked),
+        "escalation_required": summary.get("escalation_required", False),
+        "escalation_target": summary.get("escalation_target"),
+    }
+    # Blocking claim ids and compact block reasons
+    blocking_ids = summary.get("blocking_claims", [])
+    if blocking_ids:
+        compact["blocking_claims"] = blocking_ids
+    elif checked:
+        compact["blocking_claims"] = [
+            c.get("claim_id") for c in checked
+            if c.get("verdict") in ("blocking", "block", "RC-4")
+        ]
+    block_reasons = summary.get("block_reasons")
+    if block_reasons:
+        compact["block_reasons_summary"] = block_reasons
+    return compact
+
+
+def _compact_phase_alignment_for_snapshot_contract(
+    payload: dict[str, Any],
+) -> dict[str, Any]:
+    """Extract compact snapshot-contract projection from phase_alignment_status.
+
+    Retains overall verdict, gate references, blocking reasons, and summary
+    risk flags.  Drops per-claim long-form reasoning and verbose explanations.
+    """
+    if "allowed" not in payload and "alignment_status" not in payload:
+        return payload  # structural/minimal payload — pass through
+    summary = payload.get("summary", {})
+
+    compact: dict[str, Any] = {
+        "produced_by": payload.get("produced_by"),
+        "allowed": payload.get("allowed"),
+        "alignment_status": payload.get("alignment_status"),
+        "gate_reference": payload.get("gate_reference"),
+        "blocking_reason_if_any": payload.get("blocking_reason_if_any"),
+        "upstream_block_inherited": summary.get("upstream_block_inherited"),
+        "snapshot_boundary_risk": summary.get("snapshot_boundary_risk"),
+        "scope_exceeds_current_allowance": summary.get(
+            "scope_exceeds_current_allowance",
+        ),
+        "blocking_claims_summary": summary.get("blocking_claims_summary"),
+        "ambiguous_claims_summary": summary.get("ambiguous_claims_summary"),
+        "recommended_next_step": summary.get("recommended_next_step"),
+    }
+    return compact
+
+
 # Transform-based projections — step_name → {artifact_name → transform_fn}.
 # Applied before field-list projections in _project_artifact_payload.
 _STEP_INPUT_TRANSFORMS: dict[str, dict[str, Any]] = {
     "phase-check": {
         "claim_classification_map": _compact_claim_classification_for_phase_check,
         "role_citation_verdict": _compact_role_citation_for_phase_check,
+    },
+    "snapshot-contract-check": {
+        "role_citation_verdict": _compact_role_citation_for_snapshot_contract,
+        "phase_alignment_status": _compact_phase_alignment_for_snapshot_contract,
     },
 }
 

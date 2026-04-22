@@ -263,8 +263,8 @@ def test_normalize_terminology_prompt_is_bounded(pipeline) -> None:
 # ── phase-check artifact projection ──
 
 
-def test_phase_check_claim_classification_projection() -> None:
-    """phase-check receives compact projection of claim_classification_map."""
+def test_phase_check_claim_classification_projection_flat_schema() -> None:
+    """phase-check projection works with legacy flat claims/summary schema."""
     from governance.dag_runner.prompt_assembly import _project_artifact_payload
 
     full_payload = {
@@ -343,8 +343,102 @@ def test_phase_check_claim_classification_projection() -> None:
     )
 
 
-def test_phase_check_role_citation_projection() -> None:
-    """phase-check receives compact projection of role_citation_verdict."""
+def test_phase_check_claim_classification_projection_nested_schema() -> None:
+    """phase-check projection works with real nested request_classification schema."""
+    from governance.dag_runner.prompt_assembly import _project_artifact_payload
+
+    full_payload = {
+        "produced_by": "classify-claims",
+        "run_id": "test-run-123",
+        "request_id": "test-request",
+        "status": "classified",
+        "request_classification": {
+            "request_type": "documentation-wide terminology refactor",
+            "claims": [
+                {
+                    "claim_id": "c1",
+                    "claim_text": "Replace Layer 2 with truth_store " * 10,
+                    "claim_scope": "current-state",
+                    "evidence_class": "verified_in_current_documentation_set",
+                    "source_priority": ["SYSTEM_ARCHITECTURE_v1.md"],
+                    "confidence_level": "high",
+                    "classification_rationale": "Long rationale " * 30,
+                    "notes": ["Long note " * 20, "Another note " * 20],
+                },
+                {
+                    "claim_id": "c2",
+                    "claim_text": "Replace Layer 3 with decision_layer " * 10,
+                    "claim_scope": "current-state",
+                    "evidence_class": "verified_in_current_documentation_set",
+                    "source_priority": ["SYSTEM_ARCHITECTURE_v1.md"],
+                    "confidence_level": "high",
+                    "classification_rationale": "Another long rationale " * 30,
+                    "notes": ["Note " * 30],
+                },
+            ],
+            "summary": {
+                "dominant_scope": "current-state",
+                "needs_phase_check": True,
+                "touches_current_truth": True,
+                "touches_target_architecture": True,
+                "touches_historical_reconciliation": True,
+                "touches_verification_matrix": True,
+                "touches_snapshot_contract": True,
+                "possible_blocking_conditions": [
+                    "contract_affecting_documentation_change",
+                    "canonical_filename_rename_cascade",
+                ],
+            },
+        },
+    }
+
+    projected = _project_artifact_payload(
+        "phase-check", "claim_classification_map", full_payload,
+    )
+
+    # Must not be the same object (projection was applied)
+    assert projected is not full_payload
+
+    # Required summary fields present
+    assert projected["produced_by"] == "classify-claims"
+    assert projected["status"] == "classified"
+    assert projected["dominant_scope"] == "current-state"
+    assert projected["touches_current_truth"] is True
+    assert projected["touches_target_architecture"] is True
+    assert projected["possible_blocking_conditions"] == [
+        "contract_affecting_documentation_change",
+        "canonical_filename_rename_cascade",
+    ]
+    assert projected["claim_count"] == 2
+
+    # Compact claims present with expected keys only
+    assert "claims_compact" in projected
+    assert len(projected["claims_compact"]) == 2
+    assert projected["claims_compact"][0]["claim_id"] == "c1"
+    assert projected["claims_compact"][0]["claim_scope"] == "current-state"
+    # Per-claim verbose fields must be stripped
+    assert "classification_rationale" not in projected["claims_compact"][0]
+    assert "evidence_class" not in projected["claims_compact"][0]
+    assert "source_priority" not in projected["claims_compact"][0]
+    assert "notes" not in projected["claims_compact"][0]
+    assert "claim_text" not in projected["claims_compact"][0]
+
+    # Nested structure must not leak into compact output
+    assert "request_classification" not in projected
+    assert "run_id" not in projected
+    assert "request_id" not in projected
+
+    # Size reduction: projected must be materially smaller
+    import json
+    orig_size = len(json.dumps(full_payload, indent=2))
+    proj_size = len(json.dumps(projected, indent=2))
+    assert proj_size < orig_size * 0.3, (
+        f"Projection did not reduce size enough: {proj_size} vs {orig_size}"
+    )
+
+
+def test_phase_check_role_citation_projection_nested_schema() -> None:
+    """phase-check projection works with nested role_matched_citation_status schema."""
     from governance.dag_runner.prompt_assembly import _project_artifact_payload
 
     full_payload = {
@@ -419,6 +513,72 @@ def test_phase_check_role_citation_projection() -> None:
     )
 
 
+def test_phase_check_role_citation_projection_flat_schema() -> None:
+    """phase-check projection works with flat role_citation_verdict schema."""
+    from governance.dag_runner.prompt_assembly import _project_artifact_payload
+
+    full_payload = {
+        "produced_by": "route-claims-by-role",
+        "inference_used": True,
+        "source_authority_conflict_detected": True,
+        "overall_status": "conflict_requires_block",
+        "checked_claims": [
+            {
+                "claim_id": "C-001",
+                "claim_text": "Long claim text " * 20,
+                "verdict": "RC-2 Review only",
+                "reason": "Long reason " * 30,
+                "notes": "Long note " * 50,
+            },
+            {
+                "claim_id": "C-003",
+                "claim_text": "Another claim " * 20,
+                "verdict": "blocking",
+                "reason": "Block reason " * 30,
+                "notes": "Block note " * 50,
+            },
+        ],
+        "summary": {
+            "role_mismatch_detected": True,
+            "canonical_conflict_unresolved": True,
+            "requires_doc_sync_escalation": True,
+            "recommended_guard_action": "block",
+            "blocking_summary": "Long blocking summary " * 20,
+            "notes": "Summary notes " * 50,
+        },
+    }
+
+    projected = _project_artifact_payload(
+        "phase-check", "role_citation_verdict", full_payload,
+    )
+
+    # Must not be the same object
+    assert projected is not full_payload
+
+    # Required fields present
+    assert projected["produced_by"] == "route-claims-by-role"
+    assert projected["overall_status"] == "conflict_requires_block"
+    assert projected["source_authority_conflict_detected"] is True
+    assert projected["recommended_guard_action"] == "block"
+    assert projected["canonical_conflict_unresolved"] is True
+    assert projected["checked_claim_count"] == 2
+    assert projected["blocking_claims"] == ["C-003"]
+
+    # Verbose fields stripped
+    import json
+    serialized = json.dumps(projected)
+    assert "Long claim text" not in serialized
+    assert "Long reason" not in serialized
+    assert "Long note" not in serialized
+
+    # Size reduction
+    orig_size = len(json.dumps(full_payload, indent=2))
+    proj_size = len(json.dumps(projected, indent=2))
+    assert proj_size < orig_size * 0.3, (
+        f"Projection did not reduce size enough: {proj_size} vs {orig_size}"
+    )
+
+
 def test_phase_check_minimal_payload_passthrough() -> None:
     """V1 shell minimal payloads pass through transforms unchanged."""
     from governance.dag_runner.prompt_assembly import _project_artifact_payload
@@ -464,22 +624,23 @@ def test_phase_check_projection_log_with_rich_payload() -> None:
         "claim_classification_map": {
             "produced_by": "classify-claims",
             "status": "classified",
-            "reason": "x" * 1000,
-            "detail": "x" * 5000,
-            "claims": [
-                {
-                    "claim_id": "c1",
-                    "classification": "current-state",
-                    "claim_scope": "doc",
-                    "rationale": "x" * 2000,
-                    "evidence": [{"excerpt": "x" * 3000}],
+            "request_classification": {
+                "request_type": "terminology refactor",
+                "claims": [
+                    {
+                        "claim_id": "c1",
+                        "claim_scope": "current-state",
+                        "claim_text": "x" * 1000,
+                        "classification_rationale": "x" * 2000,
+                        "notes": ["x" * 3000],
+                    },
+                ],
+                "summary": {
+                    "dominant_scope": "documentation",
+                    "touches_current_truth": True,
+                    "touches_target_architecture": False,
+                    "possible_blocking_conditions": [],
                 },
-            ],
-            "summary": {
-                "dominant_scope": "documentation",
-                "touches_current_truth": True,
-                "touches_target_architecture": False,
-                "possible_blocking_conditions": [],
             },
         },
         "role_citation_verdict": {
@@ -523,3 +684,374 @@ def test_phase_check_projection_log_with_rich_payload() -> None:
 
     # stage_gates should pass through unchanged
     assert projected["stage_gates"] is rich_inputs["stage_gates"]
+
+
+# ── snapshot-contract-check artifact projection ──
+
+
+def test_snapshot_contract_role_citation_projection_nested_schema() -> None:
+    """snapshot-contract-check projection works with nested role_matched_citation_status."""
+    from governance.dag_runner.prompt_assembly import _project_artifact_payload
+
+    full_payload = {
+        "produced_by": "route-claims-by-role",
+        "role_matched_citation_status": {
+            "overall_status": "conflict_requires_block",
+            "inference_used": True,
+            "source_authority_conflict_detected": True,
+            "checked_claims": [
+                {
+                    "claim_id": "C-01",
+                    "claim_text": "Layer 2 is operational " * 20,
+                    "verdict": "RC-2",
+                    "reason": "Long reason " * 30,
+                    "notes": "Long note " * 50,
+                },
+                {
+                    "claim_id": "C-03",
+                    "claim_text": "truth_store rename " * 20,
+                    "verdict": "RC-4",
+                    "reason": "Long block reason " * 30,
+                    "notes": "Long block note " * 50,
+                },
+                {
+                    "claim_id": "C-05",
+                    "claim_text": "README_LAYER2 status " * 10,
+                    "verdict": "RC-1",
+                    "reason": "Compliant " * 20,
+                    "notes": "Note " * 30,
+                },
+            ],
+            "summary": {
+                "role_mismatch_detected": True,
+                "canonical_conflict_unresolved": True,
+                "readme_layer2_used_as_override": False,
+                "requires_conflict_note": True,
+                "requires_doc_sync_escalation": True,
+                "recommended_guard_action": "block",
+                "blocking_claims": ["C-03"],
+                "block_reasons": {
+                    "C-03": "Strong claim without role-matched citation",
+                },
+                "escalation_required": True,
+                "escalation_target": "canonical-role-auditor",
+                "escalation_triggers": ["role_mismatch on C-03"],
+                "notes": "Very long summary note " * 100,
+            },
+        },
+    }
+
+    projected = _project_artifact_payload(
+        "snapshot-contract-check", "role_citation_verdict", full_payload,
+    )
+
+    # Must not be the same object
+    assert projected is not full_payload
+
+    # Required governance status fields
+    assert projected["produced_by"] == "route-claims-by-role"
+    assert projected["overall_status"] == "conflict_requires_block"
+    assert projected["source_authority_conflict_detected"] is True
+    assert projected["recommended_guard_action"] == "block"
+    assert projected["canonical_conflict_unresolved"] is True
+    assert projected["checked_claim_count"] == 3
+    assert projected["escalation_required"] is True
+    assert projected["escalation_target"] == "canonical-role-auditor"
+
+    # Blocking claims from summary
+    assert projected["blocking_claims"] == ["C-03"]
+    assert projected["block_reasons_summary"] == {
+        "C-03": "Strong claim without role-matched citation",
+    }
+
+    # Verbose nested structure stripped
+    assert "role_matched_citation_status" not in projected
+    import json
+    serialized = json.dumps(projected)
+    assert "Long reason" not in serialized
+    assert "Very long summary note" not in serialized
+    assert "Long note" not in serialized
+
+    # Size reduction
+    orig_size = len(json.dumps(full_payload, indent=2))
+    proj_size = len(json.dumps(projected, indent=2))
+    assert proj_size < orig_size * 0.3, (
+        f"Projection did not reduce size enough: {proj_size} vs {orig_size}"
+    )
+
+
+def test_snapshot_contract_role_citation_projection_flat_schema() -> None:
+    """snapshot-contract-check projection works with flat role_citation_verdict."""
+    from governance.dag_runner.prompt_assembly import _project_artifact_payload
+
+    full_payload = {
+        "produced_by": "route-claims-by-role",
+        "inference_used": True,
+        "source_authority_conflict_detected": True,
+        "overall_status": "conflict_requires_block",
+        "checked_claims": [
+            {
+                "claim_id": "C-001",
+                "claim_text": "Long claim " * 20,
+                "verdict": "RC-2 Review only",
+                "reason": "x" * 2000,
+                "notes": "x" * 3000,
+            },
+            {
+                "claim_id": "C-003",
+                "claim_text": "Another claim " * 20,
+                "verdict": "RC-4",
+                "reason": "x" * 2000,
+                "notes": "x" * 3000,
+            },
+        ],
+        "summary": {
+            "role_mismatch_detected": True,
+            "canonical_conflict_unresolved": True,
+            "recommended_guard_action": "block",
+            "escalation_required": True,
+            "escalation_target": "canonical-role-auditor",
+            "blocking_summary": "x" * 500,
+            "notes": "x" * 500,
+        },
+    }
+
+    projected = _project_artifact_payload(
+        "snapshot-contract-check", "role_citation_verdict", full_payload,
+    )
+
+    # Must not be the same object
+    assert projected is not full_payload
+
+    # Required fields
+    assert projected["produced_by"] == "route-claims-by-role"
+    assert projected["overall_status"] == "conflict_requires_block"
+    assert projected["source_authority_conflict_detected"] is True
+    assert projected["recommended_guard_action"] == "block"
+    assert projected["canonical_conflict_unresolved"] is True
+    assert projected["checked_claim_count"] == 2
+    assert projected["escalation_required"] is True
+    assert projected["escalation_target"] == "canonical-role-auditor"
+
+    # Blocking claims derived from checked_claims verdicts
+    assert "C-003" in projected["blocking_claims"]
+
+    # Verbose fields stripped
+    import json
+    serialized = json.dumps(projected)
+    assert "Long claim" not in serialized
+
+    # Size reduction
+    orig_size = len(json.dumps(full_payload, indent=2))
+    proj_size = len(json.dumps(projected, indent=2))
+    assert proj_size < orig_size * 0.3, (
+        f"Projection did not reduce size enough: {proj_size} vs {orig_size}"
+    )
+
+
+def test_snapshot_contract_phase_alignment_projection() -> None:
+    """snapshot-contract-check receives compact projection of phase_alignment_status."""
+    from governance.dag_runner.prompt_assembly import _project_artifact_payload
+
+    full_payload = {
+        "produced_by": "phase-check",
+        "current_phase": "Phase A/B",
+        "requested_phase": "inferred: Phase A/B documentation governance action",
+        "allowed": False,
+        "alignment_status": "ambiguous_requires_block",
+        "gate_reference": [
+            "phase_a_layer2_closure",
+            "phase_b_layer3_bootstrap",
+        ],
+        "blocking_reason_if_any": "upstream_role_citation_conflict_requires_block",
+        "checked_claims": [
+            {
+                "claim_id": "c1",
+                "claim_text": "Replace Layer 2 with truth_store " * 10,
+                "effective_capability": "Rename current-state terminology " * 5,
+                "phase_assessment": "ambiguous",
+                "gate_reference": ["phase_a_layer2_closure"],
+                "reason": "Very long reason text " * 50,
+            },
+            {
+                "claim_id": "c2",
+                "claim_text": "Replace Layer 3 with decision_layer " * 10,
+                "effective_capability": "Rename target architecture " * 5,
+                "phase_assessment": "blocked",
+                "gate_reference": ["phase_b_layer3_bootstrap"],
+                "reason": "Another very long reason " * 50,
+            },
+        ],
+        "summary": {
+            "phase_jump_detected": False,
+            "live_readiness_implication_detected": False,
+            "scope_exceeds_current_allowance": True,
+            "snapshot_boundary_risk": True,
+            "followup_audit_recommended": True,
+            "upstream_block_inherited": True,
+            "upstream_block_source": "role_citation_verdict: conflict",
+            "blocking_claims_summary": [
+                "c2: decision_layer implies current existence of planned layer (target-state promotion risk)",
+            ],
+            "ambiguous_claims_summary": [
+                "c1: truth_store needs boundary clarification",
+            ],
+            "allowed_claims_summary": [
+                "c3: scoping constraint — allowed",
+            ],
+            "recommended_next_step": "Do not proceed. " * 20,
+        },
+    }
+
+    projected = _project_artifact_payload(
+        "snapshot-contract-check", "phase_alignment_status", full_payload,
+    )
+
+    # Must not be the same object
+    assert projected is not full_payload
+
+    # Required verdict fields
+    assert projected["produced_by"] == "phase-check"
+    assert projected["allowed"] is False
+    assert projected["alignment_status"] == "ambiguous_requires_block"
+    assert projected["gate_reference"] == [
+        "phase_a_layer2_closure",
+        "phase_b_layer3_bootstrap",
+    ]
+    assert "upstream_role_citation" in projected["blocking_reason_if_any"]
+
+    # Summary risk flags retained
+    assert projected["upstream_block_inherited"] is True
+    assert projected["snapshot_boundary_risk"] is True
+    assert projected["scope_exceeds_current_allowance"] is True
+    assert projected["blocking_claims_summary"] == [
+        "c2: decision_layer implies current existence of planned layer (target-state promotion risk)",
+    ]
+    assert projected["ambiguous_claims_summary"] == [
+        "c1: truth_store needs boundary clarification",
+    ]
+    assert "Do not proceed" in projected["recommended_next_step"]
+
+    # Verbose per-claim detail stripped
+    assert "checked_claims" not in projected
+    assert "current_phase" not in projected
+    assert "requested_phase" not in projected
+
+    import json
+    serialized = json.dumps(projected)
+    assert "Very long reason text" not in serialized
+    assert "effective_capability" not in serialized
+
+    # Size reduction
+    orig_size = len(json.dumps(full_payload, indent=2))
+    proj_size = len(json.dumps(projected, indent=2))
+    assert proj_size < orig_size * 0.5, (
+        f"Projection did not reduce size enough: {proj_size} vs {orig_size}"
+    )
+
+
+def test_snapshot_contract_minimal_payload_passthrough() -> None:
+    """V1 shell minimal payloads pass through transforms unchanged."""
+    from governance.dag_runner.prompt_assembly import _project_artifact_payload
+
+    minimal_rcv = {"produced_by": "route-claims-by-role"}
+    result = _project_artifact_payload(
+        "snapshot-contract-check", "role_citation_verdict", minimal_rcv,
+    )
+    assert result is minimal_rcv  # same object — no transform applied
+
+    minimal_pas = {"produced_by": "phase-check"}
+    result2 = _project_artifact_payload(
+        "snapshot-contract-check", "phase_alignment_status", minimal_pas,
+    )
+    assert result2 is minimal_pas  # same object — no transform applied
+
+
+def test_snapshot_contract_projection_metadata(pipeline) -> None:
+    """snapshot-contract-check prompt composition includes projection diagnostic fields."""
+    spec, plan, run_state = pipeline
+    step = spec.workflow_steps["snapshot-contract-check"]
+    ctx = assemble_step_prompt(step, spec, run_state, repo_root=_REPO_ROOT)
+    meta = build_prompt_composition_metadata(ctx)
+
+    # Projection metadata keys must be present
+    assert "projected_artifact_names" in meta
+    assert "input_contributions_original" in meta
+    assert "input_contributions_projected" in meta
+    assert isinstance(meta["projected_artifact_names"], list)
+    assert isinstance(meta["input_contributions_original"], dict)
+    assert isinstance(meta["input_contributions_projected"], dict)
+
+
+def test_snapshot_contract_projection_log_with_rich_payload() -> None:
+    """_apply_step_projections records original vs projected sizes for snapshot-contract-check."""
+    from governance.dag_runner.prompt_assembly import _apply_step_projections
+
+    rich_inputs = {
+        "role_citation_verdict": {
+            "produced_by": "route-claims-by-role",
+            "role_matched_citation_status": {
+                "overall_status": "conflict_requires_block",
+                "source_authority_conflict_detected": True,
+                "checked_claims": [
+                    {
+                        "claim_id": "C-01",
+                        "verdict": "RC-4",
+                        "notes": "x" * 5000,
+                        "reason": "x" * 3000,
+                    },
+                ],
+                "summary": {
+                    "recommended_guard_action": "block",
+                    "canonical_conflict_unresolved": True,
+                    "blocking_claims": ["C-01"],
+                    "block_reasons": {"C-01": "missing citation"},
+                    "escalation_required": True,
+                    "escalation_target": "auditor",
+                    "notes": "x" * 8000,
+                },
+            },
+        },
+        "phase_alignment_status": {
+            "produced_by": "phase-check",
+            "allowed": False,
+            "alignment_status": "ambiguous_requires_block",
+            "gate_reference": ["phase_a"],
+            "blocking_reason_if_any": "upstream block",
+            "checked_claims": [
+                {
+                    "claim_id": "c1",
+                    "reason": "x" * 5000,
+                    "effective_capability": "x" * 2000,
+                },
+            ],
+            "summary": {
+                "upstream_block_inherited": True,
+                "snapshot_boundary_risk": True,
+                "scope_exceeds_current_allowance": True,
+                "blocking_claims_summary": ["c1: blocked"],
+                "ambiguous_claims_summary": [],
+                "recommended_next_step": "Do not proceed",
+            },
+        },
+    }
+
+    projected, log = _apply_step_projections(
+        "snapshot-contract-check", rich_inputs,
+    )
+
+    # Two artifacts should be projected
+    assert len(log) == 2
+    projected_names = {entry["artifact"] for entry in log}
+    assert projected_names == {"role_citation_verdict", "phase_alignment_status"}
+
+    # Each log entry must have size fields and show reduction
+    for entry in log:
+        assert entry["original_chars"] > 0
+        assert entry["projected_chars"] > 0
+        assert entry["original_tokens"] > 0
+        assert entry["projected_tokens"] > 0
+        assert entry["projected_chars"] < entry["original_chars"], (
+            f"{entry['artifact']}: projected {entry['projected_chars']} >= "
+            f"original {entry['original_chars']}"
+        )

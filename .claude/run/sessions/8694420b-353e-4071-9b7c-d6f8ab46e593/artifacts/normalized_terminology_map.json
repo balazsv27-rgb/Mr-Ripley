@@ -1,0 +1,86 @@
+{
+  "artifact": "normalized_terminology_map",
+  "produced_by": "normalize-terminology",
+  "session": "8694420b-353e-4071-9b7c-d6f8ab46e593",
+  "timestamp": "2026-04-22T14:04:05.043585Z",
+  "data": {
+    "produced_by": "normalize-terminology",
+    "overall_status": "governance_sensitive_term_conflict",
+    "inference_used": false,
+    "canonical_term_mappings": [
+      {
+        "from": "truth_store",
+        "to": "Layer-2",
+        "concept_id": "LAYER_2",
+        "reason": "Proposed replacement term is unrecognized in the canonical term table. Canonical form is 'Layer-2' (allowed prose variant: 'Layer 2'). 'truth_store' is not a canonical or allowed variant and underrepresents Layer-2's full operational scope \u2014 ingestion adapters, series-registry-governed data processing, and snapshot publication \u2014 reducing it to its storage endpoint only. Adopting this term would introduce an unrecognized label where a governed canonical term exists. Governance-sensitive: Category A (snapshot boundary semantics weakened by scope reduction)."
+      },
+      {
+        "from": "decision_layer",
+        "to": "Layer-3",
+        "concept_id": "LAYER_3",
+        "reason": "Proposed replacement term is unrecognized in the canonical term table. Canonical form is 'Layer-3' (allowed prose variant: 'Layer 3'). 'decision_layer' is in close proximity to 'decision engine', which is an explicitly DISCOURAGED variant for LAYER_3. It risks conflation with the planned 'Decision Engine' subcomponent listed in CLAUDE.md Section 3.2. Governance-sensitive: Category B (phase/readiness \u2014 could blur target-state of Layer-3) and Category D (decision vocabulary proximity to discouraged 'decision engine' variant)."
+      },
+      {
+        "from": "fail closed",
+        "to": "fail-closed",
+        "concept_id": "FAIL_CLOSED",
+        "reason": "Request text uses unhyphenated form 'Fail closed'. Canonical form requires hyphenation: 'fail-closed'. Discouraged forms include 'fail safe' and 'fail-safe'."
+      },
+      {
+        "from": "snapshot-boundary",
+        "to": "snapshot contract",
+        "concept_id": "SNAPSHOT_CONTRACT",
+        "reason": "Request text uses compound adjective 'snapshot-boundary' (as in 'snapshot-boundary confusion'). The canonical term for the boundary concept is 'snapshot contract' (allowed: 'handoff contract'). 'snapshot-boundary' is not an established canonical form and dilutes the precision of the governed snapshot contract concept. Governance-sensitive: Category A (snapshot boundary)."
+      },
+      {
+        "from": "verified_in_current_documentation_set",
+        "to": "proven",
+        "concept_id": "EVIDENCE_PROVEN",
+        "reason": "Evidence class label in claim_classification_map uses 'verified' \u2014 a discouraged variant of the canonical evidence status 'proven' (EVIDENCE_PROVEN). Canonical table lists 'confirmed', 'verified', and 'validated' as all discouraged. Governance-sensitive: Category C (evidence status \u2014 conflating 'proven' and 'verified' changes how claims are classified). Scope: workflow metadata field value in upstream artifact."
+      },
+      {
+        "from": "cannot_verify_from_current_materials",
+        "to": "unverified",
+        "concept_id": "EVIDENCE_UNVERIFIED",
+        "reason": "Evidence class label uses 'cannot verify' phrasing. Canonical form for this evidence status is 'unverified' (EVIDENCE_UNVERIFIED). Discouraged form includes 'not verified'. Scope: workflow metadata field value in upstream artifact; review whether internal classification vocabulary should align with canonical evidence terms."
+      }
+    ],
+    "scope_constraints": [
+      "request_text from governance_context (full text evaluated)",
+      "claim_classification_map claims c1 through c8: claim_text, classification_rationale, and notes fields",
+      "claim_classification_map summary.possible_blocking_conditions",
+      "claim_classification_map classification_methodology_notes"
+    ],
+    "excluded_reference_types": [
+      "canonical Documentation/ files not read directly",
+      "SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md content not directly evaluated",
+      "SYSTEM_IMPLEMENTATION_RECORD_v1.md content not directly evaluated",
+      "SYSTEM_TECHNICAL_HANDBOOK_v1.md content not directly evaluated",
+      "README_LAYER2.md content not directly evaluated",
+      "DOCUMENTATION_VERIFICATION_MATRIX_v1.md content not directly evaluated"
+    ],
+    "filename_rename_candidates": [
+      "README_LAYER2.md \u2014 filename contains 'LAYER2', mapping to canonical term 'Layer-2'. If the proposed 'truth_store' rename were adopted (blocked pending governance clearance of this finding), this file would require rename with cascading reference updates to CLAUDE.md Sections 2.1, 2.2, 2.4, and 11, and to DOCUMENTATION_VERIFICATION_MATRIX_v1.md. Rename is NOT recommended until the proposed replacement term resolves governance_sensitive_term_conflict status."
+    ],
+    "ambiguity_flags": [
+      {
+        "term": "decision_layer",
+        "concepts": [
+          "LAYER_3",
+          "LAYER_3.DECISION_ENGINE (CLAUDE.md Section 3.2 planned component)"
+        ],
+        "governance_sensitive": true,
+        "note": "The proposed term 'decision_layer' cannot be cleanly distinguished between (1) the architectural Layer-3 label and (2) the planned 'Decision Engine' component listed in CLAUDE.md Section 3.2 as a named subcomponent of Layer-3. 'decision engine' is an explicitly DISCOURAGED variant of LAYER_3. Adopting 'decision_layer' introduces an unresolved mapping requiring downstream governance consumers to distinguish an architectural layer from a named subcomponent using near-identical vocabulary. Under fail-closed principle (CLAUDE.md Section 7), this ambiguity is a blocking condition."
+      },
+      {
+        "term": "truth_store",
+        "concepts": [
+          "LAYER_2",
+          "LAYER_2.SNAPSHOT_PUBLICATION_BOUNDARY_ONLY"
+        ],
+        "governance_sensitive": true,
+        "note": "The proposed term 'truth_store' is semantically ambiguous between (1) the full Layer-2 operational surface \u2014 ingestion adapters, series-registry-governed processing, and snapshot publication \u2014 and (2) only the snapshot storage/publication endpoint. This scope underspecification weakens the snapshot boundary concept (Category A) by allowing 'truth_store' to be interpreted as referring only to the storage artifact rather than the full deterministic ingestion-and-publication architecture that Layer-2 governs."
+      }
+    ]
+  }
+}

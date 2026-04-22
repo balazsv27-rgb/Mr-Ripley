@@ -1,0 +1,103 @@
+{
+  "artifact": "phase_alignment_status",
+  "produced_by": "phase-check",
+  "session": "9a253315-0dfc-493b-b81e-3b2ba9d34a3d",
+  "timestamp": "2026-04-22T14:31:14.187340Z",
+  "data": {
+    "produced_by": "phase-check",
+    "current_phase": "inferred: Phase A complete at contract boundary; Phase B allowed, not completed",
+    "requested_phase": "inferred: pre-phase prerequisite \u2014 architectural terminology canonicalization required before any documentation-wide rename can proceed; not a Phase B implementation task",
+    "allowed": false,
+    "alignment_status": "ambiguous_requires_block",
+    "gate_reference": [
+      "phase_a_layer2_closure",
+      "phase_b_layer3_bootstrap",
+      "documentation_update_obligations_section_11",
+      "snapshot_boundary_contract_section_6"
+    ],
+    "blocking_reason_if_any": "Non-canonical replacement terms ('truth_store', 'decision_layer') carry zero authorization from SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md. The phase-gate model uses 'Layer 2' and 'Layer 3' as load-bearing designations (Phase A \u2014 Layer 2 Closure; Phase B \u2014 Layer 3 Bootstrap); replacing them without role-matched canonical authorization risks gate-label semantic drift. Fail-closed principle (CLAUDE.md Section 7) blocks proceeding on unproven architectural terminology changes.",
+    "checked_claims": [
+      {
+        "claim_id": "c1",
+        "claim_text": "The terms 'Layer 2' and 'Layer-2' are established architectural layer designations currently used throughout project documentation",
+        "effective_capability": "Confirm existing canonical terminology \u2014 no build-sequence impact in isolation",
+        "phase_assessment": "allowed_now",
+        "gate_reference": [
+          "phase_a_layer2_closure"
+        ],
+        "reason": "Factual current-state observation. CLAUDE.md Sections 3.1 and 4 confirm 'Layer 2' as the operative designation for the snapshot boundary layer. No phase violation from this claim alone."
+      },
+      {
+        "claim_id": "c2",
+        "claim_text": "The terms 'Layer 3' and 'Layer-3' are established architectural layer designations currently used throughout project documentation",
+        "effective_capability": "Confirm existing planned-architecture terminology \u2014 no build-sequence impact in isolation",
+        "phase_assessment": "allowed_now",
+        "gate_reference": [
+          "phase_b_layer3_bootstrap"
+        ],
+        "reason": "Factual current-state observation. CLAUDE.md Sections 3.2 and 4 confirm 'Layer 3' as the designation for planned/target-architecture components. No phase violation from this claim alone."
+      },
+      {
+        "claim_id": "c3",
+        "claim_text": "'truth_store' is the architecturally correct replacement name for 'Layer 2' / 'Layer-2'",
+        "effective_capability": "Redefine the Layer 2 architectural designation across all canonical documents \u2014 requires SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md to introduce and authorize the term first",
+        "phase_assessment": "blocked",
+        "gate_reference": [
+          "phase_a_layer2_closure",
+          "documentation_update_obligations_section_11"
+        ],
+        "reason": "'truth_store' appears in no canonical document. The gate label 'Phase A \u2014 Layer 2 Closure' is directly keyed to the 'Layer 2' designation; an unauthorized replacement term renders the gate label semantically undefined. Role-citation verdict upstream confirmed RC-4 (conflict requires block) for this claim. Blocked under CLAUDE.md Sections 7 and 10."
+      },
+      {
+        "claim_id": "c4",
+        "claim_text": "'decision_layer' is the architecturally correct replacement name for 'Layer 3' / 'Layer-3'",
+        "effective_capability": "Redefine the Layer 3 planned-architecture designation across all canonical documents \u2014 requires SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md authorization first",
+        "phase_assessment": "blocked",
+        "gate_reference": [
+          "phase_b_layer3_bootstrap",
+          "documentation_update_obligations_section_11"
+        ],
+        "reason": "'decision_layer' appears in no canonical document. 'Phase B \u2014 Layer 3 Bootstrap' is the gate label for the currently allowed work envelope; substituting an unauthorized term for 'Layer 3' destabilizes the phase-gate reference frame. CLAUDE.md Section 3.2 enumerates the Layer 3 planned components (Feature Builder, Index Suite, Regime Gate, etc.) under the 'Layer 3' label \u2014 not 'decision_layer'. RC-4 upstream. Blocked per CLAUDE.md Sections 7 and 10."
+      },
+      {
+        "claim_id": "c5",
+        "claim_text": "The terminology refactor would not introduce ambiguity, architecture drift, or snapshot-boundary confusion",
+        "effective_capability": "Affirmative safety assurance for a fail-closed system \u2014 requires proof traceable to SYSTEM_LIMITATIONS_AND_APPROXIMATIONS_v1.md and SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md",
+        "phase_assessment": "blocked",
+        "gate_reference": [
+          "phase_a_layer2_closure",
+          "snapshot_boundary_contract_section_6"
+        ],
+        "reason": "Fail-closed principle (CLAUDE.md Section 7) mandates proof of safety, not assumption of safety. CLAUDE.md Section 3.2 explicitly notes the load-bearing semantic distinction between the Layer-2 'layer2/index_suite.py' provisional tool and the planned Layer-3 Index Suite; any rename must preserve this disambiguation. No citation to SYSTEM_LIMITATIONS_AND_APPROXIMATIONS_v1.md provided. Acknowledging the risk without resolving it does not satisfy the fail-closed gate. Blocked."
+      },
+      {
+        "claim_id": "c6",
+        "claim_text": "Code module names, import paths, and historical references must NOT be renamed without governance review",
+        "effective_capability": "Governance constraint \u2014 correctly bounds what cannot proceed without prior review",
+        "phase_assessment": "allowed_now",
+        "gate_reference": [
+          "documentation_update_obligations_section_11"
+        ],
+        "reason": "Compliant governance claim (CLAUDE.md Sections 11 and 15). This is a restriction, not a capability expansion. RC-1 upstream. No phase violation."
+      },
+      {
+        "claim_id": "c7",
+        "claim_text": "README_LAYER2.md may require rename handling as part of the terminology refactor",
+        "effective_capability": "Rename a named canonical document from the CLAUDE.md Section 2.1 authority chain \u2014 triggers cascading cross-reference obligations across all seven canonical documents",
+        "phase_assessment": "blocked",
+        "gate_reference": [
+          "documentation_update_obligations_section_11"
+        ],
+        "reason": "README_LAYER2.md is explicitly named in CLAUDE.md Section 2.1 canonical current-state documentation set. Renaming it would sever the canonical authority chain and trigger Section 11 update obligations across all seven canonical documents plus CLAUDE.md itself. This claim is blocked by transitivity: it depends on C-003 and C-004 being authorized, which they are not. RC-3/RC-4 upstream (most severe subclaim verdict governs)."
+      }
+    ],
+    "summary": {
+      "phase_jump_detected": false,
+      "live_readiness_implication_detected": false,
+      "scope_exceeds_current_allowance": true,
+      "snapshot_boundary_risk": true,
+      "followup_audit_recommended": true,
+      "recommended_next_step": "If 'truth_store' and 'decision_layer' are intended as new canonical architectural designations, the required sequencing per CLAUDE.md Section 11 is: (1) SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md must be updated first to introduce and authorize both terms with role-matched definitions \u2014 this is the mandatory unblocking step; (2) SYSTEM_TECHNICAL_HANDBOOK_v1.md; (3) SYSTEM_IMPLEMENTATION_RECORD_v1.md; (4) SYSTEM_LIMITATIONS_AND_APPROXIMATIONS_v1.md \u2014 must confirm no snapshot-boundary ambiguity is introduced; (5) DOCUMENTATION_VERIFICATION_MATRIX_v1.md; (6) README_v1.md; (7) README_LAYER2.md; (8) CLAUDE.md. No rename of any document, code path, or canonical reference may proceed until Step 1 produces a compliant role-citation verdict with explicit phase-gate label mapping. Phase B implementation work (snapshot consumer, DecisionPacket skeleton, etc.) is unblocked independently and may proceed under the existing 'Layer 2' / 'Layer 3' terminology without waiting for this terminology change."
+    }
+  }
+}
