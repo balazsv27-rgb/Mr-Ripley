@@ -1,0 +1,62 @@
+{
+  "artifact": "normalized_terminology_map",
+  "produced_by": "normalize-terminology",
+  "session": "9cf210f8-0281-4215-8493-d80a1dcb5a65",
+  "timestamp": "2026-04-23T15:36:48.832425Z",
+  "data": {
+    "produced_by": "normalize-terminology",
+    "overall_status": "governance_sensitive_term_conflict",
+    "inference_used": false,
+    "canonical_term_mappings": [
+      {
+        "from": "truth_store",
+        "to": "Layer-2",
+        "concept_id": "LAYER_2",
+        "reason": "Proposed replacement is not recognized in the canonical term table. The canonical form for this architectural layer is 'Layer-2' (allowed prose variant: 'Layer 2'). 'truth_store' is an unrecognized term with no canonical precedent. It risks conflation with specific storage components (e.g., snapshots table, layer2_truth.db) rather than the full architectural layer encompassing deterministic ingestion and snapshot publication. Governance-sensitive under Category A (snapshot boundary semantics)."
+      },
+      {
+        "from": "decision_layer",
+        "to": "Layer-3",
+        "concept_id": "LAYER_3",
+        "reason": "Proposed replacement is not recognized in the canonical term table. The canonical form is 'Layer-3' (allowed prose variant: 'Layer 3'). 'decision_layer' is semantically adjacent to the explicitly discouraged variant 'decision engine' for LAYER_3. It risks implying decision-making or execution capability explicitly forbidden by CLAUDE.md Section 9. Governance-sensitive under Category B (phase/readiness) and Category D (decision vocabulary)."
+      }
+    ],
+    "scope_constraints": [
+      "request text from governance_context.request_text",
+      "claim texts and notes from claim_classification_map (claims c1 through c7)",
+      "canonical term table from canonical-terminology-map skill definition",
+      "CLAUDE.md constitutional rules via loaded system context"
+    ],
+    "excluded_reference_types": [
+      "Documentation/* canonical files not read directly (filesystem not accessed at this normalization step)",
+      "series_registry.json not consulted (no series-related terminology in scope for this request)",
+      "DOCUMENTATION_VERIFICATION_MATRIX_v1.md cross-reference details not directly read"
+    ],
+    "filename_rename_candidates": [
+      "README_LAYER2.md"
+    ],
+    "ambiguity_flags": [
+      {
+        "term": "truth_store",
+        "concepts": [
+          "LAYER_2",
+          "SNAPSHOTS_TABLE",
+          "OBSERVATIONS"
+        ],
+        "governance_sensitive": true,
+        "note": "Can be read as a specific storage artifact (snapshots table, layer2_truth.db, or raw observations store) rather than the full architectural Layer-2 encompassing deterministic ingestion, validation, and snapshot publication. This weakens the snapshot boundary semantics (Category A) by collapsing an architectural layer into a storage component name. The canonical set has zero precedent for this term. The claim_classification_map (c7, c5) independently flags this as an unverified semantic equivalence and a potential blocking condition."
+      },
+      {
+        "term": "decision_layer",
+        "concepts": [
+          "LAYER_3",
+          "NO_TRADE",
+          "DECISION_PACKET",
+          "GUARD_TAXONOMY"
+        ],
+        "governance_sensitive": true,
+        "note": "Semantically adjacent to the discouraged LAYER_3 variant 'decision engine'. May imply active decision-making or execution capability, which CLAUDE.md Section 9 explicitly forbids ('No component may simulate or imply execution capability'). Also creates ambiguity with the decision vocabulary taxonomy (NO_TRADE, DecisionPacket, guard/state/trigger taxonomies) \u2014 'decision_layer' could be misread as the layer that executes decisions rather than the planned downstream computational layer. Governance-sensitive under Category B (phase/readiness: Layer-3 is NOT YET BUILT) and Category D (decision vocabulary connotation). The claim_classification_map (c7, c2 notes) independently flags this execution connotation as a blocking risk."
+      }
+    ]
+  }
+}
