@@ -1,116 +1,15 @@
 {
   "artifact": "runtime_boundary_verdict",
   "produced_by": "runtime-boundary-check",
-  "session": "9cf210f8-0281-4215-8493-d80a1dcb5a65",
-  "timestamp": "2026-04-23T15:42:54.444638Z",
+  "session": "",
+  "timestamp": "2026-04-23T16:07:30.590524Z",
   "data": {
-    "produced_by": "runtime-boundary-check",
-    "overall_boundary_status": "review_only",
-    "inference_used": true,
+    "file_path": "C:\\Code\\Mr-Ripley\\tests\\governance\\test_prompt_assembly.py",
+    "scanned": true,
+    "layer2_file": false,
     "raw_observation_access_detected": false,
     "latest_snapshot_misuse_detected": false,
     "layer2_storage_coupling_detected": false,
-    "boundary_violation_suspected": true,
-    "upstream_violation_inherited": true,
-    "checked_items": [
-      {
-        "item_id": "RBC-1",
-        "target": "contract_compliance_verdict (upstream)",
-        "assessment": "blocked",
-        "raw_observations_access_detected": false,
-        "latest_snapshot_misuse_detected": false,
-        "snapshot_truth_rewrite_risk": false,
-        "layer2_storage_touch_detected": false,
-        "affected_files": [],
-        "missing_inputs": [],
-        "reason": "Upstream contract_compliance_verdict reports contract_status=boundary_violation with snapshot_bypass_risk=true and decisionpacket_anchor_risk=true. constitutional_document_self_modification targeting CLAUDE.md Section 6 and Section 9 without verified semantic equivalence is a blocking condition inherited by this step. canonical_conflict_unresolved=true from upstream prevents contract verification per SCC-1/SCC-6.",
-        "canonical_source": "SYSTEM_TECHNICAL_HANDBOOK_v1.md",
-        "notes": [
-          "upstream block inherited: constitutional_document_self_modification of snapshot contract",
-          "decision_layer_execution_connotation_risk flagged upstream \u2014 execution boundary (CLAUDE.md \u00a79) implicated",
-          "canonical_conflict_unresolved=true propagated from upstream"
-        ]
-      },
-      {
-        "item_id": "RBC-2",
-        "target": "code_context \u2014 layer2/db.py, layer2/adapters/*, layer2/alignment.py",
-        "assessment": "review",
-        "raw_observations_access_detected": false,
-        "latest_snapshot_misuse_detected": false,
-        "snapshot_truth_rewrite_risk": false,
-        "layer2_storage_touch_detected": false,
-        "affected_files": [],
-        "missing_inputs": [
-          "layer2/db.py",
-          "layer2/adapters/*",
-          "layer2/alignment.py",
-          "layer2/config/series_registry.json"
-        ],
-        "reason": "Code-level file reads could not be executed (tool unavailable in this execution context). No direct code evidence available to confirm or deny raw observation access, snapshot truth rewrite, or Layer-2 storage coupling. Per fail-closed principle (CLAUDE.md \u00a77), inability to confirm compliance is treated as unresolved.",
-        "canonical_source": "SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md",
-        "notes": [
-          "requires_snapshot_boundary_auditor set true due to missing code evidence",
-          "tool execution failure prevents direct inspection of adapters, db.py, alignment.py"
-        ]
-      },
-      {
-        "item_id": "RBC-3",
-        "target": "runtime_context \u2014 latest_snapshot.json, layer2_truth.db",
-        "assessment": "review",
-        "raw_observations_access_detected": false,
-        "latest_snapshot_misuse_detected": false,
-        "snapshot_truth_rewrite_risk": false,
-        "layer2_storage_touch_detected": false,
-        "affected_files": [],
-        "missing_inputs": [
-          "latest_snapshot.json",
-          "layer2_truth.db"
-        ],
-        "reason": "Runtime artifacts could not be read due to tool unavailability. Cannot confirm snapshot_id-anchoring, immutability, or absence of downstream write access. Fail-closed: unverified runtime state does not constitute compliance.",
-        "canonical_source": "SYSTEM_TECHNICAL_HANDBOOK_v1.md",
-        "notes": [
-          "snapshot_bypass_risk=true inherited from upstream contract verdict \u2014 runtime artifact inspection required but not possible in this pass"
-        ]
-      },
-      {
-        "item_id": "RBC-4",
-        "target": "Execution boundary (CLAUDE.md \u00a79) \u2014 decision_layer connotation risk",
-        "assessment": "blocked",
-        "raw_observations_access_detected": false,
-        "latest_snapshot_misuse_detected": false,
-        "snapshot_truth_rewrite_risk": false,
-        "layer2_storage_touch_detected": false,
-        "affected_files": [],
-        "missing_inputs": [],
-        "reason": "Upstream contract_compliance_verdict flagged decision_layer_execution_connotation_risk. CLAUDE.md \u00a79 prohibits any component simulating or implying execution capability. This risk is not resolvable without code inspection, and canonical_conflict_unresolved=true further prevents clearance. Boundary violation suspected per fail-closed principle.",
-        "canonical_source": "CLAUDE.md Section 9",
-        "notes": [
-          "No automated trading, signal execution, decision triggering, or order generation may exist \u2014 code inspection required to clear this flag",
-          "upstream decisionpacket_anchor_risk=true is an additional unresolved signal"
-        ]
-      }
-    ],
-    "summary": {
-      "raw_observations_violation_detected": false,
-      "latest_snapshot_misuse_detected": false,
-      "snapshot_truth_rewrite_risk_detected": false,
-      "layer2_storage_touch_detected": false,
-      "boundary_violation_suspected": true,
-      "upstream_block_inherited": true,
-      "code_inspection_possible": false,
-      "requires_snapshot_boundary_guard": true,
-      "requires_snapshot_boundary_auditor": true,
-      "requires_doc_code_sync_review": true,
-      "source_authority_conflict_detected": true,
-      "escalation_required": true,
-      "escalation_target": "snapshot-boundary-auditor",
-      "notes": [
-        "Upstream contract_compliance_verdict=boundary_violation with snapshot_bypass_risk=true and canonical_conflict_unresolved=true propagates a blocking signal to this step",
-        "Code-level file reads were not executable; no direct evidence of raw observation access or storage coupling \u2014 but absence of evidence is not evidence of absence under fail-closed",
-        "decision_layer_execution_connotation_risk from upstream requires code-level clearance before this step can issue compliant verdict",
-        "boundary_violation_suspected=true triggers snapshot-boundary-auditor escalation per agent spec",
-        "snapshot-boundary-guard hook must remain active: blocks Edit/Write if raw_observation_access_detected, latest_snapshot_misuse_detected, or layer2_storage_coupling_detected becomes true on auditor inspection"
-      ]
-    }
+    "violations": []
   }
 }

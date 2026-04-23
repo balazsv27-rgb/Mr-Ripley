@@ -1289,3 +1289,208 @@ def test_runtime_boundary_projection_log_with_rich_payload() -> None:
 
     # stage_gate_report should pass through unchanged
     assert projected["stage_gate_report"] is rich_inputs["stage_gate_report"]
+
+
+# ── adapter-schema-check artifact projection ──
+
+
+def test_adapter_schema_runtime_boundary_projection_flat_schema() -> None:
+    """adapter-schema-check projection extracts compact fields from flat runtime_boundary_verdict."""
+    from governance.dag_runner.prompt_assembly import _project_artifact_payload
+
+    full_payload = {
+        "produced_by": "runtime-boundary-check",
+        "overall_boundary_status": "review_only",
+        "inference_used": True,
+        "raw_observation_access_detected": False,
+        "latest_snapshot_misuse_detected": False,
+        "layer2_storage_coupling_detected": False,
+        "boundary_violation_suspected": True,
+        "upstream_violation_inherited": True,
+        "checked_items": [
+            {
+                "item_id": "RBC-1",
+                "target": "contract_compliance_verdict (upstream)",
+                "assessment": "blocked",
+                "raw_observations_access_detected": False,
+                "latest_snapshot_misuse_detected": False,
+                "reason": "Very long reason about upstream boundary violation " * 20,
+                "canonical_source": "SYSTEM_TECHNICAL_HANDBOOK_v1.md",
+                "notes": [
+                    "upstream block inherited " * 10,
+                    "decision_layer risk " * 10,
+                ],
+            },
+            {
+                "item_id": "RBC-2",
+                "target": "code_context — layer2/db.py",
+                "assessment": "review",
+                "reason": "Code-level file reads could not be executed " * 15,
+                "notes": ["requires_snapshot_boundary_auditor " * 10],
+            },
+            {
+                "item_id": "RBC-3",
+                "target": "runtime_context",
+                "assessment": "review",
+                "reason": "Runtime artifacts could not be read " * 15,
+                "notes": ["snapshot_bypass_risk " * 10],
+            },
+            {
+                "item_id": "RBC-4",
+                "target": "Execution boundary",
+                "assessment": "blocked",
+                "reason": "Upstream flagged execution connotation risk " * 20,
+                "notes": ["No automated trading " * 10],
+            },
+        ],
+        "summary": {
+            "raw_observations_violation_detected": False,
+            "latest_snapshot_misuse_detected": False,
+            "boundary_violation_suspected": True,
+            "upstream_block_inherited": True,
+            "code_inspection_possible": False,
+            "requires_snapshot_boundary_guard": True,
+            "requires_snapshot_boundary_auditor": True,
+            "requires_doc_code_sync_review": True,
+            "source_authority_conflict_detected": True,
+            "escalation_required": True,
+            "escalation_target": "snapshot-boundary-auditor",
+            "notes": [
+                "Very long summary note about upstream propagation " * 20,
+                "Another long note about code inspection " * 20,
+                "Third long note about boundary guard " * 20,
+            ],
+        },
+    }
+
+    projected = _project_artifact_payload(
+        "adapter-schema-check", "runtime_boundary_verdict", full_payload,
+    )
+
+    # Must not be same object (projection was applied)
+    assert projected is not full_payload
+
+    # Required boundary flags preserved
+    assert projected["produced_by"] == "runtime-boundary-check"
+    assert projected["overall_boundary_status"] == "review_only"
+    assert projected["raw_observation_access_detected"] is False
+    assert projected["latest_snapshot_misuse_detected"] is False
+    assert projected["layer2_storage_coupling_detected"] is False
+    assert projected["boundary_violation_suspected"] is True
+    assert projected["upstream_violation_inherited"] is True
+
+    # Summary escalation signals preserved
+    assert projected["code_inspection_possible"] is False
+    assert projected["requires_snapshot_boundary_guard"] is True
+    assert projected["requires_snapshot_boundary_auditor"] is True
+    assert projected["requires_doc_code_sync_review"] is True
+    assert projected["source_authority_conflict_detected"] is True
+    assert projected["escalation_required"] is True
+    assert projected["escalation_target"] == "snapshot-boundary-auditor"
+
+    # checked_items MUST be dropped entirely
+    assert "checked_items" not in projected
+    # summary.notes MUST be dropped
+    assert "notes" not in projected
+
+    import json
+    serialized = json.dumps(projected)
+    assert "Very long reason" not in serialized
+    assert "Very long summary note" not in serialized
+    assert "Code-level file reads" not in serialized
+
+    # Size reduction: must achieve substantial reduction
+    orig_size = len(json.dumps(full_payload, indent=2))
+    proj_size = len(json.dumps(projected, indent=2))
+    assert proj_size < orig_size * 0.2, (
+        f"Projection did not achieve 80% reduction: {proj_size} vs {orig_size}"
+    )
+
+
+def test_adapter_schema_runtime_boundary_projection_minimal_passthrough() -> None:
+    """V1 shell minimal payloads pass through transforms unchanged."""
+    from governance.dag_runner.prompt_assembly import _project_artifact_payload
+
+    minimal = {"produced_by": "runtime-boundary-check"}
+    result = _project_artifact_payload(
+        "adapter-schema-check", "runtime_boundary_verdict", minimal,
+    )
+    assert result is minimal  # same object — no transform applied
+
+
+def test_adapter_schema_runtime_boundary_projection_metadata(pipeline) -> None:
+    """adapter-schema-check prompt composition includes projection diagnostic fields."""
+    spec, plan, run_state = pipeline
+    step = spec.workflow_steps["adapter-schema-check"]
+    ctx = assemble_step_prompt(step, spec, run_state, repo_root=_REPO_ROOT)
+    meta = build_prompt_composition_metadata(ctx)
+
+    # Projection metadata keys must be present
+    assert "projected_artifact_names" in meta
+    assert "input_contributions_original" in meta
+    assert "input_contributions_projected" in meta
+    assert isinstance(meta["projected_artifact_names"], list)
+    assert isinstance(meta["input_contributions_original"], dict)
+    assert isinstance(meta["input_contributions_projected"], dict)
+
+
+def test_adapter_schema_projection_log_with_rich_payload() -> None:
+    """_apply_step_projections records original vs projected sizes for adapter-schema-check."""
+    from governance.dag_runner.prompt_assembly import _apply_step_projections
+
+    rich_inputs = {
+        "runtime_boundary_verdict": {
+            "produced_by": "runtime-boundary-check",
+            "overall_boundary_status": "review_only",
+            "raw_observation_access_detected": False,
+            "latest_snapshot_misuse_detected": False,
+            "layer2_storage_coupling_detected": False,
+            "boundary_violation_suspected": True,
+            "upstream_violation_inherited": True,
+            "checked_items": [
+                {
+                    "item_id": "RBC-1",
+                    "target": "upstream",
+                    "assessment": "blocked",
+                    "reason": "x" * 3000,
+                    "notes": ["x" * 2000, "x" * 2000],
+                },
+                {
+                    "item_id": "RBC-2",
+                    "target": "code_context",
+                    "assessment": "review",
+                    "reason": "x" * 3000,
+                    "notes": ["x" * 2000],
+                },
+            ],
+            "summary": {
+                "code_inspection_possible": False,
+                "requires_snapshot_boundary_guard": True,
+                "requires_snapshot_boundary_auditor": True,
+                "requires_doc_code_sync_review": True,
+                "source_authority_conflict_detected": True,
+                "escalation_required": True,
+                "escalation_target": "snapshot-boundary-auditor",
+                "notes": ["x" * 5000, "x" * 3000],
+            },
+        },
+        "governance_context": {"produced_by": "load-context", "run_id": "test"},
+    }
+
+    projected, log = _apply_step_projections(
+        "adapter-schema-check", rich_inputs,
+    )
+
+    # Only runtime_boundary_verdict should be projected
+    assert len(log) == 1
+    assert log[0]["artifact"] == "runtime_boundary_verdict"
+
+    # Log entry must show size reduction
+    assert log[0]["original_chars"] > 0
+    assert log[0]["projected_chars"] > 0
+    assert log[0]["projected_chars"] < log[0]["original_chars"], (
+        f"projected {log[0]['projected_chars']} >= original {log[0]['original_chars']}"
+    )
+
+    # governance_context should pass through unchanged
+    assert projected["governance_context"] is rich_inputs["governance_context"]

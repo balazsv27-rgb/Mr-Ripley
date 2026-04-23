@@ -341,6 +341,74 @@ def _compact_contract_compliance_for_runtime_boundary(
     return compact
 
 
+# ---------------------------------------------------------------------------
+# Adapter-schema-check compact transform projections
+# ---------------------------------------------------------------------------
+# Deep structural transform for adapter-schema-check.  Retains only
+# governance-relevant boundary flags from the upstream runtime_boundary_verdict,
+# dropping verbose per-item narratives and long notes arrays.
+
+
+def _compact_runtime_boundary_for_adapter_schema(
+    payload: dict[str, Any],
+) -> dict[str, Any]:
+    """Extract compact adapter-schema projection from runtime_boundary_verdict.
+
+    Retains top-level boundary status flags and summary escalation signals.
+    Drops ``checked_items`` entirely (verbose per-item narratives and notes
+    are not needed for adapter-schema compliance evaluation).
+
+    Supports two schema shapes:
+    - wrapped: ``payload`` contains envelope fields plus ``data`` with verdict
+    - flat: verdict fields directly on ``payload``
+    """
+    # Determine the root containing verdict fields
+    data = payload.get("data", payload)
+
+    # Detect structural/minimal payload — pass through
+    if (
+        "overall_boundary_status" not in data
+        and "boundary_violation_suspected" not in data
+    ):
+        return payload
+
+    summary = data.get("summary", {})
+
+    compact: dict[str, Any] = {
+        "produced_by": data.get("produced_by") or payload.get("produced_by"),
+        # Top-level boundary flags
+        "overall_boundary_status": data.get("overall_boundary_status"),
+        "raw_observation_access_detected": data.get(
+            "raw_observation_access_detected",
+        ),
+        "latest_snapshot_misuse_detected": data.get(
+            "latest_snapshot_misuse_detected",
+        ),
+        "layer2_storage_coupling_detected": data.get(
+            "layer2_storage_coupling_detected",
+        ),
+        "boundary_violation_suspected": data.get("boundary_violation_suspected"),
+        "upstream_violation_inherited": data.get("upstream_violation_inherited"),
+        # Summary escalation signals
+        "code_inspection_possible": summary.get("code_inspection_possible"),
+        "requires_snapshot_boundary_guard": summary.get(
+            "requires_snapshot_boundary_guard",
+        ),
+        "requires_snapshot_boundary_auditor": summary.get(
+            "requires_snapshot_boundary_auditor",
+        ),
+        "requires_doc_code_sync_review": summary.get(
+            "requires_doc_code_sync_review",
+        ),
+        "source_authority_conflict_detected": summary.get(
+            "source_authority_conflict_detected",
+        ),
+        "escalation_required": summary.get("escalation_required"),
+        "escalation_target": summary.get("escalation_target"),
+    }
+    return compact
+
+
 # Transform-based projections — step_name → {artifact_name → transform_fn}.
 # Applied before field-list projections in _project_artifact_payload.
 _STEP_INPUT_TRANSFORMS: dict[str, dict[str, Any]] = {
@@ -354,6 +422,9 @@ _STEP_INPUT_TRANSFORMS: dict[str, dict[str, Any]] = {
     },
     "runtime-boundary-check": {
         "contract_compliance_verdict": _compact_contract_compliance_for_runtime_boundary,
+    },
+    "adapter-schema-check": {
+        "runtime_boundary_verdict": _compact_runtime_boundary_for_adapter_schema,
     },
 }
 

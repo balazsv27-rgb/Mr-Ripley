@@ -1,0 +1,60 @@
+{
+  "artifact": "normalized_terminology_map",
+  "produced_by": "normalize-terminology",
+  "session": "b382c603-45d0-415a-b641-7377cb5cf2d7",
+  "timestamp": "2026-04-23T16:11:22.661814Z",
+  "data": {
+    "produced_by": "normalize-terminology",
+    "overall_status": "governance_sensitive_term_conflict",
+    "inference_used": false,
+    "canonical_term_mappings": [
+      {
+        "from": "truth_store",
+        "to": "Layer-2",
+        "concept_id": "LAYER_2",
+        "reason": "Proposed replacement term has no canonical basis in any current canonical document. Not listed as an allowed or discouraged variant. Semantically leans into the discouraged 'truth layer' / 'data layer' pattern and conflates the snapshot boundary architectural layer with a storage/datastore concept. Introduces snapshot-boundary confusion (governance category A). Must not be adopted as a canonical term without explicit ratification through CLAUDE.md and all role-matched canonical documents."
+      },
+      {
+        "from": "decision_layer",
+        "to": "Layer-3",
+        "concept_id": "LAYER_3",
+        "reason": "Proposed replacement term has no canonical basis in any current canonical document. Not listed as an allowed or discouraged variant. Structurally similar to the explicitly discouraged 'decision engine' and 'signal layer' variants. Implies automated decision-making or execution capability, which directly conflicts with the execution boundary (CLAUDE.md \u00a79: 'No component may simulate or imply execution capability'). Renaming Layer-3 to 'decision_layer' promotes a target-architecture planned component descriptor to an active layer name, weakening phase-gate semantics. Governance categories B (phase/readiness) and D (decision vocabulary)."
+      }
+    ],
+    "scope_constraints": [
+      "request_text from governance_context evaluated for proposed terminology introductions",
+      "claim_classification_map claims text evaluated for existing term usage and drift signals",
+      "claim notes and classification_rationale fields evaluated for embedded terminology"
+    ],
+    "excluded_reference_types": [
+      "Documentation/ canonical files not read directly \u2014 document contents not loaded into scope",
+      "Code module files not inspected \u2014 filesystem and import path term usage not scanned",
+      "Workflow YAML, skill instructions, and hook configurations not scanned for embedded term references",
+      "Historical documents excluded per CLAUDE.md \u00a72.3"
+    ],
+    "filename_rename_candidates": [
+      "README_LAYER2.md \u2014 canonical document explicitly named in CLAUDE.md \u00a72.1 (item 7), \u00a72.2, \u00a72.4, and \u00a711; any rename is a contract-affecting structural change to the canonical document set itself with cascading reference updates required across all seven canonical documents, governance artifacts, skill instructions, and workflow definitions; rename is BLOCKED pending full governance review and is not approvable by terminology normalization alone"
+    ],
+    "ambiguity_flags": [
+      {
+        "term": "truth_store",
+        "concepts": [
+          "LAYER_2",
+          "SNAPSHOTS_TABLE",
+          "SNAPSHOT_TRUTH"
+        ],
+        "governance_sensitive": true,
+        "note": "Term collapses three distinct governed concepts: (1) Layer-2 as the snapshot-boundary architectural layer, (2) snapshots (the canonical storage artifact and table), and (3) Snapshot Truth (the defined downstream truth anchor concept). If adopted as a layer name, it removes the distinction between the boundary layer itself and the artifacts it produces. Specifically, the discouraged variant 'Layer-2 data' already exists in the OBSERVATIONS entry \u2014 'truth_store' extends this conflation further. Any downstream step that resolves 'truth_store' claims could misroute them toward SNAPSHOTS_TABLE or SNAPSHOT_TRUTH semantics rather than the architectural layer. Governance category A: snapshot boundary."
+      },
+      {
+        "term": "decision_layer",
+        "concepts": [
+          "LAYER_3",
+          "PHASE_D"
+        ],
+        "governance_sensitive": true,
+        "note": "Term is ambiguous between (1) Layer-3 as the target-architecture computation layer (Phase B/C, not yet built) and (2) Phase D execution gate (blocked). The claim_classification_map (c2 notes) specifically identifies that Layer-3 references have dual scope \u2014 some describe current-state absence, others describe target-state planned components. The term 'decision_layer' collapses this dual scope and adds an execution-capability implication. If a downstream governance step encounters a claim about 'decision_layer' being ready, it cannot determine whether this means Phase B bootstrap is allowed (correct) or Phase D execution is unblocked (forbidden). This is a direct failure mode for claim routing under CLAUDE.md \u00a74 and \u00a79. Governance categories B and D."
+      }
+    ]
+  }
+}

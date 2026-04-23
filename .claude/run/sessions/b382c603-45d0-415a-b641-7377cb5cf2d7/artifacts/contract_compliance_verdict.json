@@ -1,0 +1,110 @@
+{
+  "artifact": "contract_compliance_verdict",
+  "produced_by": "snapshot-contract-check",
+  "session": "b382c603-45d0-415a-b641-7377cb5cf2d7",
+  "timestamp": "2026-04-23T16:15:29.485472Z",
+  "data": {
+    "produced_by": "snapshot-contract-check",
+    "snapshot_contract_status": {
+      "allowed": false,
+      "contract_status": "ambiguous_requires_block",
+      "valid_interface": "none",
+      "forbidden_access_detected": false,
+      "snapshot_anchor_required": false,
+      "blocking_reason_if_any": "Upstream blocks inherited (phase_alignment_status.allowed=false, role_citation_verdict.overall_status=conflict_requires_block, canonical_conflict_unresolved=true). In strict mode, all ambiguous conditions are promoted to blocked. Four upstream ambiguous conditions prevent snapshot contract clearance: (1) decision_layer_term_may_imply_execution_capability \u2014 risks SCC-5/FP-6 violation; (2) new_terminology_without_canonical_basis \u2014 undefined Layer-3 access patterns cannot be verified against SCC-1; (3) canonical_document_filename_rename \u2014 breaks Tier 1 canonical authority chain required for contract verification; (4) claude_md_self_modification_required \u2014 risks relaxing CLAUDE.md Section 6 non-negotiable invariants, implicating SCC-6.",
+      "checked_claims": [
+        {
+          "claim_id": "c1",
+          "claim_text": "decision_layer_term_may_imply_execution_capability (upstream blocking condition from role_citation_verdict)",
+          "assessment": "blocked",
+          "violated_invariants": [
+            "SCC-5"
+          ],
+          "triggered_forbidden_patterns": [
+            "FP-6"
+          ],
+          "valid_interface_if_compliant": "none",
+          "reason": "A decision-layer term implying execution capability violates SCC-5 (Event Risk Stream may not generate direction by itself) and FP-6 (Event Risk Stream as directional authority). CLAUDE.md Section 9 explicitly forbids any component from simulating or implying execution capability. Strict mode promotes this ambiguity to a block.",
+          "contract_reference": [
+            "SCC-5",
+            "FP-6"
+          ]
+        },
+        {
+          "claim_id": "c2",
+          "claim_text": "new_terminology_without_canonical_basis (upstream blocking condition from role_citation_verdict)",
+          "assessment": "blocked",
+          "violated_invariants": [
+            "SCC-1"
+          ],
+          "triggered_forbidden_patterns": [
+            "FP-7"
+          ],
+          "valid_interface_if_compliant": "none",
+          "reason": "Terminology introduced without canonical basis creates undefined Layer-3 access patterns. Without canonical grounding it is impossible to verify whether new terms imply compliant snapshot-only access or forbidden raw observation access. Docs implying forbidden access are blocked identically to code under FP-7. Strict mode promotes this ambiguity to a block per SCC-1.",
+          "contract_reference": [
+            "SCC-1",
+            "FP-7"
+          ]
+        },
+        {
+          "claim_id": "c3",
+          "claim_text": "canonical_document_filename_rename (upstream blocking condition from role_citation_verdict)",
+          "assessment": "blocked",
+          "violated_invariants": [
+            "SCC-1",
+            "SCC-6"
+          ],
+          "triggered_forbidden_patterns": [],
+          "valid_interface_if_compliant": "none",
+          "reason": "Renaming canonical documents breaks the Tier 1 authority chain (SYSTEM_TECHNICAL_HANDBOOK_v1.md, SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md) that is the primary verification source for SCC-1 through SCC-6. Contract validation cannot proceed without an intact canonical source chain. CLAUDE.md Section 2.1 defines these filenames as the canonical current-state sources; any rename without full cascade review invalidates the verification basis.",
+          "contract_reference": [
+            "SCC-1",
+            "SCC-6"
+          ]
+        },
+        {
+          "claim_id": "c4",
+          "claim_text": "claude_md_self_modification_required (upstream blocking condition from role_citation_verdict)",
+          "assessment": "blocked",
+          "violated_invariants": [
+            "SCC-6"
+          ],
+          "triggered_forbidden_patterns": [],
+          "valid_interface_if_compliant": "none",
+          "reason": "CLAUDE.md Section 6 defines the snapshot contract as non-negotiable. Any modification to CLAUDE.md risks relaxing Section 6 invariants unless the full document review cascade defined in CLAUDE.md Section 11 is completed. SCC-6 explicitly states that handoff gate satisfaction does not relax any invariant; a CLAUDE.md modification without cascade validation could improperly relax this rule.",
+          "contract_reference": [
+            "SCC-6"
+          ]
+        },
+        {
+          "claim_id": "c5",
+          "claim_text": "snapshot_boundary_risk=false (explicit signal from phase_alignment_status)",
+          "assessment": "compliant",
+          "violated_invariants": [],
+          "triggered_forbidden_patterns": [],
+          "valid_interface_if_compliant": "both",
+          "reason": "The upstream phase check explicitly signals snapshot_boundary_risk=false, indicating no direct raw observation access or snapshot bypass was detected in the request. This is a favorable signal for SCC-1 compliance, but is insufficient to clear the overall verdict given the four ambiguous-promoted-to-blocked claims above.",
+          "contract_reference": [
+            "SCC-1"
+          ]
+        }
+      ],
+      "summary": {
+        "raw_observations_access_risk": false,
+        "snapshot_bypass_risk": false,
+        "layer2_storage_touch_risk": false,
+        "decisionpacket_anchor_risk": false,
+        "followup_guard_recommended": true,
+        "upstream_block_inherited": true,
+        "escalation_target": "snapshot-boundary-auditor",
+        "resolution_required_before_recheck": [
+          "Resolve decision_layer_term_may_imply_execution_capability \u2014 eliminate or scope-limit any term implying execution capability before snapshot contract can clear SCC-5",
+          "Establish canonical basis for all new terminology so that Layer-3 access patterns can be evaluated against SCC-1",
+          "Confirm canonical_document_filename_rename does not break the CLAUDE.md Section 2.1 Tier 1 reference chain before contract authority sources can be verified",
+          "Complete CLAUDE.md Section 11 doc review cascade before any CLAUDE.md modification proceeds, to ensure Section 6 non-negotiable invariants are not relaxed"
+        ]
+      }
+    }
+  }
+}

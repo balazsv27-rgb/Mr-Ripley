@@ -1,0 +1,114 @@
+{
+  "artifact": "adapter_schema_verdict",
+  "produced_by": "adapter-schema-check",
+  "session": "b382c603-45d0-415a-b641-7377cb5cf2d7",
+  "timestamp": "2026-04-23T16:18:23.357460Z",
+  "data": {
+    "produced_by": "adapter-schema-check",
+    "adapter_schema_status": {
+      "overall_status": "ambiguous_requires_review",
+      "inference_used": true,
+      "checked_items": [
+        {
+          "item_id": "registry-compliance",
+          "target": "layer2/adapters/*",
+          "assessment": "review",
+          "registry_driven": null,
+          "hardcoded_series_detected": null,
+          "schema_drift_detected": null,
+          "boundary_fit": null,
+          "affected_files": [
+            "layer2/adapters/"
+          ],
+          "missing_inputs": [
+            "adapter source code (tools unavailable)",
+            "layer2/config/series_registry.json",
+            "layer2/db.py"
+          ],
+          "reason": "Adapter source files could not be read \u2014 no file-inspection tools available in this execution context. Cannot confirm or deny registry-driven discipline, hardcoding, schema alignment, or boundary fit. Fail-closed rule applied: absence of code evidence prohibits a compliant finding.",
+          "canonical_source": "SYSTEM_TECHNICAL_HANDBOOK_v1.md",
+          "notes": [
+            "Code inspection was not possible due to tool unavailability. All compliance dimensions remain unverified."
+          ]
+        },
+        {
+          "item_id": "upstream-boundary-inheritance",
+          "target": "runtime_boundary_verdict",
+          "assessment": "review",
+          "registry_driven": null,
+          "hardcoded_series_detected": null,
+          "schema_drift_detected": null,
+          "boundary_fit": null,
+          "affected_files": [],
+          "missing_inputs": [
+            "runtime_boundary_verdict.overall_boundary_status (null)",
+            "runtime_boundary_verdict.code_inspection_possible (null)",
+            "runtime_boundary_verdict.escalation_required (null)"
+          ],
+          "reason": "Upstream runtime_boundary_verdict reports boundary_violation_suspected: true with multiple null fields indicating the prior step did not complete a full assessment. This inherited suspicion cannot be cleared without code evidence. Per fail-closed principle, the suspicion is treated as unresolved and escalates this verdict.",
+          "canonical_source": "SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md",
+          "notes": [
+            "boundary_violation_suspected: true inherited from runtime-boundary-check",
+            "upstream fields overall_boundary_status, code_inspection_possible, escalation_required are all null \u2014 upstream step was incomplete"
+          ]
+        },
+        {
+          "item_id": "schema-consistency",
+          "target": "layer2/db.py + adapters INSERT discipline",
+          "assessment": "review",
+          "registry_driven": null,
+          "hardcoded_series_detected": null,
+          "schema_drift_detected": null,
+          "boundary_fit": null,
+          "affected_files": [
+            "layer2/db.py"
+          ],
+          "missing_inputs": [
+            "layer2/db.py (tools unavailable)",
+            "adapter write paths (tools unavailable)"
+          ],
+          "reason": "Cannot verify INSERT OR IGNORE discipline, canonical observations schema field alignment, or absence of INSERT OR REPLACE patterns. db.py and adapter write paths are both unreadable in this context.",
+          "canonical_source": "SYSTEM_TECHNICAL_HANDBOOK_v1.md",
+          "notes": [
+            "INSERT OR REPLACE is categorically forbidden per code-conventions.md. Could not verify absence."
+          ]
+        },
+        {
+          "item_id": "boundary-fit",
+          "target": "layer2/adapters/* \u2014 Layer-2 scope compliance",
+          "assessment": "review",
+          "registry_driven": null,
+          "hardcoded_series_detected": null,
+          "schema_drift_detected": null,
+          "boundary_fit": null,
+          "affected_files": [
+            "layer2/adapters/"
+          ],
+          "missing_inputs": [
+            "adapter source code (tools unavailable)"
+          ],
+          "reason": "Cannot verify that adapters do not query snapshots/snapshot_values outside write path, do not duplicate quality_gate or alignment logic, and do not embed Layer-3 decision logic. Boundary fit is unconfirmed.",
+          "canonical_source": "SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md",
+          "notes": []
+        }
+      ],
+      "summary": {
+        "registry_violation_detected": false,
+        "hardcoded_series_detected": false,
+        "schema_drift_detected": false,
+        "boundary_violation_detected": false,
+        "requires_adapter_schema_guard": true,
+        "requires_adapter_schema_guardian": true,
+        "requires_doc_code_sync_review": false,
+        "source_authority_conflict_detected": false,
+        "notes": [
+          "overall_status is ambiguous_requires_review because: (1) no adapter code could be inspected \u2014 all compliance dimensions unverified; (2) upstream boundary_violation_suspected: true is inherited and unresolved; (3) fail-closed principle prohibits a compliant or review_only finding when a boundary suspicion is active and code evidence is absent.",
+          "requires_adapter_schema_guardian: true \u2014 code evidence is unavailable for every material compliance dimension.",
+          "requires_adapter_schema_guard: true \u2014 overall_status is ambiguous_requires_review, triggering guard flag per skill summary flag rules.",
+          "No violations are affirmatively detected because no code was inspected \u2014 absence of detected violation does NOT mean compliant.",
+          "Escalation to adapter-schema-guardian is warranted given boundary_violation_suspected inheritance and complete absence of code inspection."
+        ]
+      }
+    }
+  }
+}

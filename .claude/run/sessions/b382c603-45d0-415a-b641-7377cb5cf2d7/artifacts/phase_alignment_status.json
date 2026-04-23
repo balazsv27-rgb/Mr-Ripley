@@ -1,0 +1,127 @@
+{
+  "artifact": "phase_alignment_status",
+  "produced_by": "phase-check",
+  "session": "b382c603-45d0-415a-b641-7377cb5cf2d7",
+  "timestamp": "2026-04-23T16:14:21.321779Z",
+  "data": {
+    "produced_by": "phase-check",
+    "current_phase": "Phase A (complete at contract boundary) / Phase B (allowed, not completed)",
+    "requested_phase": "inferred:current-state documentation and terminology change",
+    "allowed": false,
+    "alignment_status": "ambiguous_requires_block",
+    "gate_reference": [
+      "phase_a_layer2_closure",
+      "phase_b_layer3_bootstrap"
+    ],
+    "blocking_reason_if_any": "Upstream role_citation_verdict reports overall_status=conflict_requires_block with canonical_conflict_unresolved=true and recommended_guard_action=block. Multiple possible blocking conditions from claim_classification_map require resolution before phase alignment can be granted: canonical_document_filename_rename, new_terminology_without_canonical_basis, claude_md_self_modification_required, decision_layer_term_may_imply_execution_capability.",
+    "checked_claims": [
+      {
+        "claim_id": "c1",
+        "claim_text": "current-state claim (exact text not resolved \u2014 upstream classify-claims did not surface claim text)",
+        "effective_capability": "current-state documentation or implementation scope",
+        "phase_assessment": "ambiguous",
+        "gate_reference": [
+          "phase_a_layer2_closure",
+          "phase_b_layer3_bootstrap"
+        ],
+        "reason": "claim_scope is current-state but upstream verdict is conflict_requires_block; without resolved claim text, phase placement cannot be safely confirmed"
+      },
+      {
+        "claim_id": "c2",
+        "claim_text": "current-state claim (exact text not resolved)",
+        "effective_capability": "current-state documentation or implementation scope",
+        "phase_assessment": "ambiguous",
+        "gate_reference": [
+          "phase_a_layer2_closure",
+          "phase_b_layer3_bootstrap"
+        ],
+        "reason": "same as c1; upstream conflict blocks safe phase alignment"
+      },
+      {
+        "claim_id": "c3",
+        "claim_text": "current-state claim (exact text not resolved; flagged for review in role_citation_verdict as C-003)",
+        "effective_capability": "canonical document reference or role-matching claim",
+        "phase_assessment": "ambiguous",
+        "gate_reference": [
+          "phase_a_layer2_closure"
+        ],
+        "reason": "C-003 was flagged review_only in role_citation_verdict; role_mismatch_detected=true means source authority cannot be confirmed without resolution"
+      },
+      {
+        "claim_id": "c4",
+        "claim_text": "current-state claim (exact text not resolved)",
+        "effective_capability": "current-state documentation or implementation scope",
+        "phase_assessment": "ambiguous",
+        "gate_reference": [
+          "phase_a_layer2_closure",
+          "phase_b_layer3_bootstrap"
+        ],
+        "reason": "upstream conflict unresolved; cannot safely grant phase alignment"
+      },
+      {
+        "claim_id": "c5",
+        "claim_text": "current-state claim (exact text not resolved; flagged for review in role_citation_verdict as C-005)",
+        "effective_capability": "canonical document reference or role-matching claim",
+        "phase_assessment": "ambiguous",
+        "gate_reference": [
+          "phase_a_layer2_closure"
+        ],
+        "reason": "C-005 was flagged review_only in role_citation_verdict; role_mismatch_detected=true, canonical_conflict_unresolved=true \u2014 cannot confirm phase alignment"
+      },
+      {
+        "claim_id": "c6",
+        "claim_text": "current-state claim (exact text not resolved)",
+        "effective_capability": "current-state documentation or implementation scope",
+        "phase_assessment": "ambiguous",
+        "gate_reference": [
+          "phase_a_layer2_closure",
+          "phase_b_layer3_bootstrap"
+        ],
+        "reason": "upstream conflict unresolved; cannot safely grant phase alignment"
+      }
+    ],
+    "high_priority_blocking_conditions_from_upstream": [
+      {
+        "condition": "canonical_document_filename_rename",
+        "phase_risk": "Any rename of canonical documents (SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md, SYSTEM_TECHNICAL_HANDBOOK_v1.md, etc.) breaks the canonical reference chain. Under CLAUDE.md Section 2.1, these filenames are the defined canonical sources. Renaming constitutes a structural break to the truth hierarchy, not a phase-compatible change.",
+        "assessment": "blocked \u2014 not phase-compatible at any current phase without full canonical chain update"
+      },
+      {
+        "condition": "new_terminology_without_canonical_basis",
+        "phase_risk": "Introducing new terminology not grounded in canonical docs risks creating an implicit phase promotion or an undocumented capability claim. Under CLAUDE.md Section 10 (Strong Claim Discipline), new terms implying capability require canonical proof.",
+        "assessment": "blocked \u2014 requires canonical grounding before use"
+      },
+      {
+        "condition": "claude_md_self_modification_required",
+        "phase_risk": "CLAUDE.md is the project constitution (CLAUDE.md Section 1). Modifying it is a constitutional change. Under CLAUDE.md Section 15, all governed actions must be subject to orchestration workflow enforcement. CLAUDE.md self-modification without full canonical chain validation is forbidden.",
+        "assessment": "blocked \u2014 requires full canonical doc review cascade per CLAUDE.md Section 11 before proceeding"
+      },
+      {
+        "condition": "decision_layer_term_may_imply_execution_capability",
+        "phase_risk": "CLAUDE.md Section 9 and Section 10 explicitly forbid any component implying execution capability before Phase D. A term like 'Decision Layer' or 'Decision Engine' without careful scope limiting risks violating the execution boundary. Phase D is blocked pending Phase C completion, paper validation, calibration, and operational readiness.",
+        "assessment": "blocked \u2014 live-readiness implication must be eliminated or explicitly scoped to planned/target-state"
+      },
+      {
+        "condition": "dual_scope_layer3_references_require_careful_disambiguation",
+        "phase_risk": "Layer-3 references that blend current-state and target-state scope risk implicit phase promotion (CLAUDE.md Section 3). Phase B bootstrap is allowed to begin; Phase C structured buildout is not yet permitted. Any Layer-3 reference that fails to clearly separate bootstrap scope from structured-buildout scope must be blocked.",
+        "assessment": "flagged \u2014 requires explicit disambiguation before proceeding"
+      },
+      {
+        "condition": "governance_artifact_references_to_readme_layer2_must_update",
+        "phase_risk": "README_LAYER2.md is canonical within its declared collaborator-workflow role but must not override phase-permissioning or build-order authority (CLAUDE.md Section 2.4). If governance artifacts reference README_LAYER2.md for phase authority, that is a role mismatch and must be corrected.",
+        "assessment": "flagged \u2014 verify that any updated references correctly attribute README_LAYER2.md within its declared scope only"
+      }
+    ],
+    "summary": {
+      "phase_jump_detected": false,
+      "live_readiness_implication_detected": true,
+      "scope_exceeds_current_allowance": false,
+      "snapshot_boundary_risk": false,
+      "followup_audit_recommended": true,
+      "canonical_conflict_unresolved": true,
+      "role_mismatch_unresolved": true,
+      "upstream_guard_action_inherited": "block",
+      "recommended_next_step": "Resolve the canonical_conflict_unresolved and role_mismatch_detected conditions in the upstream role_citation_verdict before proceeding. Specifically: (1) eliminate or scope-limit any decision_layer_term that implies execution capability; (2) confirm canonical_document_filename_rename does not break the CLAUDE.md Section 2.1 reference chain; (3) validate CLAUDE.md modification against the full doc review cascade in CLAUDE.md Section 11; (4) explicitly disambiguate all Layer-3 references into bootstrap-scope vs structured-buildout-scope. Only after these conditions are resolved can phase alignment be re-evaluated. Escalate to architecture-sequence-auditor if build_order_ambiguity_detected per agent escalation rules."
+    }
+  }
+}
