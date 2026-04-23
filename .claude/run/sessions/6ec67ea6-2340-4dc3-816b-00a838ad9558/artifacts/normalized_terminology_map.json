@@ -1,0 +1,59 @@
+{
+  "artifact": "normalized_terminology_map",
+  "produced_by": "normalize-terminology",
+  "session": "6ec67ea6-2340-4dc3-816b-00a838ad9558",
+  "timestamp": "2026-04-22T16:55:32.299541Z",
+  "data": {
+    "produced_by": "normalize-terminology",
+    "overall_status": "governance_sensitive_term_conflict",
+    "inference_used": false,
+    "canonical_term_mappings": [
+      {
+        "from": "truth_store",
+        "to": "Layer-2",
+        "concept_id": "LAYER_2",
+        "reason": "Proposed replacement term observed in governance_context.request_text. 'truth_store' is absent from the canonical term table. The canonical form for the data ingestion and snapshot boundary architectural layer is 'Layer-2' (allowed variant: 'Layer 2' in prose). 'truth_store' semantically overlaps with the explicitly discouraged variant 'truth layer' (LAYER_2 table row) and introduces cross-concept collision with the separately governed 'Snapshot Truth' (SNAPSHOT_TRUTH). Governance-sensitive: Category A \u2014 snapshot boundary."
+      },
+      {
+        "from": "decision_layer",
+        "to": "Layer-3",
+        "concept_id": "LAYER_3",
+        "reason": "Proposed replacement term observed in governance_context.request_text. 'decision_layer' is absent from the canonical term table. The canonical form for the planned computation architectural layer is 'Layer-3' (allowed variant: 'Layer 3' in prose). 'decision_layer' is semantically adjacent to the explicitly discouraged variant 'decision engine' (LAYER_3 table row) and risks implying the layer is operational rather than planned-only, which would erode phase-gate semantics. Governance-sensitive: Category B (phase/readiness) and Category D (decision vocabulary)."
+      }
+    ],
+    "scope_constraints": [
+      "request_text from governance_context.request_text \u2014 evaluated for proposed replacement terms",
+      "all six claims in claim_classification_map \u2014 evaluated for terminology consistency against canonical term table",
+      "canonical term table as defined in canonical-terminology-map skill applied in full",
+      "note: claim_classification_map claims themselves use canonical and allowed forms throughout \u2014 drift was detected only in the request_text, not in the classified claim bodies"
+    ],
+    "excluded_reference_types": [
+      "Documentation/ directory files not directly read \u2014 canonical document content not opened for this step",
+      "series_registry.json not examined",
+      "code module files and import paths not examined",
+      "DOCUMENTATION_VERIFICATION_MATRIX_v1.md cross-references not directly verified at this step"
+    ],
+    "filename_rename_candidates": [
+      "README_LAYER2.md \u2014 filename encodes the LAYER_2 concept (compressed, all-caps form: 'LAYER2'); if any rename of the Layer-2 architectural term were accepted downstream, this canonical document filename would require updating \u2014 with cascading mandatory changes to CLAUDE.md Sections 2.1, 2.2, 2.4, and 11, DOCUMENTATION_VERIFICATION_MATRIX_v1.md, and all cross-referencing canonical documents; currently blocked pending governance resolution of the terminology conflict flagged in this step"
+    ],
+    "ambiguity_flags": [
+      {
+        "term": "truth_store",
+        "concepts": [
+          "LAYER_2",
+          "SNAPSHOT_TRUTH"
+        ],
+        "governance_sensitive": true,
+        "note": "Two-concept ambiguity: 'truth_store' is proposed as the replacement for LAYER_2 (the data ingestion and snapshot boundary architectural layer), but 'truth' in the term semantically collides with the separately governed 'Snapshot Truth' concept (SNAPSHOT_TRUTH) \u2014 an independently defined canonical concept describing the immutable, snapshot-based view of market state. A component named 'truth_store' would be read as a store of Snapshot Truth, conflating a layer identifier with a data-state concept. This conflation directly undermines the canonical separation between the architectural boundary (Layer-2) and the snapshot content it produces (Snapshot Truth). Category A: snapshot boundary governance sensitivity."
+      },
+      {
+        "term": "decision_layer",
+        "concepts": [
+          "LAYER_3"
+        ],
+        "governance_sensitive": true,
+        "note": "Single-concept mapping (LAYER_3 only) but flagged for governance-classification risk: 'decision_layer' implies a layer that performs decisions, which risks being read as operational or active rather than planned-only. CLAUDE.md Section 3.2 and Phase B/C/D gates (Section 4) establish that Layer-3 components are target architecture, not yet built. The canonical form 'Layer-3' is phase-neutral in established usage and carries no operational implication; 'decision_layer' does not carry that neutrality. Additionally, 'decision engine' is a listed discouraged variant under LAYER_3, and 'decision_layer' is one lexical step removed from it. Category B: phase/readiness governance sensitivity. Category D: decision vocabulary governance sensitivity. Fail-closed: flagged for review rather than passed."
+      }
+    ]
+  }
+}

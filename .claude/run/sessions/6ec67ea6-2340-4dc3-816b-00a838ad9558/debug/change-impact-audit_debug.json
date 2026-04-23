@@ -1,0 +1,16 @@
+{
+  "step_name": "change-impact-audit",
+  "failure_detail": {
+    "failure_origin": "contract",
+    "failure_stage": "input_validation",
+    "returncode": null,
+    "parse_failure_reason": null,
+    "stderr_preview": "",
+    "raw_output_preview": "",
+    "debug_artifact_written": true,
+    "debug_artifact_path": ".claude\\run\\sessions\\6ec67ea6-2340-4dc3-816b-00a838ad9558\\debug\\change-impact-audit_debug.json",
+    "missing_inputs": [
+      "audit_summary"
+    ]
+  }
+}

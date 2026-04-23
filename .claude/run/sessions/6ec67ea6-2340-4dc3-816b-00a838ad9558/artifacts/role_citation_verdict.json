@@ -1,0 +1,211 @@
+{
+  "artifact": "role_citation_verdict",
+  "produced_by": "route-claims-by-role",
+  "session": "6ec67ea6-2340-4dc3-816b-00a838ad9558",
+  "timestamp": "2026-04-22T16:57:48.795662Z",
+  "data": {
+    "produced_by": "route-claims-by-role",
+    "run_id": "6ec67ea6-2340-4dc3-816b-00a838ad9558",
+    "inference_used": true,
+    "role_matched_citation_status": {
+      "overall_status": "conflict_requires_block",
+      "inference_used": true,
+      "source_authority_conflict_detected": true,
+      "checked_claims": [
+        {
+          "claim_id": "C-001",
+          "claim_text": "The terms 'Layer 2' and 'Layer-2' refer to a discrete, well-defined architectural layer of the Mr. Ripley system.",
+          "claim_type": "architecture",
+          "required_primary_source": "SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md",
+          "provided_sources": [],
+          "role_match": false,
+          "strong_claim": true,
+          "explicit_citation_required": true,
+          "conflict_detected": false,
+          "blocking_condition_if_any": "Strong architecture claim asserted in request with no citation to role-matched primary source (SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md).",
+          "verdict": "RC-3",
+          "reason": "The claim that 'Layer 2'/'Layer-2' identify a specific architectural layer is a strong architecture claim. No citation to SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md was provided. CLAUDE.md \u00a73.1 and \u00a72.2 confirm Layer 2 is operational at snapshot boundary, but the role-matched source for architecture/boundary questions is SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md, which has not been cited.",
+          "notes": "CLAUDE.md \u00a73.1 corroborates Layer 2 existence ('Layer 2 = operational at snapshot boundary'), but CLAUDE.md is not the role-matched primary for architecture claims. Treat CLAUDE.md reference as corroborating only. Primary citation required."
+        },
+        {
+          "claim_id": "C-002",
+          "claim_text": "The terms 'Layer 3' and 'Layer-3' refer to a discrete, well-defined architectural layer of the Mr. Ripley system.",
+          "claim_type": "architecture",
+          "required_primary_source": "SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md",
+          "provided_sources": [],
+          "role_match": false,
+          "strong_claim": true,
+          "explicit_citation_required": true,
+          "conflict_detected": true,
+          "blocking_condition_if_any": "Strong architecture claim with no citation to role-matched primary. Additionally, CLAUDE.md \u00a73.2 explicitly states 'Layer 3 is NOT YET BUILT' \u2014 treating it as a refactor-eligible architectural entity implies it is a realized layer, which conflicts with CLAUDE.md \u00a73.2 and \u00a710.",
+          "verdict": "RC-4",
+          "reason": "Layer 3 is described in CLAUDE.md \u00a73.2 as 'planned only' and 'NOT YET BUILT'. Treating Layer 3 as a rename target for a canonical architectural term implies it is an existing architectural entity. This is a strong claim (that Layer 3 has a defined, renameable identity) without role-matched citation, AND it conflicts with the documentation-established not-built status. CLAUDE.md \u00a710 forbids claiming Layer 3 is implemented without proof.",
+          "notes": "CLAUDE.md \u00a73.2: 'The following are planned only: Feature Builder, Index Suite, Regime Gate, Supervisor Engine, Decision Engine, DecisionPacket generator, Execution Layer.' Layer 3 as a named layer may be defined architecturally even if unbuilt, but the rename implies canonical identity \u2014 which requires explicit SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md citation. Conflict between architectural-planning identity and not-yet-built status must be resolved, not assumed away."
+        },
+        {
+          "claim_id": "C-003",
+          "claim_text": "'truth_store' is the canonical replacement term for 'Layer 2' / 'Layer-2' across all documentation.",
+          "claim_type": "architecture",
+          "required_primary_source": "SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md",
+          "provided_sources": [],
+          "role_match": false,
+          "strong_claim": true,
+          "explicit_citation_required": true,
+          "conflict_detected": true,
+          "blocking_condition_if_any": "Strong canonicalization claim with no citation to role-matched primary source. The claim that 'truth_store' IS the canonical term requires it to be established in SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md; no such citation is provided.",
+          "verdict": "RC-4",
+          "reason": "Claiming 'truth_store' as the canonical replacement is an architecture/naming-convention claim of the strongest type. It asserts a system-wide truth. No citation to SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md was provided. DOCUMENTATION_VERIFICATION_MATRIX_v1.md would also need to corroborate cross-document consistency. Without these, this claim fails CLAUDE.md \u00a75.2 (what counts as proof) and \u00a716 (final constitutional rule: unverified claims are non-binding).",
+          "notes": "Additionally, if 'truth_store' does not already appear in SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md, the term itself is a proposed new canonical label \u2014 a net-new governance decision requiring document update obligations per CLAUDE.md \u00a711, not merely a rename."
+        },
+        {
+          "claim_id": "C-004",
+          "claim_text": "'decision_layer' is the canonical replacement term for 'Layer 3' / 'Layer-3' across all documentation.",
+          "claim_type": "architecture",
+          "required_primary_source": "SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md",
+          "provided_sources": [],
+          "role_match": false,
+          "strong_claim": true,
+          "explicit_citation_required": true,
+          "conflict_detected": true,
+          "blocking_condition_if_any": "Strong canonicalization claim for a not-yet-built planned layer, with no citation to role-matched primary. High risk: naming a planned-only component with a canonical term may imply it is implemented, violating CLAUDE.md \u00a710.",
+          "verdict": "RC-4",
+          "reason": "Layer 3 is not yet built per CLAUDE.md \u00a73.2 and \u00a74 (Phase B: allowed, not completed). Establishing 'decision_layer' as a canonical term for Layer 3 in documentation is a strong architecture claim that (a) lacks citation to SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md, and (b) risks giving the impression that the decision layer exists as a realized component. This directly risks violating CLAUDE.md \u00a710 forbidden claim: 'Layer 3 is implemented'. CLAUDE.md \u00a79 also blocks any component from simulating execution capability.",
+          "notes": "Even if the intent is 'planned/target architecture only', documentation-level canonicalization of 'decision_layer' as a term \u2014 if applied to current-state documents \u2014 creates a strong-claim risk. This requires explicit phase-gate tagging (CLAUDE.md \u00a74) in any usage and full role-matched citation from SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md."
+        },
+        {
+          "claim_id": "C-005",
+          "claim_text": "README_LAYER2.md may require rename handling as part of this terminology refactor.",
+          "claim_type": "mixed",
+          "required_primary_source": "Decompose \u2014 see sub-claims C-005a, C-005b, C-005c",
+          "provided_sources": [],
+          "role_match": "partial",
+          "strong_claim": false,
+          "explicit_citation_required": false,
+          "conflict_detected": false,
+          "blocking_condition_if_any": null,
+          "verdict": "RC-2",
+          "reason": "This is a weak (interrogative) claim \u2014 'detect whether... require rename handling'. Not an assertion of current-state truth. However, decomposition is mandatory per D6 before any downstream strong-claim verdict can be produced. Sub-claims are routed below.",
+          "notes": "Sub-claim decomposition required per deterministic rule D6.",
+          "sub_claims": [
+            {
+              "sub_claim_id": "C-005a",
+              "claim_text": "README_LAYER2.md's filename is derived from and tied to the architectural 'Layer 2' designation.",
+              "claim_type": "architecture",
+              "required_primary_source": "SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md",
+              "strong_claim": false,
+              "verdict": "RC-2",
+              "reason": "Weak/interrogative framing. Verification from SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md required before any rename action on this file can be claimed as architecturally justified."
+            },
+            {
+              "sub_claim_id": "C-005b",
+              "claim_text": "README_LAYER2.md serves the canonical collaborator workflow role and any rename must preserve that role.",
+              "claim_type": "collaborator_workflow",
+              "required_primary_source": "README_LAYER2.md",
+              "strong_claim": true,
+              "verdict": "RC-1",
+              "reason": "README_LAYER2.md is the role-matched primary source for collaborator_workflow claims (CLAUDE.md \u00a72.2, \u00a72.4). This sub-claim is correctly routed. However, its rename must not compromise its canonical collaborator guide role without a SYSTEM_IMPLEMENTATION_RECORD_v1.md update per CLAUDE.md \u00a711."
+            },
+            {
+              "sub_claim_id": "C-005c",
+              "claim_text": "The current implementation state of README_LAYER2.md references throughout the codebase and documentation must be inventoried before any rename.",
+              "claim_type": "implementation",
+              "required_primary_source": "SYSTEM_IMPLEMENTATION_RECORD_v1.md",
+              "strong_claim": false,
+              "verdict": "RC-2",
+              "reason": "Weak/procedural claim. Role-matched source is SYSTEM_IMPLEMENTATION_RECORD_v1.md. No citation yet; verification required before rename invariance can be asserted."
+            }
+          ]
+        },
+        {
+          "claim_id": "C-006",
+          "claim_text": "Code module names, import paths, and historical references must not be blindly altered without governance review.",
+          "claim_type": "technical_constraint",
+          "required_primary_source": "SYSTEM_TECHNICAL_HANDBOOK_v1.md",
+          "provided_sources": [
+            "CLAUDE.md (partial \u2014 \u00a711, \u00a712, \u00a715)"
+          ],
+          "role_match": false,
+          "strong_claim": true,
+          "explicit_citation_required": true,
+          "conflict_detected": false,
+          "blocking_condition_if_any": "Strong technical constraint claim partially supported by CLAUDE.md \u00a711/\u00a712/\u00a715, but role-matched primary (SYSTEM_TECHNICAL_HANDBOOK_v1.md) not cited. CLAUDE.md is the governance authority, not the technical constraint authority.",
+          "verdict": "RC-3",
+          "reason": "CLAUDE.md \u00a711 (document update obligations for contract-affecting changes), \u00a712 (version lock and immutability), and \u00a715 (workflow governance constraint) collectively support this as a governance principle. However, the specific technical constraint that code module names and import paths are excluded from documentation-level terminology refactors is a technical implementation boundary claim \u2014 requiring SYSTEM_TECHNICAL_HANDBOOK_v1.md as role-matched primary. CLAUDE.md is corroborating, not primary for technical constraints.",
+          "notes": "CLAUDE.md \u00a78 (registry as single source of truth) and \u00a712 (version lock) do partially constrain this. The governance principle is traceable to CLAUDE.md \u00a715 (workflow governance). Escalation to SYSTEM_TECHNICAL_HANDBOOK_v1.md citation required to elevate to RC-1."
+        },
+        {
+          "claim_id": "C-007",
+          "claim_text": "The system must fail closed if the terminology rename would introduce ambiguity, architecture drift, or snapshot-boundary confusion.",
+          "claim_type": "technical_constraint",
+          "required_primary_source": "SYSTEM_TECHNICAL_HANDBOOK_v1.md",
+          "provided_sources": [
+            "CLAUDE.md \u00a77 (fail-closed principle \u2014 corroborating)"
+          ],
+          "role_match": false,
+          "strong_claim": true,
+          "explicit_citation_required": true,
+          "conflict_detected": false,
+          "blocking_condition_if_any": null,
+          "verdict": "RC-2",
+          "reason": "The fail-closed principle is explicitly stated in CLAUDE.md \u00a77: 'The system MUST default to NO OUTPUT rather than incorrect output.' This is a governance anchor for the fail-closed requirement. However, the specific application of fail-closed to a terminology refactor operation is a technical constraint question \u2014 role-matched to SYSTEM_TECHNICAL_HANDBOOK_v1.md. CLAUDE.md \u00a77 corroborates the principle but does not constitute a primary technical-constraint citation.",
+          "notes": "This claim has a verifiable governance anchor in CLAUDE.md \u00a77 and \u00a716 (final constitutional rule). For the purposes of blocking the refactor on ambiguity grounds, CLAUDE.md \u00a716 provides sufficient authority: 'If a statement cannot be traced to a canonical source AND cannot be proven from implementation THEN it MUST be treated as unverified and non-binding.' Elevating to RC-1 requires SYSTEM_TECHNICAL_HANDBOOK_v1.md citation for the specific fail-closed-on-rename rule."
+        },
+        {
+          "claim_id": "C-008",
+          "claim_text": "The refactor is scoped to documentation files under Documentation/ and CLAUDE.md only \u2014 not to runtime code.",
+          "claim_type": "governance",
+          "required_primary_source": "CLAUDE.md + system-orchestration.yaml",
+          "provided_sources": [
+            "governance_context (request_text)"
+          ],
+          "role_match": true,
+          "strong_claim": true,
+          "explicit_citation_required": true,
+          "conflict_detected": false,
+          "blocking_condition_if_any": null,
+          "verdict": "RC-1",
+          "reason": "The scope boundary (documentation-only, not runtime code) is a governance constraint claim. CLAUDE.md \u00a715 establishes workflow governance as the authority for governed actions. The request text itself from the governance_context input specifies the scope. CLAUDE.md \u00a713 (LLM role constraint: analyst/validator/auditor only, not execution engine) and \u00a79 (execution boundary) corroborate that documentation and analysis scope is appropriate. The governance claim is role-matched to CLAUDE.md.",
+          "notes": "CLAUDE.md \u00a711 confirms that contract-affecting changes trigger a defined set of document reviews \u2014 which implicitly scopes this refactor as a documentation governance action. No conflict detected."
+        }
+      ],
+      "summary": {
+        "role_mismatch_detected": true,
+        "canonical_conflict_unresolved": true,
+        "readme_layer2_used_as_override": false,
+        "requires_conflict_note": true,
+        "requires_doc_sync_escalation": true,
+        "recommended_guard_action": "block",
+        "conflict_notes": [
+          "C-002 and C-004: Renaming 'Layer 3' terminology implies architectural identity for a not-yet-built planned component. CLAUDE.md \u00a73.2 states Layer 3 is 'NOT YET BUILT'. Treating Layer 3 as a canonical-rename target without SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md citation creates an unresolved conflict between planned-only status and canonical naming.",
+          "C-003 and C-004: Proposed canonical replacement terms ('truth_store', 'decision_layer') are not verifiable from available canonical documents. If these terms do not already appear in SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md, this refactor constitutes a net-new naming governance decision requiring CLAUDE.md \u00a711 document update obligations \u2014 not a simple rename.",
+          "C-001 through C-004: All strong architecture and naming claims lack citation to the role-matched primary source (SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md). Per CLAUDE.md \u00a75.2 and \u00a716, these claims are currently unverified and non-binding."
+        ],
+        "escalation_triggers": [
+          {
+            "trigger": "role_mismatch_for_strong_claim",
+            "affected_claims": [
+              "C-001",
+              "C-002",
+              "C-003",
+              "C-004",
+              "C-006"
+            ],
+            "escalation_target": "canonical-role-auditor"
+          },
+          {
+            "trigger": "canonical_conflict_unresolved",
+            "affected_claims": [
+              "C-002",
+              "C-004"
+            ],
+            "escalation_target": "canonical-role-auditor",
+            "note": "Layer 3 not-yet-built status vs. canonical rename target \u2014 unresolved. Do not invent reconciliation per CLAUDE.md \u00a72.4."
+          }
+        ],
+        "doc_sync_escalation_required": true,
+        "doc_sync_reason": "Strong claims C-003 and C-004 assert canonical term replacements that may not exist in current canonical documents. If 'truth_store' and 'decision_layer' are net-new terms, CLAUDE.md \u00a711 triggers full document update obligations across: README_v1.md, SYSTEM_TECHNICAL_HANDBOOK_v1.md, SYSTEM_LIMITATIONS_AND_APPROXIMATIONS_v1.md, DOCUMENTATION_VERIFICATION_MATRIX_v1.md, SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md, SYSTEM_IMPLEMENTATION_RECORD_v1.md, README_LAYER2.md.",
+        "notes": "Overall verdict is conflict_requires_block. The refactor cannot proceed under current citation state. Required unblocking actions: (1) Obtain explicit citation from SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md that 'truth_store' and 'decision_layer' are the canonical layer designations. (2) Resolve whether Layer 3 has a canonical architectural identity independent of its built/unbuilt status, citing SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md. (3) Confirm SYSTEM_TECHNICAL_HANDBOOK_v1.md supports the proposed exclusion of code module names and import paths. (4) Ensure README_LAYER2.md rename evaluation completes all three sub-claim verifications (C-005a, C-005b, C-005c) before any rename action. (5) If proposed terms are net-new, trigger full \u00a711 document update obligations before executing the rename."
+      }
+    }
+  }
+}
