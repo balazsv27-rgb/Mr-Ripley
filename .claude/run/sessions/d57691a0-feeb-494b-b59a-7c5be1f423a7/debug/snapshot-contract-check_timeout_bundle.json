@@ -1,0 +1,189 @@
+{
+  "step_name": "snapshot-contract-check",
+  "bundle_type": "timeout_transport_diagnostic",
+  "command": [
+    "claude",
+    "-p",
+    "--output-format",
+    "json",
+    "--model",
+    "sonnet",
+    "--no-session-persistence",
+    "--tools",
+    "",
+    "--json-schema",
+    "{\"type\":\"object\",\"properties\":{\"artifacts\":{\"type\":\"object\",\"properties\":{\"contract_compliance_verdict\":{\"type\":\"object\"}},\"required\":[\"contract_compliance_verdict\"]}},\"required\":[\"artifacts\"]}"
+  ],
+  "timeout_seconds": 120.0,
+  "elapsed_seconds": 227.90600000007544,
+  "partial_stdout_length": 0,
+  "partial_stdout": "",
+  "partial_stderr_length": 0,
+  "partial_stderr": "",
+  "assembled_prompt_length": 13712,
+  "assembled_prompt_first_2000": "[SKILL INSTRUCTIONS]\n\n============================================================\n---\nname: snapshot-contract-check\ndescription: Validate whether a requested implementation, documentation change, architecture statement, or agent action preserves the Layer-2 → Layer-3 snapshot contract boundary. Determines whether downstream logic consumes only governed published snapshots, never raw Layer-2 observations. Use after doc-truth-classification and build-sequence-compliance-check, and before snapshot-boundary-guard, deep audit routing, and change-impact analysis.\ndisable-model-invocation: false\n---\n\nYou are the `snapshot-contract-check` skill — a **contract-validation method**.\n\nDetermine whether a requested change, claim, or documentation update preserves the invariant that Layer-3+ logic consumes only governed published snapshots, never raw Layer-2 `observations`.\n\nNot a phase-gating skill (`build-sequence-compliance-check`) or truth classifier (`doc-truth-classification`). Emits a structured contract-compliance verdict for downstream hooks/guards.\n\nProcedure: (1) extract contract-relevant claims, (2) evaluate against invariants, (3) classify each as `compliant`/`blocked`/`ambiguous`, (4) emit structured result.\n\n---\n\n## Governing assumptions\n\n- Snapshot-only downstream read rule is a **current-state invariant** — applies now.\n- `observations` is Layer-2-internal. No downstream component may query it.\n- Valid interfaces: **DB** (`snapshots` by `snapshot_id` + join `snapshot_values`), **File** (`latest_snapshot.json`).\n- Forbidden interface: any direct `observations` query by Layer-3+.\n- `snapshot_id` is the primary contract anchor; every DecisionPacket must carry `snapshot_id` and `snapshot_clock_ts`.\n- Live Market State / Event Risk Stream are governed Layer-3 inputs but may not touch Layer-2 storage or rewrite Snapshot Truth.\n- Handoff gate satisfied = Layer-3 bootstrap **may begin**. Does NOT relax any invariant or permit direct observation access.\n- Applies equally",
+  "prompt_composition": {
+    "step_name": "snapshot-contract-check",
+    "skill_content_length": 8054,
+    "agent_instructions_length": 2403,
+    "artifact_input_names": [
+      "phase_alignment_status",
+      "role_citation_verdict"
+    ],
+    "artifact_input_count": 2,
+    "document_paths": [],
+    "document_count": 0,
+    "token_estimate": 3190,
+    "token_budget": 100000,
+    "truncated": false,
+    "truncation_events": [],
+    "expected_outputs": [
+      "contract_compliance_verdict"
+    ],
+    "input_contributions": {
+      "skill_instructions": {
+        "chars": 8054,
+        "estimated_tokens": 2013
+      },
+      "agent_instructions": {
+        "chars": 2403,
+        "estimated_tokens": 600
+      },
+      "artifact:phase_alignment_status": {
+        "chars": 1906,
+        "estimated_tokens": 476
+      },
+      "artifact:role_citation_verdict": {
+        "chars": 404,
+        "estimated_tokens": 101
+      }
+    },
+    "assembled_prompt_chars": 13712,
+    "assembled_prompt_tokens": 3428,
+    "projected_artifact_names": [
+      "phase_alignment_status",
+      "role_citation_verdict"
+    ],
+    "input_contributions_original": {
+      "artifact:phase_alignment_status": {
+        "chars": 7964,
+        "estimated_tokens": 1991
+      },
+      "artifact:role_citation_verdict": {
+        "chars": 15774,
+        "estimated_tokens": 3943
+      }
+    },
+    "input_contributions_projected": {
+      "artifact:phase_alignment_status": {
+        "chars": 1906,
+        "estimated_tokens": 476
+      },
+      "artifact:role_citation_verdict": {
+        "chars": 404,
+        "estimated_tokens": 101
+      }
+    }
+  },
+  "failure_detail": {
+    "failure_origin": "timeout",
+    "failure_stage": "backend_timeout",
+    "returncode": null,
+    "parse_failure_reason": null,
+    "stderr_preview": "",
+    "raw_output_preview": "",
+    "debug_artifact_written": true,
+    "debug_artifact_path": ".claude\\run\\sessions\\d57691a0-feeb-494b-b59a-7c5be1f423a7\\debug\\snapshot-contract-check_debug.json",
+    "backend_failure_detail": "Claude CLI subprocess timed out after 120000ms.",
+    "raw_output_len": 0,
+    "stderr_len": 0,
+    "timeout_ms": 227906.00000007544,
+    "timeout_seconds": 120.0,
+    "elapsed_seconds": 227.90600000007544,
+    "timeout_command": [
+      "claude",
+      "-p",
+      "--output-format",
+      "json",
+      "--model",
+      "sonnet",
+      "--no-session-persistence",
+      "--tools",
+      "",
+      "--json-schema",
+      "{\"type\":\"object\",\"properties\":{\"artifacts\":{\"type\":\"object\",\"properties\":{\"contract_compliance_verdict\":{\"type\":\"object\"}},\"required\":[\"contract_compliance_verdict\"]}},\"required\":[\"artifacts\"]}"
+    ],
+    "timeout_stdout_len": 0,
+    "timeout_stderr_len": 0,
+    "subprocess_cwd": "C:\\Code\\Mr-Ripley",
+    "model": "sonnet",
+    "backend": "claude_code_cli",
+    "prompt_token_estimate": 3190,
+    "prompt_token_budget": 100000,
+    "prompt_truncated": false,
+    "prompt_composition": {
+      "step_name": "snapshot-contract-check",
+      "skill_content_length": 8054,
+      "agent_instructions_length": 2403,
+      "artifact_input_names": [
+        "phase_alignment_status",
+        "role_citation_verdict"
+      ],
+      "artifact_input_count": 2,
+      "document_paths": [],
+      "document_count": 0,
+      "token_estimate": 3190,
+      "token_budget": 100000,
+      "truncated": false,
+      "truncation_events": [],
+      "expected_outputs": [
+        "contract_compliance_verdict"
+      ],
+      "input_contributions": {
+        "skill_instructions": {
+          "chars": 8054,
+          "estimated_tokens": 2013
+        },
+        "agent_instructions": {
+          "chars": 2403,
+          "estimated_tokens": 600
+        },
+        "artifact:phase_alignment_status": {
+          "chars": 1906,
+          "estimated_tokens": 476
+        },
+        "artifact:role_citation_verdict": {
+          "chars": 404,
+          "estimated_tokens": 101
+        }
+      },
+      "assembled_prompt_chars": 13712,
+      "assembled_prompt_tokens": 3428,
+      "projected_artifact_names": [
+        "phase_alignment_status",
+        "role_citation_verdict"
+      ],
+      "input_contributions_original": {
+        "artifact:phase_alignment_status": {
+          "chars": 7964,
+          "estimated_tokens": 1991
+        },
+        "artifact:role_citation_verdict": {
+          "chars": 15774,
+          "estimated_tokens": 3943
+        }
+      },
+      "input_contributions_projected": {
+        "artifact:phase_alignment_status": {
+          "chars": 1906,
+          "estimated_tokens": 476
+        },
+        "artifact:role_citation_verdict": {
+          "chars": 404,
+          "estimated_tokens": 101
+        }
+      }
+    }
+  },
+  "timeout_phase": "before_response"
+}

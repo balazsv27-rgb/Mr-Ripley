@@ -1494,3 +1494,813 @@ def test_adapter_schema_projection_log_with_rich_payload() -> None:
 
     # governance_context should pass through unchanged
     assert projected["governance_context"] is rich_inputs["governance_context"]
+
+
+# ── deep-audit artifact projection ──
+
+
+def test_deep_audit_claim_classification_projection() -> None:
+    """deep-audit projection keeps routing fields, drops claim narratives."""
+    from governance.dag_runner.prompt_assembly import _project_artifact_payload
+
+    full_payload = {
+        "produced_by": "classify-claims",
+        "status": "classified",
+        "request_classification": {
+            "request_type": "documentation-wide terminology refactor",
+            "claims": [
+                {
+                    "claim_id": "c1",
+                    "claim_text": "Replace Layer 2 with truth_store " * 20,
+                    "claim_scope": "current-state",
+                    "classification": "current-state",
+                    "classification_rationale": "Long rationale " * 50,
+                    "notes": ["Note " * 100],
+                },
+                {
+                    "claim_id": "c2",
+                    "claim_text": "Replace Layer 3 with decision_layer " * 20,
+                    "claim_scope": "target-state",
+                    "classification": "target-state",
+                    "classification_rationale": "Another long rationale " * 50,
+                    "notes": ["Note " * 100],
+                },
+            ],
+            "summary": {
+                "dominant_scope": "current-state",
+                "possible_blocking_conditions": [
+                    "contract_affecting_documentation_change",
+                ],
+            },
+        },
+    }
+
+    projected = _project_artifact_payload(
+        "deep-audit", "claim_classification_map", full_payload,
+    )
+
+    assert projected is not full_payload
+    assert projected["produced_by"] == "classify-claims"
+    assert projected["status"] == "classified"
+    assert projected["request_type"] == "documentation-wide terminology refactor"
+    assert projected["dominant_scope"] == "current-state"
+    assert projected["possible_blocking_conditions"] == [
+        "contract_affecting_documentation_change",
+    ]
+    assert projected["claim_count"] == 2
+    assert projected["claim_ids"] == ["c1", "c2"]
+
+    # Verbose fields stripped
+    assert "request_classification" not in projected
+    import json
+    serialized = json.dumps(projected)
+    assert "classification_rationale" not in serialized
+    assert "claim_text" not in serialized
+    assert "notes" not in serialized
+
+    # Size reduction
+    orig_size = len(json.dumps(full_payload, indent=2))
+    proj_size = len(json.dumps(projected, indent=2))
+    assert proj_size < orig_size * 0.15, (
+        f"Projection did not reduce size enough: {proj_size} vs {orig_size}"
+    )
+
+
+def test_deep_audit_role_citation_projection() -> None:
+    """deep-audit projection keeps escalation signals from role_citation_verdict."""
+    from governance.dag_runner.prompt_assembly import _project_artifact_payload
+
+    full_payload = {
+        "produced_by": "route-claims-by-role",
+        "role_matched_citation_status": {
+            "overall_status": "conflict_requires_block",
+            "source_authority_conflict_detected": True,
+            "checked_claims": [
+                {
+                    "claim_id": "C-01",
+                    "verdict": "compliant",
+                    "notes": ["Long analysis " * 50],
+                    "reason": "x" * 3000,
+                },
+                {
+                    "claim_id": "C-02",
+                    "verdict": "review_only",
+                    "notes": ["Long note " * 50],
+                    "reason": "x" * 3000,
+                },
+                {
+                    "claim_id": "C-03",
+                    "verdict": "RC-4",
+                    "notes": ["Long block note " * 50],
+                    "reason": "x" * 3000,
+                },
+            ],
+            "summary": {
+                "canonical_conflict_unresolved": True,
+                "requires_doc_sync_escalation": True,
+                "recommended_guard_action": "block",
+                "escalation_target": "canonical-role-auditor",
+                "notes": ["Very long summary " * 100],
+            },
+        },
+    }
+
+    projected = _project_artifact_payload(
+        "deep-audit", "role_citation_verdict", full_payload,
+    )
+
+    assert projected is not full_payload
+    assert projected["produced_by"] == "route-claims-by-role"
+    assert projected["overall_status"] == "conflict_requires_block"
+    assert projected["source_authority_conflict_detected"] is True
+    assert projected["canonical_conflict_unresolved"] is True
+    assert projected["requires_doc_sync_escalation"] is True
+    assert projected["recommended_guard_action"] == "block"
+    assert projected["escalation_target"] == "canonical-role-auditor"
+    assert projected["blocking_claim_ids"] == ["C-03"]
+    assert projected["review_only_claim_ids"] == ["C-02"]
+
+    # Verbose fields stripped
+    assert "role_matched_citation_status" not in projected
+    import json
+    serialized = json.dumps(projected)
+    assert "Long analysis" not in serialized
+    assert "Very long summary" not in serialized
+
+    # Size reduction
+    orig_size = len(json.dumps(full_payload, indent=2))
+    proj_size = len(json.dumps(projected, indent=2))
+    assert proj_size < orig_size * 0.1, (
+        f"Projection did not reduce size enough: {proj_size} vs {orig_size}"
+    )
+
+
+def test_deep_audit_phase_alignment_projection() -> None:
+    """deep-audit projection keeps phase verdict and upstream guard signals."""
+    from governance.dag_runner.prompt_assembly import _project_artifact_payload
+
+    full_payload = {
+        "produced_by": "phase-check",
+        "allowed": False,
+        "alignment_status": "ambiguous_requires_block",
+        "gate_reference": ["phase_a_layer2_closure"],
+        "blocking_reason_if_any": "upstream_role_citation_conflict",
+        "checked_claims": [
+            {
+                "claim_id": "c1",
+                "claim_text": "Long claim " * 20,
+                "reason": "Very long reason " * 50,
+                "effective_capability": "x" * 2000,
+            },
+            {
+                "claim_id": "c2",
+                "claim_text": "Another claim " * 20,
+                "reason": "Another very long reason " * 50,
+                "effective_capability": "x" * 2000,
+            },
+        ],
+        "summary": {
+            "live_readiness_implication_detected": False,
+            "canonical_conflict_unresolved": True,
+            "role_mismatch_unresolved": True,
+            "upstream_block_inherited": True,
+            "blocking_claims_summary": ["c1: blocked"],
+            "recommended_next_step": "Do not proceed",
+        },
+    }
+
+    projected = _project_artifact_payload(
+        "deep-audit", "phase_alignment_status", full_payload,
+    )
+
+    assert projected is not full_payload
+    assert projected["produced_by"] == "phase-check"
+    assert projected["allowed"] is False
+    assert projected["alignment_status"] == "ambiguous_requires_block"
+    assert projected["live_readiness_implication_detected"] is False
+    assert projected["canonical_conflict_unresolved"] is True
+    assert projected["role_mismatch_unresolved"] is True
+    assert projected["upstream_guard_action_inherited"] is True
+    assert projected["high_priority_blocking_conditions_from_upstream"] == ["c1: blocked"]
+    assert projected["recommended_next_step"] == "Do not proceed"
+
+    # Verbose fields stripped
+    assert "checked_claims" not in projected
+    assert "gate_reference" not in projected
+    import json
+    serialized = json.dumps(projected)
+    assert "Very long reason" not in serialized
+    assert "effective_capability" not in serialized
+
+    # Size reduction
+    orig_size = len(json.dumps(full_payload, indent=2))
+    proj_size = len(json.dumps(projected, indent=2))
+    assert proj_size < orig_size * 0.15, (
+        f"Projection did not reduce size enough: {proj_size} vs {orig_size}"
+    )
+
+
+def test_deep_audit_contract_compliance_projection() -> None:
+    """deep-audit projection keeps contract status and risk flags."""
+    from governance.dag_runner.prompt_assembly import _project_artifact_payload
+
+    full_payload = {
+        "produced_by": "snapshot-contract-check",
+        "snapshot_contract_status": {
+            "allowed": False,
+            "contract_status": "boundary_violation",
+            "forbidden_access_detected": True,
+            "snapshot_anchor_required": True,
+            "checked_claims": [
+                {
+                    "claim_id": "c1",
+                    "claim_text": "x" * 2000,
+                    "assessment": "blocked",
+                    "reason": "x" * 3000,
+                },
+                {
+                    "claim_id": "c2",
+                    "claim_text": "x" * 2000,
+                    "assessment": "compliant",
+                    "reason": "x" * 3000,
+                },
+            ],
+            "summary": {
+                "upstream_block_inherited": True,
+                "escalation_target": "snapshot-boundary-auditor",
+                "resolution_required": True,
+                "raw_observations_access_risk": True,
+                "snapshot_bypass_risk": False,
+                "layer2_storage_touch_risk": False,
+                "decisionpacket_anchor_risk": False,
+            },
+        },
+    }
+
+    projected = _project_artifact_payload(
+        "deep-audit", "contract_compliance_verdict", full_payload,
+    )
+
+    assert projected is not full_payload
+    assert projected["produced_by"] == "snapshot-contract-check"
+    assert projected["allowed"] is False
+    assert projected["contract_status"] == "boundary_violation"
+    assert projected["forbidden_access_detected"] is True
+    assert projected["snapshot_anchor_required"] is True
+    assert projected["upstream_block_inherited"] is True
+    assert projected["escalation_target"] == "snapshot-boundary-auditor"
+    assert projected["resolution_required_before_recheck"] is True
+    assert projected["raw_observations_access_risk"] is True
+    assert projected["snapshot_bypass_risk"] is False
+    assert projected["layer2_storage_touch_risk"] is False
+    assert projected["decisionpacket_anchor_risk"] is False
+
+    # Verbose fields stripped
+    assert "checked_claims" not in projected
+    assert "snapshot_contract_status" not in projected
+    import json
+    orig_size = len(json.dumps(full_payload, indent=2))
+    proj_size = len(json.dumps(projected, indent=2))
+    assert proj_size < orig_size * 0.2, (
+        f"Projection did not achieve 80% reduction: {proj_size} vs {orig_size}"
+    )
+
+
+def test_deep_audit_runtime_boundary_projection() -> None:
+    """deep-audit projection keeps boundary flags and escalation signals."""
+    from governance.dag_runner.prompt_assembly import _project_artifact_payload
+
+    full_payload = {
+        "produced_by": "runtime-boundary-check",
+        "overall_boundary_status": "review_only",
+        "raw_observation_access_detected": False,
+        "latest_snapshot_misuse_detected": False,
+        "layer2_storage_coupling_detected": False,
+        "boundary_violation_suspected": True,
+        "upstream_violation_inherited": True,
+        "checked_items": [
+            {
+                "item_id": "RBC-1",
+                "reason": "x" * 3000,
+                "notes": ["x" * 2000, "x" * 2000],
+            },
+            {
+                "item_id": "RBC-2",
+                "reason": "x" * 3000,
+                "notes": ["x" * 2000],
+            },
+        ],
+        "summary": {
+            "upstream_block_inherited": True,
+            "requires_snapshot_boundary_guard": True,
+            "requires_snapshot_boundary_auditor": True,
+            "requires_doc_code_sync_review": True,
+            "source_authority_conflict_detected": True,
+            "notes": ["x" * 5000],
+        },
+    }
+
+    projected = _project_artifact_payload(
+        "deep-audit", "runtime_boundary_verdict", full_payload,
+    )
+
+    assert projected is not full_payload
+    assert projected["produced_by"] == "runtime-boundary-check"
+    assert projected["overall_status"] == "review_only"
+    assert projected["upstream_block_inherited"] is True
+    assert projected["raw_observation_access_detected"] is False
+    assert projected["latest_snapshot_misuse_detected"] is False
+    assert projected["layer2_storage_coupling_detected"] is False
+    assert projected["boundary_violation_suspected"] is True
+    assert projected["requires_snapshot_boundary_guard"] is True
+    assert projected["requires_snapshot_boundary_auditor"] is True
+    assert projected["requires_doc_code_sync_review"] is True
+    assert projected["source_authority_conflict_detected"] is True
+
+    # Verbose fields stripped
+    assert "checked_items" not in projected
+    assert "notes" not in projected
+    import json
+    orig_size = len(json.dumps(full_payload, indent=2))
+    proj_size = len(json.dumps(projected, indent=2))
+    assert proj_size < orig_size * 0.1, (
+        f"Projection did not reduce size enough: {proj_size} vs {orig_size}"
+    )
+
+
+def test_deep_audit_adapter_schema_projection() -> None:
+    """deep-audit projection keeps adapter violation flags and escalation signals."""
+    from governance.dag_runner.prompt_assembly import _project_artifact_payload
+
+    full_payload = {
+        "produced_by": "adapter-schema-check",
+        "overall_status": "review_only",
+        "registry_violation_detected": False,
+        "hardcoded_series_detected": False,
+        "schema_drift_detected": True,
+        "boundary_violation_detected": False,
+        "checked_items": [
+            {
+                "item_id": "ASC-1",
+                "reason": "x" * 3000,
+                "notes": ["x" * 2000],
+            },
+            {
+                "item_id": "ASC-2",
+                "reason": "x" * 3000,
+                "notes": ["x" * 2000, "x" * 2000],
+            },
+        ],
+        "summary": {
+            "requires_adapter_schema_guard": True,
+            "requires_adapter_schema_guardian": True,
+            "requires_doc_code_sync_review": True,
+            "source_authority_conflict_detected": False,
+            "notes": ["x" * 5000, "x" * 3000],
+        },
+    }
+
+    projected = _project_artifact_payload(
+        "deep-audit", "adapter_schema_verdict", full_payload,
+    )
+
+    assert projected is not full_payload
+    assert projected["produced_by"] == "adapter-schema-check"
+    assert projected["overall_status"] == "review_only"
+    assert projected["registry_violation_detected"] is False
+    assert projected["hardcoded_series_detected"] is False
+    assert projected["schema_drift_detected"] is True
+    assert projected["boundary_violation_detected"] is False
+    assert projected["requires_adapter_schema_guard"] is True
+    assert projected["requires_adapter_schema_guardian"] is True
+    assert projected["requires_doc_code_sync_review"] is True
+    assert projected["source_authority_conflict_detected"] is False
+
+    # Verbose fields stripped
+    assert "checked_items" not in projected
+    import json
+    serialized = json.dumps(projected)
+    assert "notes" not in projected
+    orig_size = len(json.dumps(full_payload, indent=2))
+    proj_size = len(json.dumps(projected, indent=2))
+    assert proj_size < orig_size * 0.1, (
+        f"Projection did not reduce size enough: {proj_size} vs {orig_size}"
+    )
+
+
+def test_deep_audit_role_citation_projection_nested_b_schema() -> None:
+    """deep-audit projection works with real LLM role_citation_status nesting."""
+    from governance.dag_runner.prompt_assembly import _project_artifact_payload
+
+    full_payload = {
+        "produced_by": "route-claims-by-role",
+        "run_id": "test-run",
+        "skill_applied": "role-matched-citation-check",
+        "inference_used": True,
+        "role_citation_status": {
+            "overall_status": "conflict_requires_block",
+            "inference_used": True,
+            "source_authority_conflict_detected": True,
+            "checked_claims": [
+                {
+                    "claim_id": "CL-001",
+                    "claim_text": "truth_store is canonical replacement " * 20,
+                    "verdict": "conflict_requires_block",
+                    "reason": "Very long blocking reason " * 30,
+                    "notes": "Long notes " * 50,
+                },
+                {
+                    "claim_id": "CL-002",
+                    "claim_text": "decision_layer rename " * 20,
+                    "verdict": "RC-4",
+                    "reason": "Another blocking reason " * 30,
+                    "notes": "More notes " * 50,
+                },
+                {
+                    "claim_id": "CL-003",
+                    "claim_text": "Layer 2 is operational " * 20,
+                    "verdict": "compliant",
+                    "reason": "Compliant " * 20,
+                    "notes": "Compliant notes " * 30,
+                },
+            ],
+            "summary": {
+                "canonical_conflict_unresolved": True,
+                "requires_doc_sync_escalation": True,
+                "recommended_guard_action": "block",
+                "escalation_target": "canonical-role-auditor",
+                "notes": ["Very long summary " * 100],
+            },
+        },
+    }
+
+    projected = _project_artifact_payload(
+        "deep-audit", "role_citation_verdict", full_payload,
+    )
+
+    assert projected is not full_payload
+    assert projected["produced_by"] == "route-claims-by-role"
+    assert projected["overall_status"] == "conflict_requires_block"
+    assert projected["source_authority_conflict_detected"] is True
+    assert projected["canonical_conflict_unresolved"] is True
+    assert projected["requires_doc_sync_escalation"] is True
+    assert projected["recommended_guard_action"] == "block"
+    assert projected["escalation_target"] == "canonical-role-auditor"
+    assert "CL-002" in projected["blocking_claim_ids"]
+
+    # Verbose fields stripped
+    assert "role_citation_status" not in projected
+    assert "run_id" not in projected
+    assert "skill_applied" not in projected
+    import json
+    serialized = json.dumps(projected)
+    assert "Very long blocking reason" not in serialized
+    assert "Very long summary" not in serialized
+
+    # Size reduction
+    orig_size = len(json.dumps(full_payload, indent=2))
+    proj_size = len(json.dumps(projected, indent=2))
+    assert proj_size < orig_size * 0.1, (
+        f"Projection did not reduce size enough: {proj_size} vs {orig_size}"
+    )
+
+
+def test_deep_audit_runtime_boundary_projection_nested_schema() -> None:
+    """deep-audit projection works with real LLM snapshot_boundary_status nesting."""
+    from governance.dag_runner.prompt_assembly import _project_artifact_payload
+
+    full_payload = {
+        "produced_by": "runtime-boundary-check",
+        "snapshot_boundary_status": {
+            "overall_status": "ambiguous_requires_review",
+            "inference_used": True,
+            "checked_items": [
+                {
+                    "item_id": "RB-01",
+                    "target": "layer2/adapters/*",
+                    "assessment": "review",
+                    "reason": "Very long reason about code inspection " * 30,
+                    "notes": ["Long note " * 50, "Another note " * 50],
+                },
+                {
+                    "item_id": "RB-02",
+                    "target": "layer2/db.py",
+                    "assessment": "review",
+                    "reason": "Another very long reason " * 30,
+                    "notes": ["Note " * 50],
+                },
+            ],
+            "summary": {
+                "upstream_block_inherited": True,
+                "requires_snapshot_boundary_guard": True,
+                "requires_snapshot_boundary_auditor": True,
+                "requires_doc_code_sync_review": True,
+                "source_authority_conflict_detected": True,
+            },
+        },
+        "runtime_fields": {
+            "raw_observation_access_detected": False,
+            "latest_snapshot_misuse_detected": False,
+            "layer2_storage_coupling_detected": False,
+            "boundary_violation_suspected": True,
+        },
+        "escalation": {
+            "trigger": "boundary_violation_suspected",
+            "escalate_to": "snapshot-boundary-auditor",
+            "reason": "Escalation reason " * 20,
+            "mandatory": True,
+        },
+    }
+
+    projected = _project_artifact_payload(
+        "deep-audit", "runtime_boundary_verdict", full_payload,
+    )
+
+    assert projected is not full_payload
+    assert projected["produced_by"] == "runtime-boundary-check"
+    assert projected["overall_status"] == "ambiguous_requires_review"
+    assert projected["upstream_block_inherited"] is True
+    assert projected["raw_observation_access_detected"] is False
+    assert projected["latest_snapshot_misuse_detected"] is False
+    assert projected["layer2_storage_coupling_detected"] is False
+    assert projected["boundary_violation_suspected"] is True
+    assert projected["requires_snapshot_boundary_guard"] is True
+    assert projected["requires_snapshot_boundary_auditor"] is True
+    assert projected["requires_doc_code_sync_review"] is True
+    assert projected["source_authority_conflict_detected"] is True
+
+    # Verbose fields stripped
+    assert "snapshot_boundary_status" not in projected
+    assert "runtime_fields" not in projected
+    assert "escalation" not in projected
+    import json
+    serialized = json.dumps(projected)
+    assert "Very long reason" not in serialized
+    assert "checked_items" not in serialized
+
+    # Size reduction
+    orig_size = len(json.dumps(full_payload, indent=2))
+    proj_size = len(json.dumps(projected, indent=2))
+    assert proj_size < orig_size * 0.1, (
+        f"Projection did not reduce size enough: {proj_size} vs {orig_size}"
+    )
+
+
+def test_deep_audit_adapter_schema_projection_nested_schema() -> None:
+    """deep-audit projection works with real LLM adapter_schema_status nesting."""
+    from governance.dag_runner.prompt_assembly import _project_artifact_payload
+
+    full_payload = {
+        "produced_by": "adapter-schema-check",
+        "adapter_schema_status": {
+            "overall_status": "ambiguous_requires_review",
+            "inference_used": True,
+            "checked_items": [
+                {
+                    "item_id": "AS-01",
+                    "target": "layer2/adapters/*",
+                    "assessment": "review",
+                    "reason": "Very long reason about registry compliance " * 30,
+                    "notes": ["Long note " * 50],
+                },
+                {
+                    "item_id": "AS-02",
+                    "target": "layer2/adapters/*",
+                    "assessment": "review",
+                    "reason": "Another very long reason " * 30,
+                    "notes": ["Note " * 50, "Another " * 50],
+                },
+            ],
+            "summary": {
+                "registry_violation_detected": False,
+                "hardcoded_series_detected": False,
+                "schema_drift_detected": True,
+                "boundary_violation_detected": False,
+                "requires_adapter_schema_guard": True,
+                "requires_adapter_schema_guardian": True,
+                "requires_doc_code_sync_review": True,
+                "source_authority_conflict_detected": False,
+            },
+        },
+    }
+
+    projected = _project_artifact_payload(
+        "deep-audit", "adapter_schema_verdict", full_payload,
+    )
+
+    assert projected is not full_payload
+    assert projected["produced_by"] == "adapter-schema-check"
+    assert projected["overall_status"] == "ambiguous_requires_review"
+    assert projected["registry_violation_detected"] is False
+    assert projected["hardcoded_series_detected"] is False
+    assert projected["schema_drift_detected"] is True
+    assert projected["boundary_violation_detected"] is False
+    assert projected["requires_adapter_schema_guard"] is True
+    assert projected["requires_adapter_schema_guardian"] is True
+    assert projected["requires_doc_code_sync_review"] is True
+    assert projected["source_authority_conflict_detected"] is False
+
+    # Verbose fields stripped
+    assert "adapter_schema_status" not in projected
+    import json
+    serialized = json.dumps(projected)
+    assert "Very long reason" not in serialized
+    assert "checked_items" not in serialized
+
+    # Size reduction: must achieve >80% reduction
+    orig_size = len(json.dumps(full_payload, indent=2))
+    proj_size = len(json.dumps(projected, indent=2))
+    assert proj_size < orig_size * 0.2, (
+        f"Projection did not achieve 80% reduction: {proj_size} vs {orig_size}"
+    )
+
+
+def test_deep_audit_minimal_payload_passthrough() -> None:
+    """V1 shell minimal payloads pass through deep-audit transforms unchanged."""
+    from governance.dag_runner.prompt_assembly import _project_artifact_payload
+
+    artifacts_and_producers = [
+        ("claim_classification_map", "classify-claims"),
+        ("role_citation_verdict", "route-claims-by-role"),
+        ("phase_alignment_status", "phase-check"),
+        ("contract_compliance_verdict", "snapshot-contract-check"),
+        ("runtime_boundary_verdict", "runtime-boundary-check"),
+        ("adapter_schema_verdict", "adapter-schema-check"),
+    ]
+
+    for artifact_name, producer in artifacts_and_producers:
+        minimal = {"produced_by": producer}
+        result = _project_artifact_payload(
+            "deep-audit", artifact_name, minimal,
+        )
+        assert result is minimal, (
+            f"deep-audit/{artifact_name}: minimal payload was unexpectedly transformed"
+        )
+
+
+def test_deep_audit_projection_log_with_rich_payloads() -> None:
+    """_apply_step_projections records original vs projected sizes for deep-audit."""
+    from governance.dag_runner.prompt_assembly import _apply_step_projections
+
+    rich_inputs = {
+        "claim_classification_map": {
+            "produced_by": "classify-claims",
+            "status": "classified",
+            "request_classification": {
+                "request_type": "terminology refactor",
+                "claims": [
+                    {
+                        "claim_id": "c1",
+                        "claim_scope": "current-state",
+                        "claim_text": "x" * 2000,
+                        "classification_rationale": "x" * 3000,
+                        "notes": ["x" * 3000],
+                    },
+                ],
+                "summary": {
+                    "dominant_scope": "documentation",
+                    "possible_blocking_conditions": [],
+                },
+            },
+        },
+        "role_citation_verdict": {
+            "produced_by": "route-claims-by-role",
+            "role_matched_citation_status": {
+                "overall_status": "review_only",
+                "source_authority_conflict_detected": False,
+                "checked_claims": [
+                    {"claim_id": "c1", "verdict": "compliant", "notes": ["x" * 5000]},
+                ],
+                "summary": {
+                    "recommended_guard_action": "none",
+                    "canonical_conflict_unresolved": False,
+                    "requires_doc_sync_escalation": False,
+                    "notes": ["x" * 5000],
+                },
+            },
+        },
+        "phase_alignment_status": {
+            "produced_by": "phase-check",
+            "allowed": True,
+            "alignment_status": "aligned",
+            "checked_claims": [
+                {"claim_id": "c1", "reason": "x" * 5000},
+            ],
+            "summary": {
+                "upstream_block_inherited": False,
+                "blocking_claims_summary": [],
+                "recommended_next_step": "proceed",
+            },
+        },
+        "contract_compliance_verdict": {
+            "produced_by": "snapshot-contract-check",
+            "allowed": True,
+            "contract_status": "compliant",
+            "forbidden_access_detected": False,
+            "snapshot_anchor_required": True,
+            "checked_claims": [
+                {"claim_id": "c1", "reason": "x" * 5000},
+            ],
+            "summary": {
+                "raw_observations_access_risk": False,
+                "snapshot_bypass_risk": False,
+                "layer2_storage_touch_risk": False,
+                "decisionpacket_anchor_risk": False,
+            },
+        },
+        "runtime_boundary_verdict": {
+            "produced_by": "runtime-boundary-check",
+            "overall_boundary_status": "review_only",
+            "raw_observation_access_detected": False,
+            "latest_snapshot_misuse_detected": False,
+            "layer2_storage_coupling_detected": False,
+            "boundary_violation_suspected": False,
+            "upstream_violation_inherited": False,
+            "checked_items": [
+                {"item_id": "RBC-1", "reason": "x" * 4000, "notes": ["x" * 3000]},
+            ],
+            "summary": {
+                "requires_snapshot_boundary_guard": False,
+                "requires_snapshot_boundary_auditor": False,
+                "requires_doc_code_sync_review": False,
+                "source_authority_conflict_detected": False,
+                "notes": ["x" * 5000],
+            },
+        },
+        "adapter_schema_verdict": {
+            "produced_by": "adapter-schema-check",
+            "overall_status": "compliant",
+            "registry_violation_detected": False,
+            "hardcoded_series_detected": False,
+            "schema_drift_detected": False,
+            "boundary_violation_detected": False,
+            "checked_items": [
+                {"item_id": "ASC-1", "reason": "x" * 4000, "notes": ["x" * 3000]},
+            ],
+            "summary": {
+                "requires_adapter_schema_guard": False,
+                "requires_adapter_schema_guardian": False,
+                "requires_doc_code_sync_review": False,
+                "source_authority_conflict_detected": False,
+                "notes": ["x" * 5000],
+            },
+        },
+        # These two pass through unchanged (no projection defined)
+        "guard_report": {"produced_by": "runtime-guards-summary", "guards": []},
+        "stage_gate_report": {"produced_by": "stage-gate-enforcement", "gates": []},
+    }
+
+    projected, log = _apply_step_projections("deep-audit", rich_inputs)
+
+    # Six artifacts should be projected
+    assert len(log) == 6
+    projected_names = {entry["artifact"] for entry in log}
+    assert projected_names == {
+        "claim_classification_map",
+        "role_citation_verdict",
+        "phase_alignment_status",
+        "contract_compliance_verdict",
+        "runtime_boundary_verdict",
+        "adapter_schema_verdict",
+    }
+
+    # Each log entry must show size reduction
+    total_original = 0
+    total_projected = 0
+    for entry in log:
+        assert entry["original_chars"] > 0
+        assert entry["projected_chars"] > 0
+        assert entry["original_tokens"] > 0
+        assert entry["projected_tokens"] > 0
+        assert entry["projected_chars"] < entry["original_chars"], (
+            f"{entry['artifact']}: projected {entry['projected_chars']} >= "
+            f"original {entry['original_chars']}"
+        )
+        total_original += entry["original_chars"]
+        total_projected += entry["projected_chars"]
+
+    # Overall size reduction must be substantial (>70%)
+    assert total_projected < total_original * 0.3, (
+        f"Total projection did not achieve 70% reduction: "
+        f"{total_projected} vs {total_original}"
+    )
+
+    # guard_report and stage_gate_report should pass through unchanged
+    assert projected["guard_report"] is rich_inputs["guard_report"]
+    assert projected["stage_gate_report"] is rich_inputs["stage_gate_report"]
+
+
+def test_deep_audit_projection_metadata(pipeline) -> None:
+    """deep-audit prompt composition includes projection diagnostic fields."""
+    spec, plan, run_state = pipeline
+    step = spec.workflow_steps["deep-audit"]
+    ctx = assemble_step_prompt(step, spec, run_state, repo_root=_REPO_ROOT)
+    meta = build_prompt_composition_metadata(ctx)
+
+    # Projection metadata keys must be present
+    assert "projected_artifact_names" in meta
+    assert "input_contributions_original" in meta
+    assert "input_contributions_projected" in meta
+    assert isinstance(meta["projected_artifact_names"], list)
+    assert isinstance(meta["input_contributions_original"], dict)
+    assert isinstance(meta["input_contributions_projected"], dict)

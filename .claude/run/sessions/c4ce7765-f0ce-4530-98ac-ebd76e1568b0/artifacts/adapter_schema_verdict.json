@@ -1,0 +1,101 @@
+{
+  "artifact": "adapter_schema_verdict",
+  "produced_by": "adapter-schema-check",
+  "session": "c4ce7765-f0ce-4530-98ac-ebd76e1568b0",
+  "timestamp": "2026-04-23T20:38:11.639353Z",
+  "data": {
+    "produced_by": "adapter-schema-check",
+    "adapter_schema_status": {
+      "overall_status": "ambiguous_requires_review",
+      "inference_used": true,
+      "checked_items": [
+        {
+          "item_id": "ASC-001",
+          "target": "layer2/adapters/* (all adapters)",
+          "assessment": "review",
+          "registry_driven": null,
+          "hardcoded_series_detected": null,
+          "schema_drift_detected": null,
+          "boundary_fit": null,
+          "affected_files": [
+            "layer2/adapters/"
+          ],
+          "missing_inputs": [
+            "adapter source files \u2014 Read/Grep/Glob tools unavailable in execution context",
+            "layer2/config/series_registry.json",
+            "layer2/db.py",
+            "layer2/alignment.py"
+          ],
+          "reason": "Code inspection was not possible because the Read, Grep, and Glob tools are not available in this execution context. No implementation-level assertion (registry compliance, hardcoding, schema consistency, boundary fit) can be made without source file access. Per skill rules: no 'compliant' verdict is allowed without code/config evidence.",
+          "canonical_source": "SYSTEM_TECHNICAL_HANDBOOK_v1.md",
+          "notes": [
+            "Tool unavailability is the binding constraint \u2014 this is not a soft review gap but a hard evidence absence.",
+            "Adapter compliance cannot be confirmed or denied; status is ambiguous_requires_review per skill decision rules."
+          ]
+        },
+        {
+          "item_id": "ASC-002",
+          "target": "Upstream runtime_boundary_verdict inheritance",
+          "assessment": "review",
+          "registry_driven": null,
+          "hardcoded_series_detected": null,
+          "schema_drift_detected": null,
+          "boundary_fit": null,
+          "affected_files": [],
+          "missing_inputs": [
+            "complete runtime_boundary_verdict \u2014 multiple fields are null",
+            "code_inspection_possible field was null in upstream artifact"
+          ],
+          "reason": "The upstream runtime_boundary_verdict carries boundary_violation_suspected: true. Several key upstream fields (overall_boundary_status, code_inspection_possible, escalation_required) are null, indicating the upstream step itself had incomplete evidence. This inherited uncertainty compounds the absent code evidence in the current step.",
+          "canonical_source": "SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md",
+          "notes": [
+            "boundary_violation_suspected: true was asserted upstream without supporting detail (raw_observation_access_detected and latest_snapshot_misuse_detected are both false, layer2_storage_coupling_detected is false).",
+            "The source of the suspected boundary violation is unresolved \u2014 cannot be attributed to adapter schema violations without code inspection.",
+            "Inherited upstream suspicion does not constitute adapter-layer proof, but elevates caution level."
+          ]
+        },
+        {
+          "item_id": "ASC-003",
+          "target": "dag_refactor branch \u2014 modified governance/dag_runner/prompt_assembly.py",
+          "assessment": "review",
+          "registry_driven": null,
+          "hardcoded_series_detected": null,
+          "schema_drift_detected": null,
+          "boundary_fit": null,
+          "affected_files": [
+            "governance/dag_runner/prompt_assembly.py",
+            "tests/governance/test_prompt_assembly.py"
+          ],
+          "missing_inputs": [
+            "prompt_assembly.py source \u2014 cannot read without tools",
+            "tests/governance/test_prompt_assembly.py source"
+          ],
+          "reason": "Git status shows modifications to governance/dag_runner/prompt_assembly.py on the dag_refactor branch. This file is in the DAG runner governance layer, not in layer2/adapters. Cannot determine whether these changes affect adapter schema compliance without reading the file. If prompt assembly touches registry lookups or adapter invocation, it requires registry compliance verification.",
+          "canonical_source": "SYSTEM_TECHNICAL_HANDBOOK_v1.md",
+          "notes": [
+            "DAG runner changes may be out of scope for adapter-schema-check, but cannot confirm scope without reading files.",
+            "No adapter-layer schema violation can be claimed from git status alone."
+          ]
+        }
+      ],
+      "summary": {
+        "registry_violation_detected": false,
+        "hardcoded_series_detected": false,
+        "schema_drift_detected": false,
+        "boundary_violation_detected": false,
+        "requires_adapter_schema_guard": true,
+        "requires_adapter_schema_guardian": true,
+        "requires_doc_code_sync_review": true,
+        "source_authority_conflict_detected": false,
+        "notes": [
+          "requires_adapter_schema_guard: true \u2014 overall_status is ambiguous_requires_review, which triggers guard per skill flag rules.",
+          "requires_adapter_schema_guardian: true \u2014 code evidence is unavailable for all material compliance dimensions; this is the primary driver.",
+          "requires_doc_code_sync_review: true \u2014 no code evidence available to verify any adapter compliance claims made in documentation.",
+          "Negative findings (registry_violation_detected: false, etc.) reflect absence of detected violations, NOT confirmed compliance. Violations may exist and are simply uninspectable.",
+          "Recommended resolution: re-run this step in an execution context where Read, Grep, and Glob tools are available against layer2/adapters/*, layer2/config/series_registry.json, and layer2/db.py.",
+          "The boundary_violation_suspected: true inherited from upstream should be resolved at the runtime-boundary-check step before this verdict can be finalized."
+        ]
+      }
+    }
+  }
+}

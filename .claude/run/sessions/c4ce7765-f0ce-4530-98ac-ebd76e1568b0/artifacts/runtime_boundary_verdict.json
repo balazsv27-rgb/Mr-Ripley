@@ -1,0 +1,128 @@
+{
+  "artifact": "runtime_boundary_verdict",
+  "produced_by": "runtime-boundary-check",
+  "session": "c4ce7765-f0ce-4530-98ac-ebd76e1568b0",
+  "timestamp": "2026-04-23T20:37:17.652055Z",
+  "data": {
+    "produced_by": "runtime-boundary-check",
+    "raw_observation_access_detected": false,
+    "latest_snapshot_misuse_detected": false,
+    "layer2_storage_coupling_detected": false,
+    "boundary_violation_suspected": true,
+    "overall_assessment": "ambiguous_requires_block",
+    "fail_closed_applied": true,
+    "upstream_block_inherited": true,
+    "code_inspection_performed": false,
+    "code_inspection_failure_reason": "No code inspection tools available in this execution context (Read, Grep, Glob, Bash all unavailable). File-level evidence for governance/dag_runner/prompt_assembly.py and layer2/* could not be retrieved.",
+    "missing_inputs": [
+      "governance/dag_runner/prompt_assembly.py",
+      "layer2/db.py",
+      "layer2/alignment.py",
+      "layer2/adapters/*",
+      "layer2/config/series_registry.json",
+      "latest_snapshot.json",
+      "layer2_truth.db"
+    ],
+    "upstream_contract_compliance_verdict": {
+      "contract_status": "ambiguous_requires_block",
+      "forbidden_access_detected": false,
+      "canonical_conflict_unresolved": true,
+      "source_authority_conflict_detected": true,
+      "blocking_reason_summary": "Unresolvable ambiguity over snapshot vs. observation access pattern in governance/dag_runner/prompt_assembly.py under upstream canonical conflict. Fail-closed per CLAUDE.md Section 7."
+    },
+    "snapshot_boundary_status": {
+      "overall_status": "ambiguous_requires_review",
+      "inference_used": true,
+      "checked_items": [
+        {
+          "item_id": "RB-1",
+          "target": "governance/dag_runner/prompt_assembly.py",
+          "assessment": "review",
+          "raw_observations_access_detected": false,
+          "latest_snapshot_misuse_detected": false,
+          "snapshot_truth_rewrite_risk": false,
+          "layer2_storage_touch_detected": false,
+          "affected_files": [
+            "governance/dag_runner/prompt_assembly.py"
+          ],
+          "missing_inputs": [
+            "governance/dag_runner/prompt_assembly.py \u2014 file content unavailable; no Read/Grep/Bash tools accessible"
+          ],
+          "reason": "File-level evidence unavailable. Upstream contract_compliance_verdict flags ambiguous data access pattern for this file. Cannot confirm or deny boundary compliance without code inspection. Fail-closed: boundary_violation_suspected promoted to true.",
+          "canonical_source": "SYSTEM_TECHNICAL_HANDBOOK_v1.md (invariant/contract rules); SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md (architectural responsibility)",
+          "notes": [
+            "Upstream phase_alignment_status=ambiguous_requires_block inherited.",
+            "Upstream canonical_conflict_unresolved=true degrades reliability of any clearance signal.",
+            "inference_used=true: no request_classification artifact present."
+          ]
+        },
+        {
+          "item_id": "RB-2",
+          "target": "layer2/adapters/* and layer2/db.py",
+          "assessment": "review",
+          "raw_observations_access_detected": false,
+          "latest_snapshot_misuse_detected": false,
+          "snapshot_truth_rewrite_risk": false,
+          "layer2_storage_touch_detected": false,
+          "affected_files": [
+            "layer2/adapters/*",
+            "layer2/db.py",
+            "layer2/alignment.py",
+            "layer2/config/series_registry.json"
+          ],
+          "missing_inputs": [
+            "All layer2/* source files \u2014 unavailable; no file inspection tools accessible in this execution context"
+          ],
+          "reason": "Adapter and db-layer code could not be inspected. Cannot verify INSERT OR IGNORE discipline, absence of INSERT OR REPLACE, absence of upsert_observations import in downstream consumers, or series_registry.json authority compliance.",
+          "canonical_source": "code-conventions.md (database discipline); CLAUDE.md Section 6 (snapshot contract); CLAUDE.md Section 8 (registry authority)",
+          "notes": [
+            "DB discipline (INSERT OR IGNORE vs INSERT OR REPLACE) unverifiable.",
+            "Registry authority (no hardcoded series logic) unverifiable.",
+            "Execution boundary (CLAUDE.md Section 9) cannot be confirmed from code."
+          ]
+        },
+        {
+          "item_id": "RB-3",
+          "target": "latest_snapshot.json",
+          "assessment": "review",
+          "raw_observations_access_detected": false,
+          "latest_snapshot_misuse_detected": false,
+          "snapshot_truth_rewrite_risk": false,
+          "layer2_storage_touch_detected": false,
+          "affected_files": [
+            "latest_snapshot.json"
+          ],
+          "missing_inputs": [
+            "latest_snapshot.json \u2014 runtime artifact unavailable"
+          ],
+          "reason": "Cannot verify snapshot_id presence, as_of anchor, or that the file was written exclusively by snapshot_publisher.py. SB-2 compliance unverifiable.",
+          "canonical_source": "SYSTEM_TECHNICAL_HANDBOOK_v1.md",
+          "notes": [
+            "SB-2 invariant: only snapshot_publisher.py may write latest_snapshot.json \u2014 unverifiable without file access."
+          ]
+        }
+      ],
+      "summary": {
+        "raw_observations_violation_detected": false,
+        "latest_snapshot_misuse_detected": false,
+        "snapshot_truth_rewrite_risk_detected": false,
+        "layer2_storage_touch_detected": false,
+        "requires_snapshot_boundary_guard": true,
+        "requires_snapshot_boundary_auditor": true,
+        "requires_doc_code_sync_review": true,
+        "source_authority_conflict_detected": true,
+        "notes": [
+          "boundary_violation_suspected=true: fail-closed applied \u2014 boundary integrity unconfirmable without code inspection tools.",
+          "requires_snapshot_boundary_auditor=true: escalation triggered per agent Escalation rule.",
+          "requires_snapshot_boundary_guard=true: PostToolUse hook enforcement required on any subsequent Edit/Write operations.",
+          "Upstream ambiguous_requires_block inherited. No clearance may be granted without direct code-level evidence.",
+          "All specific detection flags (raw_observation_access_detected, latest_snapshot_misuse_detected, layer2_storage_coupling_detected) report false because no code evidence was retrieved \u2014 this does NOT constitute clearance; it reflects evidence absence under fail-closed policy."
+        ]
+      }
+    },
+    "escalation": {
+      "escalate_to": "snapshot-boundary-auditor",
+      "reason": "boundary_violation_suspected=true due to fail-closed application; code-level inspection was not possible; upstream carries unresolved canonical conflict and ambiguous contract status. Direct file inspection required before any compliance determination can be made."
+    }
+  }
+}

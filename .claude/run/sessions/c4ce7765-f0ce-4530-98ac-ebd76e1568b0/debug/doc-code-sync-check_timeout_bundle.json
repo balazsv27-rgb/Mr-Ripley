@@ -1,0 +1,147 @@
+{
+  "step_name": "doc-code-sync-check",
+  "bundle_type": "timeout_transport_diagnostic",
+  "command": [
+    "claude",
+    "-p",
+    "--output-format",
+    "json",
+    "--model",
+    "sonnet",
+    "--no-session-persistence",
+    "--tools",
+    "",
+    "--json-schema",
+    "{\"type\":\"object\",\"properties\":{\"artifacts\":{\"type\":\"object\",\"properties\":{\"doc_code_sync_status\":{\"type\":\"object\"}},\"required\":[\"doc_code_sync_status\"]}},\"required\":[\"artifacts\"]}"
+  ],
+  "timeout_seconds": 120.0,
+  "elapsed_seconds": 120.04700000002049,
+  "partial_stdout_length": 0,
+  "partial_stdout": "",
+  "partial_stderr_length": 0,
+  "partial_stderr": "",
+  "assembled_prompt_length": 67836,
+  "assembled_prompt_first_2000": "[SKILL INSTRUCTIONS]\n\n============================================================\n---\nname: doc-code-sync-rules\ndescription: Validate whether documentation claims remain aligned with actual code, runtime behavior, and required project contracts. Determines whether doc/code drift exists in either direction — code changed without doc updates, or docs changed without supporting code/runtime evidence. Produces a structured sync verdict for the doc-code-sync-guard, doc-code-sync-auditor, change-impact-audit, and pre-PR governance gate. Use after doc-truth-classification, build-sequence-compliance-check, and deterministic guards — and before verification-matrix-update-method, verification-ledger-update, and pre-pr-governance-gate.\ndisable-model-invocation: false\n---\n\nYou are the `doc-code-sync-rules` skill.\n\nYour job is to determine whether documentation claims are aligned with actual code, runtime behavior, and required project contracts — and to detect drift in both directions: code or runtime that changed without corresponding documentation updates, and documentation changes that are not backed by code, runtime, or implementation evidence.\n\nThis skill is a **consistency method**.\n\nIt is not a truth-classifier (that is `doc-truth-classification`), not a phase-gating skill (that is `build-sequence-compliance-check`), not a snapshot-contract validator (that is `snapshot-contract-check`), not a runtime boundary enforcer (that is `snapshot-boundary-check`), not an adapter-schema validator (that is `adapter-schema-review`), not a citation enforcer (that is `role-matched-citation-check`), not an impact assessor (that is `change-impact-audit`), not a matrix updater (that is `verification-matrix-update-method`), and not a ledger updater (that is `verification-ledger-update`). It does not execute enforcement actions itself — that is the role of the `doc-code-sync-guard` hook. It does not update canonical documentation artifacts. It produces a structured, deterministic sync verd",
+  "prompt_composition": {
+    "step_name": "doc-code-sync-check",
+    "skill_content_length": 46707,
+    "agent_instructions_length": 2975,
+    "artifact_input_names": [
+      "change_impact_report",
+      "doc_update_plan"
+    ],
+    "artifact_input_count": 2,
+    "document_paths": [],
+    "document_count": 0,
+    "token_estimate": 16657,
+    "token_budget": 100000,
+    "truncated": false,
+    "truncation_events": [],
+    "expected_outputs": [
+      "doc_code_sync_status"
+    ],
+    "input_contributions": {
+      "skill_instructions": {
+        "chars": 46707,
+        "estimated_tokens": 11676
+      },
+      "agent_instructions": {
+        "chars": 2975,
+        "estimated_tokens": 743
+      },
+      "artifact:change_impact_report": {
+        "chars": 7667,
+        "estimated_tokens": 1916
+      },
+      "artifact:doc_update_plan": {
+        "chars": 9290,
+        "estimated_tokens": 2322
+      }
+    },
+    "assembled_prompt_chars": 67836,
+    "assembled_prompt_tokens": 16959,
+    "projected_artifact_names": [],
+    "input_contributions_original": {},
+    "input_contributions_projected": {}
+  },
+  "failure_detail": {
+    "failure_origin": "timeout",
+    "failure_stage": "backend_timeout",
+    "returncode": null,
+    "parse_failure_reason": null,
+    "stderr_preview": "",
+    "raw_output_preview": "",
+    "debug_artifact_written": true,
+    "debug_artifact_path": ".claude\\run\\sessions\\c4ce7765-f0ce-4530-98ac-ebd76e1568b0\\debug\\doc-code-sync-check_debug.json",
+    "backend_failure_detail": "Claude CLI subprocess timed out after 120000ms.",
+    "raw_output_len": 0,
+    "stderr_len": 0,
+    "timeout_ms": 120047.00000002049,
+    "timeout_seconds": 120.0,
+    "elapsed_seconds": 120.04700000002049,
+    "timeout_command": [
+      "claude",
+      "-p",
+      "--output-format",
+      "json",
+      "--model",
+      "sonnet",
+      "--no-session-persistence",
+      "--tools",
+      "",
+      "--json-schema",
+      "{\"type\":\"object\",\"properties\":{\"artifacts\":{\"type\":\"object\",\"properties\":{\"doc_code_sync_status\":{\"type\":\"object\"}},\"required\":[\"doc_code_sync_status\"]}},\"required\":[\"artifacts\"]}"
+    ],
+    "timeout_stdout_len": 0,
+    "timeout_stderr_len": 0,
+    "subprocess_cwd": "C:\\Code\\Mr-Ripley",
+    "model": "sonnet",
+    "backend": "claude_code_cli",
+    "prompt_token_estimate": 16657,
+    "prompt_token_budget": 100000,
+    "prompt_truncated": false,
+    "prompt_composition": {
+      "step_name": "doc-code-sync-check",
+      "skill_content_length": 46707,
+      "agent_instructions_length": 2975,
+      "artifact_input_names": [
+        "change_impact_report",
+        "doc_update_plan"
+      ],
+      "artifact_input_count": 2,
+      "document_paths": [],
+      "document_count": 0,
+      "token_estimate": 16657,
+      "token_budget": 100000,
+      "truncated": false,
+      "truncation_events": [],
+      "expected_outputs": [
+        "doc_code_sync_status"
+      ],
+      "input_contributions": {
+        "skill_instructions": {
+          "chars": 46707,
+          "estimated_tokens": 11676
+        },
+        "agent_instructions": {
+          "chars": 2975,
+          "estimated_tokens": 743
+        },
+        "artifact:change_impact_report": {
+          "chars": 7667,
+          "estimated_tokens": 1916
+        },
+        "artifact:doc_update_plan": {
+          "chars": 9290,
+          "estimated_tokens": 2322
+        }
+      },
+      "assembled_prompt_chars": 67836,
+      "assembled_prompt_tokens": 16959,
+      "projected_artifact_names": [],
+      "input_contributions_original": {},
+      "input_contributions_projected": {}
+    }
+  },
+  "timeout_phase": "before_response"
+}

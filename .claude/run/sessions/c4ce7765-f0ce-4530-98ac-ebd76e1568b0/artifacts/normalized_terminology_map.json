@@ -1,0 +1,60 @@
+{
+  "artifact": "normalized_terminology_map",
+  "produced_by": "normalize-terminology",
+  "session": "c4ce7765-f0ce-4530-98ac-ebd76e1568b0",
+  "timestamp": "2026-04-23T20:31:02.043823Z",
+  "data": {
+    "produced_by": "normalize-terminology",
+    "overall_status": "governance_sensitive_term_conflict",
+    "inference_used": false,
+    "canonical_term_mappings": [
+      {
+        "from": "truth_store",
+        "to": "Layer-2",
+        "concept_id": "LAYER_2",
+        "reason": "Unrecognized term proposed as canonical replacement for 'Layer-2'. Not listed as an allowed or discouraged variant in the canonical term table \u2014 entirely absent from the governing vocabulary. Governance-sensitive Category A (snapshot boundary): 'truth_store' semantically approaches 'Snapshot Truth' (SNAPSHOT_TRUTH) \u2014 the canonical term for the truth-at-a-point-in-time representation. Adopting 'truth_store' for the architectural ingestion layer would create downstream ambiguity between the Layer-2 architectural boundary and the snapshot truth representation, directly conflating a structural layer with a data-contract concept. The canonical term 'Layer-2' must be preserved."
+      },
+      {
+        "from": "decision_layer",
+        "to": "Layer-3",
+        "concept_id": "LAYER_3",
+        "reason": "Unrecognized term proposed as canonical replacement for 'Layer-3'. Not listed as an allowed variant. Governance-sensitive Category B (phase/readiness) and Category D (decision vocabulary): 'decision_layer' is functionally equivalent to 'decision engine', which is an explicitly discouraged variant for LAYER_3 per the canonical term table. Critically, 'Decision Engine' is also a distinct named planned component within Layer-3 (CLAUDE.md Section 3.2 lists Feature Builder, Index Suite, Regime Gate, Supervisor Engine, Decision Engine, and DecisionPacket generator as separate components). Renaming the full architectural layer to 'decision_layer' collapses this distinction, implying the layer equals one of its constituent components. This violates phase/readiness discipline by obscuring that Layer-3 is a multi-component unbuilt layer, not a single decision engine."
+      }
+    ],
+    "scope_constraints": [
+      "request text (governance_context.request_text) \u2014 full evaluation",
+      "claim_classification_map: all 8 classified claims (c1\u2013c8) evaluated for terminology",
+      "canonical term table applied per canonical-terminology-map skill definition",
+      "CLAUDE.md constitutional rules referenced (Sections 2.1, 2.2, 3.1, 3.2, 4, 6, 7, 10) for governance-sensitivity classification"
+    ],
+    "excluded_reference_types": [
+      "Documentation/* canonical document files not read directly \u2014 filesystem scan deferred to doc-code-sync step",
+      "Code module contents and import graph not analyzed \u2014 deferred to downstream step",
+      "layer2/ directory tree contents not scanned at this normalization step",
+      "DOCUMENTATION_VERIFICATION_MATRIX_v1.md cross-reference table not read directly"
+    ],
+    "filename_rename_candidates": [
+      "README_LAYER2.md \u2014 canonical document filename embeds 'LAYER2' referencing Layer-2; if canonical term were renamed, this file would require renaming, cascading into CLAUDE.md Sections 2.1, 2.2, 2.4, and 11. Rename is blocked pending resolution of the LAYER_2 governance_sensitive_term_conflict flagged above \u2014 renaming this file before resolving the proposed term conflict would create a dangling reference in the canonical document authority hierarchy."
+    ],
+    "ambiguity_flags": [
+      {
+        "term": "truth_store",
+        "concepts": [
+          "LAYER_2",
+          "SNAPSHOT_TRUTH"
+        ],
+        "governance_sensitive": true,
+        "note": "Unrecognized term proposed to replace canonical 'Layer-2'. Semantically overlaps with 'Snapshot Truth' (SNAPSHOT_TRUTH) \u2014 the canonical term for truth-at-a-point-in-time snapshot representation. A downstream consumer encountering 'truth_store' could reasonably interpret it as referring to the snapshot truth artifact rather than the architectural ingestion layer. This ambiguity is Category A (snapshot boundary): it risks conflating a structural architectural layer with a data-contract concept, weakening snapshot boundary semantics. One term, two governed concepts \u2014 ambiguity is a blocking finding per the fail-closed principle."
+      },
+      {
+        "term": "decision_layer",
+        "concepts": [
+          "LAYER_3",
+          "LAYER_3_DECISION_ENGINE_COMPONENT"
+        ],
+        "governance_sensitive": true,
+        "note": "Unrecognized term proposed to replace canonical 'Layer-3'. Overlaps with the Decision Engine planned component, which is a named constituent of Layer-3 (CLAUDE.md Section 3.2), not a synonym for it. 'decision_layer' also enters discouraged-variant territory for LAYER_3 ('decision engine' is an explicitly discouraged variant in the canonical term table). Category B (phase/readiness): using a component-level name for a full architectural layer weakens the phase-gate model by implying Layer-3 = Decision Engine, obscuring the multi-component scope of the unbuilt layer. Category D (decision vocabulary): the 'decision' prefix is reserved for the decision-layer component group (DecisionPacket, guard taxonomy, state taxonomy, trigger taxonomy) \u2014 applying it to the full architectural label pollutes that reserved namespace."
+      }
+    ]
+  }
+}

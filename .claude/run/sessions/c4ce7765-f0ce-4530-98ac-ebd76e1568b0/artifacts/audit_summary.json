@@ -1,0 +1,139 @@
+{
+  "artifact": "audit_summary",
+  "produced_by": "deep-audit",
+  "session": "c4ce7765-f0ce-4530-98ac-ebd76e1568b0",
+  "timestamp": "2026-04-23T20:41:54.979721Z",
+  "data": {
+    "produced_by": "deep-audit",
+    "overall_audit_status": "blocked",
+    "advancement_allowed": false,
+    "dag_advancement": "halted",
+    "halt_reason": "Multiple unresolved blocking violations across canonical-role-auditor, architecture-sequence-auditor, snapshot-boundary-auditor, and implementation-history-reconciler. Fail-closed principle (CLAUDE.md Section 7) requires halt until all blocking violations are resolved.",
+    "dispatch_evaluation": {
+      "canonical-role-auditor": {
+        "dispatched": true,
+        "trigger_condition": "source_authority_conflict_detected: true and canonical_conflict_unresolved: true in role_citation_verdict; overall_status: conflict_requires_block",
+        "note": "role_citation_verdict.violations field absent in artifact; conflict indicators unambiguous; fail-closed escalation applied"
+      },
+      "architecture-sequence-auditor": {
+        "dispatched": true,
+        "trigger_condition": "phase_alignment_status.alignment_status: ambiguous_requires_block; recommended_next_step explicitly references this auditor",
+        "note": "build_order_ambiguity_detected field absent; alignment ambiguity combined with explicit routing recommendation in recommended_next_step constitutes sufficient dispatch signal"
+      },
+      "snapshot-boundary-auditor": {
+        "dispatched": true,
+        "trigger_condition": "runtime_boundary_verdict.requires_snapshot_boundary_auditor: true; source_authority_conflict_detected: true",
+        "note": "boundary_violation_suspected is null (unconfirmed, not cleared); fail-closed principle and explicit requires_snapshot_boundary_auditor flag require dispatch"
+      },
+      "adapter-schema-guardian": {
+        "dispatched": true,
+        "trigger_condition": "adapter_schema_verdict.requires_adapter_schema_guardian: true",
+        "note": "registry_violation_detected and schema_drift_detected are both false; however requires_adapter_schema_guardian is explicitly true \u2014 dispatch required; no-violation detection does not substitute for guardian-level review"
+      },
+      "implementation-history-reconciler": {
+        "dispatched": true,
+        "trigger_condition": "claim_classification_map.possible_blocking_conditions contains historical_reference_preservation_required and cross_document_referential_integrity_at_risk; claim c8 flagged as historical",
+        "note": "non_canonical_source_as_current_truth field absent; historical claim c8 and present blocking conditions constitute sufficient escalation signal"
+      }
+    },
+    "subagent_findings": {
+      "canonical-role-auditor": {
+        "status": "unresolved_violations",
+        "findings": [
+          "Source authority conflict detected and unresolved \u2014 role_citation_verdict.source_authority_conflict_detected: true",
+          "Canonical conflict unresolved \u2014 role_citation_verdict.canonical_conflict_unresolved: true",
+          "Claims C5 and C7 flagged as review_only; role mismatch or cross-document citation ambiguity suspected",
+          "overall_status: conflict_requires_block not cleared; requires_doc_sync_escalation: true",
+          "Blocking claim IDs empty but review_only IDs populated \u2014 violation scope not fully enumerated in upstream artifact"
+        ],
+        "resolution_required": true
+      },
+      "architecture-sequence-auditor": {
+        "status": "unresolved_violations",
+        "findings": [
+          "Phase alignment not allowed \u2014 phase_alignment_status.allowed: false",
+          "alignment_status: ambiguous_requires_block \u2014 advancement blocked at phase layer",
+          "canonical_filename_rename_candidate condition present \u2014 cannot be bundled with current change; requires separate governance track",
+          "code_path_rename_requires_separate_governance condition present \u2014 current change scope exceeds allowed boundary",
+          "Target architecture claims may be interleaved with current-state claims in claim_classification_map \u2014 separation and re-assessment required",
+          "Historical claim c8 must not be promoted to current-state evidence (per phase_alignment_status.recommended_next_step)"
+        ],
+        "resolution_required": true
+      },
+      "snapshot-boundary-auditor": {
+        "status": "inconclusive_requires_resolution",
+        "findings": [
+          "boundary_violation_suspected: null \u2014 violation neither confirmed nor cleared; inconclusive state is not a cleared state under fail-closed rules",
+          "runtime_boundary_verdict.source_authority_conflict_detected: true \u2014 boundary assessment reliability is compromised while source authority conflict persists",
+          "requires_doc_code_sync_review: true \u2014 documentation and code are out of sync on boundary behavior",
+          "raw_observation_access_detected: null, latest_snapshot_misuse_detected: null, layer2_storage_coupling_detected: null \u2014 all boundary indicators inconclusive; cannot certify boundary integrity",
+          "upstream_block_inherited: null \u2014 boundary check did not inherit upstream block signal; may reflect incomplete propagation rather than cleared status"
+        ],
+        "resolution_required": true
+      },
+      "adapter-schema-guardian": {
+        "status": "requires_review",
+        "findings": [
+          "No direct adapter schema violations detected \u2014 registry_violation_detected: false, schema_drift_detected: false, hardcoded_series_detected: false, boundary_violation_detected: false",
+          "requires_adapter_schema_guardian: true \u2014 explicit guardian-level review required despite absence of detected violations",
+          "requires_doc_code_sync_review: true \u2014 doc-code synchronization outstanding; adapter schema cannot be certified without it",
+          "source_authority_conflict_detected: false in adapter_schema_verdict \u2014 adapter layer itself is not the conflict source",
+          "Upstream source authority conflicts in role_citation_verdict and runtime_boundary_verdict must be resolved before adapter schema can be fully cleared"
+        ],
+        "resolution_required": true
+      },
+      "implementation-history-reconciler": {
+        "status": "unresolved_violations",
+        "findings": [
+          "Claim c8 identified as historical reference \u2014 must not be used as or promoted to current-state evidence (CLAUDE.md Section 2.3)",
+          "historical_reference_preservation_required in possible_blocking_conditions \u2014 historical claims require explicit demarcation and must remain outside the canonical current-state set",
+          "cross_document_referential_integrity_at_risk \u2014 documentation-wide terminology refactor may break cross-document references without coordinated update",
+          "verification_matrix_reclassification_required \u2014 DOCUMENTATION_VERIFICATION_MATRIX_v1.md must be updated to reflect any claim reclassification before change is valid",
+          "constitutional_document_modification condition present \u2014 change touches documents in the canonical truth hierarchy; all document update obligations in CLAUDE.md Section 11 apply"
+        ],
+        "resolution_required": true
+      }
+    },
+    "unresolved_violations": [
+      {
+        "id": "UV-1",
+        "subagent": "canonical-role-auditor",
+        "description": "Source authority conflict unresolved; canonical conflict unresolved; overall_status: conflict_requires_block not cleared",
+        "severity": "blocking"
+      },
+      {
+        "id": "UV-2",
+        "subagent": "architecture-sequence-auditor",
+        "description": "Phase alignment ambiguous and not allowed; canonical_filename_rename_candidate and code_path_rename_requires_separate_governance conditions unaddressed; target architecture and current-state claims not separated",
+        "severity": "blocking"
+      },
+      {
+        "id": "UV-3",
+        "subagent": "snapshot-boundary-auditor",
+        "description": "boundary_violation_suspected inconclusive (null); source authority conflict compromises boundary assessment reliability; doc-code sync outstanding; boundary integrity cannot be certified",
+        "severity": "blocking"
+      },
+      {
+        "id": "UV-4",
+        "subagent": "adapter-schema-guardian",
+        "description": "adapter_schema_guardian review explicitly required; doc-code sync outstanding; cannot be cleared until upstream source authority conflicts are resolved",
+        "severity": "review_required"
+      },
+      {
+        "id": "UV-5",
+        "subagent": "implementation-history-reconciler",
+        "description": "Historical claim c8 risks promotion to current-state evidence; cross-document referential integrity at risk; DOCUMENTATION_VERIFICATION_MATRIX_v1.md reclassification required; constitutional document modification obligations not yet satisfied",
+        "severity": "blocking"
+      }
+    ],
+    "blocking_violation_count": 4,
+    "review_required_violation_count": 1,
+    "resolution_required_before_advancement": [
+      "UV-1: Resolve source authority conflict in role_citation_verdict; clear canonical_conflict_unresolved; fully enumerate and address violations for claims C5 and C7",
+      "UV-2: Clear phase alignment ambiguity; separate canonical_filename_rename and code_path_rename into distinct governance tracks with independent review; re-assess claim_classification_map items touching target architecture using role-matched canonical sources",
+      "UV-3: Resolve boundary_violation_suspected null state via doc-code sync; clear source authority conflict that compromises boundary assessment; certify raw_observation_access, latest_snapshot_misuse, and layer2_storage_coupling as not-violated before advancing",
+      "UV-4: Complete adapter schema guardian review after upstream conflicts (UV-1, UV-3) are resolved; satisfy doc-code sync requirement",
+      "UV-5: Explicitly demarcate claim c8 as historical-only with no current-state authority; update DOCUMENTATION_VERIFICATION_MATRIX_v1.md to reflect reclassifications; verify all cross-document references remain intact after terminology refactor; satisfy all CLAUDE.md Section 11 document update obligations"
+    ]
+  }
+}

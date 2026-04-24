@@ -137,18 +137,24 @@ def _extract_role_citation_fields(
 ) -> tuple[dict[str, Any] | None, dict[str, Any], list[dict[str, Any]]]:
     """Extract overall_status, summary, and checked_claims from role_citation_verdict.
 
-    Supports two schema shapes:
-    - nested: ``payload["role_matched_citation_status"]["overall_status"]``, etc.
-    - flat: ``payload["overall_status"]``, ``payload["checked_claims"]``, etc.
+    Supports three schema shapes:
+    - nested A: ``payload["role_matched_citation_status"]["overall_status"]``
+    - nested B: ``payload["role_citation_status"]["overall_status"]``
+    - flat: ``payload["overall_status"]``, ``payload["checked_claims"]``
 
     Returns ``(root, summary, checked)`` where *root* contains the top-level
-    status fields.  Returns ``(None, {}, [])`` when neither shape is detected
+    status fields.  Returns ``(None, {}, [])`` when no shape is detected
     (structural/minimal payload).
     """
+    # Nested shape A (test/older schema)
     rcs = payload.get("role_matched_citation_status")
     if rcs is not None:
-        # Nested shape
         return rcs, rcs.get("summary", {}), rcs.get("checked_claims", [])
+
+    # Nested shape B (real LLM output schema)
+    rcs2 = payload.get("role_citation_status")
+    if rcs2 is not None:
+        return rcs2, rcs2.get("summary", {}), rcs2.get("checked_claims", [])
 
     # Try flat shape — must have at least overall_status or checked_claims
     if "overall_status" in payload or "checked_claims" in payload:
@@ -409,6 +415,320 @@ def _compact_runtime_boundary_for_adapter_schema(
     return compact
 
 
+# ---------------------------------------------------------------------------
+# Deep-audit compact transform projections
+# ---------------------------------------------------------------------------
+# Deep-audit is an audit-coordinator / dispatch step.  It needs only
+# escalation signals and routing flags from its 8 upstream artifacts,
+# not the full per-claim narratives.  Each transform below extracts a
+# compact audit-routing projection.
+
+
+def _compact_claim_classification_for_deep_audit(
+    payload: dict[str, Any],
+) -> dict[str, Any]:
+    """Extract compact audit-routing projection from claim_classification_map.
+
+    Keeps routing metadata and compact claim identifiers.
+    Drops claim_text, classification_rationale, notes, full claim bodies.
+    """
+    rc = payload.get("request_classification", {})
+    claims = rc.get("claims") or payload.get("claims")
+    summary = rc.get("summary") or payload.get("summary")
+
+    if claims is None and summary is None:
+        return payload  # structural/minimal — pass through
+
+    if summary is None:
+        summary = {}
+    if claims is None:
+        claims = []
+
+    compact: dict[str, Any] = {
+        "produced_by": payload.get("produced_by"),
+        "status": payload.get("status"),
+        "request_type": (
+            rc.get("request_type") or payload.get("request_type")
+        ),
+        "dominant_scope": summary.get("dominant_scope"),
+        "possible_blocking_conditions": summary.get(
+            "possible_blocking_conditions", [],
+        ),
+        "claim_count": len(claims),
+    }
+    if claims:
+        compact["claim_ids"] = [
+            c.get("claim_id") for c in claims if c.get("claim_id")
+        ]
+    return compact
+
+
+def _compact_role_citation_for_deep_audit(
+    payload: dict[str, Any],
+) -> dict[str, Any]:
+    """Extract compact audit-routing projection from role_citation_verdict.
+
+    Keeps overall status, conflict flags, escalation info, and blocking/review
+    claim ids.  Drops full checked_claims narratives and long notes arrays.
+    """
+    root, summary, checked = _extract_role_citation_fields(payload)
+    if root is None:
+        return payload  # structural/minimal — pass through
+
+    compact: dict[str, Any] = {
+        "produced_by": payload.get("produced_by"),
+        "overall_status": root.get("overall_status"),
+        "source_authority_conflict_detected": root.get(
+            "source_authority_conflict_detected",
+        ),
+        "canonical_conflict_unresolved": summary.get(
+            "canonical_conflict_unresolved",
+        ),
+        "requires_doc_sync_escalation": summary.get(
+            "requires_doc_sync_escalation",
+        ),
+        "recommended_guard_action": summary.get("recommended_guard_action"),
+        "escalation_target": summary.get("escalation_target"),
+    }
+    if checked:
+        compact["blocking_claim_ids"] = [
+            c.get("claim_id") for c in checked
+            if c.get("verdict") in ("blocking", "block", "RC-4")
+        ]
+        compact["review_only_claim_ids"] = [
+            c.get("claim_id") for c in checked
+            if c.get("verdict") in ("review_only", "RC-2", "RC-2 Review only")
+        ]
+    return compact
+
+
+def _compact_phase_alignment_for_deep_audit(
+    payload: dict[str, Any],
+) -> dict[str, Any]:
+    """Extract compact audit-routing projection from phase_alignment_status.
+
+    Keeps overall verdict, conflict flags, and upstream guard action.
+    Drops checked_claims long narratives.
+    """
+    if "allowed" not in payload and "alignment_status" not in payload:
+        return payload  # structural/minimal — pass through
+
+    summary = payload.get("summary", {})
+
+    compact: dict[str, Any] = {
+        "produced_by": payload.get("produced_by"),
+        "allowed": payload.get("allowed"),
+        "alignment_status": payload.get("alignment_status"),
+        "live_readiness_implication_detected": summary.get(
+            "live_readiness_implication_detected",
+        ),
+        "canonical_conflict_unresolved": summary.get(
+            "canonical_conflict_unresolved",
+        ),
+        "role_mismatch_unresolved": summary.get("role_mismatch_unresolved"),
+        "upstream_guard_action_inherited": summary.get(
+            "upstream_block_inherited",
+        ),
+        "high_priority_blocking_conditions_from_upstream": summary.get(
+            "blocking_claims_summary",
+        ),
+        "recommended_next_step": summary.get("recommended_next_step"),
+    }
+    return compact
+
+
+def _compact_contract_compliance_for_deep_audit(
+    payload: dict[str, Any],
+) -> dict[str, Any]:
+    """Extract compact audit-routing projection from contract_compliance_verdict.
+
+    Keeps contract status, forbidden-access flags, and risk signals.
+    Drops checked_claims long narratives.
+    """
+    scs = payload.get("snapshot_contract_status")
+    if scs is not None:
+        root = scs
+    elif "contract_status" in payload or "allowed" in payload:
+        root = payload
+    else:
+        return payload  # structural/minimal — pass through
+
+    summary = root.get("summary", {})
+
+    compact: dict[str, Any] = {
+        "produced_by": payload.get("produced_by"),
+        "allowed": root.get("allowed"),
+        "contract_status": root.get("contract_status"),
+        "forbidden_access_detected": root.get("forbidden_access_detected"),
+        "snapshot_anchor_required": root.get("snapshot_anchor_required"),
+        "upstream_block_inherited": summary.get("upstream_block_inherited"),
+        "escalation_target": summary.get("escalation_target"),
+        "resolution_required_before_recheck": summary.get(
+            "resolution_required",
+        ),
+        "raw_observations_access_risk": summary.get(
+            "raw_observations_access_risk",
+        ),
+        "snapshot_bypass_risk": summary.get("snapshot_bypass_risk"),
+        "layer2_storage_touch_risk": summary.get("layer2_storage_touch_risk"),
+        "decisionpacket_anchor_risk": summary.get(
+            "decisionpacket_anchor_risk",
+        ),
+    }
+    return compact
+
+
+def _compact_runtime_boundary_for_deep_audit(
+    payload: dict[str, Any],
+) -> dict[str, Any]:
+    """Extract compact audit-routing projection from runtime_boundary_verdict.
+
+    Keeps boundary status flags and escalation signals.
+    Drops checked_items long narratives.
+
+    Supports three schema shapes:
+    - flat: boundary flags directly on payload
+    - wrapped: ``payload["data"]`` containing flat boundary fields
+    - nested: ``payload["snapshot_boundary_status"]`` + ``payload["runtime_fields"]``
+              + ``payload["escalation"]`` (real LLM output)
+    """
+    data = payload.get("data", payload)
+
+    # Try nested schema (real LLM output): snapshot_boundary_status + runtime_fields
+    sbs = data.get("snapshot_boundary_status")
+    if sbs is not None:
+        summary = sbs.get("summary", {})
+        rf = data.get("runtime_fields", {})
+        esc = data.get("escalation", {})
+        compact: dict[str, Any] = {
+            "produced_by": data.get("produced_by") or payload.get("produced_by"),
+            "overall_status": sbs.get("overall_status"),
+            "upstream_block_inherited": summary.get("upstream_block_inherited") or rf.get("upstream_violation_inherited"),
+            "raw_observation_access_detected": rf.get("raw_observation_access_detected"),
+            "latest_snapshot_misuse_detected": rf.get("latest_snapshot_misuse_detected"),
+            "layer2_storage_coupling_detected": rf.get("layer2_storage_coupling_detected"),
+            "boundary_violation_suspected": rf.get("boundary_violation_suspected"),
+            "requires_snapshot_boundary_guard": summary.get("requires_snapshot_boundary_guard"),
+            "requires_snapshot_boundary_auditor": summary.get("requires_snapshot_boundary_auditor") or esc.get("escalate_to") == "snapshot-boundary-auditor",
+            "requires_doc_code_sync_review": summary.get("requires_doc_code_sync_review"),
+            "source_authority_conflict_detected": summary.get("source_authority_conflict_detected"),
+        }
+        return compact
+
+    # Try flat schema (test payloads)
+    if (
+        "overall_boundary_status" not in data
+        and "boundary_violation_suspected" not in data
+    ):
+        return payload  # structural/minimal — pass through
+
+    summary = data.get("summary", {})
+
+    compact = {
+        "produced_by": data.get("produced_by") or payload.get("produced_by"),
+        "overall_status": data.get("overall_boundary_status"),
+        "upstream_block_inherited": summary.get("upstream_block_inherited") or data.get("upstream_violation_inherited"),
+        "raw_observation_access_detected": data.get(
+            "raw_observation_access_detected",
+        ),
+        "latest_snapshot_misuse_detected": data.get(
+            "latest_snapshot_misuse_detected",
+        ),
+        "layer2_storage_coupling_detected": data.get(
+            "layer2_storage_coupling_detected",
+        ),
+        "boundary_violation_suspected": data.get(
+            "boundary_violation_suspected",
+        ),
+        "requires_snapshot_boundary_guard": summary.get(
+            "requires_snapshot_boundary_guard",
+        ),
+        "requires_snapshot_boundary_auditor": summary.get(
+            "requires_snapshot_boundary_auditor",
+        ),
+        "requires_doc_code_sync_review": summary.get(
+            "requires_doc_code_sync_review",
+        ),
+        "source_authority_conflict_detected": summary.get(
+            "source_authority_conflict_detected",
+        ),
+    }
+    return compact
+
+
+def _compact_adapter_schema_for_deep_audit(
+    payload: dict[str, Any],
+) -> dict[str, Any]:
+    """Extract compact audit-routing projection from adapter_schema_verdict.
+
+    Keeps overall status, violation flags, and escalation signals.
+    Drops checked_items long narratives and notes arrays.
+
+    Supports two schema shapes:
+    - flat: violation flags directly on payload
+    - nested: ``payload["adapter_schema_status"]`` containing status + checked_items
+              (real LLM output)
+    """
+    data = payload.get("data", payload)
+
+    # Try nested schema (real LLM output): adapter_schema_status
+    ass = data.get("adapter_schema_status")
+    if ass is not None:
+        summary = ass.get("summary", {})
+        compact: dict[str, Any] = {
+            "produced_by": data.get("produced_by") or payload.get("produced_by"),
+            "overall_status": ass.get("overall_status"),
+            "registry_violation_detected": summary.get("registry_violation_detected"),
+            "hardcoded_series_detected": summary.get("hardcoded_series_detected"),
+            "schema_drift_detected": summary.get("schema_drift_detected"),
+            "boundary_violation_detected": summary.get("boundary_violation_detected"),
+            "requires_adapter_schema_guard": summary.get(
+                "requires_adapter_schema_guard",
+            ),
+            "requires_adapter_schema_guardian": summary.get(
+                "requires_adapter_schema_guardian",
+            ),
+            "requires_doc_code_sync_review": summary.get(
+                "requires_doc_code_sync_review",
+            ),
+            "source_authority_conflict_detected": summary.get(
+                "source_authority_conflict_detected",
+            ),
+        }
+        return compact
+
+    # Try flat schema (test payloads)
+    if (
+        "overall_status" not in data
+        and "registry_violation_detected" not in data
+    ):
+        return payload  # structural/minimal — pass through
+
+    summary = data.get("summary", {})
+
+    compact = {
+        "produced_by": data.get("produced_by") or payload.get("produced_by"),
+        "overall_status": data.get("overall_status"),
+        "registry_violation_detected": data.get("registry_violation_detected"),
+        "hardcoded_series_detected": data.get("hardcoded_series_detected"),
+        "schema_drift_detected": data.get("schema_drift_detected"),
+        "boundary_violation_detected": data.get("boundary_violation_detected"),
+        "requires_adapter_schema_guard": summary.get(
+            "requires_adapter_schema_guard",
+        ),
+        "requires_adapter_schema_guardian": summary.get(
+            "requires_adapter_schema_guardian",
+        ),
+        "requires_doc_code_sync_review": summary.get(
+            "requires_doc_code_sync_review",
+        ),
+        "source_authority_conflict_detected": summary.get(
+            "source_authority_conflict_detected",
+        ),
+    }
+    return compact
+
+
 # Transform-based projections — step_name → {artifact_name → transform_fn}.
 # Applied before field-list projections in _project_artifact_payload.
 _STEP_INPUT_TRANSFORMS: dict[str, dict[str, Any]] = {
@@ -425,6 +745,14 @@ _STEP_INPUT_TRANSFORMS: dict[str, dict[str, Any]] = {
     },
     "adapter-schema-check": {
         "runtime_boundary_verdict": _compact_runtime_boundary_for_adapter_schema,
+    },
+    "deep-audit": {
+        "claim_classification_map": _compact_claim_classification_for_deep_audit,
+        "role_citation_verdict": _compact_role_citation_for_deep_audit,
+        "phase_alignment_status": _compact_phase_alignment_for_deep_audit,
+        "contract_compliance_verdict": _compact_contract_compliance_for_deep_audit,
+        "runtime_boundary_verdict": _compact_runtime_boundary_for_deep_audit,
+        "adapter_schema_verdict": _compact_adapter_schema_for_deep_audit,
     },
 }
 

@@ -1,0 +1,138 @@
+{
+  "step_name": "deep-audit",
+  "failure_detail": {
+    "failure_origin": "timeout",
+    "failure_stage": "backend_timeout",
+    "returncode": null,
+    "parse_failure_reason": null,
+    "stderr_preview": "",
+    "raw_output_preview": "",
+    "debug_artifact_written": true,
+    "debug_artifact_path": ".claude\\run\\sessions\\79d28462-7c91-4cd2-a07d-6deaecf4a264\\debug\\deep-audit_debug.json",
+    "backend_failure_detail": "Claude CLI subprocess timed out after 120000ms.",
+    "raw_output_len": 0,
+    "stderr_len": 0,
+    "timeout_ms": 120047.00000002049,
+    "timeout_seconds": 120.0,
+    "elapsed_seconds": 120.04700000002049,
+    "timeout_command": [
+      "claude",
+      "-p",
+      "--output-format",
+      "json",
+      "--model",
+      "sonnet",
+      "--no-session-persistence",
+      "--tools",
+      "",
+      "--json-schema",
+      "{\"type\":\"object\",\"properties\":{\"artifacts\":{\"type\":\"object\",\"properties\":{\"audit_summary\":{\"type\":\"object\"}},\"required\":[\"audit_summary\"]}},\"required\":[\"artifacts\"]}"
+    ],
+    "timeout_stdout_len": 0,
+    "timeout_stderr_len": 0,
+    "subprocess_cwd": "C:\\Code\\Mr-Ripley",
+    "model": "sonnet",
+    "backend": "claude_code_cli",
+    "prompt_token_estimate": 10479,
+    "prompt_token_budget": 100000,
+    "prompt_truncated": false,
+    "prompt_composition": {
+      "step_name": "deep-audit",
+      "skill_content_length": 0,
+      "agent_instructions_length": 3417,
+      "artifact_input_names": [
+        "adapter_schema_verdict",
+        "claim_classification_map",
+        "contract_compliance_verdict",
+        "guard_report",
+        "phase_alignment_status",
+        "role_citation_verdict",
+        "runtime_boundary_verdict",
+        "stage_gate_report"
+      ],
+      "artifact_input_count": 8,
+      "document_paths": [],
+      "document_count": 0,
+      "token_estimate": 10479,
+      "token_budget": 100000,
+      "truncated": false,
+      "truncation_events": [],
+      "expected_outputs": [
+        "audit_summary"
+      ],
+      "input_contributions": {
+        "agent_instructions": {
+          "chars": 3417,
+          "estimated_tokens": 854
+        },
+        "artifact:guard_report": {
+          "chars": 67,
+          "estimated_tokens": 16
+        },
+        "artifact:role_citation_verdict": {
+          "chars": 14557,
+          "estimated_tokens": 3639
+        },
+        "artifact:phase_alignment_status": {
+          "chars": 763,
+          "estimated_tokens": 190
+        },
+        "artifact:contract_compliance_verdict": {
+          "chars": 451,
+          "estimated_tokens": 112
+        },
+        "artifact:stage_gate_report": {
+          "chars": 67,
+          "estimated_tokens": 16
+        },
+        "artifact:runtime_boundary_verdict": {
+          "chars": 11084,
+          "estimated_tokens": 2771
+        },
+        "artifact:adapter_schema_verdict": {
+          "chars": 10710,
+          "estimated_tokens": 2677
+        },
+        "artifact:claim_classification_map": {
+          "chars": 818,
+          "estimated_tokens": 204
+        }
+      },
+      "assembled_prompt_chars": 43843,
+      "assembled_prompt_tokens": 10960,
+      "projected_artifact_names": [
+        "phase_alignment_status",
+        "contract_compliance_verdict",
+        "claim_classification_map"
+      ],
+      "input_contributions_original": {
+        "artifact:phase_alignment_status": {
+          "chars": 10898,
+          "estimated_tokens": 2724
+        },
+        "artifact:contract_compliance_verdict": {
+          "chars": 10140,
+          "estimated_tokens": 2535
+        },
+        "artifact:claim_classification_map": {
+          "chars": 12047,
+          "estimated_tokens": 3011
+        }
+      },
+      "input_contributions_projected": {
+        "artifact:phase_alignment_status": {
+          "chars": 763,
+          "estimated_tokens": 190
+        },
+        "artifact:contract_compliance_verdict": {
+          "chars": 451,
+          "estimated_tokens": 112
+        },
+        "artifact:claim_classification_map": {
+          "chars": 818,
+          "estimated_tokens": 204
+        }
+      }
+    }
+  }
+}

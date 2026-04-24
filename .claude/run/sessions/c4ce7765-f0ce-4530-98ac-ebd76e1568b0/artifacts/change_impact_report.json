@@ -1,0 +1,77 @@
+{
+  "artifact": "change_impact_report",
+  "produced_by": "change-impact-audit",
+  "session": "c4ce7765-f0ce-4530-98ac-ebd76e1568b0",
+  "timestamp": "2026-04-23T20:44:40.691374Z",
+  "data": {
+    "produced_by": "change-impact-audit",
+    "run_id": "c4ce7765-f0ce-4530-98ac-ebd76e1568b0",
+    "request_id": "rename-layer-terms-2026-04-20",
+    "upstream_consumed": {
+      "claim_classification_map": true,
+      "role_citation_verdict": true,
+      "phase_alignment_status": true,
+      "stage_gate_report": true,
+      "guard_report": true,
+      "audit_summary": true
+    },
+    "change_impact_summary": {
+      "change_mode": "content_change",
+      "impact_type": "mixed",
+      "contributing_categories": [
+        "documentation",
+        "architecture",
+        "verification"
+      ],
+      "impacted_components": [
+        "canonical_document_set",
+        "governance_workflow",
+        "snapshot_boundary",
+        "Layer-3_bootstrap",
+        "verification_ledger",
+        "historical_context",
+        "code_paths"
+      ],
+      "impacted_docs": [
+        "CLAUDE.md",
+        "README_v1.md",
+        "SYSTEM_TECHNICAL_HANDBOOK_v1.md",
+        "SYSTEM_LIMITATIONS_AND_APPROXIMATIONS_v1.md",
+        "SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md",
+        "DOCUMENTATION_VERIFICATION_MATRIX_v1.md",
+        "SYSTEM_IMPLEMENTATION_RECORD_v1.md",
+        "README_LAYER2.md",
+        "system-orchestration.yaml",
+        "verification_ledger.md"
+      ],
+      "follow_up_required": "mandatory",
+      "inference_used": true,
+      "risk_summary": [
+        "RS-1: Change blocked by deep-audit \u2014 overall_audit_status: blocked, advancement_allowed: false, 4 blocking violations (UV-1 through UV-3, UV-5) and 1 review_required violation (UV-4). No advancement permitted until all blocking violations are resolved.",
+        "RS-2: Proposed canonical replacement terms 'truth_store' (for Layer 2) and 'decision_layer' (for Layer 3) have zero citation in any canonical document. role_citation_verdict issued RC-4 (Conflict requires block) on claims C2 and C3. Per CLAUDE.md Sections 10 and 16, these are forbidden strong claims without proof. The terms are unverified and non-binding.",
+        "RS-3: Source authority conflict unresolved \u2014 role_citation_verdict.source_authority_conflict_detected: true, canonical_conflict_unresolved: true. SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md (the required primary source for architecture naming claims) was not read or cited during upstream classification. No architecture claim in this refactor can be validated until this document is consulted.",
+        "RS-4: CLAUDE.md constitutional language modification attempted without established canonical basis for the new terms. CLAUDE.md uses 'Layer 2' and 'Layer 3' throughout Sections 1, 3, 4, 6, and 15. Modifying constitutional terminology without first establishing the replacement terms in the architecture source creates a direct conflict between the constitutional document and the proposed convention.",
+        "RS-5: README_LAYER2.md rename blocked (claim C6, RC-4) \u2014 the file was not read, canonical source not consulted. A rename of a canonical document listed in CLAUDE.md Sections 2.1, 2.2, 2.4, and 11 is a hard-to-reverse contract-affecting operation requiring cross-reference audit before execution.",
+        "RS-6: Phase alignment failed closed \u2014 phase_alignment_status.allowed: false, alignment_status: ambiguous_requires_block. Upstream canonical conflict prevents clean phase assessment. implicit_phase_promotion_risk_detected: true \u2014 current-state claims that touch target architecture require explicit phase evidence before allowance.",
+        "RS-7: Historical claim c8 risks promotion to current-state evidence \u2014 implementation-history-reconciler flagged historical_reference_preservation_required. Historical references using 'Layer 2' or 'Layer 3' in preserved/superseded context must not be blindly altered per CLAUDE.md Section 2.3.",
+        "RS-8: Cross-document referential integrity at risk \u2014 a documentation-wide terminology change across all 7 canonical documents plus CLAUDE.md creates maximum blast radius within the canonical set. Any inconsistency introduced during partial application would violate cross-document consistency guarantees.",
+        "RS-9: Code path rename (layer2/ directory, layer2/index_suite.py, import paths) flagged as requiring separate governance track \u2014 canonical_filename_rename_candidate and code_path_rename_requires_separate_governance conditions present. Must not be bundled with documentation terminology refactor.",
+        "RS-10: Snapshot boundary assessment inconclusive \u2014 runtime_boundary_verdict.boundary_violation_suspected: null (neither confirmed nor cleared). Source authority conflict compromises boundary assessment reliability. Snapshot boundary integrity cannot be certified while source conflicts persist.",
+        "RS-11: Adapter schema guardian review outstanding \u2014 requires_adapter_schema_guardian: true. Cannot be cleared until upstream source authority conflicts (UV-1, UV-3) are resolved and doc-code sync is completed.",
+        "RS-12: Verification matrix reclassification required \u2014 all matrix entries referencing 'Layer 2' or 'Layer 3' terminology would need updating. This cannot proceed until the replacement terms are established in a role-matched canonical source."
+      ],
+      "notes": [
+        "This request is a documentation-wide terminology refactor, not an implementation change. No runtime behavior is altered by this change.",
+        "change_mode is content_change, not rename_only, because: (a) the proposed replacement terms do not exist in any canonical document, (b) semantic equivalence between old and new terms has not been established via role-matched canonical citation, (c) the change touches CLAUDE.md constitutional language which carries interpretive authority beyond simple label substitution.",
+        "The change was blocked at the deep-audit step. The blocked attempt is itself a governance event. Required updates listed below are conditional on resolution of all blocking violations and represent what WOULD be required if the change proceeds after resolution.",
+        "Doc-only change; does not alter runtime evidence status. No evidence class should be elevated to 'proven' or 'runtime' as a result of this change.",
+        "Layer 3 terminology describes target-state architecture (CLAUDE.md Section 3.2: 'planned only'). Any rename of Layer 3 to 'decision_layer' must not imply the layer is built or operational. The term 'decision_layer' must carry explicit not-yet-built semantics if adopted.",
+        "Layer 2 terminology describes current-state operational architecture (CLAUDE.md Section 3.1: 'operational at snapshot boundary', Phase A: complete). The rename must preserve operational status distinction.",
+        "README_LAYER2.md is canonical within its declared collaborator-workflow role (CLAUDE.md Section 2.2). It was not used as a primary authority for implementation-state, architecture, or limitations claims in this assessment.",
+        "inference_used: true \u2014 stage_gate_report and guard_report are structural only (no detailed violation findings); conservative inference applied for guard-related risk assessment.",
+        "The request's own fail-closed constraint and exclusion of blind code-path alteration are well-aligned with the project's constitutional principles and are not the source of the block.",
+        "Resolution path requires: (1) reading SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md to verify or reject proposed terms, (2) reading SYSTEM_IMPLEMENTATION_RECORD_v1.md for implementation-state claims, (3) reading README_LAYER2.md before any rename decision, (4) resolving all source authority conflicts, (5) separating code-path rename into independent governance track, (6) explicitly demarcating historical claim c8 as historical-only."
+      ]
+    }
+  }
+}

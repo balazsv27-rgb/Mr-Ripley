@@ -1,0 +1,108 @@
+{
+  "artifact": "doc_update_plan",
+  "produced_by": "change-impact-audit",
+  "session": "c4ce7765-f0ce-4530-98ac-ebd76e1568b0",
+  "timestamp": "2026-04-23T20:44:40.694906Z",
+  "data": {
+    "produced_by": "change-impact-audit",
+    "plan_status": "conditional_on_blocking_resolution",
+    "plan_note": "All required updates below are conditional on resolution of the 4 blocking violations (UV-1 through UV-3, UV-5) and 1 review-required violation (UV-4) identified in the deep-audit. No documentation updates should be executed while the change remains blocked. This plan describes the full scope of updates that WOULD be mandatory if the change proceeds after resolution.",
+    "required_updates": [
+      {
+        "artifact": "CLAUDE.md",
+        "reason": "Constitutional authority document. Uses 'Layer 2' and 'Layer 3' throughout Sections 1, 3, 4, 6, 11, and 15. Any terminology refactor must update CLAUDE.md to preserve constitutional semantics exactly. This is the highest-impact surface of the refactor. Per CLAUDE.md Section 11, modification of this document triggers mandatory review of all other canonical documents.",
+        "priority": "high",
+        "update_type": "revise"
+      },
+      {
+        "artifact": "SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md",
+        "reason": "Primary architectural source of truth (CLAUDE.md Section 2.2). Required primary source for all architecture and boundary naming claims per conflict resolution rules (Section 2.4). Must be the originating authority for any canonical term replacement \u2014 the proposed terms must be verified or established here BEFORE propagation to other documents. Currently unread in the governance chain.",
+        "priority": "high",
+        "update_type": "revise"
+      },
+      {
+        "artifact": "README_v1.md",
+        "reason": "Top-level project orientation. Contains system identity statements and current operational status using 'Layer 2' / 'Layer 3' terminology. Requires terminology update and review to confirm current-state truth claims remain accurate after term substitution.",
+        "priority": "high",
+        "update_type": "revise"
+      },
+      {
+        "artifact": "SYSTEM_TECHNICAL_HANDBOOK_v1.md",
+        "reason": "Technical implementation constraints document. Contains core invariant tables, contract behavior definitions, and engineering rules that reference layer terminology. Must be updated and reviewed to confirm snapshot contract language, fail-closed rules, and boundary definitions remain unambiguous under new terminology.",
+        "priority": "high",
+        "update_type": "revise"
+      },
+      {
+        "artifact": "SYSTEM_LIMITATIONS_AND_APPROXIMATIONS_v1.md",
+        "reason": "Known limitations and constraint boundaries. References layer terminology in scope/boundary language. Must be reviewed and updated to confirm limitations statements remain accurate and no implicit scope changes are introduced by the new terminology.",
+        "priority": "high",
+        "update_type": "revise"
+      },
+      {
+        "artifact": "DOCUMENTATION_VERIFICATION_MATRIX_v1.md",
+        "reason": "Cross-document consistency map. All matrix entries referencing 'Layer 2' or 'Layer 3' require terminology update. Additionally, claim classifications and evidence status entries must be reviewed to confirm no reclassification is implied by the terminology change. verification_matrix_reclassification_required blocking condition applies.",
+        "priority": "high",
+        "update_type": "revise"
+      },
+      {
+        "artifact": "SYSTEM_IMPLEMENTATION_RECORD_v1.md",
+        "reason": "Canonical record of what is actually implemented. References layer terminology in implementation state descriptions. Must be updated and reviewed. Implementation-state claims (role_citation_verdict C4, C5) require verification against this document before terminology change can proceed. Currently unread in the governance chain.",
+        "priority": "high",
+        "update_type": "revise"
+      },
+      {
+        "artifact": "README_LAYER2.md",
+        "reason": "Canonical collaborator guide (CLAUDE.md Section 2.2). Contains layer terminology throughout. Additionally a canonical filename rename candidate \u2014 the filename itself embeds 'LAYER2'. File must be read before any rename decision. Historical references within this document must be preserved per CLAUDE.md Section 2.3. Canonical within its collaborator-workflow role; not used as primary authority for architecture or implementation-state claims.",
+        "priority": "high",
+        "update_type": "revise"
+      },
+      {
+        "artifact": "system-orchestration.yaml",
+        "reason": "Authoritative execution specification (CLAUDE.md Section 15). May contain embedded references to layer terminology, canonical filenames, or document paths that would be affected by the rename. Must be reviewed to confirm workflow references remain valid.",
+        "priority": "medium",
+        "update_type": "review"
+      }
+    ],
+    "verification_actions": [
+      {
+        "artifact": "DOCUMENTATION_VERIFICATION_MATRIX_v1.md",
+        "reason": "Terminology change across all canonical documents requires verification that: (a) all matrix entries using 'Layer 2'/'Layer 3' are updated to new terms, (b) no claim evidence status has been inadvertently altered by the terminology change, (c) cross-document consistency mappings remain valid under new terminology, (d) role-specific canonical source assignments are unaffected. verification_matrix_reclassification_required blocking condition mandates update action.",
+        "action": "update"
+      },
+      {
+        "artifact": "verification_ledger.md",
+        "reason": "Claim evidence classifications and ledger entries referencing layer terminology must be updated. Historical claim c8 must be explicitly demarcated as historical-only with no current-state authority. Any terminology-driven reclassification must be traced and recorded. Cross-document referential integrity must be verified post-update.",
+        "action": "update"
+      }
+    ],
+    "rename_controls": {
+      "alias_map_required": true,
+      "identity_continuity_required": true,
+      "reference_update_required": true,
+      "invariance_check_required": true
+    },
+    "rename_controls_rationale": "Although change_mode is content_change (not rename_only), the change includes a canonical filename rename candidate (README_LAYER2.md) and involves systematic term replacement across the entire canonical set. Rename controls are activated because: (1) README_LAYER2.md filename embeds the old terminology and is referenced by name in CLAUDE.md Sections 2.1, 2.2, 2.4, and 11 \u2014 an alias map is required to maintain traceability during and after transition; (2) identity continuity must be preserved so that the renamed document retains its canonical role and authority; (3) all cross-references in canonical documents, system-orchestration.yaml, and code must be updated or covered by alias mapping; (4) invariance check is required to confirm that semantic content, evidence posture, and role mapping remain unchanged after the rename operation.",
+    "code_path_governance": {
+      "status": "requires_separate_governance_track",
+      "affected_paths": [
+        "layer2/ directory",
+        "layer2/index_suite.py",
+        "import paths referencing layer2"
+      ],
+      "reason": "Code path rename has a different risk profile than documentation terminology rename (breaking imports, tests, CI). canonical_filename_rename_candidate and code_path_rename_requires_separate_governance blocking conditions require this to be handled as an independent governance action, not bundled with the documentation refactor.",
+      "note": "CLAUDE.md Section 3.2 explicitly distinguishes 'Layer-2 layer2/index_suite.py provisional pre-publication tool' from the target-state Index Suite. Code path renaming must preserve this distinction."
+    },
+    "resolution_prerequisites": [
+      "RP-1: Read SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md and verify or establish proposed replacement terms ('truth_store', 'decision_layer') in the role-matched canonical source before propagation to any other document.",
+      "RP-2: Read SYSTEM_IMPLEMENTATION_RECORD_v1.md and verify implementation-state claims (C4, C5) against the canonical implementation record.",
+      "RP-3: Read README_LAYER2.md and determine rename handling requirements based on the actual file content and its canonical role.",
+      "RP-4: Resolve all source authority conflicts identified in role_citation_verdict (overall_status: conflict_requires_block, source_authority_conflict_detected: true, canonical_conflict_unresolved: true).",
+      "RP-5: Clear phase alignment ambiguity (phase_alignment_status.allowed: false, alignment_status: ambiguous_requires_block) by resolving upstream canonical conflicts.",
+      "RP-6: Separate code-path rename (layer2/ directory, imports) into an independent governance track with its own classification, phase check, and guard evaluation.",
+      "RP-7: Explicitly demarcate historical claim c8 as historical-only with no current-state authority per CLAUDE.md Section 2.3.",
+      "RP-8: Complete adapter schema guardian review after upstream conflicts are resolved and doc-code sync is satisfied.",
+      "RP-9: Resolve snapshot boundary assessment (boundary_violation_suspected: null) via doc-code sync and clear source authority conflict that compromises boundary reliability.",
+      "RP-10: Satisfy all CLAUDE.md Section 11 document update obligations \u2014 no documentation change is valid without cross-document alignment."
+    ]
+  }
+}

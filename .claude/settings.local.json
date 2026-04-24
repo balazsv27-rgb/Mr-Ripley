@@ -65,7 +65,10 @@
       "Bash(find /c/Code/Mr-Ripley -name *.json -path *artifacts* -type f)",
       "Bash(find /c/Code/Mr-Ripley/.claude/run -name *runtime-boundary* -type f)",
       "Bash(git -C /c/Code/Mr-Ripley log --oneline -5)",
-      "Bash(git -C /c/Code/Mr-Ripley diff HEAD~1 --stat)"
+      "Bash(git -C /c/Code/Mr-Ripley diff HEAD~1 --stat)",
+      "Bash(find . -name run_state*.json -newer governance/dag_runner/prompt_assembly.py)",
+      "Bash(find .claude/run -name run_state*.json -type f)",
+      "Bash(find .claude/run -name *.json -type f)"
     ]
   }
 }
