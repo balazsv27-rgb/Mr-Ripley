@@ -1,0 +1,56 @@
+{
+  "artifact": "normalized_terminology_map",
+  "produced_by": "normalize-terminology",
+  "session": "4cbf7e43-1fc2-489b-a731-372562094629",
+  "timestamp": "2026-04-24T12:29:17.390622Z",
+  "data": {
+    "produced_by": "normalize-terminology",
+    "overall_status": "governance_sensitive_term_conflict",
+    "inference_used": false,
+    "canonical_term_mappings": [
+      {
+        "from": "truth_store",
+        "to": "Layer-2",
+        "concept_id": "LAYER_2",
+        "reason": "Proposed replacement for 'Layer-2'/'Layer 2'. Not present in the canonical term table and not an allowed variant. Semantically adjacent to the discouraged variant 'truth layer' (LAYER_2). Introduces additional governance risk by suggesting a physical storage component, which could cause snapshot-boundary rules to be applied inconsistently. Net-new coinage with no prior canonical grounding \u2014 requires canonical adoption, not normalization."
+      },
+      {
+        "from": "decision_layer",
+        "to": "Layer-3",
+        "concept_id": "LAYER_3",
+        "reason": "Proposed replacement for 'Layer-3'/'Layer 3'. Not present in the canonical term table and not an allowed variant. Semantically adjacent to the discouraged variant 'decision engine' (LAYER_3). Narrows the architectural scope of Layer-3 \u2014 which encompasses Feature Builder, Index Suite, Regime Gate, Supervisor Engine, and Decision Engine \u2014 to a term implying only the decision-output function. Phase-gate names (Phase B: Layer-3 Bootstrap, Phase C: Layer-3 Structured Buildout) would lose their canonical anchoring. Net-new coinage with no prior canonical grounding."
+      }
+    ],
+    "scope_constraints": [
+      "request_text from governance_context (rename-layer-terms-2026-04-20)",
+      "claim_classification_map claims c1 through c7"
+    ],
+    "excluded_reference_types": [
+      "canonical documents not read directly (Documentation/ files not inspected)",
+      "DOCUMENTATION_VERIFICATION_MATRIX_v1.md cross-reference table not evaluated"
+    ],
+    "filename_rename_candidates": [
+      "README_LAYER2.md"
+    ],
+    "ambiguity_flags": [
+      {
+        "term": "truth_store",
+        "concepts": [
+          "LAYER_2",
+          "SNAPSHOTS_TABLE"
+        ],
+        "governance_sensitive": true,
+        "note": "Governance-sensitive Category A (snapshot boundary). The term 'truth_store' is interpretable as either (a) the Layer-2 architectural layer identity or (b) a physical storage component (database, file store, snapshot store). No canonical concept ID exists for a 'truth store' storage artifact, meaning usage would be unresolvable by downstream governance steps. Conflating layer identity with storage identity could cause snapshot-boundary contract rules (CLAUDE.md Section 6) to be applied incorrectly or inconsistently."
+      },
+      {
+        "term": "decision_layer",
+        "concepts": [
+          "LAYER_3",
+          "DECISION_PACKET"
+        ],
+        "governance_sensitive": true,
+        "note": "Governance-sensitive Category B (phase/readiness) and Category D (decision vocabulary). 'decision_layer' collapses the multi-component Layer-3 roadmap under a term that implies only the decision-output stage, creating ambiguity between the full planned architectural layer and the specific Decision Engine / DecisionPacket output components. The term is also adjacent to the discouraged variant 'decision engine' for LAYER_3, risking downstream misclassification of phase-gate and snapshot-contract claims."
+      }
+    ]
+  }
+}

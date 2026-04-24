@@ -1,0 +1,101 @@
+{
+  "artifact": "contract_compliance_verdict",
+  "produced_by": "snapshot-contract-check",
+  "session": "2be721f5-f6ae-4566-aad1-cec2c5cd28b8",
+  "timestamp": "2026-04-24T11:54:51.262873Z",
+  "data": {
+    "produced_by": "snapshot-contract-check",
+    "snapshot_contract_status": {
+      "allowed": false,
+      "contract_status": "boundary_violation",
+      "valid_interface": "none",
+      "forbidden_access_detected": false,
+      "snapshot_anchor_required": false,
+      "blocking_reason_if_any": "Modifications to CLAUDE.md Section 4 phase-gate language and renaming of README_LAYER2.md alter the constitutional governance framework that defines and enforces the snapshot boundary contract. Per SCC-6, no governance change relaxes any invariant. Renaming Layer-2/Layer-3 terminology in constitutional documents without atomic propagation to CLAUDE.md Section 6 (snapshot contract definition) creates an ambiguous downstream boundary \u2014 in strict mode this is blocked per SCC-1/FP-7/B8. Upstream snapshot_boundary_risk flag is inherited from phase_alignment_status. Upstream upstream role_citation_verdict conflict (blocking claims RC-03, RC-04, RC-05) reinforces block.",
+      "checked_claims": [
+        {
+          "claim_id": "c1",
+          "claim_text": "Rename README_LAYER2.md (a canonical Tier-3 corroboration source for snapshot contract enforcement) to a new identifier.",
+          "assessment": "blocked",
+          "violated_invariants": [
+            "SCC-1",
+            "SCC-6"
+          ],
+          "triggered_forbidden_patterns": [
+            "FP-7"
+          ],
+          "valid_interface_if_compliant": "none",
+          "reason": "README_LAYER2.md is explicitly listed in CLAUDE.md Section 2.1 as a canonical current-state source and serves as Tier-3 corroboration for snapshot access rules. Renaming it without atomic propagation across all 7 canonical documents and CLAUDE.md Section 2.1 itself breaks the corroboration chain that enforces which interfaces are valid for downstream consumption. A documentation change that severs this chain implies altered access permissions and is blocked identically to code doing the same per FP-7. SCC-6 applies: no governance operation relaxes enforcement.",
+          "contract_reference": [
+            "SCC-1",
+            "SCC-6",
+            "FP-7"
+          ]
+        },
+        {
+          "claim_id": "c2",
+          "claim_text": "Modify CLAUDE.md Section 4 phase-gate language, which explicitly defines Phase A (Layer 2 Closure), Phase B (Layer 3 Bootstrap), and the critical rule 'Handoff gate satisfied \u2260 Layer 3 exists'.",
+          "assessment": "blocked",
+          "violated_invariants": [
+            "SCC-6"
+          ],
+          "triggered_forbidden_patterns": [
+            "FP-7"
+          ],
+          "valid_interface_if_compliant": "none",
+          "reason": "Section 4 is the constitutional definition of when Layer-3 bootstrap is permitted and when the snapshot boundary becomes active. The critical rule it encodes \u2014 that handoff gate satisfaction does not relax any invariant \u2014 maps directly to SCC-6. Altering this language without a governance-ratified, cross-canonically propagated revision implicitly weakens the invariant anchor. Any documentation change that could be read as permitting relaxation of the snapshot contract is blocked under FP-7 and SCC-6.",
+          "contract_reference": [
+            "SCC-6",
+            "FP-7"
+          ]
+        },
+        {
+          "claim_id": "c3",
+          "claim_text": "Terminology rename: 'Layer 2' \u2192 'truth_store', 'Layer 3' \u2192 'decision_layer' in constitutional documents, while CLAUDE.md Section 6 (snapshot contract) retains 'Layer 3+' as the subject of the snapshot-only downstream read rule.",
+          "assessment": "ambiguous",
+          "violated_invariants": [
+            "SCC-1",
+            "SCC-6"
+          ],
+          "triggered_forbidden_patterns": [
+            "FP-7",
+            "B8"
+          ],
+          "valid_interface_if_compliant": "none",
+          "reason": "CLAUDE.md Section 6.1 defines: 'Layer 3+ MUST: read ONLY from published snapshots, NEVER read raw observations.' If Section 4 renames 'Layer 3' to 'decision_layer' but Section 6 is not updated atomically, the subject of the snapshot-only rule becomes ambiguous \u2014 it is no longer clear whether 'decision_layer' components are bound by the Section 6 contract. In strict mode, ambiguity on a non-negotiable invariant is promoted to blocked per B8. The boundary between what is and is not permitted to access raw observations would become non-deterministic.",
+          "contract_reference": [
+            "SCC-1",
+            "SCC-6",
+            "FP-7",
+            "B8"
+          ]
+        },
+        {
+          "claim_id": "c4",
+          "claim_text": "Inherited upstream risk flag: phase_alignment_status carries snapshot_boundary_risk: true.",
+          "assessment": "blocked",
+          "violated_invariants": [
+            "SCC-1"
+          ],
+          "triggered_forbidden_patterns": [
+            "FP-7"
+          ],
+          "valid_interface_if_compliant": "none",
+          "reason": "The upstream phase-check agent explicitly set snapshot_boundary_risk: true and produced alignment_status: ambiguous_requires_block. Per the fail-closed principle (CLAUDE.md Section 7) and the skill's conservative inference rule when upstream outputs indicate risk, this inherited flag must be treated as a boundary signal. SCC-1 is the primary invariant at risk given the constitutional scope of the change.",
+          "contract_reference": [
+            "SCC-1",
+            "FP-7"
+          ]
+        }
+      ],
+      "summary": {
+        "raw_observations_access_risk": false,
+        "snapshot_bypass_risk": true,
+        "layer2_storage_touch_risk": false,
+        "decisionpacket_anchor_risk": false,
+        "followup_guard_recommended": true,
+        "notes": "No direct code-level raw observation access was detected in this request. However, the governance document modifications create snapshot_bypass_risk by introducing ambiguity into which components are bound by the snapshot-only downstream read rule (SCC-1) and by severing the corroboration chain that enforces valid interface definitions. All four checked claims are effectively blocked (c3 ambiguous \u2192 blocked in strict mode). followup_guard_recommended is true: snapshot-boundary-auditor escalation is warranted if this request is re-submitted in modified form. Upstream role_citation_verdict conflict (RC-03, RC-04, RC-05 blocking claims) is consistent with and reinforces this verdict."
+      }
+    }
+  }
+}

@@ -2304,3 +2304,845 @@ def test_deep_audit_projection_metadata(pipeline) -> None:
     assert isinstance(meta["projected_artifact_names"], list)
     assert isinstance(meta["input_contributions_original"], dict)
     assert isinstance(meta["input_contributions_projected"], dict)
+
+
+# ── doc-code-sync-check artifact projection ──
+
+
+def test_doc_code_sync_change_impact_projection_wrapped_schema() -> None:
+    """doc-code-sync-check projection works with wrapped change_impact_summary."""
+    from governance.dag_runner.prompt_assembly import _project_artifact_payload
+
+    full_payload = {
+        "produced_by": "change-impact-audit",
+        "run_id": "test-run-123",
+        "change_impact_summary": {
+            "produced_by": "change-impact-audit",
+            "change_mode": "documentation_only",
+            "impact_type": "contract_affecting",
+            "contributing_categories": ["terminology", "architecture"],
+            "impacted_components": ["layer2", "snapshot_publisher"],
+            "impacted_docs": [
+                "SYSTEM_TECHNICAL_HANDBOOK_v1.md",
+                "README_v1.md",
+            ],
+            "follow_up_required": True,
+            "risk_summary": [
+                "Risk item 1 " * 10,
+                "Risk item 2 " * 10,
+                "Risk item 3 " * 10,
+            ],
+            "doc_only_change": True,
+            "code_path_governance_required": False,
+            "verification_update_required": True,
+            "canonical_docs_impacted": True,
+            "long_explanation": "Very long explanation text " * 100,
+            "detailed_notes": ["Very long note " * 50, "Another note " * 50],
+        },
+    }
+
+    projected = _project_artifact_payload(
+        "doc-code-sync-check", "change_impact_report", full_payload,
+    )
+
+    assert projected is not full_payload
+    assert projected["produced_by"] == "change-impact-audit"
+    assert projected["change_mode"] == "documentation_only"
+    assert projected["impact_type"] == "contract_affecting"
+    assert projected["contributing_categories"] == ["terminology", "architecture"]
+    assert projected["impacted_components"] == ["layer2", "snapshot_publisher"]
+    assert projected["impacted_docs"] == [
+        "SYSTEM_TECHNICAL_HANDBOOK_v1.md",
+        "README_v1.md",
+    ]
+    assert projected["follow_up_required"] is True
+    assert len(projected["risk_summary"]) == 3
+    assert projected["sync_relevant_flags"]["doc_only_change"] is True
+    assert projected["sync_relevant_flags"]["verification_update_required"] is True
+
+    # Long fields stripped
+    import json
+    serialized = json.dumps(projected)
+    assert "long_explanation" not in serialized
+    assert "detailed_notes" not in serialized
+    assert "run_id" not in serialized
+
+    # Size reduction
+    orig_size = len(json.dumps(full_payload, indent=2))
+    proj_size = len(json.dumps(projected, indent=2))
+    assert proj_size < orig_size * 0.5, (
+        f"Projection did not reduce size enough: {proj_size} vs {orig_size}"
+    )
+
+
+def test_doc_code_sync_change_impact_projection_flat_schema() -> None:
+    """doc-code-sync-check projection works with top-level change_impact_report."""
+    from governance.dag_runner.prompt_assembly import _project_artifact_payload
+
+    full_payload = {
+        "produced_by": "change-impact-audit",
+        "change_mode": "code_and_docs",
+        "impact_type": "boundary_affecting",
+        "contributing_categories": ["snapshot_contract"],
+        "impacted_components": ["quality_gate"],
+        "impacted_docs": ["SYSTEM_TECHNICAL_HANDBOOK_v1.md"],
+        "follow_up_required": True,
+        "risk_summary": ["Risk " * 10] * 8,
+        "doc_only_change": False,
+        "code_path_governance_required": True,
+        "verification_update_required": True,
+        "canonical_docs_impacted": True,
+        "long_notes": "Very long narrative " * 200,
+    }
+
+    projected = _project_artifact_payload(
+        "doc-code-sync-check", "change_impact_report", full_payload,
+    )
+
+    assert projected is not full_payload
+    assert projected["produced_by"] == "change-impact-audit"
+    assert projected["change_mode"] == "code_and_docs"
+    assert projected["impact_type"] == "boundary_affecting"
+    assert projected["follow_up_required"] is True
+    # Risk summary capped at 5
+    assert len(projected["risk_summary"]) == 5
+    assert projected["sync_relevant_flags"]["code_path_governance_required"] is True
+
+    # Long fields stripped
+    import json
+    assert "long_notes" not in json.dumps(projected)
+
+
+def test_doc_code_sync_doc_update_plan_projection_wrapped_schema() -> None:
+    """doc-code-sync-check projection works with wrapped doc_update_plan."""
+    from governance.dag_runner.prompt_assembly import _project_artifact_payload
+
+    full_payload = {
+        "produced_by": "change-impact-audit",
+        "run_id": "test-run",
+        "doc_update_plan": {
+            "produced_by": "change-impact-audit",
+            "plan_status": "updates_required",
+            "required_updates": [
+                {
+                    "artifact": "SYSTEM_TECHNICAL_HANDBOOK_v1.md",
+                    "update_type": "terminology_alignment",
+                    "priority": "high",
+                    "reason": "Very long reason about why this update is needed " * 20,
+                    "scope_detail": "Long detail " * 30,
+                },
+                {
+                    "artifact": "README_v1.md",
+                    "update_type": "summary_refresh",
+                    "priority": "medium",
+                    "reason": "Another very long reason " * 20,
+                },
+            ],
+            "verification_actions": [
+                {
+                    "artifact": "DOCUMENTATION_VERIFICATION_MATRIX_v1.md",
+                    "action": "update_cross_references",
+                    "detail": "Long detail " * 30,
+                },
+            ],
+            "rename_controls": {
+                "allowed": True,
+                "scope": "documentation_only",
+                "rename_controls_rationale": "Very long rationale " * 50,
+            },
+            "code_path_governance": {
+                "status": "not_required",
+                "affected_paths": [],
+                "reason": "Very long reason about code paths " * 30,
+            },
+            "resolution_prerequisites": [
+                "Prereq 1",
+                "Prereq 2",
+            ],
+            "plan_note": "Very long plan note " * 100,
+        },
+    }
+
+    projected = _project_artifact_payload(
+        "doc-code-sync-check", "doc_update_plan", full_payload,
+    )
+
+    assert projected is not full_payload
+    assert projected["produced_by"] == "change-impact-audit"
+    assert projected["plan_status"] == "updates_required"
+
+    # Compact required_updates — only artifact, update_type, priority
+    assert len(projected["required_updates"]) == 2
+    assert projected["required_updates"][0]["artifact"] == "SYSTEM_TECHNICAL_HANDBOOK_v1.md"
+    assert projected["required_updates"][0]["update_type"] == "terminology_alignment"
+    assert projected["required_updates"][0]["priority"] == "high"
+    assert "reason" not in projected["required_updates"][0]
+    assert "scope_detail" not in projected["required_updates"][0]
+
+    # Compact verification_actions — only artifact, action
+    assert len(projected["verification_actions"]) == 1
+    assert projected["verification_actions"][0]["artifact"] == "DOCUMENTATION_VERIFICATION_MATRIX_v1.md"
+    assert projected["verification_actions"][0]["action"] == "update_cross_references"
+    assert "detail" not in projected["verification_actions"][0]
+
+    # Rename controls — rationale stripped
+    assert projected["rename_controls"]["allowed"] is True
+    assert "rename_controls_rationale" not in projected["rename_controls"]
+
+    # Code path governance — reason stripped
+    assert projected["code_path_governance"]["status"] == "not_required"
+    assert "reason" not in projected["code_path_governance"]
+
+    assert projected["resolution_prerequisites"] == ["Prereq 1", "Prereq 2"]
+
+    # Long fields stripped
+    import json
+    serialized = json.dumps(projected)
+    assert "plan_note" not in serialized
+    assert "Very long reason" not in serialized
+    assert "Very long rationale" not in serialized
+    assert "run_id" not in serialized
+
+    # Size reduction
+    orig_size = len(json.dumps(full_payload, indent=2))
+    proj_size = len(json.dumps(projected, indent=2))
+    assert proj_size < orig_size * 0.3, (
+        f"Projection did not reduce size enough: {proj_size} vs {orig_size}"
+    )
+
+
+def test_doc_code_sync_doc_update_plan_projection_flat_schema() -> None:
+    """doc-code-sync-check projection works with top-level doc_update_plan fields."""
+    from governance.dag_runner.prompt_assembly import _project_artifact_payload
+
+    full_payload = {
+        "produced_by": "change-impact-audit",
+        "plan_status": "no_updates_required",
+        "required_updates": [],
+        "verification_actions": [],
+        "resolution_prerequisites": ["A" * 100] * 8,
+        "long_narrative": "Very long text " * 200,
+    }
+
+    projected = _project_artifact_payload(
+        "doc-code-sync-check", "doc_update_plan", full_payload,
+    )
+
+    assert projected is not full_payload
+    assert projected["plan_status"] == "no_updates_required"
+    assert projected["required_updates"] == []
+    assert projected["verification_actions"] == []
+    # Resolution prerequisites capped at 5
+    assert len(projected["resolution_prerequisites"]) == 5
+
+    import json
+    assert "long_narrative" not in json.dumps(projected)
+
+
+def test_doc_code_sync_minimal_payload_passthrough() -> None:
+    """V1 shell minimal payloads pass through doc-code-sync transforms unchanged."""
+    from governance.dag_runner.prompt_assembly import _project_artifact_payload
+
+    minimal_cir = {"produced_by": "change-impact-audit"}
+    result = _project_artifact_payload(
+        "doc-code-sync-check", "change_impact_report", minimal_cir,
+    )
+    assert result is minimal_cir
+
+    minimal_dup = {"produced_by": "change-impact-audit"}
+    result2 = _project_artifact_payload(
+        "doc-code-sync-check", "doc_update_plan", minimal_dup,
+    )
+    assert result2 is minimal_dup
+
+
+def test_doc_code_sync_projection_log_with_rich_payloads() -> None:
+    """_apply_step_projections records original vs projected sizes for doc-code-sync-check."""
+    from governance.dag_runner.prompt_assembly import _apply_step_projections
+
+    rich_inputs = {
+        "change_impact_report": {
+            "produced_by": "change-impact-audit",
+            "change_impact_summary": {
+                "produced_by": "change-impact-audit",
+                "change_mode": "documentation_only",
+                "impact_type": "contract_affecting",
+                "contributing_categories": ["terminology"],
+                "impacted_components": ["layer2"],
+                "impacted_docs": ["README_v1.md"],
+                "follow_up_required": True,
+                "risk_summary": ["x" * 500] * 3,
+                "long_explanation": "x" * 5000,
+                "detailed_notes": ["x" * 3000, "x" * 3000],
+            },
+        },
+        "doc_update_plan": {
+            "produced_by": "change-impact-audit",
+            "doc_update_plan": {
+                "produced_by": "change-impact-audit",
+                "plan_status": "updates_required",
+                "required_updates": [
+                    {
+                        "artifact": "README_v1.md",
+                        "update_type": "refresh",
+                        "priority": "high",
+                        "reason": "x" * 3000,
+                    },
+                ],
+                "verification_actions": [
+                    {"artifact": "MATRIX.md", "action": "update", "detail": "x" * 2000},
+                ],
+                "rename_controls": {
+                    "allowed": True,
+                    "rename_controls_rationale": "x" * 3000,
+                },
+                "code_path_governance": {
+                    "status": "not_required",
+                    "affected_paths": [],
+                    "reason": "x" * 3000,
+                },
+                "plan_note": "x" * 5000,
+            },
+        },
+        "governance_context": {"produced_by": "load-context", "run_id": "test"},
+    }
+
+    projected, log = _apply_step_projections("doc-code-sync-check", rich_inputs)
+
+    # Two artifacts should be projected
+    assert len(log) == 2
+    projected_names = {entry["artifact"] for entry in log}
+    assert projected_names == {"change_impact_report", "doc_update_plan"}
+
+    # Each log entry must have size fields and show reduction
+    for entry in log:
+        assert entry["original_chars"] > 0
+        assert entry["projected_chars"] > 0
+        assert entry["original_tokens"] > 0
+        assert entry["projected_tokens"] > 0
+        assert entry["projected_chars"] < entry["original_chars"], (
+            f"{entry['artifact']}: projected {entry['projected_chars']} >= "
+            f"original {entry['original_chars']}"
+        )
+
+    # governance_context should pass through unchanged
+    assert projected["governance_context"] is rich_inputs["governance_context"]
+
+
+def test_doc_code_sync_projection_metadata(pipeline) -> None:
+    """doc-code-sync-check prompt composition includes projection diagnostic fields."""
+    spec, plan, run_state = pipeline
+    step = spec.workflow_steps["doc-code-sync-check"]
+    ctx = assemble_step_prompt(step, spec, run_state, repo_root=_REPO_ROOT)
+    meta = build_prompt_composition_metadata(ctx)
+
+    # Projection metadata keys must be present
+    assert "projected_artifact_names" in meta
+    assert "input_contributions_original" in meta
+    assert "input_contributions_projected" in meta
+    assert isinstance(meta["projected_artifact_names"], list)
+    assert isinstance(meta["input_contributions_original"], dict)
+    assert isinstance(meta["input_contributions_projected"], dict)
+
+
+# ── Regression guard: other step transforms unaltered ──
+
+
+def test_other_step_transforms_not_altered() -> None:
+    """Verify that doc-code-sync-check patch does not alter transforms for other steps."""
+    from governance.dag_runner.prompt_assembly import _STEP_INPUT_TRANSFORMS
+
+    # change-impact-audit must NOT have any transforms registered
+    assert "change-impact-audit" not in _STEP_INPUT_TRANSFORMS
+
+    # deep-audit must still have exactly the same 6 artifact transforms
+    deep_audit = _STEP_INPUT_TRANSFORMS["deep-audit"]
+    assert set(deep_audit.keys()) == {
+        "claim_classification_map",
+        "role_citation_verdict",
+        "phase_alignment_status",
+        "contract_compliance_verdict",
+        "runtime_boundary_verdict",
+        "adapter_schema_verdict",
+    }
+
+    # phase-check must still have exactly 2 artifact transforms
+    phase_check = _STEP_INPUT_TRANSFORMS["phase-check"]
+    assert set(phase_check.keys()) == {
+        "claim_classification_map",
+        "role_citation_verdict",
+    }
+
+    # snapshot-contract-check must still have exactly 2 artifact transforms
+    scc = _STEP_INPUT_TRANSFORMS["snapshot-contract-check"]
+    assert set(scc.keys()) == {
+        "role_citation_verdict",
+        "phase_alignment_status",
+    }
+
+    # doc-code-sync-check must have exactly 2 artifact transforms
+    dcs = _STEP_INPUT_TRANSFORMS["doc-code-sync-check"]
+    assert set(dcs.keys()) == {
+        "change_impact_report",
+        "doc_update_plan",
+    }
+
+    # update-verification-matrix must have exactly 3 artifact transforms
+    uvm = _STEP_INPUT_TRANSFORMS["update-verification-matrix"]
+    assert set(uvm.keys()) == {
+        "audit_summary",
+        "change_impact_report",
+        "doc_code_sync_status",
+    }
+
+
+# ── update-verification-matrix artifact projection ──
+
+
+def test_verification_matrix_audit_summary_projection_rich() -> None:
+    """update-verification-matrix projection keeps audit status/violations, drops narratives."""
+    from governance.dag_runner.prompt_assembly import _project_artifact_payload
+
+    full_payload = {
+        "produced_by": "deep-audit",
+        "audit_summary": {
+            "produced_by": "deep-audit",
+            "overall_audit_status": "blocked",
+            "fail_closed_applied": True,
+            "dag_advancement_blocked": True,
+            "unresolved_violations_count": 3,
+            "blocking_violations_count": 2,
+            "review_required_violations_count": 1,
+            "dispatched_subagents": ["snapshot-boundary-auditor"],
+            "critical_path": "snapshot_contract",
+            "upstream_violations_consolidated": [
+                {
+                    "id": "V-01",
+                    "source": "runtime-boundary-check",
+                    "status": "blocking",
+                    "blocking": True,
+                    "review_required": False,
+                    "routed_to": "snapshot-boundary-auditor",
+                    "detail": "Very long detail " * 50,
+                    "evidence": "Very long evidence " * 50,
+                },
+                {
+                    "id": "V-02",
+                    "source": "adapter-schema-check",
+                    "status": "review_only",
+                    "blocking": False,
+                    "review_required": True,
+                    "routed_to": None,
+                    "detail": "Another long detail " * 50,
+                },
+            ],
+            "audit_resolution_required": [
+                "Fix snapshot boundary violation",
+                "Review adapter schema drift",
+            ],
+            "subagent_findings": [
+                {
+                    "agent": "snapshot-boundary-auditor",
+                    "findings": "Very long findings narrative " * 100,
+                    "evidence_items": ["x" * 3000, "x" * 3000],
+                },
+            ],
+            "dispatch_evaluation": "Long dispatch evaluation text " * 100,
+            "expected_audit_scope": "Very long expected audit scope prose " * 100,
+        },
+    }
+
+    projected = _project_artifact_payload(
+        "update-verification-matrix", "audit_summary", full_payload,
+    )
+
+    assert projected is not full_payload
+    assert projected["produced_by"] == "deep-audit"
+    assert projected["overall_audit_status"] == "blocked"
+    assert projected["fail_closed_applied"] is True
+    assert projected["dag_advancement_blocked"] is True
+    assert projected["unresolved_violations_count"] == 3
+    assert projected["blocking_violations_count"] == 2
+    assert projected["review_required_violations_count"] == 1
+    assert projected["dispatched_subagents"] == ["snapshot-boundary-auditor"]
+    assert projected["critical_path"] == "snapshot_contract"
+
+    # Compact violations — only routing fields
+    uvc = projected["upstream_violations_consolidated"]
+    assert len(uvc) == 2
+    assert uvc[0]["id"] == "V-01"
+    assert uvc[0]["source"] == "runtime-boundary-check"
+    assert uvc[0]["blocking"] is True
+    assert "detail" not in uvc[0]
+    assert "evidence" not in uvc[0]
+
+    assert projected["audit_resolution_required"] == [
+        "Fix snapshot boundary violation",
+        "Review adapter schema drift",
+    ]
+
+    # Narratives stripped
+    import json
+    serialized = json.dumps(projected)
+    assert "subagent_findings" not in serialized
+    assert "dispatch_evaluation" not in serialized
+    assert "expected_audit_scope" not in serialized
+    assert "Very long findings" not in serialized
+
+    # Size reduction
+    orig_size = len(json.dumps(full_payload, indent=2))
+    proj_size = len(json.dumps(projected, indent=2))
+    assert proj_size < orig_size * 0.15, (
+        f"Projection did not reduce size enough: {proj_size} vs {orig_size}"
+    )
+
+
+def test_verification_matrix_audit_summary_projection_flat() -> None:
+    """update-verification-matrix projection works with flat audit_summary."""
+    from governance.dag_runner.prompt_assembly import _project_artifact_payload
+
+    full_payload = {
+        "produced_by": "deep-audit",
+        "overall_audit_status": "pass",
+        "fail_closed_applied": False,
+        "dag_advancement_blocked": False,
+        "unresolved_violations_count": 0,
+        "blocking_violations_count": 0,
+        "review_required_violations_count": 0,
+        "dispatched_subagents": [],
+        "critical_path": None,
+        "subagent_findings": [
+            {"agent": "a", "findings": "x" * 5000},
+        ],
+    }
+
+    projected = _project_artifact_payload(
+        "update-verification-matrix", "audit_summary", full_payload,
+    )
+
+    assert projected is not full_payload
+    assert projected["produced_by"] == "deep-audit"
+    assert projected["overall_audit_status"] == "pass"
+    assert projected["fail_closed_applied"] is False
+    assert "subagent_findings" not in projected
+
+
+def test_verification_matrix_audit_summary_minimal_passthrough() -> None:
+    """V1 shell minimal payloads pass through unchanged."""
+    from governance.dag_runner.prompt_assembly import _project_artifact_payload
+
+    minimal = {"produced_by": "deep-audit"}
+    result = _project_artifact_payload(
+        "update-verification-matrix", "audit_summary", minimal,
+    )
+    assert result is minimal
+
+
+def test_verification_matrix_change_impact_projection_wrapped() -> None:
+    """update-verification-matrix projection works with wrapped change_impact_summary."""
+    from governance.dag_runner.prompt_assembly import _project_artifact_payload
+
+    full_payload = {
+        "produced_by": "change-impact-audit",
+        "run_id": "test-run",
+        "change_impact_summary": {
+            "produced_by": "change-impact-audit",
+            "change_mode": "documentation_only",
+            "impact_type": "contract_affecting",
+            "contributing_categories": ["terminology"],
+            "impacted_components": ["layer2"],
+            "impacted_docs": ["README_v1.md", "SYSTEM_TECHNICAL_HANDBOOK_v1.md"],
+            "follow_up_required": True,
+            "risk_summary": ["Risk " * 10] * 8,
+            "verification_update_required": True,
+            "canonical_docs_impacted": True,
+            "constitutional_doc_impacted": False,
+            "blocked_change": False,
+            "long_explanation": "Very long text " * 200,
+            "detailed_notes": ["Long note " * 100],
+        },
+    }
+
+    projected = _project_artifact_payload(
+        "update-verification-matrix", "change_impact_report", full_payload,
+    )
+
+    assert projected is not full_payload
+    assert projected["produced_by"] == "change-impact-audit"
+    assert projected["change_mode"] == "documentation_only"
+    assert projected["impact_type"] == "contract_affecting"
+    assert projected["impacted_docs"] == ["README_v1.md", "SYSTEM_TECHNICAL_HANDBOOK_v1.md"]
+    assert projected["follow_up_required"] is True
+    assert len(projected["risk_summary"]) == 5  # capped
+    assert projected["matrix_relevant_flags"]["verification_update_required"] is True
+    assert projected["matrix_relevant_flags"]["canonical_docs_impacted"] is True
+
+    import json
+    serialized = json.dumps(projected)
+    assert "long_explanation" not in serialized
+    assert "detailed_notes" not in serialized
+    assert "run_id" not in serialized
+
+    orig_size = len(json.dumps(full_payload, indent=2))
+    proj_size = len(json.dumps(projected, indent=2))
+    assert proj_size < orig_size * 0.4, (
+        f"Projection did not reduce size enough: {proj_size} vs {orig_size}"
+    )
+
+
+def test_verification_matrix_change_impact_projection_flat() -> None:
+    """update-verification-matrix projection works with top-level change_impact_report."""
+    from governance.dag_runner.prompt_assembly import _project_artifact_payload
+
+    full_payload = {
+        "produced_by": "change-impact-audit",
+        "change_mode": "code_and_docs",
+        "impact_type": "boundary_affecting",
+        "contributing_categories": ["snapshot_contract"],
+        "impacted_components": ["quality_gate"],
+        "impacted_docs": ["SYSTEM_TECHNICAL_HANDBOOK_v1.md"],
+        "follow_up_required": True,
+        "risk_summary": ["Risk " * 10] * 3,
+        "verification_update_required": True,
+        "long_notes": "Very long narrative " * 200,
+    }
+
+    projected = _project_artifact_payload(
+        "update-verification-matrix", "change_impact_report", full_payload,
+    )
+
+    assert projected is not full_payload
+    assert projected["change_mode"] == "code_and_docs"
+    assert projected["impact_type"] == "boundary_affecting"
+    assert projected["follow_up_required"] is True
+    assert projected["matrix_relevant_flags"]["verification_update_required"] is True
+
+    import json
+    assert "long_notes" not in json.dumps(projected)
+
+
+def test_verification_matrix_change_impact_minimal_passthrough() -> None:
+    """V1 shell minimal payloads pass through unchanged."""
+    from governance.dag_runner.prompt_assembly import _project_artifact_payload
+
+    minimal = {"produced_by": "change-impact-audit"}
+    result = _project_artifact_payload(
+        "update-verification-matrix", "change_impact_report", minimal,
+    )
+    assert result is minimal
+
+
+def test_verification_matrix_doc_code_sync_projection_wrapped() -> None:
+    """update-verification-matrix projection works with wrapped doc_code_sync_status."""
+    from governance.dag_runner.prompt_assembly import _project_artifact_payload
+
+    full_payload = {
+        "produced_by": "doc-code-sync-check",
+        "run_id": "test-run",
+        "doc_code_sync_status": {
+            "produced_by": "doc-code-sync-check",
+            "overall_status": "drift_detected",
+            "drift_detected": True,
+            "docs_changed_without_code": True,
+            "code_changed_without_docs": False,
+            "doc_code_alignment_status": "misaligned",
+            "follow_up_required": True,
+            "verification_matrix_update_required": True,
+            "impacted_docs": ["README_v1.md"],
+            "impacted_code_paths": ["layer2/db.py"],
+            "blocking_reasons": ["Doc drift detected in snapshot boundary section"],
+            "required_actions": ["Update README_v1.md"],
+            "checked_items": [
+                {
+                    "item": "snapshot_boundary",
+                    "status": "drift",
+                    "detail": "Very long detail " * 100,
+                    "evidence": "Very long evidence " * 100,
+                },
+            ],
+            "detailed_per_file_notes": ["Long note " * 100, "Another " * 100],
+            "full_evidence_bodies": ["x" * 5000, "x" * 5000],
+        },
+    }
+
+    projected = _project_artifact_payload(
+        "update-verification-matrix", "doc_code_sync_status", full_payload,
+    )
+
+    assert projected is not full_payload
+    assert projected["produced_by"] == "doc-code-sync-check"
+    assert projected["overall_status"] == "drift_detected"
+    assert projected["drift_detected"] is True
+    assert projected["docs_changed_without_code"] is True
+    assert projected["code_changed_without_docs"] is False
+    assert projected["doc_code_alignment_status"] == "misaligned"
+    assert projected["follow_up_required"] is True
+    assert projected["verification_matrix_update_required"] is True
+    assert projected["impacted_docs"] == ["README_v1.md"]
+    assert projected["impacted_code_paths"] == ["layer2/db.py"]
+    assert projected["blocking_reasons"] == ["Doc drift detected in snapshot boundary section"]
+    assert projected["required_actions"] == ["Update README_v1.md"]
+
+    import json
+    serialized = json.dumps(projected)
+    assert "checked_items" not in serialized
+    assert "detailed_per_file_notes" not in serialized
+    assert "full_evidence_bodies" not in serialized
+    assert "run_id" not in serialized
+
+    orig_size = len(json.dumps(full_payload, indent=2))
+    proj_size = len(json.dumps(projected, indent=2))
+    assert proj_size < orig_size * 0.15, (
+        f"Projection did not reduce size enough: {proj_size} vs {orig_size}"
+    )
+
+
+def test_verification_matrix_doc_code_sync_projection_flat() -> None:
+    """update-verification-matrix projection works with flat doc_code_sync_status."""
+    from governance.dag_runner.prompt_assembly import _project_artifact_payload
+
+    full_payload = {
+        "produced_by": "doc-code-sync-check",
+        "overall_status": "aligned",
+        "drift_detected": False,
+        "docs_changed_without_code": False,
+        "code_changed_without_docs": False,
+        "follow_up_required": False,
+        "verification_matrix_update_required": False,
+        "checked_items": [
+            {"item": "x", "detail": "Very long " * 200},
+        ],
+    }
+
+    projected = _project_artifact_payload(
+        "update-verification-matrix", "doc_code_sync_status", full_payload,
+    )
+
+    assert projected is not full_payload
+    assert projected["overall_status"] == "aligned"
+    assert projected["drift_detected"] is False
+    assert projected["verification_matrix_update_required"] is False
+
+    import json
+    assert "checked_items" not in json.dumps(projected)
+
+
+def test_verification_matrix_doc_code_sync_minimal_passthrough() -> None:
+    """V1 shell minimal payloads pass through unchanged."""
+    from governance.dag_runner.prompt_assembly import _project_artifact_payload
+
+    minimal = {"produced_by": "doc-code-sync-check"}
+    result = _project_artifact_payload(
+        "update-verification-matrix", "doc_code_sync_status", minimal,
+    )
+    assert result is minimal
+
+
+def test_verification_matrix_projection_log_with_rich_payloads() -> None:
+    """_apply_step_projections records original vs projected sizes for update-verification-matrix."""
+    from governance.dag_runner.prompt_assembly import _apply_step_projections
+
+    rich_inputs = {
+        "audit_summary": {
+            "produced_by": "deep-audit",
+            "audit_summary": {
+                "produced_by": "deep-audit",
+                "overall_audit_status": "blocked",
+                "fail_closed_applied": True,
+                "dag_advancement_blocked": True,
+                "unresolved_violations_count": 1,
+                "blocking_violations_count": 1,
+                "review_required_violations_count": 0,
+                "dispatched_subagents": [],
+                "critical_path": "snapshot",
+                "upstream_violations_consolidated": [
+                    {
+                        "id": "V-01",
+                        "source": "runtime-boundary-check",
+                        "status": "blocking",
+                        "blocking": True,
+                        "review_required": False,
+                        "routed_to": None,
+                        "detail": "x" * 5000,
+                    },
+                ],
+                "subagent_findings": [
+                    {"agent": "a", "findings": "x" * 5000},
+                ],
+                "dispatch_evaluation": "x" * 3000,
+            },
+        },
+        "change_impact_report": {
+            "produced_by": "change-impact-audit",
+            "change_impact_summary": {
+                "produced_by": "change-impact-audit",
+                "change_mode": "documentation_only",
+                "impact_type": "contract_affecting",
+                "contributing_categories": ["terminology"],
+                "impacted_components": ["layer2"],
+                "impacted_docs": ["README_v1.md"],
+                "follow_up_required": True,
+                "risk_summary": ["x" * 500] * 3,
+                "long_explanation": "x" * 5000,
+            },
+        },
+        "doc_code_sync_status": {
+            "produced_by": "doc-code-sync-check",
+            "doc_code_sync_status": {
+                "produced_by": "doc-code-sync-check",
+                "overall_status": "aligned",
+                "drift_detected": False,
+                "follow_up_required": False,
+                "verification_matrix_update_required": False,
+                "checked_items": [
+                    {"item": "x", "detail": "x" * 5000},
+                ],
+                "detailed_per_file_notes": ["x" * 5000],
+            },
+        },
+        # Pass-through artifact
+        "governance_context": {"produced_by": "load-context", "run_id": "test"},
+    }
+
+    projected, log = _apply_step_projections(
+        "update-verification-matrix", rich_inputs,
+    )
+
+    # Three artifacts should be projected
+    assert len(log) == 3
+    projected_names = {entry["artifact"] for entry in log}
+    assert projected_names == {
+        "audit_summary",
+        "change_impact_report",
+        "doc_code_sync_status",
+    }
+
+    # Each log entry must have size fields and show reduction
+    for entry in log:
+        assert entry["original_chars"] > 0
+        assert entry["projected_chars"] > 0
+        assert entry["original_tokens"] > 0
+        assert entry["projected_tokens"] > 0
+        assert entry["projected_chars"] < entry["original_chars"], (
+            f"{entry['artifact']}: projected {entry['projected_chars']} >= "
+            f"original {entry['original_chars']}"
+        )
+
+    # governance_context should pass through unchanged
+    assert projected["governance_context"] is rich_inputs["governance_context"]
+
+
+def test_verification_matrix_projection_metadata(pipeline) -> None:
+    """update-verification-matrix prompt composition includes projection diagnostic fields."""
+    spec, plan, run_state = pipeline
+    step = spec.workflow_steps["update-verification-matrix"]
+    ctx = assemble_step_prompt(step, spec, run_state, repo_root=_REPO_ROOT)
+    meta = build_prompt_composition_metadata(ctx)
+
+    # Projection metadata keys must be present
+    assert "projected_artifact_names" in meta
+    assert "input_contributions_original" in meta
+    assert "input_contributions_projected" in meta
+    assert isinstance(meta["projected_artifact_names"], list)
+    assert isinstance(meta["input_contributions_original"], dict)
+    assert isinstance(meta["input_contributions_projected"], dict)

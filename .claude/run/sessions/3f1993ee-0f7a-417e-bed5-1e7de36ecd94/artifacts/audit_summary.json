@@ -1,0 +1,145 @@
+{
+  "artifact": "audit_summary",
+  "produced_by": "deep-audit",
+  "session": "3f1993ee-0f7a-417e-bed5-1e7de36ecd94",
+  "timestamp": "2026-04-24T12:51:06.541004Z",
+  "data": {
+    "produced_by": "deep-audit",
+    "overall_audit_status": "blocked_pending_subagent_results",
+    "subagents_dispatched": [
+      "canonical-role-auditor",
+      "snapshot-boundary-auditor",
+      "adapter-schema-guardian"
+    ],
+    "subagents_not_dispatched": [
+      "architecture-sequence-auditor",
+      "implementation-history-reconciler"
+    ],
+    "dispatch_decisions": {
+      "canonical-role-auditor": {
+        "dispatched": true,
+        "defined_trigger": "role_citation_verdict.violations contains role_mismatch_for_strong_claim or readme_layer2_used_as_override",
+        "trigger_source": "role_citation_verdict",
+        "rationale": "role_citation_verdict.violations not explicitly enumerated in artifact, but overall_status is conflict_requires_block with source_authority_conflict_detected: true and canonical_conflict_unresolved: true. Conflict signals are unambiguous and consistent with role-level violations. Dispatched under fail-closed principle (CLAUDE.md Section 7).",
+        "escalation_signals_observed": [
+          "overall_status: conflict_requires_block",
+          "source_authority_conflict_detected: true",
+          "canonical_conflict_unresolved: true",
+          "requires_doc_sync_escalation: true"
+        ],
+        "subagent_result": "pending"
+      },
+      "architecture-sequence-auditor": {
+        "dispatched": false,
+        "defined_trigger": "phase_alignment_status.build_order_ambiguity_detected is true",
+        "trigger_source": "phase_alignment_status",
+        "rationale": "phase_alignment_status.build_order_ambiguity_detected is absent from artifact (not true). Strict trigger condition not met. alignment_status: ambiguous_requires_block is noted but does not satisfy the defined dispatch field condition.",
+        "escalation_signals_observed": [
+          "alignment_status: ambiguous_requires_block",
+          "allowed: false"
+        ],
+        "subagent_result": "not_dispatched"
+      },
+      "snapshot-boundary-auditor": {
+        "dispatched": true,
+        "defined_trigger": "runtime_boundary_verdict.boundary_violation_suspected is true",
+        "trigger_source": [
+          "runtime_boundary_verdict",
+          "contract_compliance_verdict"
+        ],
+        "rationale": "runtime_boundary_verdict.boundary_violation_suspected is null, not strictly true. However, runtime_boundary_verdict.requires_snapshot_boundary_auditor: true is explicit, and contract_compliance_verdict.escalation_target: snapshot-boundary-auditor directly names this auditor. contract_compliance_verdict additionally shows snapshot_bypass_risk: true and decisionpacket_anchor_risk: true. Dispatched under fail-closed given explicit escalation targeting from two independent upstream artifacts.",
+        "escalation_signals_observed": [
+          "requires_snapshot_boundary_auditor: true",
+          "contract_compliance_verdict.escalation_target: snapshot-boundary-auditor",
+          "snapshot_bypass_risk: true",
+          "decisionpacket_anchor_risk: true",
+          "source_authority_conflict_detected: true in runtime_boundary_verdict"
+        ],
+        "subagent_result": "pending"
+      },
+      "adapter-schema-guardian": {
+        "dispatched": true,
+        "defined_trigger": "adapter_schema_verdict.violations contains registry_violation or schema_drift_detected",
+        "trigger_source": "adapter_schema_verdict",
+        "rationale": "adapter_schema_verdict.registry_violation_detected: false and schema_drift_detected: false \u2014 strict trigger fields not satisfied. However, adapter_schema_verdict.requires_adapter_schema_guardian: true is explicit and source_authority_conflict_detected: true indicates unresolved authority ambiguity that cannot be cleared without guardian audit. Dispatched under fail-closed principle.",
+        "escalation_signals_observed": [
+          "requires_adapter_schema_guardian: true",
+          "source_authority_conflict_detected: true",
+          "overall_status: ambiguous_requires_review"
+        ],
+        "subagent_result": "pending"
+      },
+      "implementation-history-reconciler": {
+        "dispatched": false,
+        "defined_trigger": "claim_classification_map.non_canonical_source_as_current_truth is true",
+        "trigger_source": "claim_classification_map",
+        "rationale": "claim_classification_map.non_canonical_source_as_current_truth is absent from artifact. Strict trigger condition not met. possible_blocking_conditions does not include non_canonical_source_as_current_truth as a named entry.",
+        "escalation_signals_observed": [],
+        "subagent_result": "not_dispatched"
+      }
+    },
+    "upstream_unresolved_violations": [
+      {
+        "source": "role_citation_verdict",
+        "violation": "canonical_conflict_unresolved",
+        "status": "unresolved",
+        "blocking": true
+      },
+      {
+        "source": "role_citation_verdict",
+        "violation": "source_authority_conflict_detected",
+        "status": "unresolved",
+        "blocking": true
+      },
+      {
+        "source": "phase_alignment_status",
+        "violation": "alignment_status: ambiguous_requires_block",
+        "status": "unresolved",
+        "blocking": true
+      },
+      {
+        "source": "contract_compliance_verdict",
+        "violation": "snapshot_bypass_risk",
+        "status": "unresolved",
+        "blocking": true
+      },
+      {
+        "source": "contract_compliance_verdict",
+        "violation": "decisionpacket_anchor_risk",
+        "status": "unresolved",
+        "blocking": true
+      },
+      {
+        "source": "runtime_boundary_verdict",
+        "violation": "source_authority_conflict_detected",
+        "status": "unresolved",
+        "blocking": true
+      },
+      {
+        "source": "runtime_boundary_verdict",
+        "violation": "overall_status: ambiguous_requires_review",
+        "status": "unresolved",
+        "blocking": true
+      },
+      {
+        "source": "adapter_schema_verdict",
+        "violation": "source_authority_conflict_detected",
+        "status": "unresolved",
+        "blocking": true
+      }
+    ],
+    "review_only_claims": [
+      "CLAIM-005",
+      "CLAIM-008"
+    ],
+    "dag_advancement_blocked": true,
+    "halt_reason": "Multiple unresolved upstream violations across role_citation_verdict, phase_alignment_status, contract_compliance_verdict, runtime_boundary_verdict, and adapter_schema_verdict. Three subagents dispatched (canonical-role-auditor, snapshot-boundary-auditor, adapter-schema-guardian) with results pending. DAG advancement to verification layer is blocked until all dispatched subagent audits return resolved findings.",
+    "dispatch_notes": [
+      "architecture-sequence-auditor not dispatched: phase_alignment_status.build_order_ambiguity_detected absent; alignment_status: ambiguous_requires_block does not satisfy the strict field-level trigger",
+      "implementation-history-reconciler not dispatched: claim_classification_map.non_canonical_source_as_current_truth absent; strict trigger condition not met",
+      "snapshot-boundary-auditor dispatched despite runtime_boundary_verdict.boundary_violation_suspected being null: explicit requires_snapshot_boundary_auditor flag combined with contract_compliance_verdict.escalation_target direct naming satisfies fail-closed dispatch",
+      "adapter-schema-guardian dispatched despite registry_violation_detected and schema_drift_detected both false: explicit requires_adapter_schema_guardian flag with source_authority_conflict_detected satisfies fail-closed dispatch",
+      "canonical-role-auditor dispatched despite violations field absent: conflict_requires_block overall status with two corroborating conflict fields satisfies fail-closed dispatch"
+    ]
+  }
+}

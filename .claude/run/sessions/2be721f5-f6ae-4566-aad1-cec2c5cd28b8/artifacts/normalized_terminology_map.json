@@ -1,0 +1,59 @@
+{
+  "artifact": "normalized_terminology_map",
+  "produced_by": "normalize-terminology",
+  "session": "2be721f5-f6ae-4566-aad1-cec2c5cd28b8",
+  "timestamp": "2026-04-24T11:50:10.069129Z",
+  "data": {
+    "produced_by": "normalize-terminology",
+    "overall_status": "governance_sensitive_term_conflict",
+    "inference_used": false,
+    "canonical_term_mappings": [
+      {
+        "from": "truth_store",
+        "to": "Layer-2",
+        "concept_id": "LAYER_2",
+        "reason": "Proposed replacement term 'truth_store' is not listed in the canonical term table as a canonical form, allowed variant, or discouraged variant for LAYER_2. It is an unrecognized term. Per skill rule: unrecognized terms must be flagged, not silently adopted. The canonical form 'Layer-2' (or 'Layer 2' in prose) must be retained until a constitutional governance process formally establishes 'truth_store' as the new canonical term."
+      },
+      {
+        "from": "decision_layer",
+        "to": "Layer-3",
+        "concept_id": "LAYER_3",
+        "reason": "Proposed replacement term 'decision_layer' is not listed in the canonical term table as a canonical form, allowed variant, or discouraged variant for LAYER_3. It is an unrecognized term adjacent to the explicitly discouraged variant 'decision engine'. The canonical form 'Layer-3' (or 'Layer 3' in prose) must be retained until a constitutional governance process formally establishes 'decision_layer' as the new canonical term."
+      }
+    ],
+    "scope_constraints": [
+      "request_text from governance_context (request_id: rename-layer-terms-2026-04-20)",
+      "all classified claims in claim_classification_map: c1 through c8",
+      "canonical term table as defined in canonical-terminology-map skill"
+    ],
+    "excluded_reference_types": [
+      "canonical documents not read directly \u2014 Documentation/* files not scanned; term scan limited to claim text and request text",
+      "code files not scanned for existing use of 'truth_store' or 'decision_layer' as code-level identifiers",
+      "DOCUMENTATION_VERIFICATION_MATRIX_v1.md cross-references not directly evaluated",
+      "historical superseded documents not evaluated (excluded per CLAUDE.md Section 2.3)"
+    ],
+    "filename_rename_candidates": [
+      "README_LAYER2.md \u2014 contains 'LAYER2' label; if rename proceeds, this canonical document (listed in CLAUDE.md Section 2.1, item 7) would require a new filename, which is a constitutional-level identity change requiring CLAUDE.md Section 2.1 and DOCUMENTATION_VERIFICATION_MATRIX_v1.md updates before execution"
+    ],
+    "ambiguity_flags": [
+      {
+        "term": "truth_store",
+        "concepts": [
+          "LAYER_2",
+          "SNAPSHOT_TRUTH"
+        ],
+        "governance_sensitive": true,
+        "note": "Category A governance-sensitive. 'truth_store' as a replacement for LAYER_2 introduces semantic collision with the existing canonical concept 'Snapshot Truth' (concept ID: SNAPSHOT_TRUTH). Layer-2 is defined in current documentation as 'operational at snapshot boundary' \u2014 a boundary concept. 'truth_store' implies a storage-layer identity rather than an architectural boundary, weakening snapshot boundary semantics. Additionally, code-level identifiers such as 'layer2_truth.db' may share the 'truth' stem, creating cross-domain ambiguity between architectural labels and code identifiers. This is a blocking ambiguity under the fail-closed principle (CLAUDE.md Section 7)."
+      },
+      {
+        "term": "decision_layer",
+        "concepts": [
+          "LAYER_3",
+          "DECISION_PACKET"
+        ],
+        "governance_sensitive": true,
+        "note": "Category B and Category D governance-sensitive. 'decision_layer' as a replacement for LAYER_3 is semantically adjacent to the explicitly discouraged variant 'decision engine' for LAYER_3. Layer-3 spans multiple distinct planned components (Feature Builder, Index Suite, Regime Gate, Supervisor Engine, Decision Engine, DecisionPacket generator) \u2014 collapsing the layer label to 'decision_layer' narrows the architectural concept in a way that may misrepresent the scope of planned Phase C/D build-out. It also creates adjacency overlap with the canonical 'DecisionPacket' concept (DECISION_PACKET), risking conflation between the layer label and the output artifact name. This is a blocking ambiguity: it would alter how phase-gate claims are classified and how strong-claim discipline (CLAUDE.md Section 10) is enforced."
+      }
+    ]
+  }
+}

@@ -1,0 +1,123 @@
+{
+  "artifact": "contract_compliance_verdict",
+  "produced_by": "snapshot-contract-check",
+  "session": "0d648263-e690-487c-becc-6d2529611946",
+  "timestamp": "2026-04-24T16:09:58.750089Z",
+  "data": {
+    "produced_by": "snapshot-contract-check",
+    "snapshot_contract_status": {
+      "allowed": false,
+      "contract_status": "boundary_violation",
+      "valid_interface": "none",
+      "forbidden_access_detected": false,
+      "snapshot_anchor_required": true,
+      "blocking_reason_if_any": "Multiple blocking conditions: (1) upstream phase_alignment_status is ambiguous_requires_block with snapshot_boundary_risk: true \u2014 upstream block propagates per SCC-6; (2) c3 touches snapshot boundary contract terminology while role_citation_verdict carries unresolved canonical conflicts \u2014 ambiguous contract-boundary modification under conflicted authority promotes to blocked in strict mode (B8/SCC-1) and creates FP-7 exposure; (3) c6 implies execution capability before Phase D, violating SCC-5, SCC-6, and CLAUDE.md Sections 4 and 9; (4) unresolved canonical conflicts (source_authority_conflict_detected: true) create systemic FP-7 risk \u2014 conflicting sources may imply contradictory access rules with no clean resolution path.",
+      "checked_claims": [
+        {
+          "claim_id": "c_upstream_block",
+          "claim_text": "Upstream phase_alignment_status carries allowed: false, alignment_status: ambiguous_requires_block, and snapshot_boundary_risk: true",
+          "assessment": "blocked",
+          "violated_invariants": [
+            "SCC-6"
+          ],
+          "triggered_forbidden_patterns": [],
+          "valid_interface_if_compliant": "none",
+          "reason": "SCC-6 states that handoff gate satisfaction does not relax any invariant. An upstream ambiguous_requires_block phase state propagates to this layer \u2014 no snapshot contract evaluation can return compliant while upstream phase alignment is blocked. The snapshot_boundary_risk: true flag is a direct signal that contract-relevant claims are in scope and at risk.",
+          "contract_reference": [
+            "SCC-6",
+            "CLAUDE.md Section 6",
+            "CLAUDE.md Section 4"
+          ]
+        },
+        {
+          "claim_id": "c3",
+          "claim_text": "Claim c3 touches snapshot boundary contract terminology (referenced in phase_alignment_status.blocking_reason_if_any)",
+          "assessment": "blocked",
+          "violated_invariants": [
+            "SCC-1"
+          ],
+          "triggered_forbidden_patterns": [
+            "FP-7"
+          ],
+          "valid_interface_if_compliant": "none",
+          "reason": "c3 modifies or redefines snapshot boundary contract terminology while upstream canonical conflicts remain unresolved (role_citation_verdict: canonical_conflict_unresolved: true). Under strict mode, ambiguous contract-boundary claims that cannot be traced to a clean, role-matched canonical source promote to blocked (B8). FP-7 applies: if c3 draws from a conflicted or non-authoritative source, the resulting documentation may imply that forbidden access patterns are permitted, which is blocked identically to code doing the same. Resolution requires clean canonical authority before any contract-terminology modification proceeds.",
+          "contract_reference": [
+            "SCC-1",
+            "FP-7",
+            "B8",
+            "CLAUDE.md Section 6.1",
+            "CLAUDE.md Section 2.4"
+          ]
+        },
+        {
+          "claim_id": "c6",
+          "claim_text": "c6 implies execution capability before Phase D (referenced in phase_alignment_status.blocking_reason_if_any)",
+          "assessment": "blocked",
+          "violated_invariants": [
+            "SCC-5",
+            "SCC-6"
+          ],
+          "triggered_forbidden_patterns": [
+            "FP-6"
+          ],
+          "valid_interface_if_compliant": "none",
+          "reason": "Any claim implying execution capability before Phase D violates the absolute live execution boundary. SCC-6 states no gate satisfaction relaxes any invariant \u2014 the Phase D block is unconditional. SCC-5 and FP-6 prohibit the Event Risk Stream from acting as a directional authority; a claim implying execution capability risks validating this pattern. CLAUDE.md Section 10 explicitly forbids the claim 'Execution is available' unless proven. Phase D status is 'blocked' per CLAUDE.md Section 4. Whether c6 is a naming-only change or a genuine capability claim, it must be re-classified with explicit non-execution confirmation before it may proceed.",
+          "contract_reference": [
+            "SCC-5",
+            "SCC-6",
+            "FP-6",
+            "CLAUDE.md Section 4",
+            "CLAUDE.md Section 9",
+            "CLAUDE.md Section 10"
+          ]
+        },
+        {
+          "claim_id": "c_canonical_conflict",
+          "claim_text": "role_citation_verdict reports: overall_status: conflict_requires_block, source_authority_conflict_detected: true, canonical_conflict_unresolved: true",
+          "assessment": "blocked",
+          "violated_invariants": [
+            "SCC-1"
+          ],
+          "triggered_forbidden_patterns": [
+            "FP-7"
+          ],
+          "valid_interface_if_compliant": "none",
+          "reason": "Unresolved canonical conflicts prevent verification that any access pattern in the claim set is correctly governed. CLAUDE.md Section 5.2 requires proof traceable to canonical documents or concrete implementation. CLAUDE.md Section 16 states that claims not traceable to canonical sources must be treated as unverified and non-binding. FP-7 applies: conflicting canonical documents may imply divergent access rules \u2014 at least one version may imply a forbidden access pattern is permitted. Strict mode blocks until all canonical conflicts are resolved and role-matched authority is confirmed.",
+          "contract_reference": [
+            "SCC-1",
+            "FP-7",
+            "CLAUDE.md Section 5.2",
+            "CLAUDE.md Section 5.3",
+            "CLAUDE.md Section 16"
+          ]
+        },
+        {
+          "claim_id": "c_scope_target_architecture",
+          "claim_text": "scope_exceeds_current_allowance: true \u2014 the claim set touches target_architecture despite current-state dominant scope, creating implicit phase promotion risk",
+          "assessment": "blocked",
+          "violated_invariants": [
+            "SCC-4"
+          ],
+          "triggered_forbidden_patterns": [],
+          "valid_interface_if_compliant": "none",
+          "reason": "Claims touching target architecture (planned-only components) risk implying snapshot contract interfaces for components that do not exist. Describing a planned component's access pattern as current implementation creates SCC-4 exposure \u2014 if a non-existent Layer-3 component is described as consuming snapshots, this may imply snapshot mutability or alternative read paths that have not been governed. CLAUDE.md Section 3.2 mandates that planned components must not be described as existing implementation. Strict mode blocks scope overreach on target-architecture claims.",
+          "contract_reference": [
+            "SCC-4",
+            "CLAUDE.md Section 3.2",
+            "CLAUDE.md Section 10"
+          ]
+        }
+      ],
+      "summary": {
+        "raw_observations_access_risk": false,
+        "snapshot_bypass_risk": true,
+        "layer2_storage_touch_risk": false,
+        "decisionpacket_anchor_risk": true,
+        "followup_guard_recommended": true,
+        "upstream_block_inherited": true,
+        "escalation_target": "snapshot-boundary-auditor",
+        "escalation_reason": "boundary_violation confirmed on c3 (contract terminology modification under unresolved canonical authority, FP-7/SCC-1) and c6 (execution capability implication, SCC-5/SCC-6/FP-6). Canonical conflict propagation creates systemic snapshot contract exposure across all claims. Escalation to snapshot-boundary-auditor is required per skill failure mode protocol."
+      }
+    }
+  }
+}

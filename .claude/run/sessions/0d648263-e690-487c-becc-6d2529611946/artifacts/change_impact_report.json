@@ -1,0 +1,63 @@
+{
+  "artifact": "change_impact_report",
+  "produced_by": "change-impact-audit",
+  "session": "0d648263-e690-487c-becc-6d2529611946",
+  "timestamp": "2026-04-24T16:14:48.910192Z",
+  "data": {
+    "produced_by": "change-impact-audit",
+    "change_impact_summary": {
+      "change_mode": "content_change",
+      "impact_type": "mixed",
+      "contributing_categories": [
+        "documentation",
+        "architecture",
+        "verification"
+      ],
+      "impacted_components": [
+        "snapshot_boundary",
+        "governance_workflow",
+        "canonical_document_identity",
+        "Layer-3_bootstrap",
+        "verification_ledger",
+        "phase_gate_definitions",
+        "skill_registry"
+      ],
+      "impacted_docs": [
+        "CLAUDE.md",
+        "README_v1.md",
+        "SYSTEM_TECHNICAL_HANDBOOK_v1.md",
+        "SYSTEM_LIMITATIONS_AND_APPROXIMATIONS_v1.md",
+        "SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md",
+        "DOCUMENTATION_VERIFICATION_MATRIX_v1.md",
+        "SYSTEM_IMPLEMENTATION_RECORD_v1.md",
+        "README_LAYER2.md",
+        "system-orchestration.yaml",
+        "verification_ledger.md"
+      ],
+      "follow_up_required": "mandatory",
+      "inference_used": true,
+      "risk_summary": [
+        "B1 \u2014 canonical-role-auditor block: source_authority_conflict_detected and canonical_conflict_unresolved in role_citation_verdict. All six claims (c1\u2013c6) are blocked. No claims may advance while role citation is unresolved. Four claims rated RC-4 conflict_requires_block (C-001, C-002, C-003, C-008); two rated RC-3 role_mismatch (C-005, C-007).",
+        "B2 \u2014 snapshot-boundary-auditor block: boundary_violation_suspected, snapshot_bypass_risk, and decisionpacket_anchor_risk are all true. Claims c3 and c6 are blocked. The proposed terminology shift from 'Layer 2' to 'truth_store' directly affects snapshot boundary contract language (CLAUDE.md \u00a76). No doc-code-sync verification has confirmed that the rename preserves snapshot contract semantics.",
+        "B3 \u2014 adapter-schema-guardian hold: adapter_schema_verdict.overall_status is ambiguous_requires_review. registry_violation_detected and schema_drift_detected are both null \u2014 null is unresolved ambiguity, not clearance. All claims blocked pending explicit true/false resolution.",
+        "B4 \u2014 phase_alignment_status inherited block: alignment_status is ambiguous_requires_block with live_readiness_implication_detected true. Claim c6 (decision_layer naming) may imply execution capability, which is forbidden before Phase D per CLAUDE.md \u00a79 and \u00a710.",
+        "Semantic conflict on 'decision_layer': the proposed replacement term for 'Layer 3' carries semantic weight implying an operational decision-making layer. CLAUDE.md \u00a73.2 classifies all Layer 3 components as target architecture not yet built. Adopting 'decision_layer' in canonical documentation risks constituting a forbidden strong claim per CLAUDE.md \u00a710.",
+        "CLAUDE.md self-modification conflict: CLAUDE.md is simultaneously the highest-priority interpretive authority and the target of modification. C-008 rated RC-4 \u2014 modifying the constitutional document via a terminology refactor requires explicit system-orchestration.yaml workflow authorization. No such authorization cited.",
+        "Canonical document identity change: README_LAYER2.md filename contains 'LAYER2' and is subject to the rename. This is a canonical document identity change affecting CLAUDE.md \u00a72.1, \u00a72.2, \u00a72.4, \u00a711 and all cross-references. This is not a cosmetic change.",
+        "Purported rename-only classification rejected per DR-11: upstream findings demonstrate the terminology change alters semantic governance state \u2014 'decision_layer' carries execution-capability connotation, 'truth_store' shifts snapshot boundary terminology, and canonical document identity is affected. Change mode classified as content_change, not rename_only.",
+        "Phase jump detected: phase_alignment_status reports phase_jump_detected true and scope_exceeds_current_allowance true. The claim set touches target architecture despite current-state dominant scope, creating implicit phase promotion risk.",
+        "No claims cleared: audit_summary reports all six claims (c1\u2013c6) blocked, zero cleared. DAG advancement halted. Full audit pipeline re-run required after all blocking conditions are resolved."
+      ],
+      "notes": [
+        "This is a documentation-wide terminology refactor affecting all seven canonical current-state documents plus CLAUDE.md itself. The scope is comprehensive and contract-affecting.",
+        "change_mode is content_change, not rename_only, because the upstream governance pipeline has identified semantic implications: 'decision_layer' implies execution capability (violating \u00a79/\u00a710), 'truth_store' shifts snapshot boundary terminology (affecting \u00a76 contract), and canonical document identity is altered (README_LAYER2.md).",
+        "The replacement terms 'truth_store' and 'decision_layer' do not currently exist in the canonical documentation set \u2014 this is a terminology introduction, not a terminology correction.",
+        "No target-state work has been described as current-state implementation. Layer 3 remains target architecture per CLAUDE.md \u00a73.2 regardless of whether it is called 'Layer 3' or 'decision_layer'.",
+        "Doc-only terminology changes do not alter runtime evidence status. However, terminology changes to the snapshot boundary concept and phase-gate definitions carry governance weight beyond typical doc-only changes.",
+        "guard_report and stage_gate_report provided structural-only data (structural: true). Conservative inference applied for guard signal details \u2014 inference_used set to true.",
+        "Resolution sequence from audit_summary must be followed in order: (1) resolve B1 source authority conflict, (2) resolve B2 snapshot boundary terminology, (3) resolve B3 adapter schema ambiguity, (4) reclassify c6 execution-capability implication, (5) re-run full audit pipeline.",
+        "README_LAYER2.md is canonical within its declared collaborator-workflow role. It was not used as primary authority for implementation-state, architecture, or limitations claims in this assessment."
+      ]
+    }
+  }
+}

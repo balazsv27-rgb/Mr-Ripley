@@ -1,0 +1,173 @@
+{
+  "artifact": "role_citation_verdict",
+  "produced_by": "route-claims-by-role",
+  "session": "2be721f5-f6ae-4566-aad1-cec2c5cd28b8",
+  "timestamp": "2026-04-24T11:52:02.117857Z",
+  "data": {
+    "produced_by": "route-claims-by-role",
+    "run_id": "2be721f5-f6ae-4566-aad1-cec2c5cd28b8",
+    "inference_used": true,
+    "overall_status": "conflict_requires_block",
+    "source_authority_conflict_detected": true,
+    "checked_claims": [
+      {
+        "claim_id": "RC-01",
+        "claim_text": "'Layer 2' and 'Layer-2' are canonical architectural layer identifiers in the project.",
+        "claim_type": "architecture",
+        "required_primary_source": "SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md",
+        "provided_sources": [
+          "CLAUDE.md Section 3.1"
+        ],
+        "role_match": true,
+        "strong_claim": true,
+        "explicit_citation_required": true,
+        "conflict_detected": false,
+        "blocking_condition_if_any": null,
+        "verdict": "RC-2 Review only",
+        "reason": "CLAUDE.md Section 3.1 uses 'Layer 2' and confirms it as an architectural concept, but CLAUDE.md routes authoritative architecture definitions to SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md. The claim is plausible but cannot be confirmed as fully role-matched without the primary source being directly cited.",
+        "notes": "CLAUDE.md Section 3.1 states 'Layer 2 = operational at snapshot boundary'. This is a constitutional reference, not an architectural specification. The role-correct primary source for architecture/boundary claims is SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md per CLAUDE.md Section 2.4."
+      },
+      {
+        "claim_id": "RC-02",
+        "claim_text": "'Layer 3' and 'Layer-3' are canonical architectural layer identifiers for the planned computation layer.",
+        "claim_type": "architecture",
+        "required_primary_source": "SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md",
+        "provided_sources": [
+          "CLAUDE.md Section 3.2",
+          "CLAUDE.md Section 4"
+        ],
+        "role_match": true,
+        "strong_claim": true,
+        "explicit_citation_required": true,
+        "conflict_detected": false,
+        "blocking_condition_if_any": null,
+        "verdict": "RC-2 Review only",
+        "reason": "CLAUDE.md Sections 3.2 and 4 reference 'Layer 3' as a planned (not yet built) architectural concept. The claim is plausible but the role-correct primary source (SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md) has not been directly cited.",
+        "notes": "CLAUDE.md Section 3.2 lists planned components under 'Target Architecture (NOT YET BUILT)' and Section 4 defines Phase B as 'Layer 3 Bootstrap'. These are constitutional references. Architecture specification authority is SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md."
+      },
+      {
+        "claim_id": "RC-03",
+        "claim_text": "The term 'truth_store' is a valid architectural replacement for 'Layer 2' / 'Layer-2' across all canonical documentation.",
+        "claim_type": "architecture",
+        "required_primary_source": "SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md",
+        "provided_sources": [],
+        "role_match": false,
+        "strong_claim": true,
+        "explicit_citation_required": true,
+        "conflict_detected": true,
+        "blocking_condition_if_any": "No canonical document in the current-state set uses or defines 'truth_store' as a layer identifier. CLAUDE.md Section 16 states: if a statement cannot be traced to a canonical source AND cannot be proven from implementation, it MUST be treated as unverified and non-binding. The term 'truth_store' is absent from CLAUDE.md, from the canonical source list in Section 2.1, and is not cited from SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md.",
+        "verdict": "RC-4 Conflict requires block",
+        "reason": "Strong claim \u2014 asserts current architectural truth that 'truth_store' is the canonical replacement. Zero role-matched citations. CLAUDE.md Section 10 forbids strong claims without explicit proof. The replacement term is unverified under CLAUDE.md Section 16.",
+        "notes": "The term 'truth_store' does not appear in CLAUDE.md. No citation from SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md, SYSTEM_IMPLEMENTATION_RECORD_v1.md, SYSTEM_TECHNICAL_HANDBOOK_v1.md, or DOCUMENTATION_VERIFICATION_MATRIX_v1.md has been provided to authorize this term. Adopting it as a strict naming convention without canonical backing would violate CLAUDE.md Section 10 (Strong Claim Discipline) and Section 16 (Final Constitutional Rule)."
+      },
+      {
+        "claim_id": "RC-04",
+        "claim_text": "The term 'decision_layer' is a valid architectural replacement for 'Layer 3' / 'Layer-3' across all canonical documentation.",
+        "claim_type": "architecture",
+        "required_primary_source": "SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md",
+        "provided_sources": [],
+        "role_match": false,
+        "strong_claim": true,
+        "explicit_citation_required": true,
+        "conflict_detected": true,
+        "blocking_condition_if_any": "No canonical document in the current-state set uses or defines 'decision_layer' as a layer identifier. CLAUDE.md Section 16 applies. The term 'decision_layer' is absent from CLAUDE.md, from all canonical source roles, and from the provided upstream artifacts.",
+        "verdict": "RC-4 Conflict requires block",
+        "reason": "Strong claim \u2014 asserts current architectural truth that 'decision_layer' is the canonical replacement. Zero role-matched citations. CLAUDE.md Section 10 and Section 16 both apply: no canonical source authorizes this term.",
+        "notes": "The planned component in CLAUDE.md Section 3.2 referred to as 'Decision Engine' is distinct from a layer identifier. 'decision_layer' as a layer name is not traceable to any canonical document. CLAUDE.md Section 3 uses 'Layer 3' as the architectural identifier. Renaming to 'decision_layer' without SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md authorization is non-compliant."
+      },
+      {
+        "claim_id": "RC-05",
+        "claim_text": "README_LAYER2.md may require rename handling as part of this terminology refactor.",
+        "claim_type": "mixed",
+        "required_primary_source": "SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md (architecture subclaim) + README_LAYER2.md (collaborator_workflow subclaim) + SYSTEM_IMPLEMENTATION_RECORD_v1.md (implementation subclaim)",
+        "provided_sources": [],
+        "role_match": false,
+        "strong_claim": true,
+        "explicit_citation_required": true,
+        "conflict_detected": true,
+        "blocking_condition_if_any": "README_LAYER2.md is canonical for collaborator_workflow claims per CLAUDE.md Section 2.4. A decision to rename it is an architectural and implementation-state decision requiring SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md and SYSTEM_IMPLEMENTATION_RECORD_v1.md authorization. The CLAUDE.md Section 2.4 critical rule states: README_LAYER2.md MUST NOT be used to overrule more role-specific canonical documents on implementation state, architecture boundaries, or limitations. A rename decision cannot originate from within README_LAYER2.md itself for the same reason.",
+        "verdict": "RC-4 Conflict requires block",
+        "reason": "Mixed claim requiring decomposition. Architecture subclaim (should the canonical layer name in the filename change?) requires SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md. Implementation subclaim (is README_LAYER2.md currently an implementation artifact that must remain stable?) requires SYSTEM_IMPLEMENTATION_RECORD_v1.md. Neither has been cited. The rename_invariance requirement (per request text) has not been evaluated against role-correct sources.",
+        "notes": "The filename 'README_LAYER2.md' encodes the canonical layer naming convention. If 'Layer 2' remains the canonical architectural term (as it does under current canonical documentation), the filename must also remain unchanged. Renaming it implies accepting RC-03's blocked 'truth_store' substitution, which is itself blocked. This creates a dependency chain: RC-05 cannot proceed until RC-03 is resolved with role-matched evidence."
+      },
+      {
+        "claim_id": "RC-06",
+        "claim_text": "The rename must be enforced as a strict naming convention only where the terms refer to the project's architectural layers (not code module names, import paths, or historical references).",
+        "claim_type": "technical_constraint",
+        "required_primary_source": "SYSTEM_TECHNICAL_HANDBOOK_v1.md",
+        "provided_sources": [
+          "CLAUDE.md Section 8",
+          "CLAUDE.md Section 10"
+        ],
+        "role_match": true,
+        "strong_claim": false,
+        "explicit_citation_required": false,
+        "conflict_detected": false,
+        "blocking_condition_if_any": null,
+        "verdict": "RC-1 Compliant",
+        "reason": "This is a procedural constraint on how the refactor should be applied, not a strong architectural truth claim. It is consistent with CLAUDE.md Section 8 (Registry as single source of truth \u2014 no hardcoded logic), Section 10 (Strong Claim Discipline), and general fail-closed principles. The constraint is internally consistent with canonical rules.",
+        "notes": "The requirement to exclude code module names, import paths, and historical references from blind rename is compatible with CLAUDE.md Section 2.3 (historical sources must not be treated as current truth) and code-conventions.md (explicit imports, no hidden side effects). This procedural guard is sound. It does not resolve the blocked substantive claims (RC-03, RC-04, RC-05)."
+      },
+      {
+        "claim_id": "RC-07",
+        "claim_text": "The rename would fail closed if it introduces ambiguity, architecture drift, or snapshot-boundary confusion.",
+        "claim_type": "limitation",
+        "required_primary_source": "SYSTEM_LIMITATIONS_AND_APPROXIMATIONS_v1.md",
+        "provided_sources": [
+          "CLAUDE.md Section 7",
+          "CLAUDE.md Section 6"
+        ],
+        "role_match": true,
+        "strong_claim": false,
+        "explicit_citation_required": false,
+        "conflict_detected": false,
+        "blocking_condition_if_any": null,
+        "verdict": "RC-1 Compliant",
+        "reason": "Fail-closed behavior is mandated by CLAUDE.md Section 7 (Fail-Closed Principle) and Section 6 (Snapshot Contract). The request's fail-closed guard is consistent with the system's constitutional obligations. This is a process constraint, not a strong current-state claim.",
+        "notes": "CLAUDE.md Section 7 requires 'NO OUTPUT rather than incorrect output' for invalid states or unverified assumptions. The fail-closed trigger condition in the request is correctly stated. The verification of what constitutes 'ambiguity' or 'architecture drift' would ultimately require SYSTEM_LIMITATIONS_AND_APPROXIMATIONS_v1.md and SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md for any specific determination."
+      },
+      {
+        "claim_id": "RC-08",
+        "claim_text": "The terminology refactor constitutes a 'contract-affecting change' requiring canonical document review obligations.",
+        "claim_type": "governance",
+        "required_primary_source": "CLAUDE.md Section 11 + system-orchestration.yaml",
+        "provided_sources": [
+          "CLAUDE.md Section 11"
+        ],
+        "role_match": true,
+        "strong_claim": true,
+        "explicit_citation_required": true,
+        "conflict_detected": false,
+        "blocking_condition_if_any": null,
+        "verdict": "RC-1 Compliant",
+        "reason": "CLAUDE.md Section 11 defines 'contract-affecting change' obligations. A documentation-wide terminology refactor replacing architectural layer identifiers across all Documentation/ files and CLAUDE.md itself is unambiguously contract-affecting. All review obligations in CLAUDE.md Section 11 would apply: README_v1.md, SYSTEM_TECHNICAL_HANDBOOK_v1.md, SYSTEM_LIMITATIONS_AND_APPROXIMATIONS_v1.md, DOCUMENTATION_VERIFICATION_MATRIX_v1.md, SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md, SYSTEM_IMPLEMENTATION_RECORD_v1.md, and README_LAYER2.md.",
+        "notes": "CLAUDE.md Section 15 further requires that all governed actions be subject to orchestration-based workflow enforcement. The governance_context confirms workflow_name: 'mr-ripley-governance-orchestration'. This claim is correctly grounded in governance authority."
+      }
+    ],
+    "summary": {
+      "role_mismatch_detected": true,
+      "canonical_conflict_unresolved": true,
+      "readme_layer2_used_as_override": false,
+      "requires_conflict_note": true,
+      "requires_doc_sync_escalation": true,
+      "recommended_guard_action": "block",
+      "blocking_claims": [
+        "RC-03",
+        "RC-04",
+        "RC-05"
+      ],
+      "compliant_claims": [
+        "RC-06",
+        "RC-07",
+        "RC-08"
+      ],
+      "review_only_claims": [
+        "RC-01",
+        "RC-02"
+      ],
+      "escalation_target": "canonical-role-auditor",
+      "escalation_reason": "role_mismatch_for_strong_claim detected on RC-03 and RC-04: the proposed replacement terms 'truth_store' and 'decision_layer' are not traceable to any canonical document and cannot be confirmed as valid architectural identifiers. RC-05 creates a dependent block on README_LAYER2.md rename handling.",
+      "notes": "The two substantive renaming claims (RC-03: 'truth_store' replaces 'Layer 2'; RC-04: 'decision_layer' replaces 'Layer 3') are both RC-4 blocked because neither replacement term appears in any canonical current-state document (CLAUDE.md, SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md, SYSTEM_IMPLEMENTATION_RECORD_v1.md, or SYSTEM_TECHNICAL_HANDBOOK_v1.md). Under CLAUDE.md Section 16, these terms must be treated as unverified and non-binding until they are introduced into canonical documentation through a compliant change process. The procedural safeguards in the request (RC-06: selective application; RC-07: fail-closed guard; RC-08: contract-change obligations) are all compliant and correctly stated. However, compliant process rules cannot unlock substantively unverified claims. The rename cannot proceed until the replacement terms are authorized in SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md and SYSTEM_IMPLEMENTATION_RECORD_v1.md through a prior, separate, role-matched update cycle."
+    }
+  }
+}

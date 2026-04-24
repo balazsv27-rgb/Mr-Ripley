@@ -1,0 +1,99 @@
+{
+  "artifact": "adapter_schema_verdict",
+  "produced_by": "adapter-schema-check",
+  "session": "0d648263-e690-487c-becc-6d2529611946",
+  "timestamp": "2026-04-24T16:11:32.758179Z",
+  "data": {
+    "produced_by": "adapter-schema-check",
+    "overall_status": "ambiguous_requires_review",
+    "inference_used": true,
+    "checked_items": [
+      {
+        "item_id": "registry-compliance",
+        "target": "layer2/adapters/* (all adapters)",
+        "assessment": "review",
+        "registry_driven": null,
+        "hardcoded_series_detected": null,
+        "schema_drift_detected": null,
+        "boundary_fit": null,
+        "affected_files": [
+          "layer2/adapters/"
+        ],
+        "missing_inputs": [
+          "adapter source files (not readable in current environment)",
+          "layer2/config/series_registry.json",
+          "layer2/db.py"
+        ],
+        "reason": "Adapter source code could not be inspected. Code inspection tools (Read, Grep, Glob, Bash) are unavailable in this execution context. Per skill rules, compliant status cannot be asserted without code evidence. All registry-compliance, hardcoding, and schema dimensions remain unverifiable.",
+        "canonical_source": "SYSTEM_TECHNICAL_HANDBOOK_v1.md",
+        "notes": [
+          "Upstream runtime_boundary_verdict reports code_inspection_possible: false \u2014 this is an inherited constraint.",
+          "No positive or negative evidence for get_registry() usage is available.",
+          "Cannot confirm or deny INSERT OR IGNORE discipline."
+        ]
+      },
+      {
+        "item_id": "boundary-fit-inherited",
+        "target": "runtime boundary inherited signal",
+        "assessment": "review",
+        "registry_driven": null,
+        "hardcoded_series_detected": null,
+        "schema_drift_detected": null,
+        "boundary_fit": null,
+        "affected_files": [],
+        "missing_inputs": [
+          "runtime_boundary_verdict.overall_boundary_status (null in upstream)",
+          "escalation_required field (null in upstream)"
+        ],
+        "reason": "Upstream runtime_boundary_verdict carries boundary_violation_suspected: true with overall_boundary_status: null. This signals a suspected but unconfirmed boundary breach. Because adapter schema compliance depends on a clean boundary verdict, this ambiguity propagates into the adapter schema assessment.",
+        "canonical_source": "SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md",
+        "notes": [
+          "source_authority_conflict_detected: true inherited from upstream \u2014 suggests README_LAYER2.md may have been cited for an implementation or architecture claim in a prior step.",
+          "requires_doc_code_sync_review: true inherited from upstream."
+        ]
+      },
+      {
+        "item_id": "schema-discipline",
+        "target": "observations table write discipline (INSERT OR IGNORE)",
+        "assessment": "review",
+        "registry_driven": null,
+        "hardcoded_series_detected": null,
+        "schema_drift_detected": null,
+        "boundary_fit": null,
+        "affected_files": [
+          "layer2/db.py",
+          "layer2/adapters/"
+        ],
+        "missing_inputs": [
+          "layer2/db.py schema definition",
+          "adapter write paths"
+        ],
+        "reason": "Cannot verify INSERT OR IGNORE vs INSERT OR REPLACE discipline without reading adapter write paths. Schema fields (series_id, obs_ts, as_of_ts, value, revision_seq, source, ingested_at) and PK compliance are unverifiable in this context.",
+        "canonical_source": "SYSTEM_TECHNICAL_HANDBOOK_v1.md",
+        "notes": [
+          "code-conventions.md forbids INSERT OR REPLACE absolutely \u2014 any violation would be a schema_drift finding if code could be read."
+        ]
+      }
+    ],
+    "summary": {
+      "registry_violation_detected": false,
+      "hardcoded_series_detected": false,
+      "schema_drift_detected": false,
+      "boundary_violation_detected": false,
+      "boundary_violation_suspected_inherited": true,
+      "requires_adapter_schema_guard": true,
+      "requires_adapter_schema_guardian": true,
+      "requires_doc_code_sync_review": true,
+      "source_authority_conflict_detected": true,
+      "notes": [
+        "All boolean violation flags are false because no code evidence was available \u2014 false here means unconfirmed, NOT cleared.",
+        "requires_adapter_schema_guard: true because overall_status is ambiguous_requires_review.",
+        "requires_adapter_schema_guardian: true because code evidence is unavailable for all material compliance dimensions.",
+        "requires_doc_code_sync_review: true inherited from upstream runtime_boundary_verdict.",
+        "source_authority_conflict_detected: true inherited from upstream runtime_boundary_verdict.",
+        "boundary_violation_suspected_inherited: true \u2014 propagated from runtime_boundary_verdict; adapter schema compliance cannot be confirmed until boundary status is resolved.",
+        "Escalation to adapter-schema-guardian is warranted before any adapter-touching changes are merged or approved."
+      ]
+    }
+  }
+}

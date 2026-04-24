@@ -1,0 +1,272 @@
+{
+  "artifact": "doc_code_sync_status",
+  "produced_by": "doc-code-sync-check",
+  "session": "0d648263-e690-487c-becc-6d2529611946",
+  "timestamp": "2026-04-24T16:18:21.225297Z",
+  "data": {
+    "produced_by": "doc-code-sync-check",
+    "overall_status": "ambiguous_requires_review",
+    "inference_used": true,
+    "checked_items": [
+      {
+        "item_id": "SYNC-001",
+        "target": "governance/dag_runner/prompt_assembly.py \u2014 code change vs canonical documentation",
+        "assessment": "warning",
+        "doc_code_drift_detected": true,
+        "doc_runtime_drift_detected": false,
+        "implementation_record_mismatch": true,
+        "snapshot_field_mismatch": false,
+        "affected_docs": [
+          "SYSTEM_IMPLEMENTATION_RECORD_v1.md",
+          "SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md",
+          "DOCUMENTATION_VERIFICATION_MATRIX_v1.md"
+        ],
+        "affected_code_or_runtime_artifacts": [
+          "governance/dag_runner/prompt_assembly.py"
+        ],
+        "missing_inputs": [
+          "canonical doc content reads (Read tool unavailable \u2014 inference used)",
+          "implementation record current text"
+        ],
+        "reason": "prompt_assembly.py is modified on dag_refactor branch. The change_impact_report flags governance_workflow and skill_registry as impacted components. SYSTEM_IMPLEMENTATION_RECORD_v1.md must reflect any change to prompt assembly behavior if it is a governed workflow artifact. No doc update evidence is available to confirm this was captured. inference_used because file content could not be read.",
+        "canonical_source": "SYSTEM_IMPLEMENTATION_RECORD_v1.md",
+        "notes": [
+          "Read tool unavailable \u2014 all content comparisons inferred from git status and upstream artifact metadata",
+          "Heightened caution applied per skill rules: inference_used triggers fail-closed posture"
+        ]
+      },
+      {
+        "item_id": "SYNC-002",
+        "target": "tests/governance/test_prompt_assembly.py \u2014 test change vs doc update plan",
+        "assessment": "review",
+        "doc_code_drift_detected": false,
+        "doc_runtime_drift_detected": false,
+        "implementation_record_mismatch": false,
+        "snapshot_field_mismatch": false,
+        "affected_docs": [
+          "DOCUMENTATION_VERIFICATION_MATRIX_v1.md"
+        ],
+        "affected_code_or_runtime_artifacts": [
+          "tests/governance/test_prompt_assembly.py"
+        ],
+        "missing_inputs": [
+          "test file content (Read tool unavailable)"
+        ],
+        "reason": "Test file modification accompanies prompt_assembly.py change. Test coverage changes that expand or restrict what is considered compliant behavior may implicitly affect the verification claims in DOCUMENTATION_VERIFICATION_MATRIX_v1.md. Cannot confirm without reading file content.",
+        "canonical_source": "DOCUMENTATION_VERIFICATION_MATRIX_v1.md",
+        "notes": [
+          "Classified review rather than warning because tests rarely constitute a contract-affecting change by themselves \u2014 but the pairing with prompt_assembly.py elevates scrutiny"
+        ]
+      },
+      {
+        "item_id": "SYNC-003",
+        "target": ".claude/skills/doc-code-sync-rules/SKILL.md \u2014 skill definition vs workflow contract",
+        "assessment": "review",
+        "doc_code_drift_detected": false,
+        "doc_runtime_drift_detected": false,
+        "implementation_record_mismatch": false,
+        "snapshot_field_mismatch": false,
+        "affected_docs": [
+          "system-orchestration.yaml",
+          "DOCUMENTATION_VERIFICATION_MATRIX_v1.md"
+        ],
+        "affected_code_or_runtime_artifacts": [
+          ".claude/skills/doc-code-sync-rules/SKILL.md"
+        ],
+        "missing_inputs": [
+          "skill file content before/after (Read tool unavailable)",
+          "system-orchestration.yaml current binding"
+        ],
+        "reason": "SKILL.md is modified. If skill contract (inputs, outputs, schema, decision rules) changed, system-orchestration.yaml must be reviewed to confirm the bound workflow step references remain valid. The doc_update_plan lists system-orchestration.yaml as medium-priority review. Cannot confirm whether skill changes are consistent with workflow binding.",
+        "canonical_source": "DOCUMENTATION_VERIFICATION_MATRIX_v1.md",
+        "notes": [
+          "Skill file changes are governance artifacts \u2014 they affect the enforcement layer described in CLAUDE.md Section 15"
+        ]
+      },
+      {
+        "item_id": "SYNC-004",
+        "target": ".claude/skills/verification-matrix-update-method/SKILL.md \u2014 skill definition vs workflow contract",
+        "assessment": "review",
+        "doc_code_drift_detected": false,
+        "doc_runtime_drift_detected": false,
+        "implementation_record_mismatch": false,
+        "snapshot_field_mismatch": false,
+        "affected_docs": [
+          "system-orchestration.yaml",
+          "DOCUMENTATION_VERIFICATION_MATRIX_v1.md"
+        ],
+        "affected_code_or_runtime_artifacts": [
+          ".claude/skills/verification-matrix-update-method/SKILL.md"
+        ],
+        "missing_inputs": [
+          "skill file content before/after (Read tool unavailable)"
+        ],
+        "reason": "verification-matrix-update-method SKILL.md is modified. This skill directly governs how the DOCUMENTATION_VERIFICATION_MATRIX_v1.md is updated \u2014 a canonical document. Any change to update method rules must be reflected in the matrix's own verification procedures.",
+        "canonical_source": "DOCUMENTATION_VERIFICATION_MATRIX_v1.md",
+        "notes": [
+          "Higher sensitivity than doc-code-sync-rules/SKILL.md because this skill's output feeds directly into the canonical verification matrix"
+        ]
+      },
+      {
+        "item_id": "SYNC-005",
+        "target": "Terminology shift 'Layer 2' \u2192 'truth_store' \u2014 snapshot boundary contract language",
+        "assessment": "warning",
+        "doc_code_drift_detected": true,
+        "doc_runtime_drift_detected": true,
+        "implementation_record_mismatch": false,
+        "snapshot_field_mismatch": false,
+        "affected_docs": [
+          "CLAUDE.md",
+          "SYSTEM_TECHNICAL_HANDBOOK_v1.md",
+          "SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md",
+          "SYSTEM_LIMITATIONS_AND_APPROXIMATIONS_v1.md",
+          "README_v1.md",
+          "README_LAYER2.md",
+          "DOCUMENTATION_VERIFICATION_MATRIX_v1.md"
+        ],
+        "affected_code_or_runtime_artifacts": [
+          "governance/dag_runner/prompt_assembly.py",
+          "layer2/config/series_registry.json",
+          "layer2/alignment.py",
+          "layer2/db.py"
+        ],
+        "missing_inputs": [
+          "confirmation of whether 'truth_store' terminology appears in code artifacts",
+          "alias_map implementation (rename_controls in doc_update_plan requires alias_map_required)"
+        ],
+        "reason": "The change_impact_report (B2) flags boundary_violation_suspected and snapshot_bypass_risk as true due to proposed 'truth_store' rename. CLAUDE.md Section 6 uses 'Layer 2' / 'Layer 3' terminology directly tied to the snapshot boundary contract. A doc-only rename without confirming all code artifacts (db.py table references, snapshot generation logic, registry keys) continue to use consistent naming constitutes doc-ahead drift \u2014 docs would claim a terminology that code does not yet implement.",
+        "canonical_source": "SYSTEM_TECHNICAL_HANDBOOK_v1.md",
+        "notes": [
+          "rename_controls in doc_update_plan sets alias_map_required: true \u2014 this is a prerequisite gate, not yet satisfied",
+          "identity_continuity_required: true per doc_update_plan \u2014 cannot pass sync until confirmed"
+        ]
+      },
+      {
+        "item_id": "SYNC-006",
+        "target": "Terminology 'decision_layer' \u2014 implementation claim vs CLAUDE.md Section 10 strong-claim discipline",
+        "assessment": "warning",
+        "doc_code_drift_detected": false,
+        "doc_runtime_drift_detected": true,
+        "implementation_record_mismatch": true,
+        "snapshot_field_mismatch": false,
+        "affected_docs": [
+          "SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md",
+          "SYSTEM_IMPLEMENTATION_RECORD_v1.md",
+          "CLAUDE.md"
+        ],
+        "affected_code_or_runtime_artifacts": [],
+        "missing_inputs": [
+          "confirmation that 'decision_layer' does not appear in code artifacts as an operational identifier"
+        ],
+        "reason": "The change_impact_report (B4) flags live_readiness_implication_detected: true for 'decision_layer' naming. CLAUDE.md Section 10 explicitly forbids the claim 'Decisions are automated' or any claim implying execution capability. CLAUDE.md Section 3.2 lists Decision Engine as 'planned only'. If canonical docs adopt 'decision_layer' as a label before Phase D gate is satisfied, this constitutes doc-ahead drift with a forbidden strong claim.",
+        "canonical_source": "SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md",
+        "notes": [
+          "phase_alignment_status block (B4 from change_impact_report) is inherited here",
+          "Allowed language per CLAUDE.md Section 10: 'planned', 'target architecture', 'not yet implemented'"
+        ]
+      },
+      {
+        "item_id": "SYNC-007",
+        "target": "doc_update_plan \u2014 required updates vs plan_status null",
+        "assessment": "warning",
+        "doc_code_drift_detected": true,
+        "doc_runtime_drift_detected": false,
+        "implementation_record_mismatch": false,
+        "snapshot_field_mismatch": false,
+        "affected_docs": [
+          "CLAUDE.md",
+          "README_v1.md",
+          "SYSTEM_TECHNICAL_HANDBOOK_v1.md",
+          "SYSTEM_LIMITATIONS_AND_APPROXIMATIONS_v1.md",
+          "SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md",
+          "DOCUMENTATION_VERIFICATION_MATRIX_v1.md",
+          "SYSTEM_IMPLEMENTATION_RECORD_v1.md",
+          "README_LAYER2.md"
+        ],
+        "affected_code_or_runtime_artifacts": [],
+        "missing_inputs": [
+          "plan_status confirmation (currently null)",
+          "evidence that any of the eight high-priority doc updates have been completed"
+        ],
+        "reason": "doc_update_plan.plan_status is null \u2014 this means the plan exists but no completion status has been recorded. All eight high-priority doc updates are listed as required. Per CLAUDE.md Section 11, code changes without documentation alignment are invalid. The presence of code changes (prompt_assembly.py) paired with a null-status doc plan constitutes an unresolved doc update obligation.",
+        "canonical_source": "CLAUDE.md",
+        "notes": [
+          "CLAUDE.md Section 11 is the governing rule",
+          "null plan_status is treated as incomplete, not as pending \u2014 fail-closed posture"
+        ]
+      },
+      {
+        "item_id": "SYNC-008",
+        "target": "Snapshot field terminology \u2014 doc claims vs SYSTEM_TECHNICAL_HANDBOOK_v1.md governed fields",
+        "assessment": "review",
+        "doc_code_drift_detected": false,
+        "doc_runtime_drift_detected": false,
+        "implementation_record_mismatch": false,
+        "snapshot_field_mismatch": false,
+        "affected_docs": [
+          "SYSTEM_TECHNICAL_HANDBOOK_v1.md",
+          "DOCUMENTATION_VERIFICATION_MATRIX_v1.md"
+        ],
+        "affected_code_or_runtime_artifacts": [
+          "layer2/db.py"
+        ],
+        "missing_inputs": [
+          "canonical doc content for snapshot field definitions",
+          "db.py current schema (Read tool unavailable)"
+        ],
+        "reason": "No snapshot field name changes are identified in the upstream artifacts for this session. The 'truth_store' rename (SYNC-005) does not appear to touch governed snapshot table field names (snapshot_id, clock_ts, etc.) directly. Classified review rather than warning pending confirmation that no field-level renames are included in prompt_assembly.py or db.py changes.",
+        "canonical_source": "SYSTEM_TECHNICAL_HANDBOOK_v1.md",
+        "notes": [
+          "Would require db.py read to fully clear \u2014 marking review pending artifact access"
+        ]
+      },
+      {
+        "item_id": "SYNC-009",
+        "target": "role_citation_verdict \u2014 six blocked claims (C-001, C-002, C-003, C-005, C-007, C-008)",
+        "assessment": "warning",
+        "doc_code_drift_detected": true,
+        "doc_runtime_drift_detected": false,
+        "implementation_record_mismatch": false,
+        "snapshot_field_mismatch": false,
+        "affected_docs": [
+          "CLAUDE.md",
+          "SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md",
+          "SYSTEM_TECHNICAL_HANDBOOK_v1.md",
+          "README_v1.md",
+          "SYSTEM_IMPLEMENTATION_RECORD_v1.md",
+          "SYSTEM_LIMITATIONS_AND_APPROXIMATIONS_v1.md"
+        ],
+        "affected_code_or_runtime_artifacts": [],
+        "missing_inputs": [
+          "role_citation_verdict artifact (deleted from prior session)",
+          "resolved claim classification for C-001 through C-008"
+        ],
+        "reason": "The change_impact_report (B1) states all six claims are blocked due to source_authority_conflict_detected and canonical_conflict_unresolved. Four are RC-4 conflict_requires_block. Until role citation is resolved, any documentation changes that touch these claims cannot be verified as in-sync \u2014 they remain in conflict. This is a direct upstream block on doc-code sync determination.",
+        "canonical_source": "CLAUDE.md",
+        "notes": [
+          "role_citation_verdict artifact was deleted (D marker in git status for prior session)",
+          "B1 block is inherited into this sync check \u2014 cannot be cleared here",
+          "All claims in conflict scope must be resolved by canonical-role-auditor before doc-code sync can advance"
+        ]
+      }
+    ],
+    "summary": {
+      "doc_update_required": true,
+      "runtime_overclaim_detected": true,
+      "implementation_record_mismatch_detected": true,
+      "snapshot_field_mismatch_detected": false,
+      "requires_doc_code_sync_guard": true,
+      "requires_doc_code_sync_auditor": true,
+      "requires_verification_followup": true,
+      "source_authority_conflict_detected": true,
+      "notes": [
+        "Read tool unavailable \u2014 all file content comparisons inferred from git status, upstream artifact metadata, and CLAUDE.md constitutional rules. inference_used: true applies to all items.",
+        "doc_update_plan.plan_status is null \u2014 eight high-priority canonical doc updates are unconfirmed. CLAUDE.md Section 11 makes these mandatory.",
+        "Terminology proposals ('truth_store', 'decision_layer') flagged as potential doc-ahead drift against code state and as potential strong-claim violations (CLAUDE.md Section 10).",
+        "rename_controls prerequisites (alias_map_required, identity_continuity_required, reference_update_required, invariance_check_required) are all true in doc_update_plan but none confirmed satisfied.",
+        "Upstream blocks B1\u2013B4 from change_impact_report are inherited into this sync verdict \u2014 they are not resolved here.",
+        "overall_status set to ambiguous_requires_review because: (a) artifact reads were unavailable, (b) multiple upstream blocks are unresolved, (c) doc_update_plan.plan_status is null. Fail-closed posture applied."
+      ]
+    }
+  }
+}

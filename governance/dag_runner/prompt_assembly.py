@@ -729,6 +729,314 @@ def _compact_adapter_schema_for_deep_audit(
     return compact
 
 
+# ---------------------------------------------------------------------------
+# Doc-code-sync-check compact transform projections
+# ---------------------------------------------------------------------------
+# Deep structural transforms for doc-code-sync-check.  These retain only
+# sync-validation-relevant fields from upstream change_impact_report and
+# doc_update_plan artifacts, dropping verbose narratives and long notes.
+
+
+def _compact_change_impact_for_doc_code_sync(
+    payload: dict[str, Any],
+) -> dict[str, Any]:
+    """Extract compact doc-code-sync projection from change_impact_report.
+
+    Retains governance-relevant impact summary, impacted components/docs,
+    risk summary (capped), and sync-relevant flags.  Drops long narrative
+    notes, full explanation text, and unchanged wrapper body.
+
+    Supports two schema shapes:
+    - wrapped: ``payload["change_impact_summary"]`` containing impact fields
+    - flat: impact fields directly on ``payload``
+    """
+    cis = payload.get("change_impact_summary")
+    if cis is not None:
+        root = cis
+    else:
+        # Flat shape — must have at least impact_type or change_mode
+        if "impact_type" not in payload and "change_mode" not in payload:
+            return payload  # structural/minimal — pass through
+        root = payload
+
+    compact: dict[str, Any] = {
+        "produced_by": root.get("produced_by") or payload.get("produced_by"),
+        "change_mode": root.get("change_mode"),
+        "impact_type": root.get("impact_type"),
+        "contributing_categories": root.get("contributing_categories"),
+        "impacted_components": root.get("impacted_components"),
+        "impacted_docs": root.get("impacted_docs"),
+        "follow_up_required": root.get("follow_up_required"),
+    }
+
+    # Risk summary — cap to first 5 entries
+    risk = root.get("risk_summary")
+    if isinstance(risk, list):
+        compact["risk_summary"] = risk[:5]
+    elif risk is not None:
+        compact["risk_summary"] = risk
+
+    # Sync-relevant flags — derive from root if present
+    srf: dict[str, Any] = {}
+    for key in (
+        "doc_only_change",
+        "code_path_governance_required",
+        "verification_update_required",
+        "canonical_docs_impacted",
+    ):
+        val = root.get(key)
+        if val is not None:
+            srf[key] = val
+    if srf:
+        compact["sync_relevant_flags"] = srf
+
+    return compact
+
+
+def _compact_doc_update_plan_for_doc_code_sync(
+    payload: dict[str, Any],
+) -> dict[str, Any]:
+    """Extract compact doc-code-sync projection from doc_update_plan.
+
+    Retains plan status, compact required updates and verification actions,
+    rename controls, code path governance status, and capped resolution
+    prerequisites.  Drops long reason fields, rationale text, and verbose prose.
+
+    Supports two schema shapes:
+    - wrapped: ``payload["doc_update_plan"]`` containing plan fields
+    - flat: plan fields directly on ``payload``
+    """
+    dup = payload.get("doc_update_plan")
+    if dup is not None:
+        root = dup
+    else:
+        if "plan_status" not in payload and "required_updates" not in payload:
+            return payload  # structural/minimal — pass through
+        root = payload
+
+    compact: dict[str, Any] = {
+        "produced_by": root.get("produced_by") or payload.get("produced_by"),
+        "plan_status": root.get("plan_status"),
+    }
+
+    # Compact required_updates — keep only artifact, update_type, priority
+    raw_updates = root.get("required_updates")
+    if isinstance(raw_updates, list):
+        compact["required_updates"] = [
+            {k: u[k] for k in ("artifact", "update_type", "priority") if k in u}
+            for u in raw_updates
+        ]
+
+    # Compact verification_actions — keep only artifact, action
+    raw_actions = root.get("verification_actions")
+    if isinstance(raw_actions, list):
+        compact["verification_actions"] = [
+            {k: a[k] for k in ("artifact", "action") if k in a}
+            for a in raw_actions
+        ]
+
+    # Rename controls — drop rationale
+    rc = root.get("rename_controls")
+    if isinstance(rc, dict):
+        compact["rename_controls"] = {
+            k: v for k, v in rc.items() if k != "rename_controls_rationale"
+        }
+    elif rc is not None:
+        compact["rename_controls"] = rc
+
+    # Code path governance — keep status and affected_paths, drop reason
+    cpg = root.get("code_path_governance")
+    if isinstance(cpg, dict):
+        compact["code_path_governance"] = {
+            "status": cpg.get("status"),
+            "affected_paths": cpg.get("affected_paths"),
+        }
+
+    # Resolution prerequisites — cap to first 5
+    rp = root.get("resolution_prerequisites")
+    if isinstance(rp, list):
+        compact["resolution_prerequisites"] = rp[:5]
+
+    return compact
+
+
+# ---------------------------------------------------------------------------
+# Update-verification-matrix compact transform projections
+# ---------------------------------------------------------------------------
+# The update-verification-matrix step consumes audit_summary,
+# change_impact_report, and doc_code_sync_status.  Each transform retains
+# only matrix-classification-relevant fields, dropping long narratives and
+# per-item findings.
+
+
+def _compact_audit_summary_for_verification_matrix(
+    payload: dict[str, Any],
+) -> dict[str, Any]:
+    """Extract compact matrix-update projection from audit_summary.
+
+    Retains overall audit status, violation counts, dispatched subagents,
+    compact upstream violations, and critical path.  Drops subagent_findings
+    narratives, dispatch_evaluation explanations, and expected_audit_scope prose.
+
+    Supports wrapped (``payload["audit_summary"]``) and flat schemas.
+    """
+    root = payload.get("audit_summary", payload)
+
+    # Detect structural/minimal payload
+    if (
+        "overall_audit_status" not in root
+        and "fail_closed_applied" not in root
+    ):
+        return payload
+
+    compact: dict[str, Any] = {
+        "produced_by": root.get("produced_by") or payload.get("produced_by"),
+        "overall_audit_status": root.get("overall_audit_status"),
+        "fail_closed_applied": root.get("fail_closed_applied"),
+        "dag_advancement_blocked": root.get("dag_advancement_blocked"),
+        "unresolved_violations_count": root.get("unresolved_violations_count"),
+        "blocking_violations_count": root.get("blocking_violations_count"),
+        "review_required_violations_count": root.get(
+            "review_required_violations_count",
+        ),
+        "dispatched_subagents": root.get("dispatched_subagents"),
+        "critical_path": root.get("critical_path"),
+    }
+
+    # Compact upstream_violations_consolidated — keep only routing-relevant fields
+    uvc = root.get("upstream_violations_consolidated")
+    if isinstance(uvc, list):
+        compact["upstream_violations_consolidated"] = [
+            {
+                k: v.get(k) if isinstance(v, dict) else None
+                for k in (
+                    "id", "source", "status", "blocking",
+                    "review_required", "routed_to",
+                )
+            }
+            for v in uvc
+            if isinstance(v, dict)
+        ][:20]  # cap at 20
+
+    # audit_resolution_required — cap at 10
+    arr = root.get("audit_resolution_required")
+    if isinstance(arr, list):
+        compact["audit_resolution_required"] = arr[:10]
+
+    return compact
+
+
+def _compact_change_impact_for_verification_matrix(
+    payload: dict[str, Any],
+) -> dict[str, Any]:
+    """Extract compact matrix-update projection from change_impact_report.
+
+    Retains impact classification, impacted docs/components, follow-up status,
+    capped risk summary, and matrix-relevant flags.  Drops long notes and
+    repeated rationale.
+
+    Supports wrapped (``payload["change_impact_summary"]``) and flat schemas.
+    """
+    cis = payload.get("change_impact_summary")
+    if cis is not None:
+        root = cis
+    else:
+        if "impact_type" not in payload and "change_mode" not in payload:
+            return payload  # structural/minimal — pass through
+        root = payload
+
+    compact: dict[str, Any] = {
+        "produced_by": root.get("produced_by") or payload.get("produced_by"),
+        "change_mode": root.get("change_mode"),
+        "impact_type": root.get("impact_type"),
+        "contributing_categories": root.get("contributing_categories"),
+        "impacted_components": root.get("impacted_components"),
+        "impacted_docs": root.get("impacted_docs"),
+        "follow_up_required": root.get("follow_up_required"),
+    }
+
+    # Risk summary — cap to 5
+    risk = root.get("risk_summary")
+    if isinstance(risk, list):
+        compact["risk_summary"] = risk[:5]
+    elif risk is not None:
+        compact["risk_summary"] = risk
+
+    # Matrix-relevant flags
+    mrf: dict[str, Any] = {}
+    for key in (
+        "verification_update_required",
+        "canonical_docs_impacted",
+        "constitutional_doc_impacted",
+        "blocked_change",
+    ):
+        val = root.get(key)
+        if val is not None:
+            mrf[key] = val
+    if mrf:
+        compact["matrix_relevant_flags"] = mrf
+
+    return compact
+
+
+def _compact_doc_code_sync_for_verification_matrix(
+    payload: dict[str, Any],
+) -> dict[str, Any]:
+    """Extract compact matrix-update projection from doc_code_sync_status.
+
+    Retains sync status, drift detection flags, impacted docs/code paths,
+    and matrix-update relevance.  Drops checked_items narratives, per-file
+    notes, and full evidence bodies.
+
+    Supports wrapped (``payload["doc_code_sync_status"]``) and flat schemas.
+    """
+    root = payload.get("doc_code_sync_status", payload)
+
+    # Detect structural/minimal payload
+    status_keys = ("overall_status", "sync_status", "status", "drift_detected")
+    if not any(k in root for k in status_keys):
+        return payload
+
+    compact: dict[str, Any] = {
+        "produced_by": root.get("produced_by") or payload.get("produced_by"),
+    }
+
+    # Status — try multiple field names
+    for sk in ("overall_status", "sync_status", "status"):
+        val = root.get(sk)
+        if val is not None:
+            compact[sk] = val
+
+    # Drift and alignment flags
+    for key in (
+        "drift_detected",
+        "docs_changed_without_code",
+        "code_changed_without_docs",
+        "doc_code_alignment_status",
+        "follow_up_required",
+        "verification_matrix_update_required",
+    ):
+        val = root.get(key)
+        if val is not None:
+            compact[key] = val
+
+    # Impacted docs and code paths
+    for key in ("impacted_docs", "impacted_code_paths"):
+        val = root.get(key)
+        if val is not None:
+            compact[key] = val
+
+    # Blocking reasons and required actions — cap at 5
+    for key in ("blocking_reasons", "required_actions"):
+        val = root.get(key)
+        if isinstance(val, list):
+            compact[key] = val[:5]
+        elif val is not None:
+            compact[key] = val
+
+    return compact
+
+
 # Transform-based projections — step_name → {artifact_name → transform_fn}.
 # Applied before field-list projections in _project_artifact_payload.
 _STEP_INPUT_TRANSFORMS: dict[str, dict[str, Any]] = {
@@ -753,6 +1061,15 @@ _STEP_INPUT_TRANSFORMS: dict[str, dict[str, Any]] = {
         "contract_compliance_verdict": _compact_contract_compliance_for_deep_audit,
         "runtime_boundary_verdict": _compact_runtime_boundary_for_deep_audit,
         "adapter_schema_verdict": _compact_adapter_schema_for_deep_audit,
+    },
+    "doc-code-sync-check": {
+        "change_impact_report": _compact_change_impact_for_doc_code_sync,
+        "doc_update_plan": _compact_doc_update_plan_for_doc_code_sync,
+    },
+    "update-verification-matrix": {
+        "audit_summary": _compact_audit_summary_for_verification_matrix,
+        "change_impact_report": _compact_change_impact_for_verification_matrix,
+        "doc_code_sync_status": _compact_doc_code_sync_for_verification_matrix,
     },
 }
 

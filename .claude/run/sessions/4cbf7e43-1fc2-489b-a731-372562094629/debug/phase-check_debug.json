@@ -1,0 +1,103 @@
+{
+  "step_name": "phase-check",
+  "failure_detail": {
+    "failure_origin": "timeout",
+    "failure_stage": "backend_timeout",
+    "returncode": null,
+    "parse_failure_reason": null,
+    "stderr_preview": "",
+    "raw_output_preview": "",
+    "debug_artifact_written": true,
+    "debug_artifact_path": ".claude\\run\\sessions\\4cbf7e43-1fc2-489b-a731-372562094629\\debug\\phase-check_debug.json",
+    "backend_failure_detail": "Claude CLI subprocess timed out after 120000ms.",
+    "raw_output_len": 0,
+    "stderr_len": 0,
+    "timeout_ms": 120094.00000004098,
+    "timeout_seconds": 120.0,
+    "elapsed_seconds": 120.09400000004098,
+    "timeout_command": [
+      "claude",
+      "-p",
+      "--output-format",
+      "json",
+      "--model",
+      "sonnet",
+      "--no-session-persistence",
+      "--tools",
+      "",
+      "--json-schema",
+      "{\"type\":\"object\",\"properties\":{\"artifacts\":{\"type\":\"object\",\"properties\":{\"phase_alignment_status\":{\"type\":\"object\"}},\"required\":[\"phase_alignment_status\"]}},\"required\":[\"artifacts\"]}"
+    ],
+    "timeout_stdout_len": 0,
+    "timeout_stderr_len": 0,
+    "subprocess_cwd": "C:\\Code\\Mr-Ripley",
+    "model": "sonnet",
+    "backend": "claude_code_cli",
+    "prompt_token_estimate": 4390,
+    "prompt_token_budget": 100000,
+    "prompt_truncated": false,
+    "prompt_composition": {
+      "step_name": "phase-check",
+      "skill_content_length": 13181,
+      "agent_instructions_length": 2678,
+      "artifact_input_names": [
+        "claim_classification_map",
+        "role_citation_verdict"
+      ],
+      "artifact_input_count": 2,
+      "document_paths": [],
+      "document_count": 0,
+      "token_estimate": 4390,
+      "token_budget": 100000,
+      "truncated": false,
+      "truncation_events": [],
+      "expected_outputs": [
+        "phase_alignment_status"
+      ],
+      "input_contributions": {
+        "skill_instructions": {
+          "chars": 13181,
+          "estimated_tokens": 3295
+        },
+        "agent_instructions": {
+          "chars": 2678,
+          "estimated_tokens": 669
+        },
+        "artifact:role_citation_verdict": {
+          "chars": 458,
+          "estimated_tokens": 114
+        },
+        "artifact:claim_classification_map": {
+          "chars": 1251,
+          "estimated_tokens": 312
+        }
+      },
+      "assembled_prompt_chars": 18553,
+      "assembled_prompt_tokens": 4638,
+      "projected_artifact_names": [
+        "role_citation_verdict",
+        "claim_classification_map"
+      ],
+      "input_contributions_original": {
+        "artifact:role_citation_verdict": {
+          "chars": 14622,
+          "estimated_tokens": 3655
+        },
+        "artifact:claim_classification_map": {
+          "chars": 11759,
+          "estimated_tokens": 2939
+        }
+      },
+      "input_contributions_projected": {
+        "artifact:role_citation_verdict": {
+          "chars": 458,
+          "estimated_tokens": 114
+        },
+        "artifact:claim_classification_map": {
+          "chars": 1251,
+          "estimated_tokens": 312
+        }
+      }
+    }
+  }
+}

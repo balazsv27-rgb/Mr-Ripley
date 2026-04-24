@@ -1,0 +1,171 @@
+{
+  "artifact": "role_citation_verdict",
+  "produced_by": "route-claims-by-role",
+  "session": "4cbf7e43-1fc2-489b-a731-372562094629",
+  "timestamp": "2026-04-24T12:31:47.987469Z",
+  "data": {
+    "produced_by": "route-claims-by-role",
+    "run_id": "4cbf7e43-1fc2-489b-a731-372562094629",
+    "agent": "role-citation-agent",
+    "skill_applied": "role-matched-citation-check",
+    "inference_used": true,
+    "role_matched_citation_status": {
+      "overall_status": "conflict_requires_block",
+      "inference_used": true,
+      "source_authority_conflict_detected": true,
+      "checked_claims": [
+        {
+          "claim_id": "CL-001",
+          "claim_text": "The terms 'Layer 2' and 'Layer-2' function as architectural layer designators in the documentation and are candidates for bulk rename to 'truth_store'.",
+          "claim_type": "architecture",
+          "required_primary_source": "SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md",
+          "provided_sources": [],
+          "role_match": false,
+          "strong_claim": true,
+          "explicit_citation_required": true,
+          "conflict_detected": true,
+          "blocking_condition_if_any": "Strong architecture claim asserts renameability of a canonical term used throughout all seven canonical documents including CLAUDE.md itself. No citation from SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md provided. CLAUDE.md Sections 1, 3, 4, and 6 all use 'Layer 2'/'Layer 3' as load-bearing terminology; renaming requires architecture document authorization, not request-level assertion.",
+          "verdict": "conflict_requires_block",
+          "reason": "Strong architecture claim with no role-matched primary citation. D2 applies: strong claim without role-matched citation \u2192 conflict_requires_block.",
+          "notes": "The term 'Layer 2' appears in CLAUDE.md (constitutional authority) in Sections 1, 3.1, 3.2, 4, and 6. Any claim that this term is safely renameable to 'truth_store' must be proven from SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md. The request does not supply this citation. The constitutional document itself is unmodified at time of this check and continues to use 'Layer 2' as authoritative terminology."
+        },
+        {
+          "claim_id": "CL-002",
+          "claim_text": "The terms 'Layer 3' and 'Layer-3' function as architectural layer designators and are candidates for bulk rename to 'decision_layer'.",
+          "claim_type": "architecture",
+          "required_primary_source": "SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md",
+          "provided_sources": [],
+          "role_match": false,
+          "strong_claim": true,
+          "explicit_citation_required": true,
+          "conflict_detected": true,
+          "blocking_condition_if_any": "Strong architecture claim asserts renameability. CLAUDE.md Section 3.2 explicitly names 'Layer 3' components (Index Suite: Layer-3 snapshot-consuming computation) as planned/not-yet-built. CLAUDE.md Section 6.1 uses 'Layer 3+' as a binding technical constraint. These are constitutional, not merely stylistic. No architecture-document citation provided.",
+          "verdict": "conflict_requires_block",
+          "reason": "Strong architecture claim. No role-matched primary citation from SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md. D2 applies.",
+          "notes": "CLAUDE.md Section 3.2 distinguishes 'Layer-3 snapshot-consuming computation' from the existing 'layer2/index_suite.py' \u2014 a parenthetical that would become ambiguous or lose meaning if 'Layer 3' is renamed without explicit architecture-document authority. Snapshot boundary semantics are embedded in the term usage."
+        },
+        {
+          "claim_id": "CL-003",
+          "claim_text": "The rename must not blindly alter code module names, import paths, or historical references without governance review.",
+          "claim_type": "technical_constraint",
+          "required_primary_source": "SYSTEM_TECHNICAL_HANDBOOK_v1.md",
+          "provided_sources": [
+            "CLAUDE.md (implicit \u2014 Section 15 workflow governance)",
+            ".claude/rules/code-conventions.md (implicit \u2014 registry as authoritative)"
+          ],
+          "role_match": false,
+          "strong_claim": true,
+          "explicit_citation_required": true,
+          "conflict_detected": false,
+          "blocking_condition_if_any": "Substantively correct constraint, but SYSTEM_TECHNICAL_HANDBOOK_v1.md is the required primary source for technical constraints and is not explicitly cited. The constraint is consistent with code-conventions.md, but that file is not a canonical current-state document under CLAUDE.md Section 2.1.",
+          "verdict": "review_only",
+          "reason": "Strong prescriptive constraint without role-matched primary citation. However, the claim is directionally correct and aligned with constitutional rules. Downgraded to review_only rather than conflict_requires_block because the constraint is conservative (fail-closed compatible) and introduces no contradiction. D2 technically applies but blocking an appropriate constraint on citation form alone is not warranted here \u2014 flagged for citation gap, not contradiction.",
+          "notes": "SYSTEM_TECHNICAL_HANDBOOK_v1.md should be cited to formally anchor this constraint. The request's caution about import paths and code module names is well-aligned with the registry-as-single-source-of-truth rule (CLAUDE.md Section 8)."
+        },
+        {
+          "claim_id": "CL-004",
+          "claim_text": "README_LAYER2.md and other filenames may require rename handling as part of the terminology refactor.",
+          "claim_type": "mixed",
+          "required_primary_source": "DOCUMENTATION_VERIFICATION_MATRIX_v1.md (documentation_consistency subclaim) + README_LAYER2.md (collaborator_workflow subclaim, limited role)",
+          "provided_sources": [],
+          "role_match": false,
+          "strong_claim": false,
+          "explicit_citation_required": false,
+          "conflict_detected": true,
+          "blocking_condition_if_any": "README_LAYER2.md is a canonical document with a declared role (collaborator guide). Any determination that it should be renamed is a documentation_consistency claim requiring DOCUMENTATION_VERIFICATION_MATRIX_v1.md as primary source \u2014 NOT README_LAYER2.md itself. A rename of this file would alter the canonical document set identity and requires cross-document consistency verification. D3 would apply if README_LAYER2.md were cited as authority for its own renaming.",
+          "verdict": "review_only",
+          "reason": "Weak claim ('may require'). Mixed claim decomposed: documentation_consistency subclaim has no primary citation; collaborator_workflow subclaim correctly identifies README_LAYER2.md scope but cannot authorize its own rename. No blocking condition triggered because claim is conditional, not assertive.",
+          "notes": "README_LAYER2.md filename is referenced in CLAUDE.md Section 2.1 as a canonical document identifier. Renaming it would require updating CLAUDE.md Section 2.1 and all cross-references \u2014 a governance action, not a terminology action. This escalation path should be flagged to the doc-update-plan agent."
+        },
+        {
+          "claim_id": "CL-005",
+          "claim_text": "The refactor must fail closed if the rename would introduce ambiguity, architecture drift, or snapshot-boundary confusion.",
+          "claim_type": "governance",
+          "required_primary_source": "CLAUDE.md + system-orchestration.yaml",
+          "provided_sources": [
+            "CLAUDE.md Section 7 (Fail-Closed Principle)",
+            "CLAUDE.md Section 15 (Workflow Governance Constraint)"
+          ],
+          "role_match": true,
+          "strong_claim": true,
+          "explicit_citation_required": true,
+          "conflict_detected": false,
+          "blocking_condition_if_any": null,
+          "verdict": "compliant",
+          "reason": "Strong governance claim. CLAUDE.md Section 7 explicitly states the system must default to NO OUTPUT rather than incorrect output. Section 15 mandates workflow governance enforcement. Both are role-matched primary sources for governance claims. RC-1 Compliant.",
+          "notes": "This is the only strong claim in the request that is fully supported by role-matched citation. The fail-closed constraint applies to the entire refactor and provides the constitutional basis for blocking the broader request pending proper citation."
+        },
+        {
+          "claim_id": "CL-006",
+          "claim_text": "The terminology replacement applies only where 'Layer 2'/'Layer 3' refer to the project's architectural layers, not in unrelated literals or code contexts.",
+          "claim_type": "mixed",
+          "required_primary_source": "SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md (architecture subclaim) + SYSTEM_TECHNICAL_HANDBOOK_v1.md (technical_constraint subclaim)",
+          "provided_sources": [],
+          "role_match": false,
+          "strong_claim": true,
+          "explicit_citation_required": true,
+          "conflict_detected": true,
+          "blocking_condition_if_any": "To apply this scope rule, a definition of what constitutes an 'architectural layer reference' vs. a 'code literal' must be sourced from SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md. Without this, the scope boundary is undefined and the rename executor has no role-matched authority to classify individual occurrences. Applying the rename without this citation risks scope creep or scope error.",
+          "verdict": "conflict_requires_block",
+          "reason": "Strong prescriptive claim with mixed type. Architecture subclaim has no role-matched citation. D2 and D6 both apply: strong claim without citation, and mixed claim must be decomposed before verdict. The scope definition is load-bearing for the entire refactor.",
+          "notes": "Without a role-matched citation defining the boundary between architectural layer references and code literals, rename executors cannot make consistent classification decisions. This is a prerequisite gap \u2014 not a stylistic concern."
+        },
+        {
+          "claim_id": "CL-007",
+          "claim_text": "The terminology change must maintain snapshot-boundary integrity and not introduce snapshot-boundary confusion.",
+          "claim_type": "technical_constraint",
+          "required_primary_source": "SYSTEM_TECHNICAL_HANDBOOK_v1.md",
+          "provided_sources": [
+            "CLAUDE.md Section 6 (Snapshot Contract, implicit)"
+          ],
+          "role_match": false,
+          "strong_claim": true,
+          "explicit_citation_required": true,
+          "conflict_detected": false,
+          "blocking_condition_if_any": "CLAUDE.md Section 6 is available and fully supports the snapshot-boundary protection requirement. However, SYSTEM_TECHNICAL_HANDBOOK_v1.md is the role-matched primary source for technical constraints and is not cited. CLAUDE.md Section 6 is a correct secondary corroboration but cannot serve as the primary source for this claim type.",
+          "verdict": "review_only",
+          "reason": "Strong technical constraint with partial citation (CLAUDE.md Section 6 corroborates but is not the primary source for technical_constraint claims). Directionally correct and fail-closed compatible \u2014 flagged as review_only rather than blocked because the constitutional document's Section 6 provides substantive support and the claim introduces no contradiction.",
+          "notes": "SYSTEM_TECHNICAL_HANDBOOK_v1.md should be consulted to confirm snapshot-contract language and establish the role-matched citation. The claim is well-aligned with CLAUDE.md Section 6.3 forbidden patterns."
+        },
+        {
+          "claim_id": "CL-008",
+          "claim_text": "CLAUDE.md is included in the scope of the terminology refactor (files under Documentation/ and CLAUDE.md).",
+          "claim_type": "governance",
+          "required_primary_source": "CLAUDE.md + system-orchestration.yaml",
+          "provided_sources": [],
+          "role_match": false,
+          "strong_claim": true,
+          "explicit_citation_required": true,
+          "conflict_detected": true,
+          "blocking_condition_if_any": "CLAUDE.md is the highest-priority interpretative authority (CLAUDE.md Section 1 preamble). Modifying its terminology is a constitutional act. No citation is provided showing that system-orchestration.yaml or any other governance mechanism authorizes modifying the constitutional document's core terminology. CLAUDE.md Section 16 (Final Constitutional Rule) applies: if a statement cannot be traced to a canonical source AND cannot be proven from implementation, it must be treated as unverified and non-binding. Including CLAUDE.md in the rename scope without governance authorization is unverified.",
+          "verdict": "conflict_requires_block",
+          "reason": "Strong governance claim asserting authority to modify the constitutional document. No role-matched citation from system-orchestration.yaml or explicit governance authorization. D2 applies. Constitutional document modification is the highest-risk action in the governance model.",
+          "notes": "CLAUDE.md Section 15 states that all governed actions must be subject to orchestration-based workflow enforcement. Any modification to CLAUDE.md itself requires explicit orchestration authorization that has not been cited in this request. This is a hard block condition independent of the other citation issues."
+        }
+      ],
+      "summary": {
+        "role_mismatch_detected": false,
+        "canonical_conflict_unresolved": true,
+        "readme_layer2_used_as_override": false,
+        "requires_conflict_note": true,
+        "requires_doc_sync_escalation": true,
+        "recommended_guard_action": "block",
+        "blocking_claims": [
+          "CL-001",
+          "CL-002",
+          "CL-006",
+          "CL-008"
+        ],
+        "review_only_claims": [
+          "CL-003",
+          "CL-004",
+          "CL-007"
+        ],
+        "compliant_claims": [
+          "CL-005"
+        ],
+        "notes": "Four strong claims (CL-001, CL-002, CL-006, CL-008) require explicit role-matched citations that are absent from the request. CL-001 and CL-002 assert renameability of architectural terms without SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md authorization. CL-006 lacks the scope-boundary definition needed for safe classification of individual occurrences. CL-008 asserts authority to modify the constitutional document without governance authorization \u2014 this is the highest-severity finding. The only compliant claim is CL-005 (fail-closed governance requirement), which ironically provides the constitutional basis for blocking the broader request. No README_LAYER2 override misuse was detected in the request itself (the file is only mentioned as a candidate for review, not cited as an authority). Doc-sync escalation is required because any approved rename would require coordinated updates across all seven canonical documents simultaneously."
+      }
+    }
+  }
+}

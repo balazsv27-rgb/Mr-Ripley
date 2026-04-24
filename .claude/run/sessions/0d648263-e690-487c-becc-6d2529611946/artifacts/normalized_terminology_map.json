@@ -1,0 +1,77 @@
+{
+  "artifact": "normalized_terminology_map",
+  "produced_by": "normalize-terminology",
+  "session": "0d648263-e690-487c-becc-6d2529611946",
+  "timestamp": "2026-04-24T16:04:40.268851Z",
+  "data": {
+    "produced_by": "normalize-terminology",
+    "overall_status": "governance_sensitive_term_conflict",
+    "inference_used": false,
+    "canonical_term_mappings": [
+      {
+        "from": "truth_store",
+        "to": "Layer-2",
+        "concept_id": "LAYER_2",
+        "reason": "Proposed replacement term is absent from the canonical term table. 'Layer-2' is the established canonical term for the snapshot boundary architectural layer. Adopting 'truth_store' introduces unrecognized terminology that obscures snapshot boundary semantics and risks conflating the architectural layer concept with storage or database concepts. Governance-sensitive Category A: snapshot boundary."
+      },
+      {
+        "from": "decision_layer",
+        "to": "Layer-3",
+        "concept_id": "LAYER_3",
+        "reason": "Proposed replacement term is absent from the canonical term table. 'Layer-3' is the established canonical term for the planned computation layer. 'decision_layer' carries execution-capability connotations that risk violating CLAUDE.md Section 9 (execution boundary forbidden) and Section 10 (strong claim discipline). Governance-sensitive Category B (phase/readiness drift) and proximity to Category D (decision vocabulary)."
+      },
+      {
+        "from": "verified_in_current_documentation_set",
+        "to": "proven",
+        "concept_id": "EVIDENCE_PROVEN",
+        "reason": "The token 'verified' appears as a prefix in the evidence_class schema label. The canonical evidence vocabulary discourages 'verified' as a substitute for 'proven'. While this is a schema field label rather than a standalone evidence status claim, the usage is flagged to prevent vocabulary drift from evidence classification labels into governance status claims."
+      }
+    ],
+    "scope_constraints": [
+      "request_text from governance_context",
+      "claim_text and notes fields from claim_classification_map (all 6 claims, c1\u2013c6)",
+      "evidence_class labels from claim_classification_map",
+      "summary.possible_blocking_conditions from claim_classification_map"
+    ],
+    "excluded_reference_types": [
+      "canonical Documentation/ files not read directly \u2014 only claim references to them evaluated",
+      "CLAUDE.md full text not re-read \u2014 constitutional principles cited via governance_context metadata only",
+      "code files and import paths not inspected \u2014 excluded per c3 governance constraint",
+      "DOCUMENTATION_VERIFICATION_MATRIX_v1.md not directly inspected"
+    ],
+    "filename_rename_candidates": [
+      "README_LAYER2.md \u2014 filename contains 'LAYER2'; if the Layer-2 rename proceeds, this canonical document's filename and all cross-references in CLAUDE.md Sections 2.1, 2.2, 2.4, and 11 would require atomic update; renaming changes canonical document identity per c4 classification"
+    ],
+    "ambiguity_flags": [
+      {
+        "term": "truth_store",
+        "concepts": [
+          "LAYER_2",
+          "SNAPSHOTS_TABLE",
+          "SNAPSHOT_TRUTH"
+        ],
+        "governance_sensitive": true,
+        "note": "The proposed term 'truth_store' is ambiguous across three canonical concepts: the Layer-2 architectural layer (LAYER_2), the 'snapshots' database table (SNAPSHOTS_TABLE), and the 'Snapshot Truth' concept (SNAPSHOT_TRUTH). This three-way collision makes the term governance-unsafe for adoption without a canonical definition that precisely scopes it to exactly one concept. Category A: snapshot boundary."
+      },
+      {
+        "term": "decision_layer",
+        "concepts": [
+          "LAYER_3",
+          "NO_TRADE",
+          "DECISION_PACKET"
+        ],
+        "governance_sensitive": true,
+        "note": "The proposed term 'decision_layer' is ambiguous between the Layer-3 architectural layer (LAYER_3) and the decision vocabulary domain (NO_TRADE, DECISION_PACKET, guard/state/trigger taxonomies). Its phrasing implies active decision-making or execution capability, conflicting with CLAUDE.md Section 9 (execution boundary) and Section 10 (strong claim discipline). Category B: phase/readiness drift; Category D: decision vocabulary proximity."
+      },
+      {
+        "term": "snapshot boundary",
+        "concepts": [
+          "LAYER_2",
+          "SNAPSHOT_CONTRACT"
+        ],
+        "governance_sensitive": true,
+        "note": "Used in claim c1 to describe Layer-2's role ('Layer 2 is the snapshot boundary layer'). Maps ambiguously to both the LAYER_2 concept (architectural layer) and the SNAPSHOT_CONTRACT concept (interface specification) without disambiguation. Using 'snapshot boundary' as a standalone label for either concept risks conflating the layer identity with the contract definition. Category A: snapshot boundary."
+      }
+    ]
+  }
+}

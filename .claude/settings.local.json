@@ -68,7 +68,8 @@
       "Bash(git -C /c/Code/Mr-Ripley diff HEAD~1 --stat)",
       "Bash(find . -name run_state*.json -newer governance/dag_runner/prompt_assembly.py)",
       "Bash(find .claude/run -name run_state*.json -type f)",
-      "Bash(find .claude/run -name *.json -type f)"
+      "Bash(find .claude/run -name *.json -type f)",
+      "Bash(find C:/Code/Mr-Ripley -maxdepth 1 -name *state* -o -name *governance*)"
     ]
   }
 }

@@ -1,0 +1,164 @@
+{
+  "artifact": "audit_summary",
+  "produced_by": "deep-audit",
+  "session": "2be721f5-f6ae-4566-aad1-cec2c5cd28b8",
+  "timestamp": "2026-04-24T11:59:12.902703Z",
+  "data": {
+    "produced_by": "deep-audit",
+    "overall_audit_status": "blocked_unresolved_violations",
+    "dag_advancement": "halted",
+    "subagents_dispatched": [
+      "canonical-role-auditor",
+      "snapshot-boundary-auditor",
+      "adapter-schema-guardian"
+    ],
+    "subagents_not_dispatched": [
+      {
+        "subagent": "architecture-sequence-auditor",
+        "reason": "build_order_ambiguity_detected not true in phase_alignment_status; phase_alignment_status.recommended_next_step explicitly states escalation to this subagent is NOT triggered \u2014 issue is constitutional modification scope, not phase sequence ambiguity"
+      },
+      {
+        "subagent": "implementation-history-reconciler",
+        "reason": "claim_classification_map.non_canonical_source_as_current_truth field absent \u2014 strict escalation condition not satisfied"
+      }
+    ],
+    "per_subagent_results": [
+      {
+        "subagent": "canonical-role-auditor",
+        "dispatch_trigger": "role_citation_verdict.escalation_target explicitly set to canonical-role-auditor; source_authority_conflict_detected=true; canonical_conflict_unresolved=true; overall_status=conflict_requires_block",
+        "dispatched": true,
+        "findings": {
+          "source_authority_conflict": {
+            "status": "unresolved",
+            "description": "role_citation_verdict reports a source authority conflict requiring block. The conflict is canonical and unresolved \u2014 no role-matched canonical document has been cited to resolve the contradiction. The terminology refactor request targets CLAUDE.md (supreme interpretive authority) and README_LAYER2.md (canonical document whose filename appears in the canonical set defined in CLAUDE.md Section 2.1), creating a canonical document identity change that is not resolvable without governance-ratified process.",
+            "blocking_claim_ids": [],
+            "review_only_claim_ids": [
+              "RC-01",
+              "RC-02"
+            ],
+            "recommended_guard_action": "block",
+            "requires_doc_sync_escalation": true
+          },
+          "role_mismatch_assessment": {
+            "status": "unresolved",
+            "description": "role_citation_verdict.requires_doc_sync_escalation=true indicates role-matched citations are not available to resolve the conflict. The canonical role for this type of claim (constitutional document modification, canonical set identity) is CLAUDE.md Section 2 and SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md. Neither has been updated to authorize the terminology refactor.",
+            "evidence_class": "not_verifiable_from_current_materials"
+          }
+        },
+        "subagent_verdict": "unresolved_violation",
+        "halt_required": true
+      },
+      {
+        "subagent": "snapshot-boundary-auditor",
+        "dispatch_trigger": "runtime_boundary_verdict.boundary_violation_suspected=true AND requires_snapshot_boundary_auditor=true; corroborated by contract_compliance_verdict.snapshot_bypass_risk=true AND contract_status=boundary_violation",
+        "dispatched": true,
+        "findings": {
+          "boundary_violation_suspected": {
+            "status": "unresolved",
+            "description": "runtime_boundary_verdict confirms boundary_violation_suspected=true with requires_snapshot_boundary_guard=true. The snapshot contract (CLAUDE.md Section 6) requires Layer 3+ to read ONLY from published snapshots and NEVER read raw observations. The contract_compliance_verdict independently confirms snapshot_bypass_risk=true and overall contract_status=boundary_violation.",
+            "raw_observation_access_detected": false,
+            "latest_snapshot_misuse_detected": false,
+            "layer2_storage_coupling_detected": false,
+            "snapshot_bypass_risk": true,
+            "evidence_class": "documented_current_state_claim"
+          },
+          "snapshot_contract_compliance": {
+            "status": "non_compliant",
+            "description": "contract_compliance_verdict.allowed=false and contract_status=boundary_violation. The snapshot bypass risk is present even though raw observation access was not directly detected \u2014 the risk is structural, not merely behavioral.",
+            "forbidden_access_detected": false,
+            "snapshot_anchor_required": false,
+            "resolution_required": true,
+            "evidence_class": "documented_current_state_claim"
+          }
+        },
+        "subagent_verdict": "unresolved_violation",
+        "halt_required": true
+      },
+      {
+        "subagent": "adapter-schema-guardian",
+        "dispatch_trigger": "adapter_schema_verdict.requires_adapter_schema_guardian=true (flag-based dispatch; strict violation fields registry_violation_detected=false and schema_drift_detected=false \u2014 escalation condition partially met via explicit flag from prior layer agent)",
+        "dispatched": true,
+        "dispatch_basis_note": "Strict escalation condition (violations field containing registry_violation or schema_drift_detected) is NOT satisfied per field values. Dispatch proceeds on requires_adapter_schema_guardian=true flag set by the Layer C adapter-schema-check agent. This is noted as a flag-based dispatch, not a direct violation-field dispatch.",
+        "findings": {
+          "overall_status": {
+            "status": "ambiguous_requires_review",
+            "description": "adapter_schema_verdict.overall_status=ambiguous_requires_review. No registry violations or schema drift directly detected, but the adapter-schema-check agent determined guardian review is required. The ambiguous status prevents clean pass \u2014 per fail-closed principle (CLAUDE.md Section 7), ambiguous = blocked.",
+            "registry_violation_detected": false,
+            "hardcoded_series_detected": false,
+            "schema_drift_detected": false,
+            "boundary_violation_detected": false,
+            "evidence_class": "not_verifiable_from_current_materials"
+          },
+          "requires_adapter_schema_guard": {
+            "status": "unresolved",
+            "description": "The prior layer set requires_adapter_schema_guard=true without surfacing a specific violation. Under fail-closed principle, this unresolved ambiguity must be treated as a blocking condition until the guardian confirms a clean pass.",
+            "resolution_required": true
+          }
+        },
+        "subagent_verdict": "ambiguous_requires_resolution",
+        "halt_required": true
+      }
+    ],
+    "unresolved_violations": [
+      {
+        "violation_id": "AUD-001",
+        "domain": "canonical-role",
+        "source_artifact": "role_citation_verdict",
+        "description": "Source authority conflict unresolved \u2014 terminology refactor targets CLAUDE.md itself (supreme interpretive authority) and canonical document set members. No governance-ratified process has been followed. Block maintained.",
+        "evidence_class": "documented_current_state_claim",
+        "blocking": true
+      },
+      {
+        "violation_id": "AUD-002",
+        "domain": "snapshot-boundary",
+        "source_artifacts": [
+          "runtime_boundary_verdict",
+          "contract_compliance_verdict"
+        ],
+        "description": "Snapshot bypass risk confirmed via two independent Layer C artifacts. Boundary violation suspected with snapshot contract status=boundary_violation. Resolution required before any downstream advancement.",
+        "evidence_class": "documented_current_state_claim",
+        "blocking": true
+      },
+      {
+        "violation_id": "AUD-003",
+        "domain": "adapter-schema",
+        "source_artifact": "adapter_schema_verdict",
+        "description": "Adapter schema overall_status=ambiguous_requires_review. Guardian dispatch was flag-based \u2014 no clean pass granted. Under fail-closed principle, ambiguous status is treated as unresolved blocking condition.",
+        "evidence_class": "not_verifiable_from_current_materials",
+        "blocking": true
+      }
+    ],
+    "non_escalated_blocking_conditions": [
+      {
+        "condition_id": "NE-001",
+        "source_artifact": "phase_alignment_status",
+        "description": "phase_alignment_status.allowed=false and alignment_status=ambiguous_requires_block. The rename operation is blocked as-stated. Architecture-sequence-auditor was NOT dispatched per explicit statement in prior layer. This blocking condition is retained in the audit summary as an unresolved upstream block inherited by this layer \u2014 the block stands without architecture-sequence-auditor involvement.",
+        "blocking": true,
+        "subagent_dispatched": false
+      },
+      {
+        "condition_id": "NE-002",
+        "source_artifact": "claim_classification_map",
+        "description": "8 blocking conditions identified across constitutional_document_modification, canonical_document_identity_change, snapshot_boundary_terminology_change, cross_document_consistency_risk, code_path_collision_risk, historical_reference_preservation, phase_gate_language_change, and verification_matrix_cascade. These remain unresolved. implementation-history-reconciler was not dispatched (strict condition not met) but these claim-level risks are recorded as non-escalated blocking conditions.",
+        "blocking": true,
+        "subagent_dispatched": false
+      }
+    ],
+    "audit_summary_assessment": {
+      "total_subagents_dispatched": 3,
+      "total_subagents_with_unresolved_violations": 3,
+      "total_unresolved_violations": 3,
+      "total_non_escalated_blocking_conditions": 2,
+      "all_blocking_conditions_resolved": false,
+      "fail_closed_applied": true,
+      "dag_advancement_to_verification_layer": "halted \u2014 unresolved violations present across all dispatched subagents and additional non-escalated blocking conditions inherited from upstream",
+      "required_resolutions_before_recheck": [
+        "canonical-role-auditor must confirm governance-ratified process for constitutional document modification, including atomic cross-canonical propagation as specified in phase_alignment_status.recommended_next_step",
+        "snapshot-boundary-auditor must confirm snapshot bypass risk is remediated and contract_status returns to compliant",
+        "adapter-schema-guardian must confirm clean adapter schema pass with no ambiguous status",
+        "phase_alignment_status block must be resolved via the 5-step governance process specified in its recommended_next_step field",
+        "claim_classification_map blocking conditions (8) must be addressed per governance-ratified process before any terminology refactor proceeds"
+      ]
+    }
+  }
+}

@@ -1,0 +1,152 @@
+{
+  "artifact": "verification_matrix_delta",
+  "produced_by": "update-verification-matrix",
+  "session": "0d648263-e690-487c-becc-6d2529611946",
+  "timestamp": "2026-04-24T16:19:17.007511Z",
+  "data": {
+    "produced_by": "update-verification-matrix",
+    "matrix_action": "review_only",
+    "inference_used": true,
+    "affected_entries": [
+      {
+        "entry_id": "s3-snapshot-boundary-contract",
+        "section": "Section 3 \u2014 Current Layer-2 Contract Items",
+        "claim_or_topic": "Snapshot boundary contract language and Layer-2 identity",
+        "change_type": "status_review",
+        "reason": "audit_summary overall_audit_status is 'block' with no sub-fields resolved (null). B2 guard block from change_impact_report flags boundary_violation_suspected and snapshot_bypass_risk as true due to proposed 'truth_store' rename. Per DR-2, blocked guard attempts flow into contradiction check only, not classification updates. Cannot reclassify until guard is resolved.",
+        "source_documents": [
+          "CLAUDE.md \u00a76",
+          "DOCUMENTATION_VERIFICATION_MATRIX_v1.md",
+          "SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md"
+        ],
+        "proposed_old_state": null,
+        "proposed_new_state": null,
+        "confidence": "high"
+      },
+      {
+        "entry_id": "s3-canonical-document-identity",
+        "section": "Section 3 \u2014 Current Layer-2 Contract Items",
+        "claim_or_topic": "Canonical document identity and role assignments (README_v1.md, SYSTEM_TECHNICAL_HANDBOOK_v1.md, etc.)",
+        "change_type": "contradiction_note",
+        "reason": "B1 canonical-role-auditor block: source_authority_conflict_detected and canonical_conflict_unresolved. All six claims (c1\u2013c6) are blocked. Four rated RC-4 conflict_requires_block (C-001, C-002, C-003, C-008); two rated RC-3 role_mismatch (C-005, C-007). Per DR-5, source authority conflict prevents settled updates. Unresolved role citation conflicts must be surfaced as contradiction notes, not reclassified.",
+        "source_documents": [
+          "CLAUDE.md \u00a72",
+          "DOCUMENTATION_VERIFICATION_MATRIX_v1.md Section 8"
+        ],
+        "proposed_old_state": "Verified in current documentation set",
+        "proposed_new_state": null,
+        "confidence": "high"
+      },
+      {
+        "entry_id": "s5-layer3-bootstrap-target-architecture",
+        "section": "Section 5 \u2014 Future / Target Architecture Items",
+        "claim_or_topic": "Layer-3 bootstrap and decision_layer naming",
+        "change_type": "contradiction_note",
+        "reason": "B4 phase_alignment_status inherited block: alignment_status is ambiguous_requires_block with live_readiness_implication_detected true. Proposed 'decision_layer' term risks constituting a forbidden strong claim per CLAUDE.md \u00a710. CLAUDE.md \u00a73.2 classifies all Layer-3 components as planned/target architecture not yet built. Adopting 'decision_layer' in canonical documentation could imply execution capability forbidden before Phase D. Contradiction between proposed rename and CLAUDE.md \u00a79 and \u00a710 must be noted, not resolved.",
+        "source_documents": [
+          "CLAUDE.md \u00a73.2",
+          "CLAUDE.md \u00a79",
+          "CLAUDE.md \u00a710",
+          "SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md"
+        ],
+        "proposed_old_state": "Planned / target architecture",
+        "proposed_new_state": null,
+        "confidence": "high"
+      },
+      {
+        "entry_id": "s3-adapter-schema-registry",
+        "section": "Section 3 \u2014 Current Layer-2 Contract Items",
+        "claim_or_topic": "Adapter schema and series_registry.json contract compliance",
+        "change_type": "status_review",
+        "reason": "B3 adapter-schema-guardian hold: adapter_schema_verdict.overall_status is ambiguous_requires_review. registry_violation_detected and schema_drift_detected are both null \u2014 null is unresolved ambiguity, not clearance. Per DR-8, fail closed on ambiguous direction. Cannot classify until explicit true/false resolution is provided.",
+        "source_documents": [
+          "CLAUDE.md \u00a78",
+          "DOCUMENTATION_VERIFICATION_MATRIX_v1.md"
+        ],
+        "proposed_old_state": null,
+        "proposed_new_state": null,
+        "confidence": "high"
+      },
+      {
+        "entry_id": "s4-doc-code-sync-open-item",
+        "section": "Section 4 \u2014 Current Known Open Items",
+        "claim_or_topic": "Documentation/code synchronization status for dag_runner and prompt_assembly changes",
+        "change_type": "add_new_entry",
+        "reason": "doc_code_sync_status overall_status is ambiguous_requires_review. Changes to governance/dag_runner/prompt_assembly.py and tests/governance/test_prompt_assembly.py are present in git status on dag_refactor branch. No prior matrix entry tracks this open sync item. Per MU-5, a new entry is warranted for governance-critical topics not currently tracked. DR-8 fail-closed: ambiguous sync status must be tracked as an open item until resolved.",
+        "source_documents": [
+          "CLAUDE.md \u00a711",
+          "DOCUMENTATION_VERIFICATION_MATRIX_v1.md"
+        ],
+        "proposed_old_state": null,
+        "proposed_new_state": "Cannot verify from current materials",
+        "confidence": "medium"
+      },
+      {
+        "entry_id": "s3-governance-workflow-enforcement",
+        "section": "Section 3 \u2014 Current Layer-2 Contract Items",
+        "claim_or_topic": "Governance workflow enforcement via system-orchestration.yaml and skill registry",
+        "change_type": "status_review",
+        "reason": "change_impact_report lists governance_workflow and skill_registry as impacted components with contributing_categories including verification. audit_summary is a block with null sub-fields \u2014 the audit did not complete or resolve sub-verdicts. Without completed audit sub-verdicts, the classification posture of the governance workflow enforcement claim cannot be settled. Per DR-8, default to status_review.",
+        "source_documents": [
+          "CLAUDE.md \u00a715",
+          "system-orchestration.yaml",
+          "DOCUMENTATION_VERIFICATION_MATRIX_v1.md"
+        ],
+        "proposed_old_state": null,
+        "proposed_new_state": null,
+        "confidence": "medium"
+      },
+      {
+        "entry_id": "s4-role-citation-conflicts-open-item",
+        "section": "Section 4 \u2014 Current Known Open Items",
+        "claim_or_topic": "Role citation conflicts across canonical documents (C-001, C-002, C-003, C-005, C-007, C-008)",
+        "change_type": "add_new_entry",
+        "reason": "B1 canonical-role-auditor block produced six blocked claims with unresolved role citation conflicts. These are governance-critical open items not previously tracked at the matrix level. Per MU-5, new entries must be added for governance-critical topics the matrix does not track. Source authority conflict is confirmed active (source_authority_conflict_detected per change_impact_report risk summary).",
+        "source_documents": [
+          "CLAUDE.md \u00a72.4",
+          "DOCUMENTATION_VERIFICATION_MATRIX_v1.md Section 8"
+        ],
+        "proposed_old_state": null,
+        "proposed_new_state": "Cannot verify from current materials",
+        "confidence": "high"
+      },
+      {
+        "entry_id": "s8-skill-registry-document-role",
+        "section": "Section 8 \u2014 Document Role Classification",
+        "claim_or_topic": "Skill registry and governance artifact document roles (system-orchestration.yaml, verification_ledger.md)",
+        "change_type": "status_review",
+        "reason": "change_impact_report lists skill_registry and verification_ledger as impacted components. DR-7 requires Section 8 entry assessment when new governance artifacts are involved. audit_summary block with null sub-fields means the impact on governance artifact roles cannot be settled. Manual review needed to determine if existing Section 8 entries adequately cover skill_registry and verification_ledger roles or if new entries are needed.",
+        "source_documents": [
+          "CLAUDE.md \u00a715",
+          "system-orchestration.yaml",
+          "DOCUMENTATION_VERIFICATION_MATRIX_v1.md Section 8"
+        ],
+        "proposed_old_state": null,
+        "proposed_new_state": null,
+        "confidence": "medium"
+      }
+    ],
+    "summary": {
+      "matrix_update_required": false,
+      "current_vs_target_relabel_needed": false,
+      "source_authority_conflict_detected": true,
+      "runtime_status_upgrade_blocked": true,
+      "unresolved_conflicts": [
+        "B1: canonical-role-auditor block \u2014 source_authority_conflict_detected, canonical_conflict_unresolved; claims C-001, C-002, C-003, C-005, C-007, C-008 blocked; no classification updates may proceed while role citation is unresolved (DR-5)",
+        "B2: snapshot-boundary-auditor block \u2014 boundary_violation_suspected and snapshot_bypass_risk true; proposed 'truth_store' rename conflicts with CLAUDE.md \u00a76 snapshot contract language; no classification of snapshot boundary contract entries until guard resolves (DR-2)",
+        "B3: adapter-schema-guardian \u2014 ambiguous_requires_review with null registry_violation_detected and schema_drift_detected; fail-closed per DR-8; no classification update for adapter/registry entries until explicit resolution",
+        "B4: phase_alignment_status \u2014 ambiguous_requires_block with live_readiness_implication_detected true; proposed 'decision_layer' naming conflicts with CLAUDE.md \u00a710 strong-claim discipline; Layer-3 items must remain 'Planned / target architecture' until Phase C/D gates are satisfied",
+        "doc_code_sync_status: ambiguous_requires_review \u2014 doc/code alignment unresolved for dag_runner/prompt_assembly changes on dag_refactor branch",
+        "audit_summary: block with all sub-fields null \u2014 audit did not complete or sub-verdicts were not produced; no downstream classification can rely on audit confirmation"
+      ],
+      "notes": [
+        "matrix_action set to review_only: no classification upgrades are supportable given the block state of audit_summary and the four active guard blocks (B1\u2013B4). DR-1 and DR-3 both block doc-only upgrades without cross-doc Tier 1 consistency, which cannot be confirmed while source_authority_conflict_detected is true.",
+        "Two new Section 4 entries (s4-doc-code-sync-open-item, s4-role-citation-conflicts-open-item) are proposed additions; these require human review before being formally added to the matrix since the overall action is review_only.",
+        "inference_used is true: the verification matrix file was not directly readable in this execution context; entry IDs, proposed_old_state values, and section membership are inferred from upstream artifact signals and CLAUDE.md \u00a72 canonical role definitions.",
+        "No runtime_status_upgrade is proposed. runtime_status_upgrade_blocked set to true as a precautionary flag per DR-1.",
+        "All contradiction notes surface but do not resolve conflicts, per skill requirement: 'contradictions surfaced not resolved'.",
+        "Ledger not updated. Hook not triggered. Earlier governance steps not re-run. Scope is classification posture only."
+      ]
+    }
+  }
+}

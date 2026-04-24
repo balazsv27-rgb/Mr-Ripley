@@ -1,0 +1,67 @@
+{
+  "artifact": "change_impact_report",
+  "produced_by": "change-impact-audit",
+  "session": "2be721f5-f6ae-4566-aad1-cec2c5cd28b8",
+  "timestamp": "2026-04-24T12:01:42.068554Z",
+  "data": {
+    "produced_by": "change-impact-audit",
+    "run_id": "2be721f5-f6ae-4566-aad1-cec2c5cd28b8",
+    "change_impact_summary": {
+      "change_mode": "content_change",
+      "change_mode_rationale": "Request is framed as a terminology rename but fails all rename_only invariance conditions: (1) stable document identity is NOT preserved \u2014 README_LAYER2.md filename changes, (2) no alias mapping created, (3) canonical references not atomically updated (blocked by guards), (4) claim classification changes \u2014 phase-gate anchors in CLAUDE.md Section 4 are load-bearing identifiers not mere labels, (5) canonical role mapping changes \u2014 README_LAYER2.md role defined by its current identity in CLAUDE.md Section 2.1. Per DR-11, purported rename-only change alters semantic governance state; classified as content_change. The replacement terms 'truth_store' and 'decision_layer' are not traceable to any canonical source (role_citation_verdict RC-03, RC-04 both RC-4 blocked under CLAUDE.md Sections 10 and 16).",
+      "impact_type": "mixed",
+      "contributing_categories": [
+        "documentation",
+        "architecture",
+        "verification"
+      ],
+      "impacted_components": [
+        "constitutional_framework \u2014 CLAUDE.md itself is a modification target; changes the supreme interpretive authority that defines all phases, contracts, and evidence rules",
+        "canonical_document_set \u2014 README_LAYER2.md identity change removes a named member from the canonical set defined in CLAUDE.md Section 2.1",
+        "phase_gate_model \u2014 Phase A ('Layer 2 Closure') and Phase B ('Layer 3 Bootstrap') are defined using the terminology being replaced; this is a phase-model modification, not a label swap",
+        "snapshot_boundary \u2014 'Layer 2 = operational at snapshot boundary' (CLAUDE.md Section 3.1) is the architectural anchor for the snapshot contract (CLAUDE.md Section 6); renaming alters the boundary's documentary identity",
+        "governance_workflow \u2014 system-orchestration.yaml and skill definitions reference canonical document names and layer terminology",
+        "verification_ledger \u2014 terminology cascade across verification matrix cross-references and ledger entries",
+        "Layer-3_bootstrap \u2014 Layer 3 terminology used in Phase B/C definitions and all target-architecture descriptions"
+      ],
+      "impacted_docs": [
+        "CLAUDE.md",
+        "README_v1.md",
+        "SYSTEM_TECHNICAL_HANDBOOK_v1.md",
+        "SYSTEM_LIMITATIONS_AND_APPROXIMATIONS_v1.md",
+        "SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md",
+        "DOCUMENTATION_VERIFICATION_MATRIX_v1.md",
+        "SYSTEM_IMPLEMENTATION_RECORD_v1.md",
+        "README_LAYER2.md",
+        "system-orchestration.yaml",
+        "verification_ledger.md"
+      ],
+      "follow_up_required": "mandatory",
+      "inference_used": false,
+      "risk_summary": [
+        "AUD-001 (canonical-role-auditor): Source authority conflict unresolved \u2014 terminology refactor targets CLAUDE.md (supreme interpretive authority) and canonical document set members. No governance-ratified process has been followed. Replacement terms 'truth_store' and 'decision_layer' are absent from all canonical sources. Block maintained.",
+        "AUD-002 (snapshot-boundary-auditor): Snapshot bypass risk confirmed via runtime_boundary_verdict and contract_compliance_verdict. Boundary violation suspected with contract_status=boundary_violation. The snapshot boundary is architecturally anchored to 'Layer 2' terminology in CLAUDE.md Section 6 \u2014 renaming without full contract-level re-anchoring risks downstream contract ambiguity.",
+        "AUD-003 (adapter-schema-guardian): Adapter schema overall_status=ambiguous_requires_review. Flag-based dispatch without direct violation fields. Under fail-closed principle (CLAUDE.md Section 7), ambiguous status is treated as unresolved blocking condition.",
+        "NE-001 (phase_alignment_status): phase_alignment_status.allowed=false and alignment_status=ambiguous_requires_block. The rename operation is blocked as-stated. This blocking condition is retained as an unresolved upstream block.",
+        "NE-002 (claim_classification_map): 8 blocking conditions identified across constitutional_document_modification, canonical_document_identity_change, snapshot_boundary_terminology_change, cross_document_consistency_risk, code_path_collision_risk, historical_reference_preservation, phase_gate_language_change, and verification_matrix_cascade. All remain unresolved.",
+        "Constitutional modification without authorization: CLAUDE.md is the highest-priority interpretive authority. No phase gate authorizes modification of the constitution that defines the gates. The phase model in CLAUDE.md Section 4 uses 'Layer 2' and 'Layer 3' as canonical phase anchors \u2014 renaming them is a phase-model modification, not a cosmetic rename.",
+        "Canonical document identity disruption: README_LAYER2.md is listed by exact filename in CLAUDE.md Section 2.1. Renaming it without atomic update of all cross-references creates an irreconcilable canonical contradiction. RC-05 is dependency-blocked on RC-03.",
+        "Replacement terms are unverified: 'truth_store' (RC-03) and 'decision_layer' (RC-04) do not appear in any canonical current-state document. Under CLAUDE.md Section 16, they must be treated as unverified and non-binding. Under CLAUDE.md Section 10, strong claims without explicit proof are forbidden.",
+        "Code path collision risk unverified: claim c5 in phase_alignment_status assessed as ambiguous \u2014 'truth_store' and 'decision_layer' have not been verified against existing code identifiers, module names, or import paths. Fail-closed applies.",
+        "Cross-document atomicity not achievable under current block: partial rename across the 7 canonical docs + CLAUDE.md creates internal contradiction per CLAUDE.md Section 2.4. Atomic update is required but cannot proceed while all substantive claims are blocked.",
+        "If the rejected terminology change were committed despite guards, all Tier 1 docs plus CLAUDE.md would contain terminology that is not traceable to any prior canonical authorization \u2014 violating CLAUDE.md Section 16 (Final Constitutional Rule)."
+      ],
+      "notes": [
+        "This is a constitutional-level change, not a routine documentation update. The request modifies the governing document that defines all phases, contracts, evidence rules, and canonical document roles.",
+        "The change affects current-state documentation terminology. Although Layer 3 is target architecture, its documentation as target architecture is current-state truth (claim c2). Renaming affects how current docs describe both operational (Layer 2) and planned (Layer 3) architecture.",
+        "No doc-only change has been described as proof of runtime behavior. The terminology refactor is purely documentary in nature but has architectural and governance implications.",
+        "No target-state work has been described as current-state implementation. Layer 3 remains not-yet-built regardless of what it is called.",
+        "Procedural safeguards in the request (RC-06: selective application, RC-07: fail-closed guard, RC-08: contract-change obligations) are compliant and correctly stated per role_citation_verdict. However, compliant process rules cannot unlock substantively unverified claims.",
+        "The rename cannot proceed until the replacement terms are authorized in SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md and SYSTEM_IMPLEMENTATION_RECORD_v1.md through a prior, separate, role-matched update cycle \u2014 per role_citation_verdict.summary.notes.",
+        "README_LAYER2.md is treated as canonical within its declared collaborator-workflow and Layer-2 navigation role. It has not been used as a primary authority for implementation-state, architecture, or limitations claims in this assessment.",
+        "stage_gate_report and guard_report were structural-only; substantive guard and gate findings were consumed via audit_summary which provided comprehensive coverage of all subagent and upstream blocking signals.",
+        "Per DR-11: the purported rename-only framing has been rejected because the change alters claim scope, canonical role mapping, phase-gate language, and constitutional document content \u2014 all of which constitute semantic governance state changes."
+      ]
+    }
+  }
+}

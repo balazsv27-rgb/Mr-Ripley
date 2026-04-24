@@ -1,0 +1,118 @@
+{
+  "artifact": "phase_alignment_status",
+  "produced_by": "phase-check",
+  "session": "2be721f5-f6ae-4566-aad1-cec2c5cd28b8",
+  "timestamp": "2026-04-24T11:53:42.426221Z",
+  "data": {
+    "produced_by": "phase-check",
+    "current_phase": "Phase B (Phase A complete at contract boundary; Phase B bootstrap allowed, not completed)",
+    "requested_phase": "inferred:constitutional-and-canonical-document-restructuring (terminology rename across governance framework)",
+    "allowed": false,
+    "alignment_status": "ambiguous_requires_block",
+    "gate_reference": [
+      "phase_a_layer2_closure",
+      "phase_b_layer3_bootstrap",
+      "constitutional_document_integrity",
+      "snapshot_boundary_contract"
+    ],
+    "blocking_reason_if_any": "Request modifies the constitutional phase-gate language in CLAUDE.md Section 4 (which explicitly names 'Layer 2' and 'Layer 3' as phase anchors) and renames canonical document README_LAYER2.md (listed by identity in CLAUDE.md Section 2.1). These changes alter the governance framework that defines the phase model itself \u2014 not a downstream implementation change, but a meta-level modification to the authority structure that governs all phases. Upstream role_citation_verdict is 'conflict_requires_block'. Fail-closed per CLAUDE.md Section 7.",
+    "checked_claims": [
+      {
+        "claim_id": "c1",
+        "claim_text": "CLAUDE.md rename or modification (constitutional document modification)",
+        "effective_capability": "Alters the supreme interpretive authority that defines Phase A\u2013D, canonical document set, snapshot contract, and evidence model",
+        "phase_assessment": "blocked",
+        "gate_reference": [
+          "constitutional_document_integrity"
+        ],
+        "reason": "CLAUDE.md is the highest-priority interpretive authority per its own preamble. Modifying its phase-gate language (Section 4) restructures the phase model itself. No phase gate authorizes modification of the constitution that defines the gates. Role-citation verdict: conflict_requires_block."
+      },
+      {
+        "claim_id": "c2",
+        "claim_text": "README_LAYER2.md filename rename (canonical document identity change)",
+        "effective_capability": "Removes a named member from the canonical current-state documentation set as listed in CLAUDE.md Section 2.1",
+        "phase_assessment": "blocked",
+        "gate_reference": [
+          "phase_a_layer2_closure",
+          "constitutional_document_integrity"
+        ],
+        "reason": "CLAUDE.md Section 2.1 lists README_LAYER2.md by exact identity. Renaming it without updating all 7 canonical docs plus CLAUDE.md Section 2.1 creates an internal canonical contradiction. Cross-document consistency is a hard requirement, not a preference."
+      },
+      {
+        "claim_id": "c3",
+        "claim_text": "Snapshot boundary terminology change \u2014 'Layer 2' renamed to 'truth_store'",
+        "effective_capability": "Renames the architectural identity of the snapshot boundary, potentially blurring the snapshot contract (CLAUDE.md Section 6)",
+        "phase_assessment": "blocked",
+        "gate_reference": [
+          "snapshot_boundary_contract",
+          "phase_a_layer2_closure"
+        ],
+        "reason": "Layer 2 = snapshot boundary is an architectural anchor defined in CLAUDE.md Section 6 (Snapshot Contract, non-negotiable) and in SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md. Renaming without full contract-level re-anchoring across all canonical docs risks contract ambiguity downstream. Phase B bootstrap inherits this boundary definition \u2014 a partial rename breaks bootstrap readability."
+      },
+      {
+        "claim_id": "c4",
+        "claim_text": "Cross-document consistency risk \u2014 partial or inconsistent rename across 7 canonical docs",
+        "effective_capability": "Any partial rename leaves some canonical docs using old terminology and others using new, creating internal contradiction",
+        "phase_assessment": "blocked",
+        "gate_reference": [
+          "phase_b_layer3_bootstrap"
+        ],
+        "reason": "CLAUDE.md Section 2.4 mandates role-matched canonical interpretation overrides convenience-based interpretation. Inconsistent terminology across the canonical set generates irresolvable conflict. Fail-closed rule applies: treat unresolved contradiction as documentation inconsistency \u2014 do not proceed."
+      },
+      {
+        "claim_id": "c5",
+        "claim_text": "Code path collision risk \u2014 'truth_store' and 'decision_layer' must be verified against existing identifiers",
+        "effective_capability": "New terminology may collide with or shadow existing module names, import paths, or registry identifiers in the codebase",
+        "phase_assessment": "ambiguous",
+        "gate_reference": [
+          "phase_b_layer3_bootstrap"
+        ],
+        "reason": "Cannot verify without code-level grep. Ambiguous phase assessment \u2014 the rename may be code-safe or may introduce silent import shadowing. Fail-closed: treat as requiring explicit verification before proceeding. Flagged for audit."
+      },
+      {
+        "claim_id": "c6",
+        "claim_text": "Historical reference preservation \u2014 older context using Layer 2/Layer 3 terminology",
+        "effective_capability": "Superseded or historical documents using original terminology must be flagged for governance review, not silently renamed",
+        "phase_assessment": "blocked",
+        "gate_reference": [
+          "constitutional_document_integrity"
+        ],
+        "reason": "CLAUDE.md Section 2.3 states historical documents outside the canonical set MUST NOT be used as current truth sources. Silently renaming without flagging historical references risks reactivating superseded framing under a new name. Governance review required first."
+      },
+      {
+        "claim_id": "c7",
+        "claim_text": "Phase gate language change \u2014 CLAUDE.md Section 4 references 'Layer 2' and 'Layer 3' explicitly in Phase A and Phase B definitions",
+        "effective_capability": "Renaming these terms in the phase model changes what Phase A closure means and what Phase B bootstrap targets",
+        "phase_assessment": "blocked",
+        "gate_reference": [
+          "phase_a_layer2_closure",
+          "phase_b_layer3_bootstrap",
+          "constitutional_document_integrity"
+        ],
+        "reason": "Phase A is defined as 'Layer 2 Closure' and Phase B as 'Layer 3 Bootstrap'. These are not incidental labels \u2014 they are the canonical phase anchors. Renaming them without a full governance-ratified revision to CLAUDE.md Section 4 makes the phase model internally inconsistent. This is a phase-model modification, not a rename."
+      },
+      {
+        "claim_id": "c8",
+        "claim_text": "Verification matrix cascade \u2014 DOCUMENTATION_VERIFICATION_MATRIX_v1.md cross-references require update",
+        "effective_capability": "The verification matrix cross-references all 7 canonical docs; terminology and filename changes cascade into broken cross-reference integrity",
+        "phase_assessment": "blocked",
+        "gate_reference": [
+          "phase_b_layer3_bootstrap"
+        ],
+        "reason": "CLAUDE.md Section 11 mandates DOCUMENTATION_VERIFICATION_MATRIX_v1.md update on any contract-affecting change. A rename operation affecting document identities and canonical terminology is unambiguously contract-affecting. The matrix must be updated atomically with any rename \u2014 partial update is invalid."
+      }
+    ],
+    "summary": {
+      "phase_jump_detected": false,
+      "live_readiness_implication_detected": false,
+      "scope_exceeds_current_allowance": false,
+      "snapshot_boundary_risk": true,
+      "followup_audit_recommended": true,
+      "build_order_ambiguity_detected": false,
+      "constitutional_modification_detected": true,
+      "canonical_identity_change_detected": true,
+      "upstream_block_signal": "role_citation_verdict=conflict_requires_block",
+      "recommended_next_step": "Block the rename operation as-stated. If the terminology change is genuinely desired, it requires: (1) a governance-ratified revision to CLAUDE.md Section 4 phase gate language with full cross-canonical propagation, (2) atomic rename of all 7 canonical docs plus CLAUDE.md itself under a controlled process, (3) code-level grep to verify no identifier collisions for 'truth_store' and 'decision_layer', (4) DOCUMENTATION_VERIFICATION_MATRIX_v1.md updated atomically, (5) historical document audit before any superseded framing is renamed. Escalate to architecture-sequence-auditor is NOT triggered (no build_order_ambiguity \u2014 phase model itself is clear; the issue is constitutional modification scope, not phase sequence ambiguity)."
+    }
+  }
+}
