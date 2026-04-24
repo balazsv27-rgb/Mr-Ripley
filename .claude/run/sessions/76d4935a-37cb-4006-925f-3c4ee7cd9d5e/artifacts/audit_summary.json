@@ -1,0 +1,145 @@
+{
+  "artifact": "audit_summary",
+  "produced_by": "deep-audit",
+  "session": "76d4935a-37cb-4006-925f-3c4ee7cd9d5e",
+  "timestamp": "2026-04-24T11:20:52.631864Z",
+  "data": {
+    "produced_by": "deep-audit",
+    "overall_audit_status": "blocked_pending_subagent_audit",
+    "dispatch_evaluation_complete": true,
+    "subagents_dispatched": [
+      "canonical-role-auditor",
+      "architecture-sequence-auditor",
+      "snapshot-boundary-auditor",
+      "adapter-schema-guardian"
+    ],
+    "subagents_not_dispatched": [
+      {
+        "subagent": "implementation-history-reconciler",
+        "reason": "claim_classification_map.non_canonical_source_as_current_truth field absent from artifact; no explicit or narrative dispatch signal found in any upstream artifact to satisfy trigger condition"
+      }
+    ],
+    "dispatch_decisions": {
+      "canonical-role-auditor": {
+        "dispatched": true,
+        "strict_trigger_field": "role_citation_verdict.violations",
+        "strict_trigger_values": [
+          "role_mismatch_for_strong_claim",
+          "readme_layer2_used_as_override"
+        ],
+        "strict_trigger_matched": false,
+        "violations_field_present": false,
+        "dispatch_basis": "role_citation_verdict contains explicit escalation_target='canonical-role-auditor'; source_authority_conflict_detected=true; canonical_conflict_unresolved=true; requires_doc_sync_escalation=true; recommended_guard_action=block",
+        "severity": "blocking",
+        "note": "Strict violations field absent from artifact but explicit escalation_target constitutes direct dispatch signal from upstream layer"
+      },
+      "architecture-sequence-auditor": {
+        "dispatched": true,
+        "strict_trigger_field": "phase_alignment_status.build_order_ambiguity_detected",
+        "strict_trigger_matched": false,
+        "trigger_field_present": false,
+        "dispatch_basis": "phase_alignment_status.recommended_next_step explicitly names architecture-sequence-auditor escalation due to claim count discrepancy (8 claims in role_citation_verdict vs 7 claims in claim_classification_map); alignment_status='ambiguous_requires_block'; upstream canonical conflict from role_citation_verdict unresolved",
+        "severity": "blocking",
+        "note": "build_order_ambiguity_detected field absent but narrative in recommended_next_step is an explicit escalation directive; discrepancy in claim counts is a concrete structural signal, not inference"
+      },
+      "snapshot-boundary-auditor": {
+        "dispatched": true,
+        "strict_trigger_field": "runtime_boundary_verdict.boundary_violation_suspected",
+        "strict_trigger_matched": false,
+        "trigger_field_present": true,
+        "trigger_field_value": null,
+        "dispatch_basis": "runtime_boundary_verdict.requires_snapshot_boundary_auditor=true; contract_compliance_verdict.snapshot_bypass_risk=true; contract_compliance_verdict.decisionpacket_anchor_risk=true; snapshot_anchor_required=true; null on boundary_violation_suspected is ambiguous \u2014 not confirmed false",
+        "severity": "blocking",
+        "note": "boundary_violation_suspected=null does not satisfy strict true trigger but requires_snapshot_boundary_auditor=true is a direct dispatch signal; snapshot_bypass_risk from contract_compliance_verdict corroborates"
+      },
+      "adapter-schema-guardian": {
+        "dispatched": true,
+        "strict_trigger_field": "adapter_schema_verdict.violations",
+        "strict_trigger_values": [
+          "registry_violation",
+          "schema_drift_detected"
+        ],
+        "strict_trigger_matched": false,
+        "violations_field_present": false,
+        "known_violation_flags": {
+          "registry_violation_detected": false,
+          "hardcoded_series_detected": false,
+          "schema_drift_detected": false,
+          "boundary_violation_detected": false
+        },
+        "dispatch_basis": "adapter_schema_verdict.requires_adapter_schema_guardian=true; source_authority_conflict_detected=true within same artifact \u2014 false readings on violation flags are not reliable while source authority conflict is unresolved; requires_doc_code_sync_review=true",
+        "severity": "review",
+        "note": "Violation flags are currently false but are produced under a source_authority_conflict condition; the reliability of those flags cannot be confirmed until the authority conflict (escalated to canonical-role-auditor) is resolved"
+      },
+      "implementation-history-reconciler": {
+        "dispatched": false,
+        "strict_trigger_field": "claim_classification_map.non_canonical_source_as_current_truth",
+        "strict_trigger_matched": false,
+        "trigger_field_present": false,
+        "dispatch_basis": "no trigger signal found; claim_classification_map.possible_blocking_conditions does not include a non_canonical_source entry; no narrative escalation directive present",
+        "severity": "none"
+      }
+    },
+    "subagent_findings": {
+      "canonical-role-auditor": {
+        "status": "pending_execution",
+        "findings": null
+      },
+      "architecture-sequence-auditor": {
+        "status": "pending_execution",
+        "findings": null
+      },
+      "snapshot-boundary-auditor": {
+        "status": "pending_execution",
+        "findings": null
+      },
+      "adapter-schema-guardian": {
+        "status": "pending_execution",
+        "findings": null
+      }
+    },
+    "unresolved_violations": [
+      {
+        "id": "UV-1",
+        "source_artifact": "role_citation_verdict",
+        "description": "Source authority conflict detected and unresolved; canonical conflict requires doc-sync escalation; guard action=block",
+        "inherited_guard_action": "block",
+        "traceable_to": "CLAUDE.md Section 2.4, Section 5"
+      },
+      {
+        "id": "UV-2",
+        "source_artifact": "phase_alignment_status",
+        "description": "Phase alignment ambiguous; suspected build_order_ambiguity from claim count discrepancy (8 in role_citation_verdict vs 7 in claim_classification_map); upstream canonical conflict inherited and unresolved; allowed=false",
+        "inherited_guard_action": "block",
+        "traceable_to": "CLAUDE.md Section 4, Section 14"
+      },
+      {
+        "id": "UV-3",
+        "source_artifact": "contract_compliance_verdict",
+        "description": "Contract status ambiguous; snapshot_bypass_risk=true; decisionpacket_anchor_risk=true; snapshot_anchor_required=true but not confirmed satisfied; allowed=false",
+        "inherited_guard_action": "block",
+        "traceable_to": "CLAUDE.md Section 6"
+      },
+      {
+        "id": "UV-4",
+        "source_artifact": "runtime_boundary_verdict",
+        "description": "Boundary violation status ambiguous (boundary_violation_suspected=null); requires_snapshot_boundary_guard=true; source_authority_conflict_detected=true within artifact",
+        "inherited_guard_action": "review_required_before_clear",
+        "traceable_to": "CLAUDE.md Section 6, Section 7"
+      },
+      {
+        "id": "UV-5",
+        "source_artifact": "adapter_schema_verdict",
+        "description": "Adapter schema status ambiguous; source_authority_conflict_detected=true within artifact undermines reliability of currently-false violation flags; requires_doc_code_sync_review=true",
+        "inherited_guard_action": "review_required_before_clear",
+        "traceable_to": "CLAUDE.md Section 8"
+      }
+    ],
+    "structural_artifacts_noted": {
+      "guard_report": "structural=true; no substantive violation fields available in compacted form; not evaluated for dispatch triggers",
+      "stage_gate_report": "structural=true; no substantive violation fields available in compacted form; not evaluated for dispatch triggers"
+    },
+    "dag_advancement": "blocked",
+    "dag_advancement_reason": "Three blocking unresolved violations (UV-1 through UV-3) and two review-required violations (UV-4, UV-5) span role citation, phase alignment, and snapshot contract layers. Four subagents dispatched with pending execution. DAG advancement to the verification layer requires all dispatched subagents to return and all unresolved violations to reach a resolved state. No findings can be cleared on LLM reasoning alone per CLAUDE.md Section 5.3."
+  }
+}
