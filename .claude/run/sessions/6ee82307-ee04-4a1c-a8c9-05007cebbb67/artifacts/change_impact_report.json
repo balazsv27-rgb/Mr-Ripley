@@ -1,0 +1,68 @@
+{
+  "artifact": "change_impact_report",
+  "produced_by": "change-impact-audit",
+  "session": "6ee82307-ee04-4a1c-a8c9-05007cebbb67",
+  "timestamp": "2026-04-26T18:50:42.911876Z",
+  "data": {
+    "produced_by": "change-impact-audit",
+    "run_id": "6ee82307-ee04-4a1c-a8c9-05007cebbb67",
+    "change_impact_summary": {
+      "change_mode": "content_change",
+      "impact_type": "mixed",
+      "contributing_categories": [
+        "documentation",
+        "architecture",
+        "verification"
+      ],
+      "impacted_components": [
+        "canonical_document_set",
+        "constitutional_authority_CLAUDE_md",
+        "snapshot_boundary",
+        "Layer-3_bootstrap",
+        "governance_workflow",
+        "verification_ledger",
+        "historical_context",
+        "skill_registry"
+      ],
+      "impacted_docs": [
+        "CLAUDE.md",
+        "README_v1.md",
+        "SYSTEM_TECHNICAL_HANDBOOK_v1.md",
+        "SYSTEM_LIMITATIONS_AND_APPROXIMATIONS_v1.md",
+        "SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md",
+        "DOCUMENTATION_VERIFICATION_MATRIX_v1.md",
+        "SYSTEM_IMPLEMENTATION_RECORD_v1.md",
+        "README_LAYER2.md",
+        "system-orchestration.yaml",
+        "verification_ledger.md"
+      ],
+      "follow_up_required": "mandatory",
+      "inference_used": true,
+      "inference_notes": [
+        "guard_report upstream artifact is structural-only (no individual guard fire/block details); inferred conservatively from audit_summary subagent findings which reference snapshot-boundary-guard and live-readiness-claim-blocker behavior",
+        "stage_gate_report upstream artifact is structural-only; inferred gate status from phase_alignment_status and audit_summary findings"
+      ],
+      "risk_summary": [
+        "AUD-001 BLOCKING: Source authority conflict unresolved across blocking claims C-001 through C-004. Role-matched canonical interpretation (CLAUDE.md Section 2.4) not yet applied. All four strong architecture claims lack citations to SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md.",
+        "AUD-002 BLOCKING: Snapshot bypass risk and DecisionPacket anchor risk unresolved. 'truth_store' has not been verified to unambiguously preserve all snapshot-boundary contract properties (CLAUDE.md Section 6). Boundary violation suspected under proposed rename.",
+        "AUD-003 BLOCKING: Phase alignment ambiguous and not allowed. Introduction of 'decision_layer' in current-state documentation context risks blurring the current-state vs target-architecture boundary (CLAUDE.md Section 3). Layer 3 components are explicitly listed as planned-only.",
+        "AUD-004 BLOCKING: CLAUDE.md constitutional modification cascade not mapped. README_LAYER2.md canonical filename rename would cascade through all canonical cross-references and CLAUDE.md Sections 2.1, 2.2, 2.4, and 11. No cascade impact map has been produced.",
+        "AUD-005 REVIEW_REQUIRED: Adapter schema domain has ambiguous status \u2014 registry_violation, schema_drift, and boundary_violation fields are all null (not confirmed absent). Source authority conflict in adapter domain unresolved.",
+        "Proposed terms 'truth_store' and 'decision_layer' do not appear in any canonical document. Per CLAUDE.md Section 16, these terms must be treated as unverified and non-binding until traceable to a canonical source or proven from implementation.",
+        "The term 'decision_layer' collapses six distinct planned Layer-3 sub-components (Index Suite, Regime Gate, Supervisor Engine, Decision Engine, DecisionPacket generator, Execution Layer) into a single label \u2014 this constitutes architecture drift risk that the request's own fail-closed criterion identifies as blocking.",
+        "Code-path invariance (layer2/ directory, import paths, module names) has not been confirmed as explicitly scoped out of the documentation-level rename. Risk of documentation rename bleeding into code paths.",
+        "Historical reference integrity not confirmed \u2014 original 'Layer 2'/'Layer 3' terminology in historical contexts must be preserved or explicitly annotated per CLAUDE.md Section 2.3."
+      ],
+      "notes": [
+        "This change is classified as content_change (not rename_only) because: (a) the proposed replacement terms are not traceable to any canonical source, (b) semantic equivalence between old and new terms is unproven, (c) the README_LAYER2.md filename rename adds a structural component, and (d) DR-11 applies \u2014 the purported rename alters claim scope and canonical role mapping.",
+        "The change affects CLAUDE.md itself \u2014 the highest-priority interpretive authority. Modifying CLAUDE.md constitutes a constitutional amendment, not a documentation refactor. This requires governance resolution before any modification is valid.",
+        "No target-state work has been described as current-state implementation in this assessment. Layer 3 / decision_layer remains 'not yet built' regardless of terminology.",
+        "No documentation change in this request constitutes proof of runtime behavior. Any terminology rename is a documentation-level action only.",
+        "README_LAYER2.md is treated as canonical within its declared collaborator-workflow role (CLAUDE.md Section 2.2). It has not been used as a primary authority for implementation-state, architecture, or limitations claims in this assessment.",
+        "The request's own fail-closed condition ('fail closed if the rename would introduce ambiguity, architecture drift, or snapshot-boundary confusion') is triggered by the request's own proposed renames \u2014 the request is self-blocking under its stated criterion.",
+        "Phase alignment status is ambiguous_requires_block \u2014 not because this is a phase jump, but because upstream canonical conflicts prevent safe assessment of phase compliance.",
+        "All 5 deep-audit subagents were dispatched; 4 returned UNRESOLVED (blocking), 1 returned REVIEW_REQUIRED. Zero violations have been resolved or suppressed."
+      ]
+    }
+  }
+}

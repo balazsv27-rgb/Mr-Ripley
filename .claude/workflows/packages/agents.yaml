@@ -400,6 +400,7 @@ data:
       Scope: classification posture only — does not update the ledger,
       does not re-classify claims, does not act as a phase gate.
     model: sonnet
+    timeout_ms: 240000
     tools: [Read, Grep, Glob]
     workflow_steps:
       - update-verification-matrix

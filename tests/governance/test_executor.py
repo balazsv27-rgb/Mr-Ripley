@@ -552,3 +552,118 @@ def test_blocking_conditions_empty_for_normal_skip_if_skip() -> None:
     result = execute_plan(spec, plan)
     assert result.run_state.node_results["step-b"].status == "SKIP"
     assert result.run_state.blocking_conditions == []
+
+
+# ---------------------------------------------------------------------------
+# Cascading skip on dependency failure (V2 backend path)
+# ---------------------------------------------------------------------------
+
+
+def test_dependency_failure_cascades_as_skip_not_fail() -> None:
+    """When a dependency step FAILs, downstream steps are SKIP not FAIL.
+
+    This prevents misleading missing-input contract errors from masking
+    the true root cause (the dependency failure).
+    """
+    from governance.dag_runner.execution_backend import MockExecutionBackend
+    from governance.dag_runner.models import (
+        ArtifactRecord,
+        ExecutionConfig,
+        NodeResult,
+    )
+
+    step_a = _make_step(
+        "update-verification-matrix",
+        component="skill:verification-matrix-update-method",
+        outputs=["verification_matrix_delta"],
+    )
+    step_b = _make_step(
+        "update-verification-ledger",
+        component="skill:verification-ledger-update",
+        outputs=["verification_ledger_delta"],
+    )
+    # Declare dependency in raw for depends_on
+    step_b_with_deps = WorkflowStep(
+        name=step_b.name,
+        component=step_b.component,
+        outputs=step_b.outputs,
+        depends_on=["update-verification-matrix"],
+        raw={"inputs": ["verification_matrix_delta"]},
+    )
+    spec = _make_spec(step_a, step_b_with_deps)
+    plan = _make_plan(step_a, step_b_with_deps)
+
+    backend = MockExecutionBackend()
+
+    # Pre-seed step_a as FAIL in the run state by doing a normal run first
+    # then modifying the result. Instead, simulate: run with a backend that
+    # fails step_a.
+    config = ExecutionConfig(mode="agent_execution", request_text="test")
+
+    # We need to make step_a fail. Use execute_plan but override run state
+    # after step_a to simulate failure.
+    # Simplest approach: run with MockExecutionBackend which PASSes everything,
+    # then test with a custom failing backend.
+
+    class FailFirstBackend(MockExecutionBackend):
+        def execute_step(self, step, agent, config, run_state, spec,
+                         prompt_context=None, debug_dir=None):
+            from governance.dag_runner.models import (
+                AgentExecutionResult,
+                FailureClassification,
+            )
+            if step.name == "update-verification-matrix":
+                return AgentExecutionResult(
+                    success=False,
+                    failure=FailureClassification(
+                        origin="timeout",
+                        step_id=step.name,
+                        detail="Simulated timeout",
+                    ),
+                )
+            return super().execute_step(
+                step, agent, config, run_state, spec, prompt_context, debug_dir,
+            )
+
+        def execute_structural_step(self, step, component_kind, run_state,
+                                    spec, bootstrap_payload=None):
+            from governance.dag_runner.models import (
+                AgentExecutionResult,
+                FailureClassification,
+            )
+            if step.name == "update-verification-matrix":
+                return AgentExecutionResult(
+                    success=False,
+                    failure=FailureClassification(
+                        origin="timeout",
+                        step_id=step.name,
+                        detail="Simulated timeout",
+                    ),
+                )
+            return super().execute_structural_step(
+                step, component_kind, run_state, spec, bootstrap_payload,
+            )
+
+    fail_backend = FailFirstBackend()
+    result = execute_plan(
+        spec, plan,
+        config=config,
+        backend=fail_backend,
+    )
+    rs = result.run_state
+
+    # Step A should be FAIL
+    assert rs.node_results["update-verification-matrix"].status == "FAIL"
+
+    # Step B should be SKIP (not FAIL) due to failed dependency
+    assert rs.node_results["update-verification-ledger"].status == "SKIP"
+    assert "failed" in rs.node_results["update-verification-ledger"].summary.lower()
+    assert "dependency" in rs.node_results["update-verification-ledger"].summary.lower()
+
+    # Trace should have a step_skipped_dependency_failed event
+    skip_dep_events = [
+        e for e in rs.execution_trace
+        if e.event_type == "step_skipped_dependency_failed"
+        and e.node_name == "update-verification-ledger"
+    ]
+    assert len(skip_dep_events) == 1

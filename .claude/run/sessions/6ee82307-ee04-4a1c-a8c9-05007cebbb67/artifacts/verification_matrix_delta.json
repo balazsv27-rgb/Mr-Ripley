@@ -1,0 +1,109 @@
+{
+  "artifact": "verification_matrix_delta",
+  "produced_by": "update-verification-matrix",
+  "session": "6ee82307-ee04-4a1c-a8c9-05007cebbb67",
+  "timestamp": "2026-04-26T18:56:01.374371Z",
+  "data": {
+    "produced_by": "update-verification-matrix",
+    "matrix_action": "review_only",
+    "classification_dispute_detected": false,
+    "runtime_status_upgrade_blocked": true,
+    "source_authority_conflict_detected": true,
+    "affected_entries": [
+      {
+        "entry_id": "s3-architecture-claims-source-authority",
+        "section": "Section 3 \u2014 Current Layer-2 Contract Items",
+        "claim_or_topic": "Architecture boundary claims (C-001 through C-004) governing current Layer-2 contract scope",
+        "change_type": "source_priority_update",
+        "reason": "AUD-001: Claims C-001\u2013C-004 lack citations to SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md, which is the role-matched Tier 1 canonical source for architecture/boundary questions (CLAUDE.md \u00a72.4). Source authority is currently unresolved. DR-5 prevents settled reclassification until citations are mapped.",
+        "source_documents": [
+          "SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md",
+          "CLAUDE.md"
+        ],
+        "proposed_old_state": null,
+        "proposed_new_state": null,
+        "confidence": "high"
+      },
+      {
+        "entry_id": "s3-snapshot-boundary-contract",
+        "section": "Section 3 \u2014 Current Layer-2 Contract Items",
+        "claim_or_topic": "Snapshot boundary contract properties \u2014 preservation under truth_store rename",
+        "change_type": "status_review",
+        "reason": "AUD-002: Proposed 'truth_store' rename has not been verified to unambiguously preserve all snapshot-boundary contract properties required by CLAUDE.md \u00a76. Boundary violation suspected. Classification posture for snapshot contract entries must be held at current level pending verification. DR-1 blocks any runtime-status upgrade from doc-only evidence.",
+        "source_documents": [
+          "SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md",
+          "CLAUDE.md"
+        ],
+        "proposed_old_state": null,
+        "proposed_new_state": null,
+        "confidence": "high"
+      },
+      {
+        "entry_id": "s5-layer3-decision-layer-phase-boundary",
+        "section": "Section 5 \u2014 Future / Target Architecture Items",
+        "claim_or_topic": "Layer-3 bootstrap / decision_layer phase classification (planned-only vs current-state)",
+        "change_type": "status_review",
+        "reason": "AUD-003: Introduction of 'decision_layer' in current-state documentation context risks blurring the current-state vs target-architecture boundary (CLAUDE.md \u00a73). Layer-3 components are explicitly listed as planned-only. Existing Section 5 entries for Layer-3 bootstrap and decision_layer must be reviewed to confirm they remain correctly classified as 'Planned / target architecture' and have not been inadvertently promoted.",
+        "source_documents": [
+          "SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md",
+          "CLAUDE.md",
+          "SYSTEM_IMPLEMENTATION_RECORD_v1.md"
+        ],
+        "proposed_old_state": null,
+        "proposed_new_state": null,
+        "confidence": "high"
+      },
+      {
+        "entry_id": "s8-readme-layer2-document-role",
+        "section": "Section 8 \u2014 Document Role Classification",
+        "claim_or_topic": "README_LAYER2.md canonical filename, cross-reference authority, and role constraint",
+        "change_type": "status_review",
+        "reason": "AUD-004: README_LAYER2.md canonical filename rename cascades through all cross-references in CLAUDE.md \u00a7\u00a72.1, 2.2, 2.4, and 11. No cascade impact map has been produced. DR-6: README_LAYER2.md authority conflict must be reported. Section 8 entry for README_LAYER2.md role classification must be reviewed and held pending cascade mapping. source_authority_conflict_detected is set true at artifact level.",
+        "source_documents": [
+          "CLAUDE.md",
+          "README_LAYER2.md"
+        ],
+        "proposed_old_state": null,
+        "proposed_new_state": null,
+        "confidence": "high"
+      },
+      {
+        "entry_id": "s3-adapter-schema-boundary",
+        "section": "Section 3 \u2014 Current Layer-2 Contract Items",
+        "claim_or_topic": "Adapter schema boundary and registry compliance status",
+        "change_type": "status_review",
+        "reason": "AUD-005: Adapter schema domain has ambiguous status \u2014 registry_violation, schema_drift, and boundary_violation fields are all null (not confirmed absent) in upstream artifacts. Source authority conflict in adapter domain is unresolved. DR-8 fail-closed: classification must be held pending resolution of null-field ambiguity.",
+        "source_documents": [
+          "SYSTEM_TECHNICAL_HANDBOOK_v1.md",
+          "SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md"
+        ],
+        "proposed_old_state": null,
+        "proposed_new_state": null,
+        "confidence": "medium"
+      }
+    ],
+    "required_follow_up": [
+      "Resolve AUD-001: Map citations for claims C-001\u2013C-004 to SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md before any source-priority updates can be settled.",
+      "Resolve AUD-002: Verify truth_store rename preserves all snapshot-boundary contract properties per CLAUDE.md \u00a76 before snapshot contract entries can be reclassified.",
+      "Resolve AUD-003: Confirm decision_layer and Layer-3 bootstrap entries in Section 5 remain classified as 'Planned / target architecture' after documentation updates.",
+      "Resolve AUD-004: Produce README_LAYER2.md rename cascade impact map covering CLAUDE.md \u00a7\u00a72.1, 2.2, 2.4, 11 before Section 8 document role entry can be settled.",
+      "Resolve AUD-005: Confirm adapter schema null fields represent confirmed-absent violations or surface the actual values before adapter schema entry classification can be settled.",
+      "Re-run update-verification-matrix after all BLOCKING violations are resolved and audit_summary detail fields are populated."
+    ],
+    "inference_used": true,
+    "unresolved_conflicts": [
+      "AUD-001: Source authority conflict \u2014 C-001\u2013C-004 architecture claims lack SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md citations.",
+      "AUD-002: Snapshot boundary contract \u2014 truth_store rename not verified against CLAUDE.md \u00a76 contract properties.",
+      "AUD-003: Phase boundary \u2014 decision_layer presence in current-state context unresolved against CLAUDE.md \u00a73.",
+      "AUD-004: README_LAYER2.md filename rename cascade not mapped; DR-6 authority conflict active.",
+      "AUD-005: Adapter schema domain \u2014 registry_violation/schema_drift/boundary_violation all null, status ambiguous."
+    ],
+    "notes": [
+      "matrix_action=review_only because overall_audit_status=BLOCKED with null detail fields (DR-8 fail-closed) and source authority conflicts exist (DR-5).",
+      "No classification upgrades produced. All affected entries are held at status_review pending resolution of BLOCKING violations.",
+      "inference_used=true: DOCUMENTATION_VERIFICATION_MATRIX_v1.md was not accessible for this invocation; entry IDs and section assignments are inferred from change_impact_report and audit_summary signals.",
+      "runtime_status_upgrade_blocked=true: doc_code_sync_status=doc_update_required combined with BLOCKED audit state; DR-1 applies.",
+      "source_authority_conflict_detected=true: AUD-001 (architecture claim citations) and AUD-004 (README_LAYER2.md rename cascade) both represent active source authority conflicts per DR-5 and DR-6."
+    ]
+  }
+}

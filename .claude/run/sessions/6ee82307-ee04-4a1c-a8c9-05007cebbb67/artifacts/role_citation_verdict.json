@@ -1,0 +1,166 @@
+{
+  "artifact": "role_citation_verdict",
+  "produced_by": "route-claims-by-role",
+  "session": "6ee82307-ee04-4a1c-a8c9-05007cebbb67",
+  "timestamp": "2026-04-26T18:40:21.791512Z",
+  "data": {
+    "produced_by": "route-claims-by-role",
+    "run_id": "6ee82307-ee04-4a1c-a8c9-05007cebbb67",
+    "skill_applied": "role-matched-citation-check",
+    "inference_used": true,
+    "inference_reason": "claim_classification_map upstream artifact is present but carries no per-claim detail; claims inferred directly from request_text per skill rule D7",
+    "source_authority_conflict_detected": true,
+    "overall_status": "conflict_requires_block",
+    "checked_claims": [
+      {
+        "claim_id": "C-001",
+        "claim_text": "The terms 'Layer 2' and 'Layer-2' refer to the project's architectural data-ingestion layer and are valid candidates for systematic rename.",
+        "claim_type": "architecture",
+        "required_primary_source": "SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md",
+        "provided_sources": [
+          "CLAUDE.md (Section 3.1 \u2014 governance constitutional reference only)"
+        ],
+        "role_match": false,
+        "strong_claim": true,
+        "explicit_citation_required": true,
+        "conflict_detected": true,
+        "blocking_condition_if_any": "Strong architecture claim asserts Layer 2 identity and rename candidacy without citation to SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md, the role-matched primary source for architectural boundary and layer definitions. CLAUDE.md Section 3.1 references Layer 2 in constitutional context only; it does not constitute architecture documentation.",
+        "verdict": "RC-4",
+        "reason": "Architecture claim without role-matched primary source citation. CLAUDE.md is governance authority, not the architectural source of truth. SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md is required for any claim about layer identity.",
+        "notes": "CLAUDE.md Section 2.4 resolution order requires identifying the claim type first, then selecting the canonical document whose declared role most directly matches. Architecture/boundary questions must prefer SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md. CLAUDE.md Section 2.2 is explicit on this routing."
+      },
+      {
+        "claim_id": "C-002",
+        "claim_text": "The terms 'Layer 3' and 'Layer-3' refer to the project's planned snapshot-consuming computation layer and are valid candidates for systematic rename.",
+        "claim_type": "architecture",
+        "required_primary_source": "SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md",
+        "provided_sources": [
+          "CLAUDE.md (Section 3.2 \u2014 constitutional reference only)"
+        ],
+        "role_match": false,
+        "strong_claim": true,
+        "explicit_citation_required": true,
+        "conflict_detected": true,
+        "blocking_condition_if_any": "Same structural failure as C-001. CLAUDE.md Section 3.2 lists Layer 3 components in constitutional framing; this does not substitute for architecture document authority over layer naming.",
+        "verdict": "RC-4",
+        "reason": "Strong architecture claim requires SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md as primary source. No such citation present.",
+        "notes": "CLAUDE.md Section 3.2 notes Index Suite as '(Layer-3 snapshot-consuming computation; distinct from the existing Layer-2 layer2/index_suite.py provisional pre-publication tool)' \u2014 this distinction itself makes the rename scope non-trivial and requires the architecture document to adjudicate."
+      },
+      {
+        "claim_id": "C-003",
+        "claim_text": "The replacement term 'truth_store' is a valid, canonically-authorized name for what is currently called Layer 2.",
+        "claim_type": "architecture",
+        "required_primary_source": "SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md",
+        "provided_sources": [],
+        "role_match": false,
+        "strong_claim": true,
+        "explicit_citation_required": true,
+        "conflict_detected": true,
+        "blocking_condition_if_any": "The term 'truth_store' does not appear in any canonical document referenced in the governance_context or in CLAUDE.md. Per CLAUDE.md Section 16: 'If a statement cannot be traced to a canonical source AND cannot be proven from implementation, THEN it MUST be treated as unverified and non-binding.' The proposed replacement term is unverified. Additionally, CLAUDE.md itself uses 'Layer 2' as established constitutional terminology throughout Sections 3, 4, and 6 \u2014 renaming in CLAUDE.md would constitute a constitutional amendment, not a documentation refactor.",
+        "verdict": "RC-4",
+        "reason": "No canonical source authorizes the term 'truth_store'. Strong claim with zero traceable citation. CLAUDE.md Section 16 mandatory block applies.",
+        "notes": "The absence of 'truth_store' from all provided canonical materials means this term cannot be treated as validated nomenclature. Introduction of unverified terminology into canonical documents would itself create a documentation inconsistency requiring governance intervention."
+      },
+      {
+        "claim_id": "C-004",
+        "claim_text": "The replacement term 'decision_layer' is a valid, canonically-authorized name for what is currently called Layer 3.",
+        "claim_type": "architecture",
+        "required_primary_source": "SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md",
+        "provided_sources": [],
+        "role_match": false,
+        "strong_claim": true,
+        "explicit_citation_required": true,
+        "conflict_detected": true,
+        "blocking_condition_if_any": "The term 'decision_layer' does not appear in any canonical document. CLAUDE.md Section 3.2 distinguishes between multiple planned Layer-3 components (Index Suite, Regime Gate, Supervisor Engine, Decision Engine, DecisionPacket generator, Execution Layer). Collapsing all of these under a single 'decision_layer' rename would misrepresent the planned architecture and potentially conflate distinct functional components.",
+        "verdict": "RC-4",
+        "reason": "No canonical source authorizes the term 'decision_layer'. The proposed rename flattens a multi-component planned architecture into a single label, which creates architecture drift risk. CLAUDE.md Section 16 block applies.",
+        "notes": "CLAUDE.md Section 3.2 lists six distinct planned sub-components for the Layer-3 phase. A single rename to 'decision_layer' risks obscuring these distinctions. This is precisely the 'architecture drift' that the request's own fail-closed condition names as a blocking criterion \u2014 but fails to apply to itself."
+      },
+      {
+        "claim_id": "C-005",
+        "claim_text": "Code module names, import paths, and historical references must not be altered without governance review.",
+        "claim_type": "governance",
+        "required_primary_source": "system-orchestration.yaml and CLAUDE.md",
+        "provided_sources": [
+          "CLAUDE.md (Sections 11, 15, 16)"
+        ],
+        "role_match": true,
+        "strong_claim": true,
+        "explicit_citation_required": true,
+        "conflict_detected": false,
+        "blocking_condition_if_any": null,
+        "verdict": "RC-1",
+        "reason": "Governance claim is role-matched to CLAUDE.md. Section 11 requires documentation alignment with any contract-affecting change. Section 15 mandates orchestration-based workflow enforcement for all governed actions. Section 16 requires traceability to canonical sources. These collectively support the constraint that changes to module names, import paths, and historical references require governance review.",
+        "notes": "CLAUDE.md Section 2.3 additionally establishes that historical documents outside the canonical set must not be used as current truth sources \u2014 implying historical references require careful handling. C-005 is the only claim in this request that is fully citation-compliant."
+      },
+      {
+        "claim_id": "C-006",
+        "claim_text": "README_LAYER2.md may require filename rename handling as part of this terminology refactor.",
+        "claim_type": "documentation_consistency",
+        "required_primary_source": "DOCUMENTATION_VERIFICATION_MATRIX_v1.md",
+        "provided_sources": [
+          "CLAUDE.md (Section 2.1 \u2014 lists README_LAYER2.md as canonical)"
+        ],
+        "role_match": false,
+        "strong_claim": false,
+        "explicit_citation_required": false,
+        "conflict_detected": true,
+        "blocking_condition_if_any": "While this is a weak claim (hedged with 'may require'), the implied action would affect a canonical document listed in CLAUDE.md Section 2.1. Renaming README_LAYER2.md would break the canonical current-state documentation set without DOCUMENTATION_VERIFICATION_MATRIX_v1.md authorization. Additionally, README_LAYER2.md is the designated canonical source for collaborator_workflow claims (CLAUDE.md Section 2.2) \u2014 its rename would require re-establishing this role mapping in all cross-document references.",
+        "verdict": "RC-2",
+        "reason": "Weak claim \u2014 review only \u2014 but the implied consequence of acting on this claim is a strong documentation-consistency action that requires DOCUMENTATION_VERIFICATION_MATRIX_v1.md as primary authority. Conflict noted: CLAUDE.md Section 2.1 names README_LAYER2.md as a canonical document, and its rename without DOCUMENTATION_VERIFICATION_MATRIX_v1.md validation would constitute an undocumented canonical set mutation.",
+        "notes": "The request correctly raises this as a detection concern rather than an assertion. No block triggered on the claim itself, but any action on README_LAYER2.md rename must route through DOCUMENTATION_VERIFICATION_MATRIX_v1.md first. Conflict note required per rule D4."
+      },
+      {
+        "claim_id": "C-007",
+        "claim_text": "The rename could introduce ambiguity, architecture drift, or snapshot-boundary confusion, requiring fail-closed behavior.",
+        "claim_type": "mixed",
+        "required_primary_source": "SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md (architecture sub-claim) + SYSTEM_LIMITATIONS_AND_APPROXIMATIONS_v1.md (limitation sub-claim)",
+        "provided_sources": [
+          "CLAUDE.md (Section 6 \u2014 snapshot contract; Section 7 \u2014 fail-closed principle)"
+        ],
+        "role_match": false,
+        "strong_claim": false,
+        "explicit_citation_required": false,
+        "conflict_detected": false,
+        "blocking_condition_if_any": null,
+        "verdict": "RC-2",
+        "reason": "Weak / hedged claim ('could introduce'). Decomposed: (a) architecture-drift sub-claim is weak and routes to SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md \u2014 no citation needed for a hedged risk statement; (b) snapshot-boundary confusion sub-claim is weak and routes to SYSTEM_LIMITATIONS_AND_APPROXIMATIONS_v1.md \u2014 similarly no citation required. CLAUDE.md Sections 6 and 7 support the fail-closed principle as constitutional backing. Review only.",
+        "notes": "Paradoxically, C-007 correctly identifies the risk that C-003 and C-004 actually instantiate. The request's own fail-closed criterion is triggered by its own proposed renames (see C-003 blocking_condition_if_any). The claim is therefore simultaneously valid as a risk statement and self-referentially applicable to the request."
+      }
+    ],
+    "summary": {
+      "role_mismatch_detected": true,
+      "canonical_conflict_unresolved": true,
+      "readme_layer2_used_as_override": false,
+      "requires_conflict_note": true,
+      "requires_doc_sync_escalation": true,
+      "recommended_guard_action": "block",
+      "blocking_claims": [
+        "C-001",
+        "C-002",
+        "C-003",
+        "C-004"
+      ],
+      "compliant_claims": [
+        "C-005"
+      ],
+      "review_only_claims": [
+        "C-006",
+        "C-007"
+      ],
+      "primary_block_reason": "Four strong architecture claims (C-001 through C-004) lack role-matched primary citations to SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md. The proposed replacement terms 'truth_store' and 'decision_layer' are not traceable to any canonical source. CLAUDE.md Section 16 mandatory block applies: terms cannot be traced to canonical source AND cannot be proven from implementation. Additionally, C-004 introduces architecture-collapse risk by mapping multiple distinct planned Layer-3 components to a single label.",
+      "escalation_target": "canonical-role-auditor",
+      "escalation_triggers": [
+        "role_mismatch_for_strong_claim on C-001, C-002, C-003, C-004",
+        "unverified_terminology_introduced: truth_store, decision_layer"
+      ],
+      "conflict_notes": [
+        "CLAUDE.md uses 'Layer 2' and 'Layer 3' as established constitutional terminology. Any rename within CLAUDE.md constitutes a constitutional amendment, not a documentation refactor, and is outside the scope of a naming convention enforcement action.",
+        "The proposed term 'decision_layer' risks collapsing six distinct planned sub-components (Index Suite, Regime Gate, Supervisor Engine, Decision Engine, DecisionPacket generator, Execution Layer) into a single label \u2014 a form of architecture drift that the request itself claims to prevent.",
+        "README_LAYER2.md is a canonical document in CLAUDE.md Section 2.1. Its rename requires DOCUMENTATION_VERIFICATION_MATRIX_v1.md authorization and cross-document reference re-establishment before any action is valid.",
+        "The fail-closed condition in the request ('fail closed if the rename would introduce ambiguity, architecture drift, or snapshot-boundary confusion') is triggered by the request's own proposed renames. The request is self-blocking under its stated criterion."
+      ],
+      "notes": "The governance_context confirms this request is architecture-scope. The interpretation_policy.claim_routing correctly routes architecture claims to SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md, but none of the strong architecture claims in this request carry that citation. Unblock path: obtain explicit role-matched citations from SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md for the layer identity claims; verify proposed replacement terms appear in that document or in SYSTEM_TECHNICAL_HANDBOOK_v1.md; submit DOCUMENTATION_VERIFICATION_MATRIX_v1.md update before any canonical document rename proceeds."
+    }
+  }
+}

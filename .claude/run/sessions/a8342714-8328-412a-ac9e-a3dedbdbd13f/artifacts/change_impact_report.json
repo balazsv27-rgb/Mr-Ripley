@@ -1,0 +1,72 @@
+{
+  "artifact": "change_impact_report",
+  "produced_by": "change-impact-audit",
+  "session": "a8342714-8328-412a-ac9e-a3dedbdbd13f",
+  "timestamp": "2026-04-25T13:21:17.566061Z",
+  "data": {
+    "produced_by": "change-impact-audit",
+    "run_id": "a8342714-8328-412a-ac9e-a3dedbdbd13f",
+    "change_impact_summary": {
+      "change_mode": "content_change",
+      "change_mode_rationale": "Purported terminology rename introduces two new terms ('truth_store', 'decision_layer') with zero canonical citation. Semantic equivalence is unverified (claim c7, evidence_class: cannot_verify_from_current_materials). rename_only classification requires semantic invariance per DR-9/DR-10; invariance cannot be confirmed. Per DR-11, a purported rename-only change that alters or risks altering claim scope, evidence classification, or canonical role mapping must not be classified as rename_only. Classified as content_change because the change introduces new terminology that may narrow or expand architectural semantics.",
+      "impact_type": "mixed",
+      "contributing_categories": [
+        "documentation",
+        "architecture",
+        "verification"
+      ],
+      "impacted_components": [
+        "constitutional_governance (CLAUDE.md self-modification)",
+        "canonical_document_set (README_LAYER2.md filename identity)",
+        "snapshot_boundary (Layer 2 = snapshot boundary; terminology change risks contract confusion)",
+        "truth_hierarchy (CLAUDE.md Section 2 canonical source definitions)",
+        "stage_gate_model (CLAUDE.md Section 4 phase definitions reference Layer 2/3)",
+        "Layer-3_bootstrap (target-state terminology affected)",
+        "verification_ledger",
+        "governance_workflow (system-orchestration.yaml may reference layer terms)"
+      ],
+      "impacted_docs": [
+        "CLAUDE.md",
+        "README_v1.md",
+        "SYSTEM_TECHNICAL_HANDBOOK_v1.md",
+        "SYSTEM_LIMITATIONS_AND_APPROXIMATIONS_v1.md",
+        "SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md",
+        "DOCUMENTATION_VERIFICATION_MATRIX_v1.md",
+        "SYSTEM_IMPLEMENTATION_RECORD_v1.md",
+        "README_LAYER2.md",
+        "system-orchestration.yaml",
+        "verification_ledger.md"
+      ],
+      "follow_up_required": "mandatory",
+      "inference_used": true,
+      "inference_notes": [
+        "guard_report provided as structural: true only \u2014 no detailed guard firing data available; guard signals inferred from deep_audit_summary subagent findings which consumed detailed runtime_boundary_verdict, contract_compliance_verdict, and adapter_schema_verdict",
+        "stage_gate_report provided as structural: true only \u2014 no detailed gate enforcement data available; stage-gate posture inferred from phase_alignment_status and audit_summary findings"
+      ],
+      "risk_summary": [
+        "BLOCKED \u2014 ALL 5 DEEP-AUDIT SUBAGENTS RETURNED UNRESOLVED VIOLATIONS: 21 consolidated violations recorded. DAG advancement to verification layer is blocked. No component of the pending change may proceed. Fail-closed principle (CLAUDE.md \u00a77) is in effect.",
+        "Constitutional document self-modification without authority chain: CLAUDE.md is the highest-priority interpretative authority and is itself a target of this refactor. No constitutional amendment authority chain has been established. Modification authority unverified (violation: constitutional_document_modification_authority_unverified).",
+        "Semantic equivalence unverified (claim c7): 'truth_store' and 'decision_layer' are not established in any canonical source. 'truth_store' may underweight ingestion/publication/contract semantics of Layer 2. 'decision_layer' may narrow the scope of Layer 3 which encompasses feature building, regime gating, supervision, and decision generation. Semantic drift risk is unresolved.",
+        "Role citation conflict requires block: Claims C-003 ('truth_store' as canonical replacement), C-004 ('decision_layer' as canonical replacement), and C-005 (README_LAYER2.md rename) are strong architecture claims with zero citation from role-matched canonical sources. Violates CLAUDE.md \u00a710 (strong claim discipline) and \u00a75.2 (proof model).",
+        "Phase alignment blocked \u2014 ambiguous_requires_block: Phase jump detected. Scope exceeds current allowance. Snapshot boundary risk flagged. Claims c3, c4, c5, c6, c7 individually blocked.",
+        "Snapshot boundary terminology change: Layer 2 IS the snapshot boundary in current terminology (CLAUDE.md \u00a73.1, \u00a76). Renaming this term risks weakening snapshot contract semantics \u2014 a non-negotiable contract per \u00a76.",
+        "Current/target distinction at risk: The refactor touches both current-state (Layer 2 = operational) and target-state (Layer 3 = planned) terminology. Preservation of this distinction has not been confirmed in any upstream artifact.",
+        "Canonical document filename rename (README_LAYER2.md): README_LAYER2.md is listed by exact filename in CLAUDE.md \u00a72.1 item 7 and referenced in \u00a72.2, \u00a72.4, \u00a711. Renaming creates a governance self-reference loop: the authority that lists it as canonical must itself be amended first. No such amendment has been cited.",
+        "Section 11 update obligation cycle not initiated: Contract-affecting change detected but the mandatory review cycle across all seven canonical documents has not been started.",
+        "Snapshot bypass risk unresolved: contract_compliance_verdict.snapshot_bypass_risk: true; contract_compliance_verdict.contract_status: boundary_violation per snapshot-boundary-auditor findings.",
+        "DecisionPacket anchor risk unresolved: DecisionPacket schema is frozen but generator/production path not built per CLAUDE.md \u00a73.2; anchor risk is an unresolved contract gap per snapshot-boundary-auditor.",
+        "Doc-code sync review not completed: adapter_schema_verdict requires doc-code sync review before any change proceeds; review was not completed.",
+        "Claim traceability unconfirmed: All 8 claims (c1\u2013c8) have not been verified against role-matched canonical sources per CLAUDE.md \u00a72.4."
+      ],
+      "notes": [
+        "This is a contract-affecting documentation change that also constitutes constitutional document self-modification. Both conditions trigger the highest level of governance scrutiny.",
+        "The change is comprehensively blocked by upstream governance. No target-state work has been described as current-state implementation in this assessment.",
+        "Doc-only terminology changes do not constitute proof of runtime behavior; no evidence status has been elevated in this assessment.",
+        "README_LAYER2.md was treated as canonical within its declared collaborator-workflow role; it was not used as primary authority for implementation-state, architecture, or limitations claims.",
+        "The purported rename fails the rename_only invariance test: semantic equivalence is unverified, canonical role mapping may be altered, and the current/target distinction is at risk. Per DR-11, this escalates to mixed impact_type with mandatory follow-up.",
+        "9 ordered resolution requirements from the deep-audit must be satisfied and all 5 subagents re-run to confirmed clearance before any component of this change may proceed.",
+        "guard_report and stage_gate_report were structural-only; detailed guard signals were inferred from deep_audit_summary subagent findings that consumed the underlying verdict artifacts."
+      ]
+    }
+  }
+}

@@ -1,0 +1,239 @@
+{
+  "artifact": "doc_code_sync_status",
+  "produced_by": "doc-code-sync-check",
+  "session": "a8342714-8328-412a-ac9e-a3dedbdbd13f",
+  "timestamp": "2026-04-25T13:24:32.072277Z",
+  "data": {
+    "produced_by": "doc-code-sync-check",
+    "overall_status": "ambiguous_requires_review",
+    "inference_used": false,
+    "checked_items": [
+      {
+        "item_id": "DSC-001",
+        "target": "CLAUDE.md \u2014 canonical source list references 'README_LAYER2.md' by exact filename",
+        "assessment": "warning",
+        "doc_code_drift_detected": false,
+        "doc_runtime_drift_detected": false,
+        "implementation_record_mismatch": false,
+        "snapshot_field_mismatch": false,
+        "affected_docs": [
+          "CLAUDE.md",
+          "README_LAYER2.md"
+        ],
+        "affected_code_or_runtime_artifacts": [],
+        "missing_inputs": [],
+        "reason": "CLAUDE.md Section 2.1 and 2.2 name 'README_LAYER2.md' as a canonical source by exact filename. The proposed change (rename README_LAYER2.md) would break identity continuity without a corresponding CLAUDE.md update. No rename has been executed yet \u2014 pre-execution warning. Identity continuity risk is live.",
+        "canonical_source": "CLAUDE.md \u00a72.1, \u00a72.2",
+        "notes": [
+          "Rename not yet executed per git status \u2014 drift is prospective, not yet realized",
+          "CLAUDE.md \u00a711 requires README_LAYER2.md review when collaborator workflow or Layer-2 build navigation changes"
+        ]
+      },
+      {
+        "item_id": "DSC-002",
+        "target": "Terminology claim: 'truth_store' as canonical replacement for 'Layer 2'",
+        "assessment": "warning",
+        "doc_code_drift_detected": true,
+        "doc_runtime_drift_detected": true,
+        "implementation_record_mismatch": true,
+        "snapshot_field_mismatch": false,
+        "affected_docs": [
+          "SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md",
+          "SYSTEM_TECHNICAL_HANDBOOK_v1.md",
+          "SYSTEM_IMPLEMENTATION_RECORD_v1.md",
+          "README_v1.md",
+          "README_LAYER2.md"
+        ],
+        "affected_code_or_runtime_artifacts": [
+          "layer2/",
+          "layer2/alignment.py",
+          "layer2/db.py",
+          "layer2/adapters/",
+          "layer2/config/series_registry.json",
+          "layer2/index_suite.py"
+        ],
+        "missing_inputs": [
+          "role-matched citation from SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md establishing 'truth_store' as canonical",
+          "semantic equivalence proof for snapshot boundary, ingestion, publication, and contract compliance semantics"
+        ],
+        "reason": "Claim c3 (truth_store replaces Layer 2) has evidence_class: cannot_verify_from_current_materials per upstream role_citation_verdict. Code paths remain under layer2/ namespace. No canonical source establishes 'truth_store' as an architectural term. Introducing this term in documentation without code-side alignment creates forward doc-ahead drift. Strong claim discipline (CLAUDE.md \u00a710) prohibits unproven architectural reclassification.",
+        "canonical_source": "SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md (role-matched for architecture/boundary claims)",
+        "notes": [
+          "Code directory layer2/ is not renamed \u2014 any doc using 'truth_store' as a substitute would be ahead of runtime",
+          "layer2/index_suite.py is explicitly noted in CLAUDE.md \u00a73.2 as a distinct provisional pre-publication tool \u2014 renaming semantics risk conflating it with planned Layer-3 Index Suite"
+        ]
+      },
+      {
+        "item_id": "DSC-003",
+        "target": "Terminology claim: 'decision_layer' as canonical replacement for 'Layer 3'",
+        "assessment": "warning",
+        "doc_code_drift_detected": true,
+        "doc_runtime_drift_detected": true,
+        "implementation_record_mismatch": true,
+        "snapshot_field_mismatch": false,
+        "affected_docs": [
+          "SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md",
+          "CLAUDE.md",
+          "SYSTEM_IMPLEMENTATION_RECORD_v1.md"
+        ],
+        "affected_code_or_runtime_artifacts": [],
+        "missing_inputs": [
+          "canonical source establishing 'decision_layer' as covering Feature Builder, Index Suite, Regime Gate, Supervisor Engine, and Decision Engine",
+          "evidence that 'decision_layer' preserves all planned-component semantics currently associated with Layer 3"
+        ],
+        "reason": "Claim c4 (decision_layer replaces Layer 3) has evidence_class: cannot_verify_from_current_materials. Layer 3 as defined in CLAUDE.md \u00a73.2 encompasses multiple distinct planned components. 'decision_layer' may narrow scope and create implementation_claim_mismatch if any canonical doc still references the fuller Layer-3 component list. No code exists for Layer 3 \u2014 but docs describing its planned scope must remain consistent across all seven canonical sources.",
+        "canonical_source": "SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md (role-matched for architecture/boundary claims)",
+        "notes": [
+          "Layer 3 is target architecture \u2014 no code drift possible today, but doc-internal drift is the risk",
+          "All seven canonical docs reference Layer 3 by that term \u2014 partial rename creates inter-doc inconsistency"
+        ]
+      },
+      {
+        "item_id": "DSC-004",
+        "target": "CLAUDE.md self-modification \u2014 constitutional document authority chain",
+        "assessment": "warning",
+        "doc_code_drift_detected": false,
+        "doc_runtime_drift_detected": true,
+        "implementation_record_mismatch": false,
+        "snapshot_field_mismatch": false,
+        "affected_docs": [
+          "CLAUDE.md"
+        ],
+        "affected_code_or_runtime_artifacts": [
+          ".claude/workflows/system-orchestration.yaml"
+        ],
+        "missing_inputs": [
+          "constitutional amendment authority chain",
+          "workflow governance confirmation that CLAUDE.md modification is an authorized governed action"
+        ],
+        "reason": "CLAUDE.md \u00a715 requires all governed actions to be subject to orchestration-based workflow enforcement. CLAUDE.md is itself the highest-priority interpretative authority (\u00a71, \u00a714). Modifying it without an established authority chain creates a runtime governance gap: the enforcement document could be silently altered, invalidating all downstream governance. This is a doc-runtime drift: the document's own governance rules would be violated by the modification process.",
+        "canonical_source": "CLAUDE.md \u00a715 (workflow governance constraint)",
+        "notes": [
+          "Upstream change_impact_report flags this as violation: constitutional_document_modification_authority_unverified",
+          "No resolution prerequisite 1 has been met: authority chain not established"
+        ]
+      },
+      {
+        "item_id": "DSC-005",
+        "target": "Snapshot field names \u2014 docs vs SYSTEM_TECHNICAL_HANDBOOK_v1.md governed fields",
+        "assessment": "compliant",
+        "doc_code_drift_detected": false,
+        "doc_runtime_drift_detected": false,
+        "implementation_record_mismatch": false,
+        "snapshot_field_mismatch": false,
+        "affected_docs": [],
+        "affected_code_or_runtime_artifacts": [
+          "layer2/db.py"
+        ],
+        "missing_inputs": [
+          "direct read of SYSTEM_TECHNICAL_HANDBOOK_v1.md snapshot field definitions",
+          "direct read of layer2/db.py schema"
+        ],
+        "reason": "No proposed change targets snapshot field names or semantics. The upstream change_impact_report identifies snapshot_boundary as impacted only through terminology change risk, not field-level schema modification. Snapshot field mismatch is not currently triggered. Flagged as requiring follow-up if layer2/ code is renamed as a downstream consequence of terminology changes.",
+        "canonical_source": "SYSTEM_TECHNICAL_HANDBOOK_v1.md (role-matched for snapshot fields)",
+        "notes": [
+          "If layer2/db.py path is renamed as a consequence of truth_store adoption, schema field ownership docs must be re-verified"
+        ]
+      },
+      {
+        "item_id": "DSC-006",
+        "target": "doc_update_plan status \u2014 plan_status: blocked_pending_resolution with 5 unmet prerequisites",
+        "assessment": "warning",
+        "doc_code_drift_detected": false,
+        "doc_runtime_drift_detected": false,
+        "implementation_record_mismatch": false,
+        "snapshot_field_mismatch": false,
+        "affected_docs": [
+          "CLAUDE.md",
+          "SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md",
+          "SYSTEM_TECHNICAL_HANDBOOK_v1.md",
+          "README_v1.md",
+          "SYSTEM_LIMITATIONS_AND_APPROXIMATIONS_v1.md",
+          "DOCUMENTATION_VERIFICATION_MATRIX_v1.md",
+          "SYSTEM_IMPLEMENTATION_RECORD_v1.md",
+          "README_LAYER2.md"
+        ],
+        "affected_code_or_runtime_artifacts": [],
+        "missing_inputs": [
+          "resolution of all 5 prerequisites listed in doc_update_plan.resolution_prerequisites",
+          "alias_map demonstrating identity continuity for renamed entities",
+          "semantic equivalence proof for truth_store and decision_layer"
+        ],
+        "reason": "The doc_update_plan explicitly lists plan_status: blocked_pending_resolution. CLAUDE.md \u00a711 states that code changes without documentation alignment are invalid \u2014 but equally, documentation updates that proceed without resolving prerequisite conflicts produce a worse outcome: doc-ahead state with unresolved semantic drift baked into canonical sources. Proceeding with any doc update before prerequisites are cleared violates the fail-closed principle (CLAUDE.md \u00a77).",
+        "canonical_source": "CLAUDE.md \u00a77 (fail-closed), \u00a711 (document update obligations)",
+        "notes": [
+          "21 consolidated violations in upstream change_impact_report \u2014 none cleared",
+          "DAG advancement to verification layer is blocked per change_impact_report risk_summary"
+        ]
+      },
+      {
+        "item_id": "DSC-007",
+        "target": "system-orchestration.yaml \u2014 references to Layer 2 / Layer 3 / README_LAYER2.md terms",
+        "assessment": "review",
+        "doc_code_drift_detected": false,
+        "doc_runtime_drift_detected": false,
+        "implementation_record_mismatch": false,
+        "snapshot_field_mismatch": false,
+        "affected_docs": [
+          "system-orchestration.yaml"
+        ],
+        "affected_code_or_runtime_artifacts": [
+          ".claude/workflows/system-orchestration.yaml"
+        ],
+        "missing_inputs": [
+          "direct read of system-orchestration.yaml content to verify current Layer 2/3 term usage"
+        ],
+        "reason": "Upstream doc_update_plan flags system-orchestration.yaml as requiring review (medium priority). CLAUDE.md \u00a715 makes this workflow definition the authoritative execution specification. If terminology changes proceed, any hardcoded Layer 2 / Layer 3 references in workflow steps, hook bindings, or agent triggers would become inconsistent with renamed canonical terms. Cannot confirm compliant without direct artifact read.",
+        "canonical_source": "CLAUDE.md \u00a715 (workflow governance constraint)",
+        "notes": [
+          "doc_update_plan lists system-orchestration.yaml as update_type: review \u2014 not yet addressed",
+          "Risk is prospective pending terminology change execution"
+        ]
+      },
+      {
+        "item_id": "DSC-008",
+        "target": "verification_ledger.md \u2014 required update per doc_update_plan",
+        "assessment": "review",
+        "doc_code_drift_detected": false,
+        "doc_runtime_drift_detected": false,
+        "implementation_record_mismatch": false,
+        "snapshot_field_mismatch": false,
+        "affected_docs": [
+          "verification_ledger.md",
+          "DOCUMENTATION_VERIFICATION_MATRIX_v1.md"
+        ],
+        "affected_code_or_runtime_artifacts": [],
+        "missing_inputs": [
+          "current state of verification_ledger.md",
+          "current state of DOCUMENTATION_VERIFICATION_MATRIX_v1.md"
+        ],
+        "reason": "doc_update_plan lists verification_ledger.md and DOCUMENTATION_VERIFICATION_MATRIX_v1.md as requiring update actions. With DAG blocked and 21 unresolved violations, these cannot be updated to reflect a compliant state. Attempting to update them before prerequisite resolution would record false compliance. Requires verification_followup once prerequisites are cleared.",
+        "canonical_source": "DOCUMENTATION_VERIFICATION_MATRIX_v1.md (role-matched for cross-doc consistency)",
+        "notes": [
+          "Current branch is restore-verification-ledger \u2014 this may be directly relevant to ledger state",
+          "Must not advance to verification layer update while change_impact_report is blocked"
+        ]
+      }
+    ],
+    "summary": {
+      "doc_update_required": true,
+      "runtime_overclaim_detected": true,
+      "implementation_record_mismatch_detected": true,
+      "snapshot_field_mismatch_detected": false,
+      "requires_doc_code_sync_guard": true,
+      "requires_doc_code_sync_auditor": true,
+      "requires_verification_followup": true,
+      "source_authority_conflict_detected": true,
+      "notes": [
+        "Overall status: ambiguous_requires_review \u2014 fail-closed. Multiple unresolved drift vectors detected, none clearable without prerequisite resolution.",
+        "DSC-002 and DSC-003: doc-ahead drift would be introduced if terminology rename proceeds without canonical source establishment. Code remains under layer2/ namespace \u2014 any doc using truth_store or decision_layer as current-state terms is ahead of runtime.",
+        "DSC-004: CLAUDE.md self-modification without authority chain is a governance gap \u2014 the enforcement document cannot be modified under its own rules without an established authority chain.",
+        "DSC-006: doc_update_plan.plan_status = blocked_pending_resolution. All 5 resolution prerequisites remain unmet. No documentation update may proceed.",
+        "21 consolidated violations from upstream change_impact_report remain unresolved. DAG advancement to verification layer is blocked.",
+        "requires_doc_code_sync_guard: true \u2014 bidirectional drift risk detected (doc-ahead on terminology, code-ahead on layer2/ namespace)",
+        "requires_doc_code_sync_auditor: true \u2014 deep artifact comparison required for system-orchestration.yaml, verification_ledger.md, and DOCUMENTATION_VERIFICATION_MATRIX_v1.md; full reads were unavailable in this pass",
+        "requires_verification_followup: true \u2014 verification_ledger.md and DOCUMENTATION_VERIFICATION_MATRIX_v1.md updates blocked pending prerequisite resolution"
+      ]
+    }
+  }
+}

@@ -1,0 +1,92 @@
+{
+  "artifact": "doc_update_plan",
+  "produced_by": "change-impact-audit",
+  "session": "6ee82307-ee04-4a1c-a8c9-05007cebbb67",
+  "timestamp": "2026-04-26T18:50:42.913384Z",
+  "data": {
+    "produced_by": "change-impact-audit",
+    "run_id": "6ee82307-ee04-4a1c-a8c9-05007cebbb67",
+    "plan_status": "BLOCKED \u2014 doc update plan is produced for completeness but MUST NOT be executed until all preconditions are met. Per fail-closed principle (CLAUDE.md Section 7), no canonical document modifications are permitted while 4 BLOCKING violations remain unresolved.",
+    "preconditions_for_execution": [
+      "Resolve source_authority_conflict via canonical conflict resolution procedure (CLAUDE.md Section 2.4) for claims C-001 through C-004. Obtain explicit role-matched citations from SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md for all layer identity and rename claims.",
+      "Verify proposed term 'truth_store' appears in or is authorized by SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md or SYSTEM_TECHNICAL_HANDBOOK_v1.md, and unambiguously preserves all snapshot-boundary contract properties (CLAUDE.md Section 6).",
+      "Verify proposed term 'decision_layer' appears in or is authorized by SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md, does not collapse distinct planned sub-components, and is introduced exclusively in target-architecture context.",
+      "Produce cascade impact map for README_LAYER2.md rename showing every cross-reference in CLAUDE.md and canonical document set that must be updated.",
+      "Confirm code-path invariance: layer2/ directory, import paths, and module names are explicitly scoped out of any documentation-level rename.",
+      "Resolve source_authority_conflict in adapter schema domain and complete doc-code sync review.",
+      "All 5 deep-audit subagent conditions must reach resolved or cleared status."
+    ],
+    "required_updates": [
+      {
+        "artifact": "CLAUDE.md",
+        "reason": "Constitutional authority document uses 'Layer 2', 'Layer-2', 'Layer 3', 'Layer-3' extensively in Sections 1, 3, 4, 6, 9, 11, and 14. Any terminology rename here constitutes a constitutional amendment. CLAUDE.md Section 2.1 also lists README_LAYER2.md by name \u2014 filename rename cascades here. Must not proceed until all blocking violations are resolved and proposed terms are canonically authorized.",
+        "priority": "high",
+        "update_type": "revise"
+      },
+      {
+        "artifact": "SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md",
+        "reason": "Primary architectural source of truth (CLAUDE.md Section 2.2). Role-matched authority for all layer identity, boundary, and build-sequence claims. Must be the authorizing source for any layer rename \u2014 not a downstream consumer of it. Review whether this document already contains or can authorize 'truth_store' and 'decision_layer' terminology. If it does not authorize these terms, the rename lacks canonical basis.",
+        "priority": "high",
+        "update_type": "review"
+      },
+      {
+        "artifact": "README_v1.md",
+        "reason": "Top-level project orientation uses Layer 2/3 terminology to describe current operational status and system identity. Contract-affecting terminology change requires review per CLAUDE.md Section 11. Current operational status section references Layer 2 as operational.",
+        "priority": "high",
+        "update_type": "review"
+      },
+      {
+        "artifact": "SYSTEM_TECHNICAL_HANDBOOK_v1.md",
+        "reason": "Technical implementation constraints document contains core invariant table and snapshot contract behavior referencing Layer 2/3 terminology. Snapshot-boundary contract semantics must be confirmed unambiguous under any proposed rename. Contract-affecting change requires review per CLAUDE.md Section 11.",
+        "priority": "high",
+        "update_type": "review"
+      },
+      {
+        "artifact": "SYSTEM_LIMITATIONS_AND_APPROXIMATIONS_v1.md",
+        "reason": "Known limitations and constraint boundaries reference Layer 2/3 scope. Rename must not introduce ambiguity about what is limited, approximate, or explicitly excluded. Contract-affecting change requires update review per CLAUDE.md Section 11.",
+        "priority": "high",
+        "update_type": "review"
+      },
+      {
+        "artifact": "SYSTEM_IMPLEMENTATION_RECORD_v1.md",
+        "reason": "Canonical record of what is actually implemented. References Layer 2 as operational implementation. Implementation state is not changed by a terminology rename \u2014 but the terminology used to describe that state would change. Review required to confirm implementation-state language remains accurate under new terminology.",
+        "priority": "medium",
+        "update_type": "review"
+      },
+      {
+        "artifact": "README_LAYER2.md",
+        "reason": "Canonical collaborator guide with filename containing 'LAYER2'. Both content terminology and filename are affected. Filename rename cascades through CLAUDE.md Sections 2.1, 2.2, 2.4, and 11, plus all canonical cross-references. This is the highest-cascade-risk single artifact in the rename. Must not proceed without cascade impact map and alias mapping.",
+        "priority": "high",
+        "update_type": "revise"
+      },
+      {
+        "artifact": "system-orchestration.yaml",
+        "reason": "Authoritative execution specification (CLAUDE.md Section 15). May contain canonical document references by filename (including README_LAYER2.md). Must be reviewed for any embedded filename or terminology references that would become stale under the proposed rename.",
+        "priority": "medium",
+        "update_type": "review"
+      }
+    ],
+    "verification_actions": [
+      {
+        "artifact": "DOCUMENTATION_VERIFICATION_MATRIX_v1.md",
+        "reason": "Cross-document consistency map tracks all canonical claims by their current terminology. Terminology rename across the canonical set requires: (a) updating all claim references that use Layer 2/3 terminology, (b) confirming evidence classifications remain unchanged by the rename, (c) verifying the renamed README_LAYER2.md entry preserves its declared role mapping. This is a mandatory update if the rename proceeds \u2014 not merely a review.",
+        "action": "update"
+      },
+      {
+        "artifact": "verification_ledger.md",
+        "reason": "Verification ledger entries reference claims using current Layer 2/3 terminology. If terminology changes, ledger entries must be updated for traceability. Evidence status classifications must remain unchanged \u2014 the rename is a label change, not an evidence reclassification. Ledger must explicitly note that rename does not constitute evidence status change.",
+        "action": "update"
+      }
+    ],
+    "rename_controls": {
+      "alias_map_required": true,
+      "alias_map_scope": "README_LAYER2.md filename rename requires alias mapping from old canonical name to new canonical name. All cross-references in CLAUDE.md (Sections 2.1, 2.2, 2.4, 11), DOCUMENTATION_VERIFICATION_MATRIX_v1.md, system-orchestration.yaml, and any other canonical documents referencing README_LAYER2.md by name must be covered by the alias map or updated directly.",
+      "identity_continuity_required": true,
+      "identity_continuity_scope": "README_LAYER2.md's canonical role as 'canonical collaborator guide and living build reference for Layer-2 implementation and operational navigation' (CLAUDE.md Section 2.2) must be explicitly preserved under the new filename. The renamed document must retain its Tier 3 canonical status and its declared role boundary (must not override Tier 1 docs on current-state truth, architecture, or limitations).",
+      "reference_update_required": true,
+      "reference_update_scope": "All canonical cross-references to README_LAYER2.md by filename in CLAUDE.md, DOCUMENTATION_VERIFICATION_MATRIX_v1.md, system-orchestration.yaml, and any other governance artifacts must be updated to the new filename. Terminology references to 'Layer 2'/'Layer 3' across all canonical documents must be updated consistently if the rename proceeds.",
+      "invariance_check_required": true,
+      "invariance_check_scope": "Semantic invariance must be verified: (a) 'truth_store' must carry all snapshot-boundary contract semantics currently carried by 'Layer 2' \u2014 including snapshot_id, clock_ts, immutability, deterministic contents, and the downstream read-only rule; (b) 'decision_layer' must remain clearly marked as planned/target-state and must not collapse the six distinct planned sub-components listed in CLAUDE.md Section 3.2; (c) claim classifications, evidence classifications, and canonical role mappings must remain unchanged after rename; (d) historical references using original terminology must be preserved or explicitly annotated."
+    }
+  }
+}

@@ -1095,6 +1095,43 @@ def execute_plan(
         )
 
         # -----------------------------------------------------------------
+        # Dependency failure check (V2 backend-driven, non-dry-run only):
+        # If any dependency step has status FAIL or SKIP, do not invoke
+        # the backend.  Return SKIP with an explanation of the failed
+        # dependency.  This prevents cascading failures where a downstream
+        # step reports a missing-input contract error instead of
+        # identifying the true root cause.
+        # -----------------------------------------------------------------
+        if backend is not None and effective_config.mode != "dry_run":
+            failed_deps: list[str] = []
+            for dep_id in step.depends_on:
+                dep_result = run_state.node_results.get(dep_id)
+                if dep_result is not None and dep_result.status in ("FAIL", "SKIP"):
+                    failed_deps.append(f"{dep_id}={dep_result.status}")
+            if failed_deps:
+                dep_reason = (
+                    f"Skipped due to failed/skipped dependency: "
+                    f"{', '.join(failed_deps)}"
+                )
+                dep_evidence = [
+                    f"failed_dependency={d}" for d in failed_deps
+                ]
+                node_result = _build_skipped_node_result(
+                    step, dep_reason, dep_evidence,
+                )
+                run_state.node_results[node.step_id] = node_result
+                _append_trace(
+                    run_state,
+                    node_name=node.step_id,
+                    event_type="step_skipped_dependency_failed",
+                    detail={
+                        "reason": dep_reason,
+                        "failed_deps": failed_deps,
+                    },
+                )
+                continue
+
+        # -----------------------------------------------------------------
         # Predicate evaluation — V1 policy:
         #   1. Evaluate condition first (if present).
         #      Not matched → SKIP; skip_if is not evaluated.

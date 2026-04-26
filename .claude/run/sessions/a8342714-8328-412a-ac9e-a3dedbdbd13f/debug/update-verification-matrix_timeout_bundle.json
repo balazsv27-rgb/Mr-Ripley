@@ -1,0 +1,199 @@
+{
+  "step_name": "update-verification-matrix",
+  "bundle_type": "timeout_transport_diagnostic",
+  "command": [
+    "claude",
+    "-p",
+    "--output-format",
+    "json",
+    "--model",
+    "sonnet",
+    "--no-session-persistence",
+    "--tools",
+    "",
+    "--json-schema",
+    "{\"type\":\"object\",\"properties\":{\"artifacts\":{\"type\":\"object\",\"properties\":{\"verification_matrix_delta\":{\"type\":\"object\"}},\"required\":[\"verification_matrix_delta\"]}},\"required\":[\"artifacts\"]}"
+  ],
+  "timeout_seconds": 120.0,
+  "elapsed_seconds": 120.14000000001397,
+  "partial_stdout_length": 0,
+  "partial_stdout": "",
+  "partial_stderr_length": 0,
+  "partial_stderr": "",
+  "assembled_prompt_length": 26424,
+  "assembled_prompt_first_2000": "[SKILL INSTRUCTIONS]\n\n============================================================\n---\nname: verification-matrix-update-method\ndescription: Determine whether the project's documentation verification matrix needs to be updated, reviewed, or left unchanged based on prior governance step outputs. Produces a structured matrix delta and update plan. Matrix-scoped only — does not update the verification ledger, does not claim runtime proof, and does not re-run earlier governance steps. Use after doc-truth-classification, build-sequence-compliance-check, runtime guards, deep audit, and change-impact-audit — and before verification-ledger-update and pre-pr-governance-gate.\ndisable-model-invocation: false\n---\n\nYou are the `verification-matrix-update-method` skill. Your job is to determine whether `DOCUMENTATION_VERIFICATION_MATRIX_v1.md` needs to be updated, reviewed, or left unchanged, and if warranted, produce a structured matrix delta for downstream consumption.\n\nThis skill is matrix-scoped only. It consumes upstream governance outputs and classifies matrix-level changes. It does not update the ledger, act as a hook, or re-run earlier governance steps.\n\n## Required inputs\n\nConsume whichever upstream outputs are present; proceed conservatively when absent (set `inference_used: true`).\n\n| Input | Source | Required |\n|---|---|---|\n| `request_classification` | `doc-truth-classification` | Yes |\n| `phase_alignment_status` | `build-sequence-compliance-check` | Yes |\n| `guard_report` | hook outputs | When available |\n| `deep_audit_summary` | subagent audit outputs | When available |\n| `change_impact_summary` | `change-impact-audit` | Yes |\n| `doc_update_plan` | `change-impact-audit` | Yes |\n\n## Canonical source priority\n\n- **Tier 1** (current-state): README_v1.md, SYSTEM_TECHNICAL_HANDBOOK_v1.md, SYSTEM_LIMITATIONS_AND_APPROXIMATIONS_v1.md, SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md, DOCUMENTATION_VERIFICATION_MATRIX_v1.md, SYSTEM_IMPLEMENTATION_RECORD_v1.md\n- **Tier 2** (gove",
+  "prompt_composition": {
+    "step_name": "update-verification-matrix",
+    "skill_content_length": 7148,
+    "agent_instructions_length": 2476,
+    "artifact_input_names": [
+      "audit_summary",
+      "change_impact_report",
+      "doc_code_sync_status"
+    ],
+    "artifact_input_count": 3,
+    "document_paths": [],
+    "document_count": 0,
+    "token_estimate": 6264,
+    "token_budget": 100000,
+    "truncated": false,
+    "truncation_events": [],
+    "expected_outputs": [
+      "verification_matrix_delta"
+    ],
+    "input_contributions": {
+      "skill_instructions": {
+        "chars": 7148,
+        "estimated_tokens": 1787
+      },
+      "agent_instructions": {
+        "chars": 2476,
+        "estimated_tokens": 619
+      },
+      "artifact:doc_code_sync_status": {
+        "chars": 91,
+        "estimated_tokens": 22
+      },
+      "artifact:change_impact_report": {
+        "chars": 2789,
+        "estimated_tokens": 697
+      },
+      "artifact:audit_summary": {
+        "chars": 12557,
+        "estimated_tokens": 3139
+      }
+    },
+    "assembled_prompt_chars": 26424,
+    "assembled_prompt_tokens": 6606,
+    "projected_artifact_names": [
+      "doc_code_sync_status",
+      "change_impact_report"
+    ],
+    "input_contributions_original": {
+      "artifact:doc_code_sync_status": {
+        "chars": 14259,
+        "estimated_tokens": 3564
+      },
+      "artifact:change_impact_report": {
+        "chars": 7224,
+        "estimated_tokens": 1806
+      }
+    },
+    "input_contributions_projected": {
+      "artifact:doc_code_sync_status": {
+        "chars": 91,
+        "estimated_tokens": 22
+      },
+      "artifact:change_impact_report": {
+        "chars": 2789,
+        "estimated_tokens": 697
+      }
+    }
+  },
+  "failure_detail": {
+    "failure_origin": "timeout",
+    "failure_stage": "backend_timeout",
+    "returncode": null,
+    "parse_failure_reason": null,
+    "stderr_preview": "",
+    "raw_output_preview": "",
+    "debug_artifact_written": true,
+    "debug_artifact_path": ".claude\\run\\sessions\\a8342714-8328-412a-ac9e-a3dedbdbd13f\\debug\\update-verification-matrix_debug.json",
+    "backend_failure_detail": "Claude CLI subprocess timed out after 120000ms.",
+    "raw_output_len": 0,
+    "stderr_len": 0,
+    "timeout_ms": 120140.00000001397,
+    "timeout_seconds": 120.0,
+    "elapsed_seconds": 120.14000000001397,
+    "timeout_command": [
+      "claude",
+      "-p",
+      "--output-format",
+      "json",
+      "--model",
+      "sonnet",
+      "--no-session-persistence",
+      "--tools",
+      "",
+      "--json-schema",
+      "{\"type\":\"object\",\"properties\":{\"artifacts\":{\"type\":\"object\",\"properties\":{\"verification_matrix_delta\":{\"type\":\"object\"}},\"required\":[\"verification_matrix_delta\"]}},\"required\":[\"artifacts\"]}"
+    ],
+    "timeout_stdout_len": 0,
+    "timeout_stderr_len": 0,
+    "subprocess_cwd": "C:\\Code\\Mr-Ripley",
+    "model": "sonnet",
+    "backend": "claude_code_cli",
+    "prompt_token_estimate": 6264,
+    "prompt_token_budget": 100000,
+    "prompt_truncated": false,
+    "prompt_composition": {
+      "step_name": "update-verification-matrix",
+      "skill_content_length": 7148,
+      "agent_instructions_length": 2476,
+      "artifact_input_names": [
+        "audit_summary",
+        "change_impact_report",
+        "doc_code_sync_status"
+      ],
+      "artifact_input_count": 3,
+      "document_paths": [],
+      "document_count": 0,
+      "token_estimate": 6264,
+      "token_budget": 100000,
+      "truncated": false,
+      "truncation_events": [],
+      "expected_outputs": [
+        "verification_matrix_delta"
+      ],
+      "input_contributions": {
+        "skill_instructions": {
+          "chars": 7148,
+          "estimated_tokens": 1787
+        },
+        "agent_instructions": {
+          "chars": 2476,
+          "estimated_tokens": 619
+        },
+        "artifact:doc_code_sync_status": {
+          "chars": 91,
+          "estimated_tokens": 22
+        },
+        "artifact:change_impact_report": {
+          "chars": 2789,
+          "estimated_tokens": 697
+        },
+        "artifact:audit_summary": {
+          "chars": 12557,
+          "estimated_tokens": 3139
+        }
+      },
+      "assembled_prompt_chars": 26424,
+      "assembled_prompt_tokens": 6606,
+      "projected_artifact_names": [
+        "doc_code_sync_status",
+        "change_impact_report"
+      ],
+      "input_contributions_original": {
+        "artifact:doc_code_sync_status": {
+          "chars": 14259,
+          "estimated_tokens": 3564
+        },
+        "artifact:change_impact_report": {
+          "chars": 7224,
+          "estimated_tokens": 1806
+        }
+      },
+      "input_contributions_projected": {
+        "artifact:doc_code_sync_status": {
+          "chars": 91,
+          "estimated_tokens": 22
+        },
+        "artifact:change_impact_report": {
+          "chars": 2789,
+          "estimated_tokens": 697
+        }
+      }
+    }
+  },
+  "timeout_phase": "before_response"
+}

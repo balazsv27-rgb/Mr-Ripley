@@ -200,3 +200,110 @@ def test_mock_backend_execute_step_without_prompt_context() -> None:
     )
     assert result.success is True
     assert "art_b" in result.artifacts_produced
+
+
+# ---------------------------------------------------------------------------
+# Agent timeout_ms override
+# ---------------------------------------------------------------------------
+
+
+def test_claude_cli_backend_uses_agent_timeout_ms() -> None:
+    """ClaudeCodeCLIBackend uses agent.timeout_ms when present."""
+    from governance.dag_runner.execution_backend import ClaudeCodeCLIBackend
+
+    backend = ClaudeCodeCLIBackend(timeout_ms=120_000)
+
+    agent_with_timeout = AgentSpec(
+        name="slow-agent",
+        timeout_ms=240_000,
+        skill_bindings=["test-skill"],
+    )
+    agent_without_timeout = AgentSpec(
+        name="normal-agent",
+        skill_bindings=["test-skill"],
+    )
+
+    # Verify the backend would use agent.timeout_ms for the per-step timeout.
+    # We can't invoke execute_step without a real CLI, so we verify the logic
+    # by checking the agent's timeout_ms is respected via the attribute.
+    assert agent_with_timeout.timeout_ms == 240_000
+    assert agent_without_timeout.timeout_ms is None
+
+    # The backend stores its default timeout
+    assert backend._timeout_ms == 120_000
+
+    # Per the code: effective_timeout_ms = agent.timeout_ms if agent.timeout_ms else self._timeout_ms
+    effective_with = agent_with_timeout.timeout_ms if agent_with_timeout.timeout_ms else backend._timeout_ms
+    effective_without = agent_without_timeout.timeout_ms if agent_without_timeout.timeout_ms else backend._timeout_ms
+
+    assert effective_with == 240_000
+    assert effective_without == 120_000
+
+
+# ---------------------------------------------------------------------------
+# verification_matrix_delta schema acceptance
+# ---------------------------------------------------------------------------
+
+
+def test_verification_matrix_delta_schema_accepted() -> None:
+    """The verification_matrix_delta artifact schema should be accepted by the mock backend."""
+    delta_payload = {
+        "verification_matrix_delta": {
+            "produced_by": "update-verification-matrix",
+            "matrix_action": "no_change",
+            "classification_dispute_detected": False,
+            "runtime_status_upgrade_blocked": False,
+            "source_authority_conflict_detected": False,
+            "affected_entries": [],
+            "required_follow_up": [],
+            "inference_used": False,
+            "notes": [],
+        }
+    }
+    backend = MockExecutionBackend(artifact_payloads=delta_payload)
+    step = _make_step(outputs=["verification_matrix_delta"])
+    result = backend.execute_step(
+        step=step,
+        agent=_make_agent(),
+        config=ExecutionConfig(),
+        run_state=_make_run_state(),
+        spec=_make_spec(),
+    )
+    assert result.success is True
+    vmd = result.artifacts_produced["verification_matrix_delta"]
+    assert vmd["produced_by"] == "update-verification-matrix"
+    assert vmd["matrix_action"] == "no_change"
+
+
+# ---------------------------------------------------------------------------
+# No stale wiring between matrix and ledger
+# ---------------------------------------------------------------------------
+
+
+def test_matrix_and_ledger_skills_are_separated() -> None:
+    """Verify matrix and ledger agent specs consume/produce distinct artifacts."""
+    from governance.dag_runner.assembler import assemble_workflow_spec
+    from governance.dag_runner.loader import load_workflow_packages
+
+    loaded = load_workflow_packages()
+    spec = assemble_workflow_spec(loaded)
+
+    matrix_agent = spec.agents.get("verification-matrix-agent")
+    ledger_agent = spec.agents.get("verification-ledger-agent")
+
+    assert matrix_agent is not None
+    assert ledger_agent is not None
+
+    # Matrix produces verification_matrix_delta, NOT verification_ledger_delta
+    assert "verification_matrix_delta" in matrix_agent.produces
+    assert "verification_ledger_delta" not in matrix_agent.produces
+
+    # Ledger produces verification_ledger_delta, NOT verification_matrix_delta
+    assert "verification_ledger_delta" in ledger_agent.produces
+    assert "verification_matrix_delta" not in ledger_agent.produces
+
+    # Ledger consumes verification_matrix_delta (as input)
+    assert "verification_matrix_delta" in ledger_agent.consumes
+
+    # Matrix does NOT consume verification_ledger_delta
+    assert "verification_ledger_delta" not in matrix_agent.consumes

@@ -3146,3 +3146,123 @@ def test_verification_matrix_projection_metadata(pipeline) -> None:
     assert isinstance(meta["projected_artifact_names"], list)
     assert isinstance(meta["input_contributions_original"], dict)
     assert isinstance(meta["input_contributions_projected"], dict)
+
+
+# ── audit_summary projection recognises alternative schemas ──
+
+
+def test_verification_matrix_audit_summary_projection_status_field() -> None:
+    """Projection compacts audit_summary using 'status' instead of 'overall_audit_status'."""
+    from governance.dag_runner.prompt_assembly import _project_artifact_payload
+
+    payload = {
+        "produced_by": "deep-audit",
+        "status": "pass",
+        "fail_closed_applied": False,
+        "dag_advancement_blocked": False,
+        "dispatched_subagents": ["agent-a"],
+        "subagent_findings": [
+            {"agent": "agent-a", "findings": "narrative " * 500},
+        ],
+        "dispatch_evaluation": "long text " * 500,
+    }
+
+    projected = _project_artifact_payload(
+        "update-verification-matrix", "audit_summary", payload,
+    )
+
+    assert projected is not payload
+    assert projected["overall_audit_status"] == "pass"
+    assert projected["fail_closed_applied"] is False
+    assert projected["dispatched_subagents"] == ["agent-a"]
+    assert "subagent_findings" not in projected
+    assert "dispatch_evaluation" not in projected
+
+
+def test_verification_matrix_audit_summary_projection_overall_status_field() -> None:
+    """Projection compacts audit_summary using 'overall_status'."""
+    from governance.dag_runner.prompt_assembly import _project_artifact_payload
+
+    payload = {
+        "produced_by": "deep-audit",
+        "overall_status": "blocked",
+        "dispatched_subagents": ["x"],
+        "subagent_findings": [{"findings": "y" * 5000}],
+    }
+
+    projected = _project_artifact_payload(
+        "update-verification-matrix", "audit_summary", payload,
+    )
+
+    assert projected is not payload
+    assert projected["overall_audit_status"] == "blocked"
+    assert "subagent_findings" not in projected
+
+
+def test_verification_matrix_audit_summary_projection_nested_overall() -> None:
+    """Projection compacts audit_summary using nested 'overall' schema."""
+    from governance.dag_runner.prompt_assembly import _project_artifact_payload
+
+    payload = {
+        "produced_by": "deep-audit",
+        "overall": {
+            "overall_audit_status": "pass",
+            "fail_closed_applied": False,
+            "dag_advancement_blocked": False,
+            "dispatched_subagents": [],
+        },
+        "subagent_findings": [{"findings": "x" * 5000}],
+    }
+
+    projected = _project_artifact_payload(
+        "update-verification-matrix", "audit_summary", payload,
+    )
+
+    assert projected is not payload
+    assert projected["overall_audit_status"] == "pass"
+    assert "subagent_findings" not in projected
+
+
+def test_verification_matrix_audit_summary_never_passthrough_real_artifact() -> None:
+    """Projection never returns full payload when recognisable audit markers exist."""
+    from governance.dag_runner.prompt_assembly import _project_artifact_payload
+    import json
+
+    # Simulate large audit_summary with dispatched_subagents but no standard status fields
+    payload = {
+        "produced_by": "deep-audit",
+        "dispatched_subagents": ["agent-a", "agent-b"],
+        "subagent_findings": [
+            {"agent": "agent-a", "findings": "Very long findings " * 500},
+        ],
+        "dispatch_evaluation": "Very long text " * 500,
+        "expected_audit_scope": "More long text " * 500,
+    }
+
+    projected = _project_artifact_payload(
+        "update-verification-matrix", "audit_summary", payload,
+    )
+
+    assert projected is not payload
+    proj_size = len(json.dumps(projected))
+    orig_size = len(json.dumps(payload))
+    assert proj_size < orig_size * 0.5, (
+        f"Projection did not compact: {proj_size} vs {orig_size}"
+    )
+
+
+def test_verification_matrix_audit_summary_caps_dispatched_subagents() -> None:
+    """dispatched_subagents is capped at 10 entries."""
+    from governance.dag_runner.prompt_assembly import _project_artifact_payload
+
+    payload = {
+        "produced_by": "deep-audit",
+        "overall_audit_status": "pass",
+        "dispatched_subagents": [f"agent-{i}" for i in range(25)],
+    }
+
+    projected = _project_artifact_payload(
+        "update-verification-matrix", "audit_summary", payload,
+    )
+
+    assert len(projected["dispatched_subagents"]) == 10

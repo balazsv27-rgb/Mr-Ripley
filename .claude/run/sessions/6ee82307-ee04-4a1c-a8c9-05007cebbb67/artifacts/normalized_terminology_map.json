@@ -1,0 +1,91 @@
+{
+  "artifact": "normalized_terminology_map",
+  "produced_by": "normalize-terminology",
+  "session": "6ee82307-ee04-4a1c-a8c9-05007cebbb67",
+  "timestamp": "2026-04-26T18:38:04.499907Z",
+  "data": {
+    "produced_by": "normalize-terminology",
+    "overall_status": "governance_sensitive_term_conflict",
+    "inference_used": false,
+    "canonical_term_mappings": [
+      {
+        "from": "truth_store",
+        "to": "Layer-2",
+        "concept_id": "LAYER_2",
+        "reason": "Unrecognized replacement term with no canonical standing. 'truth_store' does not appear in the canonical term table for LAYER_2, is not listed as an allowed variant, and has not been approved as a canonical term. The only canonical forms are 'Layer-2' (preferred) and 'Layer 2' (allowed in prose). Adopting this replacement would introduce a non-canonical term for the snapshot-boundary layer \u2014 a governance-sensitive architectural concept."
+      },
+      {
+        "from": "decision_layer",
+        "to": "Layer-3",
+        "concept_id": "LAYER_3",
+        "reason": "Unrecognized replacement term proximate to an explicitly discouraged variant. 'decision_layer' is not in the canonical term table for LAYER_3 and is semantically proximate to 'decision engine', which appears in the explicitly discouraged column for LAYER_3. Additionally, 'Decision Engine' is a separately named planned component in CLAUDE.md Section 3.2 \u2014 adopting 'decision_layer' as a synonym for Layer-3 risks conflating the architectural layer with this discrete planned component."
+      }
+    ],
+    "scope_constraints": [
+      "request_text from governance_context (rename-layer-terms-2026-04-20)",
+      "claim_classification_map claims c1 through c7",
+      "canonical term table from skill definition",
+      "CLAUDE.md constitutional rules (Sections 1, 3, 4, 6, 7, 9, 11, 15) as reflected in governance_context"
+    ],
+    "excluded_reference_types": [
+      "canonical Documentation/ files not read directly \u2014 document content not scanned at this step",
+      "code module names and import paths not evaluated \u2014 out of scope for terminology normalization",
+      "DOCUMENTATION_VERIFICATION_MATRIX_v1.md cross-reference table not directly scanned"
+    ],
+    "filename_rename_candidates": [
+      "README_LAYER2.md \u2014 referenced by exact filename in CLAUDE.md Sections 2.1, 2.2, 2.4, and 11 as canonical source #7; rename to any 'truth_store'-variant name would require cascading updates to CLAUDE.md itself (a constitutional-level change), all canonical documents that cross-reference it by name, and the DOCUMENTATION_VERIFICATION_MATRIX_v1.md; this is the highest-risk rename candidate in the entire request"
+    ],
+    "ambiguity_flags": [
+      {
+        "term": "truth_store",
+        "concepts": [
+          "LAYER_2",
+          "SNAPSHOT_TRUTH",
+          "OBSERVATIONS"
+        ],
+        "governance_sensitive": true,
+        "note": "The proposed term 'truth_store' does not resolve cleanly to a single governed concept. It could be read as referring to the snapshot-boundary architectural layer (LAYER_2), the Snapshot Truth concept (SNAPSHOT_TRUTH \u2014 a distinct canonical term meaning the published snapshot state), or the observations store (OBSERVATIONS \u2014 the raw data that must never be read downstream). This three-way ambiguity directly corrupts snapshot-boundary semantics (governance-sensitive category A) and must be resolved before any rename proceeds."
+      },
+      {
+        "term": "decision_layer",
+        "concepts": [
+          "LAYER_3",
+          "DECISION_PACKET"
+        ],
+        "governance_sensitive": true,
+        "note": "While 'decision_layer' primarily targets LAYER_3, it creates secondary ambiguity with the decision vocabulary cluster (DECISION_PACKET, guard taxonomy, state taxonomy). 'Decision Engine' is a separately named planned component (CLAUDE.md Section 3.2); a layer called 'decision_layer' could be misread as that component rather than the full Layer-3 compute scope. This conflicts with the required current-vs-target boundary preservation identified in claim c2 and c5, and implicates governance-sensitive category D."
+      }
+    ],
+    "governance_findings": [
+      {
+        "finding_id": "GF-1",
+        "category": "A",
+        "category_label": "Snapshot boundary",
+        "severity": "blocking",
+        "description": "Replacing 'Layer-2' with 'truth_store' corrupts the canonical snapshot-boundary term. LAYER_2 is the layer at which snapshots are published and the immutable boundary is enforced. 'truth_store' conflates this boundary role with storage semantics and overlaps with SNAPSHOT_TRUTH and OBSERVATIONS \u2014 two distinct canonical concepts. The replace would weaken snapshot-boundary clarity in all downstream governance steps that consume Layer-2 references."
+      },
+      {
+        "finding_id": "GF-2",
+        "category": "B",
+        "category_label": "Phase/readiness",
+        "severity": "blocking",
+        "description": "The phase-gate model (CLAUDE.md Section 4) defines Phase A through Phase D in terms of Layer-2 and Layer-3 explicitly. Renaming these terms without updating the phase-gate definitions introduces a split vocabulary: canonical phase definitions continue to reference 'Layer-2' / 'Layer-3' while documentation content uses 'truth_store' / 'decision_layer'. This creates a phase-readiness disambiguation failure in any governance step that routes on phase status."
+      },
+      {
+        "finding_id": "GF-3",
+        "category": "D",
+        "category_label": "Decision vocabulary",
+        "severity": "blocking",
+        "description": "'decision_layer' is proximate to the explicitly discouraged variant 'decision engine' for LAYER_3 (canonical term table). Adopting it risks importing the discouraged semantics of 'decision engine' into the layer name, which would contradict CLAUDE.md Section 9 (execution boundary: the system is analysis-only, and no component may simulate execution capability). A layer named 'decision_layer' could imply active decision execution rather than planned analytical infrastructure."
+      },
+      {
+        "finding_id": "GF-4",
+        "category": "constitutional",
+        "category_label": "Constitutional document modification",
+        "severity": "blocking",
+        "description": "The rename request targets CLAUDE.md itself \u2014 the highest-priority interpretive authority. CLAUDE.md uses 'Layer-2' and 'Layer-3' in Sections 1, 3, 4, 6, 9, 11, and 14 as load-bearing governance terms. Replacing these with non-canonical terms throughout CLAUDE.md would cascade interpretive effects to every downstream governance step and audit. This is not a documentation update \u2014 it is a constitutional redefinition requiring explicit constitutional-level approval that cannot be granted by the terminology normalization step alone."
+      }
+    ],
+    "normalization_verdict": "BLOCK \u2014 do not proceed with rename. Both proposed replacement terms ('truth_store' and 'decision_layer') are unrecognized terms with no canonical standing. They introduce governance-sensitive ambiguity in snapshot-boundary semantics (category A), phase/readiness classification (category B), and decision vocabulary (category D). The canonical terms 'Layer-2' and 'Layer-3' (with allowed prose variant 'Layer 2' / 'Layer 3') must be retained. If a rename is desired, it requires a constitutional amendment process that: (1) establishes new canonical terms through governance approval, (2) updates the canonical term table, (3) resolves the ambiguity flags above, and (4) produces a revised claim_classification_map before any documentation edits proceed."
+  }
+}

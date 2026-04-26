@@ -869,6 +869,28 @@ def _compact_doc_update_plan_for_doc_code_sync(
 # per-item findings.
 
 
+def _is_recognisable_audit_artifact(root: dict[str, Any]) -> bool:
+    """Return True if *root* contains fields characteristic of an audit_summary.
+
+    Checks for canonical field names across known schema variants:
+    - ``overall_audit_status`` / ``overall_status`` / ``status``
+    - ``fail_closed_applied``
+    - ``dag_advancement_blocked``
+    - ``dispatched_subagents`` / ``subagent_findings``
+    - ``unresolved_violations_count`` / ``blocking_violations_count``
+
+    Returns False only for structural/minimal payloads (e.g. V1 shell
+    ``{"produced_by": "deep-audit"}``).
+    """
+    _AUDIT_MARKERS = (
+        "overall_audit_status", "overall_status", "fail_closed_applied",
+        "dag_advancement_blocked", "dispatched_subagents", "subagent_findings",
+        "unresolved_violations_count", "blocking_violations_count",
+        "audit_resolution_required", "upstream_violations_consolidated",
+    )
+    return any(k in root for k in _AUDIT_MARKERS)
+
+
 def _compact_audit_summary_for_verification_matrix(
     payload: dict[str, Any],
 ) -> dict[str, Any]:
@@ -878,20 +900,35 @@ def _compact_audit_summary_for_verification_matrix(
     compact upstream violations, and critical path.  Drops subagent_findings
     narratives, dispatch_evaluation explanations, and expected_audit_scope prose.
 
-    Supports wrapped (``payload["audit_summary"]``) and flat schemas.
+    Supports wrapped (``payload["audit_summary"]``), nested
+    (``payload["overall"]``), and flat schemas.  Must never return the full
+    audit_summary when a recognisable audit artifact is present.
     """
-    root = payload.get("audit_summary", payload)
+    # Try wrapped shape first, then nested "overall", then flat
+    root = payload.get("audit_summary") or payload.get("overall") or payload
 
-    # Detect structural/minimal payload
-    if (
-        "overall_audit_status" not in root
-        and "fail_closed_applied" not in root
-    ):
+    # Detect structural/minimal payload — only pass through when NO audit
+    # marker fields are present in either root or payload.
+    if not _is_recognisable_audit_artifact(root) and not _is_recognisable_audit_artifact(payload):
         return payload
+
+    # If the root we found is still the original payload but audit markers
+    # exist on payload itself, use payload as root (flat schema).
+    if root is payload:
+        pass  # already flat
+    elif not _is_recognisable_audit_artifact(root):
+        root = payload  # fall back to flat
+
+    # Resolve status field — try multiple field names
+    status = (
+        root.get("overall_audit_status")
+        or root.get("overall_status")
+        or root.get("status")
+    )
 
     compact: dict[str, Any] = {
         "produced_by": root.get("produced_by") or payload.get("produced_by"),
-        "overall_audit_status": root.get("overall_audit_status"),
+        "overall_audit_status": status,
         "fail_closed_applied": root.get("fail_closed_applied"),
         "dag_advancement_blocked": root.get("dag_advancement_blocked"),
         "unresolved_violations_count": root.get("unresolved_violations_count"),
@@ -899,9 +936,16 @@ def _compact_audit_summary_for_verification_matrix(
         "review_required_violations_count": root.get(
             "review_required_violations_count",
         ),
-        "dispatched_subagents": root.get("dispatched_subagents"),
-        "critical_path": root.get("critical_path"),
     }
+
+    # dispatched_subagents — cap at 10
+    ds = root.get("dispatched_subagents")
+    if isinstance(ds, list):
+        compact["dispatched_subagents"] = ds[:10]
+    elif ds is not None:
+        compact["dispatched_subagents"] = ds
+
+    compact["critical_path"] = root.get("critical_path")
 
     # Compact upstream_violations_consolidated — keep only routing-relevant fields
     uvc = root.get("upstream_violations_consolidated")
@@ -917,6 +961,24 @@ def _compact_audit_summary_for_verification_matrix(
             for v in uvc
             if isinstance(v, dict)
         ][:20]  # cap at 20
+
+    # Compact findings/violations — cap at 10 entries, truncate strings
+    for findings_key in ("findings", "violations", "audit_findings"):
+        findings = root.get(findings_key)
+        if isinstance(findings, list):
+            capped = []
+            for f in findings[:10]:
+                if isinstance(f, dict):
+                    capped.append({
+                        k: (v[:200] if isinstance(v, str) and len(v) > 200 else v)
+                        for k, v in f.items()
+                        if k not in ("evidence_items", "full_text", "raw_evidence")
+                    })
+                elif isinstance(f, str):
+                    capped.append(f[:200])
+                else:
+                    capped.append(f)
+            compact[findings_key] = capped
 
     # audit_resolution_required — cap at 10
     arr = root.get("audit_resolution_required")

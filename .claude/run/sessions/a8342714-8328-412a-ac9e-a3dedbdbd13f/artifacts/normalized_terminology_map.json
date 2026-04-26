@@ -1,0 +1,66 @@
+{
+  "artifact": "normalized_terminology_map",
+  "produced_by": "normalize-terminology",
+  "session": "a8342714-8328-412a-ac9e-a3dedbdbd13f",
+  "timestamp": "2026-04-25T13:06:41.239101Z",
+  "data": {
+    "produced_by": "normalize-terminology",
+    "overall_status": "governance_sensitive_term_conflict",
+    "inference_used": false,
+    "canonical_term_mappings": [
+      {
+        "from": "truth_store",
+        "to": "Layer-2",
+        "concept_id": "LAYER_2",
+        "reason": "Proposed replacement term has no canonical basis. 'truth_store' is not listed as a canonical form, allowed variant, or discouraged variant for LAYER_2. The canonical form is 'Layer-2'; the only allowed prose variant is 'Layer 2'. 'truth_store' would replace a governance-registered canonical term with an unrecognized term. Additionally, 'Layer-2' is the term that carries the snapshot-boundary semantics (deterministic ingestion, immutable publication, contract compliance) \u2014 'truth_store' emphasizes storage/truth but does not encode those semantics. Replacing it alters how the snapshot boundary is described, triggering Category A (snapshot boundary) governance-sensitive conflict."
+      },
+      {
+        "from": "decision_layer",
+        "to": "Layer-3",
+        "concept_id": "LAYER_3",
+        "reason": "Proposed replacement term has no canonical basis. 'decision_layer' is not listed as a canonical form, allowed variant, or discouraged variant for LAYER_3. The canonical form is 'Layer-3'; the only allowed prose variant is 'Layer 3'. Layer-3 target architecture spans Feature Builder, Index Suite, Regime Gate, Supervisor Engine, and Decision Engine \u2014 'decision_layer' semantically collapses all of these to decision-generation only, introducing architectural scope narrowing. This risks obscuring Phase B/C/D classification integrity and weakening the current-state-vs-target-state distinction that CLAUDE.md \u00a73 and \u00a710 require to be preserved. Triggers Category B (phase/readiness) governance-sensitive conflict."
+      }
+    ],
+    "scope_constraints": [
+      "request text in governance_context (request_id: rename-layer-terms-2026-04-20)",
+      "classified claims c1 through c8 in claim_classification_map",
+      "canonical term table from skill definition (LAYER_2, LAYER_3, SNAPSHOT_TRUTH, and related entries)"
+    ],
+    "excluded_reference_types": [
+      "canonical document content not read directly \u2014 claim_classification_map and governance_context sufficient to determine non-canonical status of proposed terms",
+      "code module names, import paths, and directory names not inspected (separate rename-invariance analysis required)",
+      "historical references not independently enumerated"
+    ],
+    "filename_rename_candidates": [
+      "README_LAYER2.md \u2014 canonical document (CLAUDE.md \u00a72.1 item 7) whose filename contains the canonical LAYER_2 term; renaming would constitute a governance-structural change requiring amendment of CLAUDE.md \u00a7\u00a72.1, 2.2, 2.4, 11 and DOCUMENTATION_VERIFICATION_MATRIX_v1.md; flagged as candidate but BLOCKED pending refactor approval"
+    ],
+    "ambiguity_flags": [
+      {
+        "term": "truth_store",
+        "concepts": [
+          "LAYER_2",
+          "SNAPSHOT_TRUTH"
+        ],
+        "governance_sensitive": true,
+        "note": "Unrecognized term not present in canonical term table. In addition to replacing LAYER_2, 'truth_store' could be misread as semantically overlapping with 'Snapshot Truth' (SNAPSHOT_TRUTH concept), creating a two-concept ambiguity between the architectural layer and the canonical truth concept. This ambiguity is governance-sensitive under Category A (snapshot boundary) and could affect how downstream claims about snapshot state vs. layer identity are classified."
+      },
+      {
+        "term": "decision_layer",
+        "concepts": [
+          "LAYER_3"
+        ],
+        "governance_sensitive": true,
+        "note": "Unrecognized term not present in canonical term table. Although it maps to only one concept (LAYER_3), its scope is narrower than the concept it would replace: LAYER_3 encompasses Feature Builder, Index Suite, Regime Gate, Supervisor Engine, and Decision Engine. 'decision_layer' implies only the decision-generation sub-component. This semantic narrowing is governance-sensitive under Category B (phase/readiness): it could cause Phase B/C (non-decision components of Layer-3) to fall outside the named scope, weakening the stage-gate model."
+      }
+    ],
+    "blocking_conditions_confirmed": [
+      "terminology_semantic_equivalence_unverified \u2014 neither 'truth_store' nor 'decision_layer' appears in the canonical term table; semantic equivalence to 'Layer-2' and 'Layer-3' cannot be established from current materials (per claim c7, evidence_class: cannot_verify_from_current_materials)",
+      "snapshot_boundary_terminology_change \u2014 'Layer-2' is the canonical term encoding snapshot-boundary semantics; replacement with 'truth_store' weakens those semantics without canonical authorization (Category A)",
+      "architecture_scope_narrowing \u2014 'decision_layer' reduces LAYER_3 scope to decision-generation only, excluding Feature Builder, Regime Gate, Supervisor Engine components (Category B)",
+      "canonical_document_filename_rename_required \u2014 README_LAYER2.md filename contains LAYER_2 canonical term; rename would alter the canonical document set itself",
+      "constitutional_document_self_modification \u2014 CLAUDE.md is within refactor scope; modifying canonical term usage in the constitutional authority document requires extreme care to maintain coherence",
+      "fail_closed_applies \u2014 CLAUDE.md \u00a77 requires NO OUTPUT rather than incorrect output; unverified semantic equivalence and governance-sensitive conflicts trigger fail-closed condition"
+    ],
+    "overall_verdict": "BLOCKED. The proposed terminology refactor introduces two unrecognized replacement terms ('truth_store', 'decision_layer') in place of governance-registered canonical terms ('Layer-2', 'Layer-3'). Both replacements trigger governance-sensitive conflicts: 'truth_store' risks snapshot-boundary semantic loss (Category A); 'decision_layer' risks architectural scope narrowing and phase-gate confusion (Category B). Semantic equivalence is unverified (claim c7, evidence_class: cannot_verify_from_current_materials). Fail-closed applies per CLAUDE.md \u00a77. The refactor MUST NOT proceed under current evidence. To unblock: explicitly register 'truth_store' and 'decision_layer' as canonical terms through a governance amendment that (1) demonstrates semantic equivalence to their predecessors, (2) preserves snapshot-boundary and phase-gate semantics, (3) updates the canonical term table, and (4) amends CLAUDE.md as the constitutional authority \u2014 before any documentation-wide replacement is applied."
+  }
+}

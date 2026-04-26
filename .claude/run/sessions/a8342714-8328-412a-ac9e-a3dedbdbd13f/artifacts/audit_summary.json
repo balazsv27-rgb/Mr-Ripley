@@ -1,0 +1,194 @@
+{
+  "artifact": "audit_summary",
+  "produced_by": "deep-audit",
+  "session": "a8342714-8328-412a-ac9e-a3dedbdbd13f",
+  "timestamp": "2026-04-25T13:15:22.572067Z",
+  "data": {
+    "produced_by": "deep-audit",
+    "audit_status": "blocked_unresolved_violations",
+    "dag_advancement_blocked": true,
+    "dispatch_conditions_evaluated": {
+      "canonical-role-auditor": {
+        "condition": "role_citation_verdict.violations contains role_mismatch_for_strong_claim or readme_layer2_used_as_override",
+        "exact_field_present": false,
+        "supporting_signals": [
+          "role_citation_verdict.source_authority_conflict_detected: true",
+          "role_citation_verdict.canonical_conflict_unresolved: true",
+          "role_citation_verdict.requires_doc_sync_escalation: true",
+          "role_citation_verdict.overall_status: conflict_requires_block",
+          "role_citation_verdict.recommended_guard_action: block"
+        ],
+        "dispatch_decision": "dispatched",
+        "dispatch_basis": "fail-closed applied: source_authority_conflict_detected and canonical_conflict_unresolved are the upstream conditions that produce role_mismatch and authority-override patterns; exact violations field absent but underlying conditions are satisfied"
+      },
+      "architecture-sequence-auditor": {
+        "condition": "phase_alignment_status.build_order_ambiguity_detected is true",
+        "exact_field_present": false,
+        "supporting_signals": [
+          "phase_alignment_status.allowed: false",
+          "phase_alignment_status.alignment_status: ambiguous_requires_block",
+          "phase_alignment_status.recommended_next_step explicitly instructs: Route to architecture-sequence-auditor for build_order_ambiguity resolution before re-submission"
+        ],
+        "dispatch_decision": "dispatched",
+        "dispatch_basis": "phase_alignment_status.recommended_next_step is an explicit routing instruction from the upstream layer; fail-closed applied on ambiguous_requires_block status"
+      },
+      "snapshot-boundary-auditor": {
+        "condition": "runtime_boundary_verdict.boundary_violation_suspected is true",
+        "exact_field_present": true,
+        "field_value": true,
+        "supporting_signals": [
+          "contract_compliance_verdict.snapshot_bypass_risk: true",
+          "contract_compliance_verdict.decisionpacket_anchor_risk: true",
+          "runtime_boundary_verdict.requires_snapshot_boundary_auditor: true",
+          "runtime_boundary_verdict.requires_snapshot_boundary_guard: true"
+        ],
+        "dispatch_decision": "dispatched",
+        "dispatch_basis": "exact condition met"
+      },
+      "adapter-schema-guardian": {
+        "condition": "adapter_schema_verdict.violations contains registry_violation or schema_drift_detected",
+        "exact_field_present": false,
+        "supporting_signals": [
+          "adapter_schema_verdict.requires_adapter_schema_guardian: true",
+          "adapter_schema_verdict.source_authority_conflict_detected: true",
+          "adapter_schema_verdict.requires_doc_code_sync_review: true",
+          "adapter_schema_verdict.overall_status: ambiguous_requires_review"
+        ],
+        "dispatch_decision": "dispatched",
+        "dispatch_basis": "artifact explicitly sets requires_adapter_schema_guardian: true; fail-closed applied \u2014 ambiguous status with authority conflict is not a clean pass"
+      },
+      "implementation-history-reconciler": {
+        "condition": "claim_classification_map.non_canonical_source_as_current_truth is true",
+        "exact_field_present": false,
+        "supporting_signals": [
+          "claim_classification_map.possible_blocking_conditions includes constitutional_document_self_modification",
+          "claim_classification_map.possible_blocking_conditions includes contract_affecting_documentation_change",
+          "claim_classification_map.request_type: documentation-wide terminology refactor with governance review",
+          "phase_alignment_status.recommended_next_step flags unverified claim c7 requiring reclassification or removal"
+        ],
+        "dispatch_decision": "dispatched",
+        "dispatch_basis": "constitutional_document_self_modification and contract_affecting_documentation_change in possible_blocking_conditions are structurally consistent with non-canonical source being treated as current truth; fail-closed applied"
+      }
+    },
+    "per_subagent_results": {
+      "canonical-role-auditor": {
+        "status": "unresolved_violations",
+        "findings": [
+          "Source authority conflict in role_citation_verdict has no resolution path \u2014 canonical_conflict_unresolved remains true",
+          "doc_sync_escalation required before any re-submission; escalation_target field is null, indicating escalation path not yet established",
+          "review_only_claim_ids [C-001, C-002, C-006, C-007, C-008] have not been verified against role-matched canonical sources per CLAUDE.md \u00a72.4",
+          "Recommended guard action is block with no override condition specified"
+        ],
+        "violations": [
+          "source_authority_conflict_unresolved",
+          "doc_sync_escalation_target_not_established",
+          "claim_set_unverified_against_role_matched_sources"
+        ]
+      },
+      "architecture-sequence-auditor": {
+        "status": "unresolved_violations",
+        "findings": [
+          "Phase alignment is ambiguous_requires_block \u2014 advancement explicitly not allowed per phase_alignment_status.allowed: false",
+          "Build order ambiguity explicitly unresolved \u2014 architecture-sequence-auditor routing required before re-submission",
+          "Constitutional document modification authority chain not established; CLAUDE.md \u00a711 update obligation cycle not initiated",
+          "Snapshot boundary terminology change has not been assessed against \u00a711 update obligation cycle",
+          "Current/target distinction preservation required per CLAUDE.md \u00a73 \u2014 not confirmed in any upstream artifact",
+          "Unverified claim c7 must be reclassified or removed before phase alignment can be re-evaluated"
+        ],
+        "violations": [
+          "build_order_ambiguity_unresolved",
+          "phase_alignment_blocked_no_advancement_allowed",
+          "modification_authority_chain_not_established",
+          "section_11_update_cycle_not_initiated",
+          "current_target_distinction_unconfirmed",
+          "unverified_claim_c7_not_resolved"
+        ]
+      },
+      "snapshot-boundary-auditor": {
+        "status": "unresolved_violations",
+        "findings": [
+          "runtime_boundary_verdict.boundary_violation_suspected: true \u2014 boundary violation confirmed as suspected; not cleared",
+          "contract_compliance_verdict.snapshot_bypass_risk: true \u2014 violates CLAUDE.md \u00a76.3 forbidden patterns",
+          "contract_compliance_verdict.decisionpacket_anchor_risk: true \u2014 DecisionPacket schema is frozen but generator and production path are not built per CLAUDE.md \u00a73.2; anchor risk is an unresolved contract gap",
+          "contract_compliance_verdict.snapshot_anchor_required: true \u2014 anchor requirement flagged but not satisfied",
+          "contract_compliance_verdict.contract_status: boundary_violation \u2014 contract is not in compliant state"
+        ],
+        "violations": [
+          "snapshot_bypass_risk_unresolved",
+          "decisionpacket_anchor_risk_unresolved",
+          "snapshot_anchor_requirement_unsatisfied",
+          "contract_boundary_violation_active"
+        ]
+      },
+      "adapter-schema-guardian": {
+        "status": "unresolved_requires_review",
+        "findings": [
+          "adapter_schema_verdict.overall_status: ambiguous_requires_review \u2014 no definitive registry or schema violation confirmed, but ambiguity is not a clean pass under fail-closed principle",
+          "source_authority_conflict_detected in adapter_schema_verdict context \u2014 same authority conflict present in role_citation_verdict bleeds into adapter domain",
+          "doc-code sync review required before any adapter-touching change proceeds; review not completed",
+          "No registry_violation or hardcoded_series or schema_drift or boundary_violation detected individually \u2014 but aggregate ambiguity with authority conflict cannot be cleared without guardian review"
+        ],
+        "violations": [
+          "source_authority_conflict_in_adapter_schema_context",
+          "doc_code_sync_review_not_completed",
+          "schema_status_ambiguous_not_cleared"
+        ]
+      },
+      "implementation-history-reconciler": {
+        "status": "unresolved_violations",
+        "findings": [
+          "constitutional_document_self_modification is a listed possible_blocking_condition \u2014 CLAUDE.md modification requires verified modification authority chain per CLAUDE.md \u00a715; chain not established",
+          "contract_affecting_documentation_change requires full \u00a711 update obligation cycle across all seven canonical documents \u2014 cycle has not been initiated or confirmed",
+          "Documentation-wide terminology refactor is the declared request_type \u2014 all claims in the refactor must remain traceable to canonical documents or concrete code per CLAUDE.md \u00a75.2; traceability not confirmed",
+          "Unverified claim c7 identified in phase_alignment_status recommended_next_step \u2014 claim must be reclassified or removed before implementation history can be reconciled",
+          "8 claims across the claim_classification_map have not been verified against canonical current-state documentation set"
+        ],
+        "violations": [
+          "constitutional_document_modification_authority_unverified",
+          "section_11_update_cycle_not_completed",
+          "claim_traceability_to_canonical_sources_unconfirmed",
+          "unverified_claim_c7_not_reclassified_or_removed",
+          "claim_set_c1_through_c8_unverified"
+        ]
+      }
+    },
+    "consolidated_unresolved_violations": [
+      "source_authority_conflict_unresolved",
+      "doc_sync_escalation_target_not_established",
+      "claim_set_unverified_against_role_matched_sources",
+      "build_order_ambiguity_unresolved",
+      "phase_alignment_blocked_no_advancement_allowed",
+      "modification_authority_chain_not_established",
+      "section_11_update_cycle_not_initiated",
+      "current_target_distinction_unconfirmed",
+      "unverified_claim_c7_not_resolved",
+      "snapshot_bypass_risk_unresolved",
+      "decisionpacket_anchor_risk_unresolved",
+      "snapshot_anchor_requirement_unsatisfied",
+      "contract_boundary_violation_active",
+      "source_authority_conflict_in_adapter_schema_context",
+      "doc_code_sync_review_not_completed",
+      "schema_status_ambiguous_not_cleared",
+      "constitutional_document_modification_authority_unverified",
+      "section_11_update_cycle_not_completed",
+      "claim_traceability_to_canonical_sources_unconfirmed",
+      "unverified_claim_c7_not_reclassified_or_removed",
+      "claim_set_c1_through_c8_unverified"
+    ],
+    "total_unresolved_violation_count": 21,
+    "subagents_with_clean_status": 0,
+    "subagents_dispatched": 5,
+    "resolution_requirements_ordered": [
+      "1. Establish constitutional document modification authority chain (blocks architecture-sequence-auditor and implementation-history-reconciler clearance)",
+      "2. Resolve canonical conflict from role_citation_verdict and establish doc_sync_escalation_target (blocks canonical-role-auditor clearance)",
+      "3. Reclassify or remove unverified claim c7 (required by phase_alignment_status; blocks multiple subagent clearances)",
+      "4. Resolve snapshot bypass risk and decisionpacket anchor risk against CLAUDE.md \u00a76.3 (blocks snapshot-boundary-auditor clearance)",
+      "5. Initiate and complete \u00a711 update obligation cycle across all seven canonical documents (blocks implementation-history-reconciler clearance)",
+      "6. Confirm current/target distinction preservation in all claim rewrites per CLAUDE.md \u00a73 (blocks architecture-sequence-auditor clearance)",
+      "7. Complete doc-code sync review for adapter schema context (blocks adapter-schema-guardian clearance)",
+      "8. Verify all claims c1\u2013c8 against role-matched canonical sources per CLAUDE.md \u00a72.4 (blocks canonical-role-auditor and implementation-history-reconciler clearance)",
+      "9. Re-route to architecture-sequence-auditor for build_order_ambiguity resolution before re-submission"
+    ],
+    "overall_verdict": "ALL_SUBAGENTS_RETURNED_VIOLATIONS \u2014 DAG advancement to the verification layer is BLOCKED. 5 of 5 dispatched subagents returned unresolved violations or uncleared review status. 21 consolidated violations recorded. No subagent returned clean status. No component of the pending change may proceed until all 9 ordered resolution requirements are satisfied and all dispatched subagents are re-run to confirmed clearance. Fail-closed principle (CLAUDE.md \u00a77) is in effect."
+  }
+}

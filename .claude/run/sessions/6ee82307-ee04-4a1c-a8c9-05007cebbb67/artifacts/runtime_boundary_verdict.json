@@ -1,0 +1,158 @@
+{
+  "artifact": "runtime_boundary_verdict",
+  "produced_by": "runtime-boundary-check",
+  "session": "6ee82307-ee04-4a1c-a8c9-05007cebbb67",
+  "timestamp": "2026-04-26T18:44:52.882866Z",
+  "data": {
+    "produced_by": "runtime-boundary-check",
+    "overall_status": "ambiguous_requires_review",
+    "inference_used": true,
+    "upstream_block_inherited": true,
+    "upstream_block_source": "contract_compliance_verdict",
+    "upstream_block_reason": "contract_status=ambiguous_requires_block; snapshot_bypass_risk=true; decisionpacket_anchor_risk=true; unresolved upstream canonical conflicts (role_citation_verdict: conflict_requires_block, claims C-001 through C-004) propagate unresolved snapshot-boundary semantics",
+    "raw_observation_access_detected": false,
+    "latest_snapshot_misuse_detected": false,
+    "layer2_storage_coupling_detected": false,
+    "boundary_violation_suspected": true,
+    "checked_items": [
+      {
+        "item_id": "RB-001",
+        "target": "layer2/db.py",
+        "assessment": "review",
+        "raw_observations_access_detected": false,
+        "latest_snapshot_misuse_detected": false,
+        "snapshot_truth_rewrite_risk": false,
+        "layer2_storage_touch_detected": false,
+        "affected_files": [
+          "layer2/db.py"
+        ],
+        "missing_inputs": [
+          "file content \u2014 code inspection tools unavailable in this invocation"
+        ],
+        "reason": "File not inspectable in this invocation. Cannot confirm or deny observation-write patterns, INSERT OR REPLACE usage, or ungoverned connection exposure to downstream callers. Fail-closed: treating as unverified.",
+        "canonical_source": "SYSTEM_TECHNICAL_HANDBOOK_v1.md",
+        "notes": [
+          "File absent from git modified set \u2014 no recent change detected, but static content unverified."
+        ]
+      },
+      {
+        "item_id": "RB-002",
+        "target": "layer2/adapters/*",
+        "assessment": "review",
+        "raw_observations_access_detected": false,
+        "latest_snapshot_misuse_detected": false,
+        "snapshot_truth_rewrite_risk": false,
+        "layer2_storage_touch_detected": false,
+        "affected_files": [],
+        "missing_inputs": [
+          "adapter file listing \u2014 Glob unavailable",
+          "adapter source content \u2014 Read unavailable"
+        ],
+        "reason": "Adapter directory not enumerable in this invocation. Cannot verify: absence of hardcoded series logic, absence of direct observation reads, absence of ungoverned db.get_connection() usage. series_registry.json authority unverifiable without reading adapter imports.",
+        "canonical_source": "SYSTEM_TECHNICAL_HANDBOOK_v1.md",
+        "notes": [
+          "Adapter boundary is a primary D1/D5 risk surface. Unverified adapters propagate boundary_violation_suspected=true per fail-closed rule."
+        ]
+      },
+      {
+        "item_id": "RB-003",
+        "target": "layer2/alignment.py",
+        "assessment": "review",
+        "raw_observations_access_detected": false,
+        "latest_snapshot_misuse_detected": false,
+        "snapshot_truth_rewrite_risk": false,
+        "layer2_storage_touch_detected": false,
+        "affected_files": [
+          "layer2/alignment.py"
+        ],
+        "missing_inputs": [
+          "file content \u2014 Read unavailable"
+        ],
+        "reason": "Cannot inspect alignment.py for any snapshot-truth annotation or override patterns (D4 risk). File absent from git modified set.",
+        "canonical_source": "SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md",
+        "notes": []
+      },
+      {
+        "item_id": "RB-004",
+        "target": "layer2/config/series_registry.json",
+        "assessment": "review",
+        "raw_observations_access_detected": false,
+        "latest_snapshot_misuse_detected": false,
+        "snapshot_truth_rewrite_risk": false,
+        "layer2_storage_touch_detected": false,
+        "affected_files": [
+          "layer2/config/series_registry.json"
+        ],
+        "missing_inputs": [
+          "file content \u2014 Read unavailable"
+        ],
+        "reason": "Registry authority (CLAUDE.md \u00a78) requires series_registry.json to be sole source of series definitions. Cannot confirm registry well-formedness or absence of hidden mappings without file access.",
+        "canonical_source": "CLAUDE.md \u00a78",
+        "notes": [
+          "No modification in git status. Registry content treated as structurally unchanged but not verified."
+        ]
+      },
+      {
+        "item_id": "RB-005",
+        "target": "latest_snapshot.json",
+        "assessment": "review",
+        "raw_observations_access_detected": false,
+        "latest_snapshot_misuse_detected": false,
+        "snapshot_truth_rewrite_risk": false,
+        "layer2_storage_touch_detected": false,
+        "affected_files": [
+          "latest_snapshot.json"
+        ],
+        "missing_inputs": [
+          "file content \u2014 Read unavailable"
+        ],
+        "reason": "Cannot verify snapshot_id and as_of fields are present and governed. Upstream contract_compliance_verdict set decisionpacket_anchor_risk=true \u2014 semantic drift of constructs touching snapshot identity not yet resolved. D3 compliance cannot be confirmed.",
+        "canonical_source": "SYSTEM_TECHNICAL_HANDBOOK_v1.md",
+        "notes": [
+          "decisionpacket_anchor_risk=true from contract_compliance_verdict propagates directly to this check."
+        ]
+      },
+      {
+        "item_id": "RB-006",
+        "target": "upstream_semantic_drift \u2014 'truth_store' / 'decision_layer' rename",
+        "assessment": "blocked",
+        "raw_observations_access_detected": false,
+        "latest_snapshot_misuse_detected": false,
+        "snapshot_truth_rewrite_risk": true,
+        "layer2_storage_touch_detected": false,
+        "affected_files": [],
+        "missing_inputs": [],
+        "reason": "contract_compliance_verdict explicitly flags that the proposed rename introduces 'truth_store' and 'decision_layer' \u2014 both require verified semantic equivalence against SCC-1 and SCC-4 before any compliance verdict can be issued. Until resolved, snapshot truth ownership (D4) is at risk of implicit rewrite through terminology drift. Per skill rule: doc claims implying boundary-violating behavior must be flagged even without code.",
+        "canonical_source": "CLAUDE.md \u00a76, \u00a77",
+        "notes": [
+          "snapshot_truth_rewrite_risk=true is set at the conceptual level due to unresolved term semantics.",
+          "This is a claim-level finding, not a code-level finding.",
+          "Resolution requires role_citation_verdict conflicts C-001 through C-004 to be cleared first."
+        ]
+      }
+    ],
+    "summary": {
+      "raw_observations_violation_detected": false,
+      "latest_snapshot_misuse_detected": false,
+      "snapshot_truth_rewrite_risk_detected": true,
+      "layer2_storage_touch_detected": false,
+      "boundary_violation_suspected": true,
+      "code_evidence_available": false,
+      "code_evidence_gap_reason": "File inspection tools (Read, Grep, Glob, Bash) unavailable in this invocation. Static file content for layer2/db.py, layer2/alignment.py, layer2/adapters/*, layer2/config/series_registry.json, and latest_snapshot.json could not be retrieved.",
+      "upstream_block_propagated": true,
+      "requires_snapshot_boundary_guard": true,
+      "requires_snapshot_boundary_auditor": true,
+      "requires_doc_code_sync_review": false,
+      "source_authority_conflict_detected": true,
+      "escalation_trigger": "snapshot-boundary-auditor",
+      "escalation_reason": "boundary_violation_suspected=true: (1) snapshot_truth_rewrite_risk from unresolved semantic drift in renamed constructs; (2) code_evidence_available=false prevents affirmative compliance ruling; (3) upstream contract block (allowed=false, snapshot_bypass_risk=true) inherited and not contradicted by any available evidence.",
+      "notes": [
+        "Fail-closed principle applied throughout: absence of code evidence treated as inability to confirm compliance, not as evidence of compliance.",
+        "upstream block from contract_compliance_verdict (contract_status=ambiguous_requires_block) is fully inherited.",
+        "No Layer-2 files appear in the git modified set \u2014 this is consistent with boundary stability but does not constitute affirmative proof.",
+        "governance/dag_runner/ files are modified; these are not Layer-2 files and are outside the D1\u2013D5 boundary surface for this check.",
+        "Resolving the role_citation_verdict upstream conflict (claims C-001 through C-004) is a prerequisite before any downstream boundary check can reach 'compliant' status."
+      ]
+    }
+  }
+}

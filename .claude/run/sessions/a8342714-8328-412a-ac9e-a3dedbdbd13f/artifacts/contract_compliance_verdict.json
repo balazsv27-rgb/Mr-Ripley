@@ -1,0 +1,139 @@
+{
+  "artifact": "contract_compliance_verdict",
+  "produced_by": "snapshot-contract-check",
+  "session": "a8342714-8328-412a-ac9e-a3dedbdbd13f",
+  "timestamp": "2026-04-25T13:11:38.693749Z",
+  "data": {
+    "produced_by": "snapshot-contract-check",
+    "allowed": false,
+    "contract_status": "boundary_violation",
+    "valid_interface": "none",
+    "forbidden_access_detected": false,
+    "snapshot_anchor_required": true,
+    "blocking_reason_if_any": "upstream_block_inherited; snapshot_boundary_terminology_change_flagged_by_phase_check; canonical_conflict_unresolved_prevents_compliance_determination; unresolved_blocking_claims_C-003_C-004_C-005_from_role_citation_verdict; constitutional_document_self_modification_blocks_contract_authority_chain; scope_exceeds_current_allowance_violates_SCC-6",
+    "checked_claims": [
+      {
+        "claim_id": "cc1",
+        "claim_text": "Snapshot boundary terminology change flagged in phase_alignment_status (snapshot_boundary_terminology_change_flagged)",
+        "assessment": "blocked",
+        "violated_invariants": [
+          "SCC-1",
+          "SCC-4"
+        ],
+        "triggered_forbidden_patterns": [
+          "FP-7"
+        ],
+        "valid_interface_if_compliant": "none",
+        "reason": "A terminology change affecting the snapshot boundary was flagged by the upstream phase-check step. In strict mode, any ambiguity about how the snapshot contract boundary is described or enforced is promoted to blocked per B8. Terminology changes that alter the characterization of what Layer-3 may consume could implicitly permit forbidden access patterns or reframe SCC-1 compliance scope, which constitutes a doc-level SCC-4 / FP-7 violation.",
+        "contract_reference": [
+          "SCC-1",
+          "SCC-4",
+          "FP-7"
+        ]
+      },
+      {
+        "claim_id": "cc2",
+        "claim_text": "Unverified claim c7 flagged as unresolvable in upstream phase_alignment_status",
+        "assessment": "blocked",
+        "violated_invariants": [
+          "SCC-1"
+        ],
+        "triggered_forbidden_patterns": [
+          "FP-7"
+        ],
+        "valid_interface_if_compliant": "none",
+        "reason": "Claim c7 was flagged as unresolvable by the phase-check step. An unresolvable unverified claim cannot be assessed for snapshot contract compliance. Under strict mode and CLAUDE.md Section 16, unverifiable claims must be treated as non-binding and blocked. The claim cannot be cleared as compliant without canonical traceability.",
+        "contract_reference": [
+          "SCC-1",
+          "FP-7"
+        ]
+      },
+      {
+        "claim_id": "cc3",
+        "claim_text": "Blocking claims C-003, C-004, C-005 from role_citation_verdict remain unresolved \u2014 canonical authority conflict unresolved (source_authority_conflict_detected: true)",
+        "assessment": "blocked",
+        "violated_invariants": [
+          "SCC-1",
+          "SCC-2"
+        ],
+        "triggered_forbidden_patterns": [
+          "FP-7"
+        ],
+        "valid_interface_if_compliant": "none",
+        "reason": "Role citation verdict identified three blocking claims with unresolved canonical authority conflicts. Without canonical resolution, it is not possible to determine whether claims touching snapshot access patterns, snapshot_id anchoring, or downstream read interfaces are compliant. canonical_conflict_unresolved: true prevents authoritative contract compliance determination for any claim dependent on those three blocking claims.",
+        "contract_reference": [
+          "SCC-1",
+          "SCC-2",
+          "FP-7"
+        ]
+      },
+      {
+        "claim_id": "cc4",
+        "claim_text": "Constitutional document self-modification detected in upstream phase check (constitutional_document_self_modification_detected)",
+        "assessment": "blocked",
+        "violated_invariants": [
+          "SCC-4"
+        ],
+        "triggered_forbidden_patterns": [
+          "FP-5",
+          "FP-7"
+        ],
+        "valid_interface_if_compliant": "none",
+        "reason": "Constitutional document self-modification was detected upstream. Modifications to governing documents that define snapshot contract rules (CLAUDE.md Section 6) without an established authority chain are structurally equivalent to FP-5 (Layer-3 mutating snapshot records) and FP-7 (docs implying forbidden access is permitted). The authority chain governing what constitutes a valid snapshot interface cannot be verified when the governing document itself is under unresolved self-modification.",
+        "contract_reference": [
+          "SCC-4",
+          "FP-5",
+          "FP-7"
+        ]
+      },
+      {
+        "claim_id": "cc5",
+        "claim_text": "Scope exceeds current phase allowance (scope_exceeds_current_allowance: true) \u2014 Phase B bootstrap only; Phase C/D actions not permitted",
+        "assessment": "blocked",
+        "violated_invariants": [
+          "SCC-6"
+        ],
+        "triggered_forbidden_patterns": [
+          "FP-7"
+        ],
+        "valid_interface_if_compliant": "none",
+        "reason": "SCC-6 states that handoff gate satisfaction does not relax any snapshot contract invariant. The phase_alignment_status confirms scope_exceeds_current_allowance: true. Actions scoped beyond Phase B bootstrap may presuppose Layer-3 components that would need to consume observations directly, bypassing the governed snapshot interface. Granting compliance to out-of-scope claims would implicitly permit future forbidden access patterns.",
+        "contract_reference": [
+          "SCC-6",
+          "FP-7"
+        ]
+      },
+      {
+        "claim_id": "cc6",
+        "claim_text": "Upstream inherited block from phase_alignment_status (allowed: false, alignment_status: ambiguous_requires_block) and role_citation_verdict (overall_status: conflict_requires_block)",
+        "assessment": "blocked",
+        "violated_invariants": [
+          "SCC-1",
+          "SCC-6"
+        ],
+        "triggered_forbidden_patterns": [],
+        "valid_interface_if_compliant": "none",
+        "reason": "Both upstream steps \u2014 phase-check and route-claims-by-role \u2014 are in a blocking state. Per skill procedure, upstream blocks are inherited. The snapshot-contract-check may not emit compliant when upstream guards have not cleared. The fail-closed principle (CLAUDE.md Section 7) requires no output over uncertain output.",
+        "contract_reference": [
+          "SCC-1",
+          "SCC-6"
+        ]
+      }
+    ],
+    "summary": {
+      "raw_observations_access_risk": false,
+      "snapshot_bypass_risk": true,
+      "layer2_storage_touch_risk": false,
+      "decisionpacket_anchor_risk": true,
+      "followup_guard_recommended": true
+    },
+    "upstream_block_inherited": true,
+    "upstream_sources": {
+      "phase_alignment_status": "ambiguous_requires_block",
+      "role_citation_verdict": "conflict_requires_block"
+    },
+    "escalation_required": true,
+    "escalation_target": "snapshot-boundary-auditor",
+    "escalation_reason": "snapshot_boundary_terminology_change_flagged and canonical_conflict_unresolved together prevent deterministic contract compliance assessment; boundary_violation propagated from both upstream blocks and direct snapshot boundary risk flag; constitutional self-modification further invalidates the authority chain governing contract interpretation"
+  }
+}

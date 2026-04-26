@@ -10,16 +10,20 @@ This skill is matrix-scoped only. It consumes upstream governance outputs and cl
 
 ## Required inputs
 
+This skill consumes the upstream outputs supplied by the `update-verification-matrix` workflow step. It does NOT receive earlier Layer A/B/C artifacts directly — their relevant information is already summarized in `audit_summary` and `change_impact_report`.
+
 Consume whichever upstream outputs are present; proceed conservatively when absent (set `inference_used: true`).
 
 | Input | Source | Required |
 |---|---|---|
-| `request_classification` | `doc-truth-classification` | Yes |
-| `phase_alignment_status` | `build-sequence-compliance-check` | Yes |
-| `guard_report` | hook outputs | When available |
-| `deep_audit_summary` | subagent audit outputs | When available |
-| `change_impact_summary` | `change-impact-audit` | Yes |
-| `doc_update_plan` | `change-impact-audit` | Yes |
+| `audit_summary` | `deep-audit` (consolidated audit findings) | Yes |
+| `change_impact_report` | `change-impact-audit` (impact assessment and doc update plan) | Yes |
+| `doc_code_sync_status` | `doc-code-sync-check` (doc/code alignment verdict) | Yes |
+| `DOCUMENTATION_VERIFICATION_MATRIX_v1.md` | canonical document | When available |
+
+Do not require or expect direct access to `request_classification`, `phase_alignment_status`, `guard_report`, `deep_audit_summary`, `change_impact_summary`, or `doc_update_plan` — these are upstream artifacts consumed by earlier steps and their governance-relevant signals are carried forward through `audit_summary` and `change_impact_report`.
+
+**Critical shortcut rule:** If the supplied summaries do not contain any matrix-relevant change signal (no classification changes, no new claims, no source authority conflicts, no contradictions), emit `matrix_action="no_change"` immediately. Do not re-run earlier governance work. Do not perform ledger analysis.
 
 ## Canonical source priority
 
@@ -83,35 +87,45 @@ README_LAYER2.md must not be used to overrule Tier 1 documents on implementation
 
 ## Output schema
 
-Return a single JSON object:
+You MUST emit exactly one artifact: `verification_matrix_delta`. Wrap it in the required `{"artifacts": {...}}` envelope.
 
 ```json
 {
-  "verification_matrix_delta": {
-    "matrix_action": "update | review_only | no_change",
-    "inference_used": false,
-    "affected_entries": [
-      {
-        "entry_id": "string (section + short topic key, e.g. s3-snapshot-handoff-gate)",
-        "section": "string (e.g. Section 3 — Current Layer-2 Contract Items)",
-        "claim_or_topic": "string",
-        "change_type": "classification_update | source_priority_update | contradiction_note | status_review | add_new_entry | remove_stale_entry | no_change_after_review",
-        "reason": "string (specific, traceable)",
-        "source_documents": ["string"],
-        "proposed_old_state": "string (exact vocabulary; null for add_new_entry)",
-        "proposed_new_state": "string (exact vocabulary; null for remove_stale_entry or status_review)",
-        "confidence": "high | medium | low"
-      }
-    ],
-    "summary": {
-      "matrix_update_required": true,
-      "current_vs_target_relabel_needed": false,
-      "source_authority_conflict_detected": false,
+  "artifacts": {
+    "verification_matrix_delta": {
+      "produced_by": "update-verification-matrix",
+      "matrix_action": "no_change | update | review_only | contradiction_note",
+      "classification_dispute_detected": false,
       "runtime_status_upgrade_blocked": false,
-      "unresolved_conflicts": [],
+      "source_authority_conflict_detected": false,
+      "affected_entries": [],
+      "required_follow_up": [],
+      "inference_used": false,
       "notes": []
     }
   }
+}
+```
+
+### No-change shortcut
+
+If the supplied summaries (`audit_summary`, `change_impact_report`, `doc_code_sync_status`) do not contain a matrix-relevant change, emit `matrix_action="no_change"` immediately with empty `affected_entries`. Do NOT re-run earlier governance work. Do NOT perform ledger analysis.
+
+### Full output with affected entries
+
+When `matrix_action` is `update`, `review_only`, or `contradiction_note`, populate `affected_entries`:
+
+```json
+{
+  "entry_id": "string (section + short topic key, e.g. s3-snapshot-handoff-gate)",
+  "section": "string (e.g. Section 3 — Current Layer-2 Contract Items)",
+  "claim_or_topic": "string",
+  "change_type": "classification_update | source_priority_update | contradiction_note | status_review | add_new_entry | remove_stale_entry | no_change_after_review",
+  "reason": "string (specific, traceable)",
+  "source_documents": ["string"],
+  "proposed_old_state": "string (exact vocabulary; null for add_new_entry)",
+  "proposed_new_state": "string (exact vocabulary; null for remove_stale_entry or status_review)",
+  "confidence": "high | medium | low"
 }
 ```
 

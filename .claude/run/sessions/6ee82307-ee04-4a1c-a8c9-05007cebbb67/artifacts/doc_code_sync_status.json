@@ -1,0 +1,288 @@
+{
+  "artifact": "doc_code_sync_status",
+  "produced_by": "doc-code-sync-check",
+  "session": "6ee82307-ee04-4a1c-a8c9-05007cebbb67",
+  "timestamp": "2026-04-26T18:54:34.705417Z",
+  "data": {
+    "produced_by": "doc-code-sync-check",
+    "overall_status": "doc_update_required",
+    "inference_used": true,
+    "checked_items": [
+      {
+        "item_id": "SYNC-001",
+        "target": "governance/dag_runner/executor.py \u2014 runtime code change",
+        "assessment": "warning",
+        "doc_code_drift_detected": true,
+        "doc_runtime_drift_detected": false,
+        "implementation_record_mismatch": true,
+        "snapshot_field_mismatch": false,
+        "affected_docs": [
+          "SYSTEM_TECHNICAL_HANDBOOK_v1.md",
+          "SYSTEM_IMPLEMENTATION_RECORD_v1.md",
+          "SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md"
+        ],
+        "affected_code_or_runtime_artifacts": [
+          "governance/dag_runner/executor.py"
+        ],
+        "missing_inputs": [
+          "executor.py file contents not readable in this invocation \u2014 direct artifact comparison not performed"
+        ],
+        "reason": "executor.py is modified (M in git status). CLAUDE.md Section 11 mandates canonical document reviews for contract-affecting changes. No confirmed doc update accompanies this code change. doc_update_plan is BLOCKED (4 BLOCKING violations from upstream). Change is code-ahead without confirmed documentation alignment.",
+        "canonical_source": "SYSTEM_IMPLEMENTATION_RECORD_v1.md (implementation state); SYSTEM_TECHNICAL_HANDBOOK_v1.md (contract rules)",
+        "notes": [
+          "File contents not directly readable; inference_used applies.",
+          "Upstream AUD-001 flags unresolved source authority conflict on architecture claims \u2014 executor contract may touch snapshot boundary semantics."
+        ]
+      },
+      {
+        "item_id": "SYNC-002",
+        "target": "governance/dag_runner/prompt_assembly.py \u2014 runtime code change",
+        "assessment": "warning",
+        "doc_code_drift_detected": true,
+        "doc_runtime_drift_detected": false,
+        "implementation_record_mismatch": true,
+        "snapshot_field_mismatch": false,
+        "affected_docs": [
+          "SYSTEM_TECHNICAL_HANDBOOK_v1.md",
+          "SYSTEM_IMPLEMENTATION_RECORD_v1.md"
+        ],
+        "affected_code_or_runtime_artifacts": [
+          "governance/dag_runner/prompt_assembly.py"
+        ],
+        "missing_inputs": [
+          "prompt_assembly.py file contents not readable \u2014 direct artifact comparison not performed"
+        ],
+        "reason": "prompt_assembly.py is modified. This affects prompt construction for governance workflow steps. Changes to prompt assembly logic touching canonical document interpretation or snapshot claims require review of SYSTEM_TECHNICAL_HANDBOOK_v1.md and SYSTEM_IMPLEMENTATION_RECORD_v1.md. No confirmed doc update accompanies this change.",
+        "canonical_source": "SYSTEM_TECHNICAL_HANDBOOK_v1.md",
+        "notes": [
+          "File contents not directly readable; inference_used applies."
+        ]
+      },
+      {
+        "item_id": "SYNC-003",
+        "target": "tests/governance/ \u2014 test changes (test_execution_backend.py, test_executor.py, test_prompt_assembly.py)",
+        "assessment": "review",
+        "doc_code_drift_detected": false,
+        "doc_runtime_drift_detected": false,
+        "implementation_record_mismatch": false,
+        "snapshot_field_mismatch": false,
+        "affected_docs": [],
+        "affected_code_or_runtime_artifacts": [
+          "tests/governance/test_execution_backend.py",
+          "tests/governance/test_executor.py",
+          "tests/governance/test_prompt_assembly.py"
+        ],
+        "missing_inputs": [
+          "Test file contents not readable \u2014 cannot verify whether tests encode snapshot field assertions or implementation state claims"
+        ],
+        "reason": "Three test files modified alongside executor and prompt_assembly changes. Tests are indicators of contract expectations. If tests assert snapshot field names, those names must align with SYSTEM_TECHNICAL_HANDBOOK_v1.md governed fields. Cannot confirm without file contents.",
+        "canonical_source": "SYSTEM_TECHNICAL_HANDBOOK_v1.md (snapshot field authority)",
+        "notes": [
+          "Test changes alone are not doc-code drift, but they may surface snapshot field usage that should be validated."
+        ]
+      },
+      {
+        "item_id": "SYNC-004",
+        "target": ".claude/agents/verification-matrix-agent.md \u2014 agent definition change",
+        "assessment": "warning",
+        "doc_code_drift_detected": true,
+        "doc_runtime_drift_detected": false,
+        "implementation_record_mismatch": false,
+        "snapshot_field_mismatch": false,
+        "affected_docs": [
+          "DOCUMENTATION_VERIFICATION_MATRIX_v1.md",
+          "SYSTEM_IMPLEMENTATION_RECORD_v1.md"
+        ],
+        "affected_code_or_runtime_artifacts": [
+          ".claude/agents/verification-matrix-agent.md"
+        ],
+        "missing_inputs": [
+          "Agent file contents not readable \u2014 cannot confirm whether modified claims align with canonical implementation record"
+        ],
+        "reason": "verification-matrix-agent.md is modified. Agent definitions that reference implementation state, architecture phases, or canonical document names must remain consistent with canonical sources. Upstream change_impact_report flags AUD-004 (CLAUDE.md constitutional cascade) \u2014 any agent referencing README_LAYER2.md by name is subject to cascade impact. Cannot confirm alignment without reading file.",
+        "canonical_source": "DOCUMENTATION_VERIFICATION_MATRIX_v1.md; SYSTEM_IMPLEMENTATION_RECORD_v1.md",
+        "notes": [
+          "AUD-004 cascade risk applies if this agent references README_LAYER2.md canonical name."
+        ]
+      },
+      {
+        "item_id": "SYNC-005",
+        "target": ".claude/skills/verification-matrix-update-method/SKILL.md \u2014 skill definition change",
+        "assessment": "warning",
+        "doc_code_drift_detected": true,
+        "doc_runtime_drift_detected": false,
+        "implementation_record_mismatch": false,
+        "snapshot_field_mismatch": false,
+        "affected_docs": [
+          "DOCUMENTATION_VERIFICATION_MATRIX_v1.md"
+        ],
+        "affected_code_or_runtime_artifacts": [
+          ".claude/skills/verification-matrix-update-method/SKILL.md"
+        ],
+        "missing_inputs": [
+          "SKILL.md contents not readable \u2014 cannot verify claim alignment"
+        ],
+        "reason": "SKILL.md for verification-matrix-update-method is modified. Skills that describe the verification update procedure must remain aligned with DOCUMENTATION_VERIFICATION_MATRIX_v1.md. If the skill was updated to reflect planned components as operational, that is an implementation claim mismatch.",
+        "canonical_source": "DOCUMENTATION_VERIFICATION_MATRIX_v1.md",
+        "notes": []
+      },
+      {
+        "item_id": "SYNC-006",
+        "target": ".claude/workflows/packages/agents.yaml \u2014 workflow package change",
+        "assessment": "review",
+        "doc_code_drift_detected": false,
+        "doc_runtime_drift_detected": false,
+        "implementation_record_mismatch": false,
+        "snapshot_field_mismatch": false,
+        "affected_docs": [
+          "system-orchestration.yaml"
+        ],
+        "affected_code_or_runtime_artifacts": [
+          ".claude/workflows/packages/agents.yaml"
+        ],
+        "missing_inputs": [
+          "agents.yaml contents not readable"
+        ],
+        "reason": "Workflow package agents.yaml modified. Per CLAUDE.md Section 15, system-orchestration.yaml is the authoritative execution specification. Package-level agent definitions must not conflict with the authoritative spec. Cannot confirm without reading file.",
+        "canonical_source": "CLAUDE.md Section 15 (workflow governance constraint)",
+        "notes": []
+      },
+      {
+        "item_id": "SYNC-007",
+        "target": "AUD-002: 'truth_store' rename \u2014 snapshot boundary semantic preservation",
+        "assessment": "warning",
+        "doc_code_drift_detected": false,
+        "doc_runtime_drift_detected": true,
+        "implementation_record_mismatch": false,
+        "snapshot_field_mismatch": true,
+        "affected_docs": [
+          "SYSTEM_TECHNICAL_HANDBOOK_v1.md",
+          "DOCUMENTATION_VERIFICATION_MATRIX_v1.md",
+          "README_LAYER2.md"
+        ],
+        "affected_code_or_runtime_artifacts": [],
+        "missing_inputs": [
+          "Cannot verify 'truth_store' semantic equivalence to 'Layer 2' snapshot boundary without reading candidate docs and runtime code"
+        ],
+        "reason": "Upstream AUD-002 (BLOCKING) flags that 'truth_store' proposed rename has not been verified to preserve all snapshot-boundary contract properties mandated by CLAUDE.md Section 6: snapshot_id, clock_ts, immutability, deterministic contents, downstream read-only rule. This is a doc-runtime drift risk: documentation renaming without confirmed code-level semantic preservation constitutes a snapshot field mismatch risk.",
+        "canonical_source": "SYSTEM_TECHNICAL_HANDBOOK_v1.md (snapshot field authority, Section 6 contract)",
+        "notes": [
+          "BLOCKING per change-impact-audit. Must not be approved without invariance check per doc_update_plan.rename_controls.invariance_check_required."
+        ]
+      },
+      {
+        "item_id": "SYNC-008",
+        "target": "AUD-003: 'decision_layer' \u2014 phase alignment and runtime overclaim",
+        "assessment": "warning",
+        "doc_code_drift_detected": false,
+        "doc_runtime_drift_detected": true,
+        "implementation_record_mismatch": true,
+        "snapshot_field_mismatch": false,
+        "affected_docs": [
+          "SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md",
+          "SYSTEM_IMPLEMENTATION_RECORD_v1.md",
+          "README_LAYER2.md"
+        ],
+        "affected_code_or_runtime_artifacts": [],
+        "missing_inputs": [
+          "Cannot confirm where 'decision_layer' terminology appears without reading files"
+        ],
+        "reason": "Upstream AUD-003 (BLOCKING) flags that 'decision_layer' in current-state documentation context risks blurring the current-state vs target-architecture boundary mandated by CLAUDE.md Section 3. CLAUDE.md Section 3.2 explicitly lists Decision Engine as planned-only. Any doc claiming 'decision_layer' exists now is an implementation record mismatch and a runtime overclaim.",
+        "canonical_source": "SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md (phase authority); SYSTEM_IMPLEMENTATION_RECORD_v1.md (implementation state)",
+        "notes": [
+          "FORBIDDEN claim per CLAUDE.md Section 10: 'Decisions are automated' or any implication that Decision Engine is implemented. Phase D (Live Execution Gate) is BLOCKED."
+        ]
+      },
+      {
+        "item_id": "SYNC-009",
+        "target": "AUD-001: Source authority conflict \u2014 strong architecture claims without role-matched citations",
+        "assessment": "warning",
+        "doc_code_drift_detected": false,
+        "doc_runtime_drift_detected": true,
+        "implementation_record_mismatch": false,
+        "snapshot_field_mismatch": false,
+        "affected_docs": [
+          "SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md",
+          "CLAUDE.md"
+        ],
+        "affected_code_or_runtime_artifacts": [],
+        "missing_inputs": [
+          "Claims C-001 through C-004 contents not available for direct comparison"
+        ],
+        "reason": "Upstream AUD-001 (BLOCKING) flags four strong architecture claims lacking citations to SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md. Per CLAUDE.md Section 2.4, architecture/boundary questions must prefer SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md. Unresolved source authority conflict is itself a sync-layer finding: documentation state cannot be verified as consistent until role-matched canonical interpretation is applied.",
+        "canonical_source": "SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md; CLAUDE.md Section 2.4",
+        "notes": [
+          "source_authority_conflict_detected flagged in summary."
+        ]
+      },
+      {
+        "item_id": "SYNC-010",
+        "target": "AUD-004: README_LAYER2.md canonical filename cascade",
+        "assessment": "warning",
+        "doc_code_drift_detected": true,
+        "doc_runtime_drift_detected": false,
+        "implementation_record_mismatch": false,
+        "snapshot_field_mismatch": false,
+        "affected_docs": [
+          "CLAUDE.md (Sections 2.1, 2.2, 2.4, 11)",
+          "DOCUMENTATION_VERIFICATION_MATRIX_v1.md",
+          "system-orchestration.yaml",
+          "README_LAYER2.md"
+        ],
+        "affected_code_or_runtime_artifacts": [],
+        "missing_inputs": [
+          "Alias map has not been produced; cascade scope has not been enumerated across all canonical cross-references"
+        ],
+        "reason": "Upstream AUD-004 (BLOCKING) flags that README_LAYER2.md filename rename cascades through CLAUDE.md Sections 2.1, 2.2, 2.4, and 11, DOCUMENTATION_VERIFICATION_MATRIX_v1.md, and system-orchestration.yaml. If rename has been partially applied without updating all cross-references, this is doc-code drift (documentation state is internally inconsistent). An alias map is required per doc_update_plan.rename_controls.",
+        "canonical_source": "CLAUDE.md Sections 2.1, 2.2, 2.4, 11 (canonical authority)",
+        "notes": [
+          "Rename must not proceed until alias map covers all canonical cross-references."
+        ]
+      },
+      {
+        "item_id": "SYNC-011",
+        "target": "AUD-005: Adapter schema domain \u2014 registry_violation / schema_drift / boundary_violation null fields",
+        "assessment": "review",
+        "doc_code_drift_detected": false,
+        "doc_runtime_drift_detected": false,
+        "implementation_record_mismatch": false,
+        "snapshot_field_mismatch": false,
+        "affected_docs": [
+          "SYSTEM_TECHNICAL_HANDBOOK_v1.md",
+          "DOCUMENTATION_VERIFICATION_MATRIX_v1.md"
+        ],
+        "affected_code_or_runtime_artifacts": [
+          "layer2/adapters/"
+        ],
+        "missing_inputs": [
+          "Adapter schema domain not confirmed absent; null fields in upstream verdict are ambiguous"
+        ],
+        "reason": "Upstream AUD-005 (REVIEW_REQUIRED) flags that adapter schema domain fields (registry_violation, schema_drift, boundary_violation) are null \u2014 not confirmed absent. Per CLAUDE.md Section 8, series_registry.json is the single source of truth for series definitions. Cannot confirm adapter domain is in sync without reading registry and adapter files.",
+        "canonical_source": "SYSTEM_TECHNICAL_HANDBOOK_v1.md; series_registry.json (runtime authority)",
+        "notes": [
+          "Null != confirmed absent. Treat as unresolved per fail-closed principle."
+        ]
+      }
+    ],
+    "summary": {
+      "doc_update_required": true,
+      "runtime_overclaim_detected": true,
+      "implementation_record_mismatch_detected": true,
+      "snapshot_field_mismatch_detected": true,
+      "requires_doc_code_sync_guard": true,
+      "requires_doc_code_sync_auditor": true,
+      "requires_verification_followup": true,
+      "source_authority_conflict_detected": true,
+      "notes": [
+        "4 BLOCKING violations from upstream change-impact-audit remain unresolved. Per fail-closed principle (CLAUDE.md Section 7), no canonical document modifications are permitted while these are open.",
+        "inference_used: true \u2014 file contents could not be read directly in this invocation. All items with missing_inputs must be re-evaluated by doc-code-sync-auditor with direct file access before any findings can be cleared.",
+        "dag_runner code changes (executor.py, prompt_assembly.py, 3 test files) are code-ahead of documentation \u2014 no confirmed corresponding canonical doc update present in git status.",
+        "runtime_overclaim_detected for 'decision_layer' in current-state context \u2014 Decision Engine is planned-only (CLAUDE.md Section 3.2, Section 10 FORBIDDEN claims).",
+        "snapshot_field_mismatch_detected for 'truth_store' rename risk \u2014 semantic invariance with snapshot boundary contract not yet verified (SYSTEM_TECHNICAL_HANDBOOK_v1.md authority).",
+        "source_authority_conflict_detected for AUD-001 \u2014 four strong architecture claims lack role-matched citations to SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md.",
+        "README_LAYER2.md rename cascade (AUD-004) requires alias map before any cross-reference updates proceed.",
+        "overall_status set to doc_update_required as the deterministic finding: code changed without confirmed documentation alignment across multiple modified artifacts."
+      ]
+    }
+  }
+}

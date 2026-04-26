@@ -1,0 +1,128 @@
+{
+  "artifact": "adapter_schema_verdict",
+  "produced_by": "adapter-schema-check",
+  "session": "6ee82307-ee04-4a1c-a8c9-05007cebbb67",
+  "timestamp": "2026-04-26T18:46:35.476333Z",
+  "data": {
+    "produced_by": "adapter-schema-check",
+    "overall_status": "ambiguous_requires_review",
+    "inference_used": true,
+    "code_inspection_possible": false,
+    "upstream_violation_inherited": true,
+    "checked_items": [
+      {
+        "item_id": "ADAPT-001",
+        "target": "layer2/adapters/* (all adapters)",
+        "assessment": "review",
+        "registry_driven": null,
+        "hardcoded_series_detected": null,
+        "schema_drift_detected": null,
+        "boundary_fit": null,
+        "affected_files": [
+          "layer2/adapters/*"
+        ],
+        "missing_inputs": [
+          "adapter source code",
+          "layer2/config/series_registry.json",
+          "layer2/db.py",
+          "layer2/alignment.py"
+        ],
+        "reason": "Code inspection tools unavailable in this execution context. No adapter source could be read. Per skill fallback rules: compliant status is prohibited without code evidence. Upstream runtime_boundary_verdict carries boundary_violation_suspected: true and source_authority_conflict_detected: true, elevating inherited risk across all compliance dimensions.",
+        "canonical_source": "SYSTEM_TECHNICAL_HANDBOOK_v1.md",
+        "notes": [
+          "runtime_boundary_verdict.boundary_violation_suspected: true \u2014 inherited risk present",
+          "runtime_boundary_verdict.source_authority_conflict_detected: true \u2014 potential non-role-matched document citation upstream",
+          "All four compliance dimensions (registry, hardcoding, schema, boundary) are unverifiable without code access",
+          "Per skill: absence of code evidence does not mean absence of violation \u2014 fail-closed applies"
+        ]
+      },
+      {
+        "item_id": "ADAPT-002",
+        "target": "series_registry.json \u2014 get_registry() authority",
+        "assessment": "review",
+        "registry_driven": null,
+        "hardcoded_series_detected": null,
+        "schema_drift_detected": null,
+        "boundary_fit": null,
+        "affected_files": [
+          "layer2/config/series_registry.json"
+        ],
+        "missing_inputs": [
+          "layer2/config/series_registry.json"
+        ],
+        "reason": "Registry file could not be read. Cannot confirm get_registry() usage pattern, absence of hardcoded series IDs, staleness thresholds, tier assignments, or blocks_snapshot flags. Per CLAUDE.md \u00a78: series_registry.json must be the single source of truth \u2014 compliance unverifiable.",
+        "canonical_source": "SYSTEM_TECHNICAL_HANDBOOK_v1.md",
+        "notes": [
+          "Per skill: if registry is absent, any series definition found in adapter code must be flagged as potentially unmanaged",
+          "No code evidence available to confirm or deny get_registry() import and usage"
+        ]
+      },
+      {
+        "item_id": "ADAPT-003",
+        "target": "layer2/db.py \u2014 observations schema and INSERT discipline",
+        "assessment": "review",
+        "registry_driven": null,
+        "hardcoded_series_detected": null,
+        "schema_drift_detected": null,
+        "boundary_fit": null,
+        "affected_files": [
+          "layer2/db.py"
+        ],
+        "missing_inputs": [
+          "layer2/db.py"
+        ],
+        "reason": "DB schema file could not be read. Cannot verify INSERT OR IGNORE discipline, observations table column set, PK structure, or absence of INSERT OR REPLACE. Schema drift unverifiable.",
+        "canonical_source": "SYSTEM_TECHNICAL_HANDBOOK_v1.md",
+        "notes": [
+          "Reference schema: series_id TEXT, obs_ts TEXT, as_of_ts TEXT, value REAL, revision_seq INTEGER DEFAULT 0, source TEXT, ingested_at TEXT",
+          "Expected PK: (series_id, obs_ts, revision_seq)",
+          "code-conventions.md: INSERT OR REPLACE is forbidden; INSERT OR IGNORE is required",
+          "Conformance cannot be asserted without file access"
+        ]
+      },
+      {
+        "item_id": "ADAPT-004",
+        "target": "Layer-2 boundary fit \u2014 adapter scope containment",
+        "assessment": "review",
+        "registry_driven": null,
+        "hardcoded_series_detected": null,
+        "schema_drift_detected": null,
+        "boundary_fit": null,
+        "affected_files": [
+          "layer2/adapters/*",
+          "layer2/alignment.py"
+        ],
+        "missing_inputs": [
+          "layer2/adapters/*",
+          "layer2/alignment.py"
+        ],
+        "reason": "Cannot verify that adapters do not: query snapshots/snapshot_values outside the write path, duplicate quality_gate.py or alignment.py logic, write computed values to observations, publish snapshot state, or embed Layer-3 decision logic. Upstream boundary violation suspected amplifies this risk.",
+        "canonical_source": "SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md",
+        "notes": [
+          "Upstream requires_snapshot_boundary_guard: true and requires_snapshot_boundary_auditor: true indicate unresolved boundary concerns",
+          "Boundary fit for adapters cannot be cleared without code inspection"
+        ]
+      }
+    ],
+    "summary": {
+      "registry_violation_detected": false,
+      "hardcoded_series_detected": false,
+      "schema_drift_detected": false,
+      "boundary_violation_detected": false,
+      "requires_adapter_schema_guard": true,
+      "requires_adapter_schema_guardian": true,
+      "requires_doc_code_sync_review": true,
+      "source_authority_conflict_detected": true,
+      "notes": [
+        "overall_status: ambiguous_requires_review \u2014 code inspection was not possible; all compliance dimensions are unverifiable",
+        "No violations positively detected \u2014 but absence of detection is NOT confirmation of compliance; fail-closed principle applies",
+        "requires_adapter_schema_guardian: true \u2014 code evidence unavailable for all material compliance decisions",
+        "requires_adapter_schema_guard: true \u2014 mandated by overall_status ambiguous_requires_review per skill flag rules",
+        "requires_doc_code_sync_review: true \u2014 any documentation claims about adapter compliance cannot be verified from code in this run",
+        "source_authority_conflict_detected: true \u2014 inherited directly from upstream runtime_boundary_verdict",
+        "upstream_violation_inherited: true \u2014 runtime_boundary_verdict.boundary_violation_suspected: true propagated; requires_snapshot_boundary_guard and requires_snapshot_boundary_auditor remain active",
+        "Escalation target: adapter-schema-guardian \u2014 triggered by registry compliance being unverifiable for a material decision"
+      ]
+    }
+  }
+}

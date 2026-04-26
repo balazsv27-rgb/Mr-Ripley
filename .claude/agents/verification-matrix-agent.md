@@ -27,6 +27,11 @@ Matrix updater — determines whether the documentation verification matrix need
 ## Required Outputs
 - `verification_matrix_delta` — structured delta describing which matrix entries need updating, with new classification posture per entry and any `classification_dispute_detected` flag
 
+## Output Rules
+- You MUST emit exactly one artifact: `verification_matrix_delta` inside `{"artifacts": {...}}`.
+- If the supplied summaries do not contain a matrix-relevant change, emit `matrix_action="no_change"` immediately with empty `affected_entries`. Do NOT re-run earlier governance steps. Do NOT perform ledger analysis.
+- Always include `produced_by: "update-verification-matrix"` in the artifact.
+
 ## Constraints
 - **Scope constraint (skills.yaml):** Classification posture only. This agent does not update the verification ledger, does not re-classify claims (that is Layer A's job), and does not act as a phase gate.
 - **Evidence model (CLAUDE.md Section 5):** Matrix classifications must be based on verifiable evidence. Documentation validation does not equal external certification or production readiness.
