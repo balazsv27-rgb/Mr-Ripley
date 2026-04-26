@@ -3266,3 +3266,354 @@ def test_verification_matrix_audit_summary_caps_dispatched_subagents() -> None:
     )
 
     assert len(projected["dispatched_subagents"]) == 10
+
+
+# ── update-verification-ledger artifact projections ──
+
+
+def test_verification_ledger_transforms_registered() -> None:
+    """update-verification-ledger must have exactly 4 artifact transforms."""
+    from governance.dag_runner.prompt_assembly import _STEP_INPUT_TRANSFORMS
+
+    uvl = _STEP_INPUT_TRANSFORMS["update-verification-ledger"]
+    assert set(uvl.keys()) == {
+        "verification_matrix_delta",
+        "doc_code_sync_status",
+        "change_impact_report",
+        "audit_summary",
+    }
+
+
+def test_verification_ledger_matrix_delta_projection() -> None:
+    """update-verification-ledger projection compacts verification_matrix_delta."""
+    from governance.dag_runner.prompt_assembly import _project_artifact_payload
+
+    full_payload = {
+        "produced_by": "update-verification-matrix",
+        "matrix_action": "no_change",
+        "classification_dispute_detected": False,
+        "runtime_status_upgrade_blocked": False,
+        "source_authority_conflict_detected": False,
+        "inference_used": False,
+        "affected_entries": [
+            {
+                "entry_id": f"entry-{i}",
+                "section": "Layer-2",
+                "claim_or_topic": f"Claim {i}",
+                "change_type": "evidence_upgrade",
+                "confidence": "high",
+                "long_rationale": "Very long text " * 200,
+                "evidence_body": "x" * 5000,
+            }
+            for i in range(20)
+        ],
+        "required_follow_up": [f"action-{i}" for i in range(15)],
+        "notes": [f"note-{i}" for i in range(15)],
+        "detailed_analysis": "Very verbose " * 500,
+    }
+
+    projected = _project_artifact_payload(
+        "update-verification-ledger", "verification_matrix_delta", full_payload,
+    )
+
+    assert projected is not full_payload
+    assert projected["produced_by"] == "update-verification-matrix"
+    assert projected["matrix_action"] == "no_change"
+    assert projected["classification_dispute_detected"] is False
+    # Affected entries capped at 10 and compact
+    assert len(projected["affected_entries"]) == 10
+    assert "long_rationale" not in projected["affected_entries"][0]
+    assert "evidence_body" not in projected["affected_entries"][0]
+    assert projected["affected_entries"][0]["entry_id"] == "entry-0"
+    # required_follow_up capped at 10
+    assert len(projected["required_follow_up"]) == 10
+    # notes capped at 10
+    assert len(projected["notes"]) == 10
+    # Verbose field dropped
+    assert "detailed_analysis" not in projected
+
+
+def test_verification_ledger_matrix_delta_passthrough_minimal() -> None:
+    """V1 shell minimal payload passes through unchanged."""
+    from governance.dag_runner.prompt_assembly import _project_artifact_payload
+
+    minimal = {"produced_by": "update-verification-matrix"}
+    result = _project_artifact_payload(
+        "update-verification-ledger", "verification_matrix_delta", minimal,
+    )
+    # Minimal payload with only produced_by still gets projected (has produced_by)
+    assert result["produced_by"] == "update-verification-matrix"
+
+
+def test_verification_ledger_doc_code_sync_projection() -> None:
+    """update-verification-ledger projection compacts doc_code_sync_status."""
+    from governance.dag_runner.prompt_assembly import _project_artifact_payload
+
+    full_payload = {
+        "produced_by": "doc-code-sync-check",
+        "doc_code_sync_status": {
+            "produced_by": "doc-code-sync-check",
+            "overall_status": "drift_detected",
+            "drift_detected": True,
+            "docs_changed_without_code": True,
+            "code_changed_without_docs": False,
+            "doc_code_alignment_status": "misaligned",
+            "follow_up_required": "mandatory",
+            "verification_ledger_update_required": True,
+            "impacted_docs": [f"doc-{i}.md" for i in range(15)],
+            "impacted_code_paths": [f"path/{i}.py" for i in range(15)],
+            "required_actions": [f"action-{i}" for i in range(15)],
+            "blocking_reasons": [f"reason-{i}" for i in range(15)],
+            "checked_items": [{"item": "x", "detail": "y" * 5000}],
+            "full_evidence": "z" * 10000,
+        },
+    }
+
+    projected = _project_artifact_payload(
+        "update-verification-ledger", "doc_code_sync_status", full_payload,
+    )
+
+    assert projected is not full_payload
+    assert projected["produced_by"] == "doc-code-sync-check"
+    assert projected["overall_status"] == "drift_detected"
+    assert projected["drift_detected"] is True
+    assert projected["verification_ledger_update_required"] is True
+    # Capped at 10
+    assert len(projected["impacted_docs"]) == 10
+    assert len(projected["impacted_code_paths"]) == 10
+    assert len(projected["required_actions"]) == 10
+    assert len(projected["blocking_reasons"]) == 10
+    # Verbose fields dropped
+    assert "checked_items" not in projected
+    assert "full_evidence" not in projected
+
+
+def test_verification_ledger_doc_code_sync_flat_projection() -> None:
+    """update-verification-ledger projection works with flat doc_code_sync_status."""
+    from governance.dag_runner.prompt_assembly import _project_artifact_payload
+
+    full_payload = {
+        "produced_by": "doc-code-sync-check",
+        "overall_status": "aligned",
+        "drift_detected": False,
+        "follow_up_required": "none",
+    }
+
+    projected = _project_artifact_payload(
+        "update-verification-ledger", "doc_code_sync_status", full_payload,
+    )
+
+    assert projected is not full_payload
+    assert projected["overall_status"] == "aligned"
+    assert projected["drift_detected"] is False
+
+
+def test_verification_ledger_change_impact_projection() -> None:
+    """update-verification-ledger projection compacts change_impact_report."""
+    from governance.dag_runner.prompt_assembly import _project_artifact_payload
+
+    full_payload = {
+        "produced_by": "change-impact-audit",
+        "change_impact_summary": {
+            "produced_by": "change-impact-audit",
+            "change_mode": "documentation_only",
+            "impact_type": "documentation",
+            "contributing_categories": ["doc"],
+            "follow_up_required": "advisory",
+            "impacted_components": [f"comp-{i}" for i in range(15)],
+            "impacted_docs": [f"doc-{i}.md" for i in range(15)],
+            "verification_actions": [
+                {"artifact": f"art-{i}", "action": "update", "reason": "x" * 500}
+                for i in range(15)
+            ],
+            "risk_summary": [f"risk-{i}" for i in range(10)],
+            "verification_ledger_update_required": True,
+            "blocked_change": False,
+            "doc_only_change": True,
+            "detailed_notes": ["Very long note " * 200],
+        },
+    }
+
+    projected = _project_artifact_payload(
+        "update-verification-ledger", "change_impact_report", full_payload,
+    )
+
+    assert projected is not full_payload
+    assert projected["produced_by"] == "change-impact-audit"
+    assert projected["change_mode"] == "documentation_only"
+    assert projected["follow_up_required"] == "advisory"
+    # Capped at 10
+    assert len(projected["impacted_components"]) == 10
+    assert len(projected["impacted_docs"]) == 10
+    assert len(projected["verification_actions"]) == 10
+    # Verification actions compact — no reason field
+    assert "reason" not in projected["verification_actions"][0]
+    assert projected["verification_actions"][0]["artifact"] == "art-0"
+    # Risk summary capped at 5
+    assert len(projected["risk_summary"]) == 5
+    # Ledger-relevant flags preserved
+    assert projected["verification_ledger_update_required"] is True
+    assert projected["doc_only_change"] is True
+    # Verbose field dropped
+    assert "detailed_notes" not in projected
+
+
+def test_verification_ledger_change_impact_flat_projection() -> None:
+    """update-verification-ledger projection works with flat change_impact_report."""
+    from governance.dag_runner.prompt_assembly import _project_artifact_payload
+
+    full_payload = {
+        "produced_by": "change-impact-audit",
+        "change_mode": "code_and_docs",
+        "impact_type": "mixed",
+        "follow_up_required": "mandatory",
+        "impacted_components": ["snapshot_publisher"],
+    }
+
+    projected = _project_artifact_payload(
+        "update-verification-ledger", "change_impact_report", full_payload,
+    )
+
+    assert projected is not full_payload
+    assert projected["change_mode"] == "code_and_docs"
+    assert projected["impacted_components"] == ["snapshot_publisher"]
+
+
+def test_verification_ledger_audit_summary_projection() -> None:
+    """update-verification-ledger projection compacts audit_summary."""
+    from governance.dag_runner.prompt_assembly import _project_artifact_payload
+    import json
+
+    full_payload = {
+        "produced_by": "deep-audit",
+        "audit_summary": {
+            "overall_audit_status": "pass",
+            "fail_closed_applied": False,
+            "dag_advancement_blocked": False,
+            "unresolved_violations_count": 0,
+            "blocking_violations_count": 0,
+            "review_required_violations_count": 1,
+            "dispatched_subagents": [f"agent-{i}" for i in range(15)],
+            "findings": [
+                {"id": f"f-{i}", "detail": "x" * 500, "full_text": "y" * 5000}
+                for i in range(15)
+            ],
+            "audit_resolution_required": [f"res-{i}" for i in range(15)],
+            "dispatch_evaluation": "Very long text " * 500,
+            "expected_audit_scope": "More long text " * 500,
+        },
+    }
+
+    projected = _project_artifact_payload(
+        "update-verification-ledger", "audit_summary", full_payload,
+    )
+
+    assert projected is not full_payload
+    assert projected["produced_by"] == "deep-audit"
+    assert projected["overall_audit_status"] == "pass"
+    assert projected["dag_advancement_blocked"] is False
+    # dispatched_subagents capped at 10
+    assert len(projected["dispatched_subagents"]) == 10
+    # findings capped at 10, strings truncated, full_text dropped
+    assert len(projected["findings"]) == 10
+    assert "full_text" not in projected["findings"][0]
+    assert len(projected["findings"][0]["detail"]) == 200
+    # audit_resolution_required capped at 10
+    assert len(projected["audit_resolution_required"]) == 10
+    # Verbose fields dropped
+    assert "dispatch_evaluation" not in projected
+    assert "expected_audit_scope" not in projected
+
+    # Size reduction
+    orig_size = len(json.dumps(full_payload))
+    proj_size = len(json.dumps(projected))
+    assert proj_size < orig_size * 0.5, (
+        f"Projection did not reduce size enough: {proj_size} vs {orig_size}"
+    )
+
+
+def test_verification_ledger_audit_summary_passthrough_minimal() -> None:
+    """V1 shell minimal audit payloads pass through unchanged."""
+    from governance.dag_runner.prompt_assembly import _project_artifact_payload
+
+    minimal = {"produced_by": "deep-audit"}
+    result = _project_artifact_payload(
+        "update-verification-ledger", "audit_summary", minimal,
+    )
+    assert result is minimal
+
+
+def test_verification_ledger_no_change_shortcut_in_skill() -> None:
+    """Ledger SKILL.md contains the no-change shortcut pattern."""
+    skill_path = _REPO_ROOT / ".claude" / "skills" / "verification-ledger-update" / "SKILL.md"
+    content = skill_path.read_text(encoding="utf-8")
+    assert "no_change" in content.lower() or "no-change" in content.lower()
+    assert '"ledger_action": "no_change"' in content
+    assert "matrix_action" in content
+
+
+def test_verification_ledger_agent_timeout_loaded() -> None:
+    """verification-ledger-agent timeout_ms is 240000 in agents.yaml."""
+    from governance.dag_runner.loader import load_workflow_packages
+    from governance.dag_runner.assembler import assemble_workflow_spec
+
+    loaded = load_workflow_packages()
+    spec = assemble_workflow_spec(loaded)
+    assert "verification-ledger-agent" in spec.agents
+    agent = spec.agents["verification-ledger-agent"]
+    assert agent.raw.get("timeout_ms") == 240000
+
+
+def test_matrix_and_ledger_skill_bindings_separated() -> None:
+    """Matrix and ledger agents have distinct, non-overlapping skill bindings."""
+    from governance.dag_runner.loader import load_workflow_packages
+    from governance.dag_runner.assembler import assemble_workflow_spec
+
+    loaded = load_workflow_packages()
+    spec = assemble_workflow_spec(loaded)
+
+    assert "verification-matrix-agent" in spec.agents
+    assert "verification-ledger-agent" in spec.agents
+    matrix_agent = spec.agents["verification-matrix-agent"]
+    ledger_agent = spec.agents["verification-ledger-agent"]
+    # Skill bindings must not overlap
+    matrix_skills = set(matrix_agent.skill_bindings)
+    ledger_skills = set(ledger_agent.skill_bindings)
+    assert matrix_skills & ledger_skills == set(), (
+        f"Overlapping skill bindings: {matrix_skills & ledger_skills}"
+    )
+    # Each bound to its own skill
+    assert "verification-matrix-update-method" in matrix_skills
+    assert "verification-ledger-update" in ledger_skills
+
+
+def test_verification_ledger_projection_log(pipeline) -> None:
+    """update-verification-ledger prompt composition includes projection diagnostics."""
+    spec, plan, run_state = pipeline
+    step = spec.workflow_steps["update-verification-ledger"]
+    ctx = assemble_step_prompt(step, spec, run_state, repo_root=_REPO_ROOT)
+    meta = build_prompt_composition_metadata(ctx)
+
+    assert "projected_artifact_names" in meta
+
+
+def test_existing_matrix_projections_still_work() -> None:
+    """Existing update-verification-matrix transforms still registered and functional."""
+    from governance.dag_runner.prompt_assembly import (
+        _STEP_INPUT_TRANSFORMS,
+        _project_artifact_payload,
+    )
+
+    uvm = _STEP_INPUT_TRANSFORMS["update-verification-matrix"]
+    assert set(uvm.keys()) == {
+        "audit_summary",
+        "change_impact_report",
+        "doc_code_sync_status",
+    }
+
+    # Quick smoke: minimal payload passes through
+    minimal = {"produced_by": "deep-audit"}
+    result = _project_artifact_payload(
+        "update-verification-matrix", "audit_summary", minimal,
+    )
+    assert result is minimal

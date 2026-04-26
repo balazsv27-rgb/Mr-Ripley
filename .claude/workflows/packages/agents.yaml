@@ -429,6 +429,7 @@ data:
       doc evidence. Doc-only updates do not prove runtime behavior.
       Scope: claim/evidence/status tracking only.
     model: sonnet
+    timeout_ms: 240000
     tools: [Read, Grep, Glob]
     workflow_steps:
       - update-verification-ledger

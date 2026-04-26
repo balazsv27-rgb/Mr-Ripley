@@ -2,7 +2,7 @@
   "artifact": "stage_gate_report",
   "produced_by": "stage-gate-check",
   "session": "",
-  "timestamp": "2026-04-26T20:55:47.991359Z",
+  "timestamp": "2026-04-26T20:56:22.916329Z",
   "data": {
     "file_path": "C:\\Code\\Mr-Ripley\\tests\\governance\\test_prompt_assembly.py",
     "scanned": true,

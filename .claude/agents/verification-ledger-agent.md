@@ -26,8 +26,13 @@ Via prior governance artifacts and the existing `verification_ledger.md` — no 
 - `audit_summary` — consolidated audit findings
 - `verification_ledger.md` — the existing verification ledger to update
 
-## Required Outputs
-- `verification_ledger_delta` — structured delta describing claim-to-evidence-to-status changes, with evidence type and weight per claim, and any `verification_without_evidence` flags
+## Output Rules
+- Emit exactly one artifact: `verification_ledger_delta` inside `{"artifacts": {...}}`.
+- Always include `"produced_by": "update-verification-ledger"`.
+- Use the no-change shortcut when `verification_matrix_delta.matrix_action` is `"no_change"` and no ledger-relevant signal exists in other inputs.
+- Do NOT re-run classification, phase gating, matrix update, snapshot checks, or guard checks.
+- Do NOT emit `verification_matrix_delta` — that belongs to a different step.
+- Do NOT read broad canonical documents unless explicitly supplied as inputs.
 
 ## Constraints
 - **Evidence weight hierarchy (verification-ledger.yaml):** Runtime evidence > code evidence > doc evidence. A claim cannot be promoted to "proven" based on documentation alone.

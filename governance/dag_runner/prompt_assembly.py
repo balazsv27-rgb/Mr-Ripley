@@ -1099,6 +1099,268 @@ def _compact_doc_code_sync_for_verification_matrix(
     return compact
 
 
+# ---------------------------------------------------------------------------
+# Update-verification-ledger compact transform projections
+# ---------------------------------------------------------------------------
+# The update-verification-ledger step consumes verification_matrix_delta,
+# doc_code_sync_status, change_impact_report, and audit_summary.  Each
+# transform retains only ledger-relevant fields (evidence signals, status
+# changes, blocking conditions), dropping verbose narratives.
+
+
+def _compact_verification_matrix_delta_for_ledger(
+    payload: dict[str, Any],
+) -> dict[str, Any]:
+    """Extract compact ledger projection from verification_matrix_delta.
+
+    Retains matrix action, conflict flags, affected entries (capped at 10),
+    required_follow_up (capped at 10), and notes (capped at 10).
+    Drops long per-entry rationale and evidence bodies.
+    """
+    if "matrix_action" not in payload and "produced_by" not in payload:
+        return payload  # structural/minimal — pass through
+
+    compact: dict[str, Any] = {
+        "produced_by": payload.get("produced_by"),
+        "matrix_action": payload.get("matrix_action"),
+        "classification_dispute_detected": payload.get(
+            "classification_dispute_detected",
+        ),
+        "runtime_status_upgrade_blocked": payload.get(
+            "runtime_status_upgrade_blocked",
+        ),
+        "source_authority_conflict_detected": payload.get(
+            "source_authority_conflict_detected",
+        ),
+        "inference_used": payload.get("inference_used"),
+    }
+
+    # affected_entries — cap at 10, retain only compact fields
+    entries = payload.get("affected_entries")
+    if isinstance(entries, list):
+        compact["affected_entries"] = [
+            {
+                k: e.get(k)
+                for k in (
+                    "entry_id", "section", "claim_or_topic",
+                    "change_type", "confidence",
+                )
+                if k in e
+            }
+            for e in entries[:10]
+            if isinstance(e, dict)
+        ]
+
+    # required_follow_up — cap at 10
+    rfu = payload.get("required_follow_up")
+    if isinstance(rfu, list):
+        compact["required_follow_up"] = rfu[:10]
+
+    # notes — cap at 10
+    notes = payload.get("notes")
+    if isinstance(notes, list):
+        compact["notes"] = notes[:10]
+    elif notes is not None:
+        compact["notes"] = notes
+
+    return compact
+
+
+def _compact_doc_code_sync_for_ledger(
+    payload: dict[str, Any],
+) -> dict[str, Any]:
+    """Extract compact ledger projection from doc_code_sync_status.
+
+    Retains sync status, drift flags, impacted docs/code (capped at 10),
+    required actions (capped at 10), and blocking reasons (capped at 10).
+    """
+    root = payload.get("doc_code_sync_status", payload)
+
+    # Detect structural/minimal payload
+    status_keys = ("overall_status", "sync_status", "status", "drift_detected")
+    if not any(k in root for k in status_keys):
+        return payload
+
+    compact: dict[str, Any] = {
+        "produced_by": root.get("produced_by") or payload.get("produced_by"),
+    }
+
+    # Status — try multiple field names
+    for sk in ("overall_status", "sync_status", "status"):
+        val = root.get(sk)
+        if val is not None:
+            compact[sk] = val
+
+    # Drift and alignment flags
+    for key in (
+        "drift_detected",
+        "docs_changed_without_code",
+        "code_changed_without_docs",
+        "doc_code_alignment_status",
+        "follow_up_required",
+        "verification_ledger_update_required",
+    ):
+        val = root.get(key)
+        if val is not None:
+            compact[key] = val
+
+    # Impacted docs and code paths — cap at 10
+    for key in ("impacted_docs", "impacted_code_paths"):
+        val = root.get(key)
+        if isinstance(val, list):
+            compact[key] = val[:10]
+        elif val is not None:
+            compact[key] = val
+
+    # Required actions and blocking reasons — cap at 10
+    for key in ("required_actions", "blocking_reasons"):
+        val = root.get(key)
+        if isinstance(val, list):
+            compact[key] = val[:10]
+        elif val is not None:
+            compact[key] = val
+
+    return compact
+
+
+def _compact_change_impact_for_ledger(
+    payload: dict[str, Any],
+) -> dict[str, Any]:
+    """Extract compact ledger projection from change_impact_report.
+
+    Retains impact classification, impacted components/docs (capped at 10),
+    verification actions (capped at 10, compact), risk summary (capped at 5),
+    and ledger-relevant flags.
+
+    Supports wrapped (``payload["change_impact_summary"]``) and flat schemas.
+    """
+    cis = payload.get("change_impact_summary")
+    if cis is not None:
+        root = cis
+    else:
+        if "impact_type" not in payload and "change_mode" not in payload:
+            return payload  # structural/minimal — pass through
+        root = payload
+
+    compact: dict[str, Any] = {
+        "produced_by": root.get("produced_by") or payload.get("produced_by"),
+        "change_mode": root.get("change_mode"),
+        "impact_type": root.get("impact_type"),
+        "contributing_categories": root.get("contributing_categories"),
+        "follow_up_required": root.get("follow_up_required"),
+    }
+
+    # Impacted components and docs — cap at 10
+    for key in ("impacted_components", "impacted_docs"):
+        val = root.get(key)
+        if isinstance(val, list):
+            compact[key] = val[:10]
+        elif val is not None:
+            compact[key] = val
+
+    # Verification actions — cap at 10, retain only artifact/action
+    va = root.get("verification_actions")
+    if isinstance(va, list):
+        compact["verification_actions"] = [
+            {k: a[k] for k in ("artifact", "action") if k in a}
+            for a in va[:10]
+            if isinstance(a, dict)
+        ]
+
+    # Risk summary — cap at 5
+    risk = root.get("risk_summary")
+    if isinstance(risk, list):
+        compact["risk_summary"] = risk[:5]
+    elif risk is not None:
+        compact["risk_summary"] = risk
+
+    # Ledger-relevant flags
+    for key in (
+        "verification_ledger_update_required",
+        "blocked_change",
+        "doc_only_change",
+        "runtime_evidence_changed",
+        "code_evidence_changed",
+    ):
+        val = root.get(key)
+        if val is not None:
+            compact[key] = val
+
+    return compact
+
+
+def _compact_audit_summary_for_ledger(
+    payload: dict[str, Any],
+) -> dict[str, Any]:
+    """Extract compact ledger projection from audit_summary.
+
+    Reuses the same recognition logic as the matrix projection.
+    Retains overall status, violation counts, dispatched subagents (capped at 10),
+    findings/violations (capped at 10 with string truncation), and
+    audit_resolution_required (capped at 10).
+    """
+    # Try wrapped shape first, then nested "overall", then flat
+    root = payload.get("audit_summary") or payload.get("overall") or payload
+
+    if not _is_recognisable_audit_artifact(root) and not _is_recognisable_audit_artifact(payload):
+        return payload
+
+    if root is payload:
+        pass
+    elif not _is_recognisable_audit_artifact(root):
+        root = payload
+
+    status = (
+        root.get("overall_audit_status")
+        or root.get("overall_status")
+        or root.get("status")
+    )
+
+    compact: dict[str, Any] = {
+        "produced_by": root.get("produced_by") or payload.get("produced_by"),
+        "overall_audit_status": status,
+        "fail_closed_applied": root.get("fail_closed_applied"),
+        "dag_advancement_blocked": root.get("dag_advancement_blocked"),
+        "unresolved_violations_count": root.get("unresolved_violations_count"),
+        "blocking_violations_count": root.get("blocking_violations_count"),
+        "review_required_violations_count": root.get(
+            "review_required_violations_count",
+        ),
+    }
+
+    # dispatched_subagents — cap at 10
+    ds = root.get("dispatched_subagents")
+    if isinstance(ds, list):
+        compact["dispatched_subagents"] = ds[:10]
+    elif ds is not None:
+        compact["dispatched_subagents"] = ds
+
+    # Compact findings/violations — cap at 10 entries, truncate strings to 200
+    for findings_key in ("findings", "violations", "audit_findings"):
+        findings = root.get(findings_key)
+        if isinstance(findings, list):
+            capped = []
+            for f in findings[:10]:
+                if isinstance(f, dict):
+                    capped.append({
+                        k: (v[:200] if isinstance(v, str) and len(v) > 200 else v)
+                        for k, v in f.items()
+                        if k not in ("evidence_items", "full_text", "raw_evidence")
+                    })
+                elif isinstance(f, str):
+                    capped.append(f[:200])
+                else:
+                    capped.append(f)
+            compact[findings_key] = capped
+
+    # audit_resolution_required — cap at 10
+    arr = root.get("audit_resolution_required")
+    if isinstance(arr, list):
+        compact["audit_resolution_required"] = arr[:10]
+
+    return compact
+
+
 # Transform-based projections — step_name → {artifact_name → transform_fn}.
 # Applied before field-list projections in _project_artifact_payload.
 _STEP_INPUT_TRANSFORMS: dict[str, dict[str, Any]] = {
@@ -1132,6 +1394,12 @@ _STEP_INPUT_TRANSFORMS: dict[str, dict[str, Any]] = {
         "audit_summary": _compact_audit_summary_for_verification_matrix,
         "change_impact_report": _compact_change_impact_for_verification_matrix,
         "doc_code_sync_status": _compact_doc_code_sync_for_verification_matrix,
+    },
+    "update-verification-ledger": {
+        "verification_matrix_delta": _compact_verification_matrix_delta_for_ledger,
+        "doc_code_sync_status": _compact_doc_code_sync_for_ledger,
+        "change_impact_report": _compact_change_impact_for_ledger,
+        "audit_summary": _compact_audit_summary_for_ledger,
     },
 }
 
