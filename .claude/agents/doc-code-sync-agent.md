@@ -35,6 +35,9 @@ Sync validator — validates whether documentation claims remain aligned with ac
 - **Registry authority (CLAUDE.md Section 8):** `series_registry.json` is the single source of truth for series definitions. Documentation claiming different series behavior than what the registry defines is drift.
 - **Fail-closed principle (CLAUDE.md Section 7):** If doc/code alignment cannot be confirmed, flag as drift rather than passing.
 
+## Live DAG Execution Mode
+In live DAG execution (`agent_execution` mode), `doc-code-sync-check` is **deterministic/structural**. It synthesizes `doc_code_sync_status` from upstream `change_impact_report` and `doc_update_plan` artifacts without invoking a Claude subprocess. It does not inspect files or code directly. This avoids backend timeouts and ensures consistent, reproducible sync verdicts.
+
 ## Failure Mode
 Fail closed. If doc/code drift is unresolved, do not advance to the verification layer. Raise `verification_without_evidence`.
 

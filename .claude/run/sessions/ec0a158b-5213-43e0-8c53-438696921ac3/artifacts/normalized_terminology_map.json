@@ -1,0 +1,83 @@
+{
+  "artifact": "normalized_terminology_map",
+  "produced_by": "normalize-terminology",
+  "session": "ec0a158b-5213-43e0-8c53-438696921ac3",
+  "timestamp": "2026-04-27T21:31:46.893489Z",
+  "data": {
+    "produced_by": "normalize-terminology",
+    "overall_status": "governance_sensitive_term_conflict",
+    "inference_used": false,
+    "canonical_term_mappings": [
+      {
+        "from": "truth_store",
+        "to": "Layer-2",
+        "concept_id": "LAYER_2",
+        "reason": "Proposed replacement term does not appear anywhere in the canonical term table \u2014 not as canonical, allowed variant, or discouraged variant. 'Layer-2' remains the established canonical form (allowed prose variant: 'Layer 2'). 'truth_store' risks semantic narrowing to storage-only, discarding ingestion-pipeline, publication-sequence, and snapshot-boundary semantics that 'Layer-2' currently carries. Governance-sensitive: Category A (snapshot boundary confusion)."
+      },
+      {
+        "from": "decision_layer",
+        "to": "Layer-3",
+        "concept_id": "LAYER_3",
+        "reason": "Proposed replacement term does not appear anywhere in the canonical term table \u2014 not as canonical, allowed variant, or discouraged variant. 'Layer-3' remains the established canonical form (allowed prose variant: 'Layer 3'). 'decision_layer' risks flattening a multi-stage planned architecture (Feature Builder, Index Suite, Regime Gate, Supervisor Engine, Decision Engine, DecisionPacket generator) into a single-layer label, potentially implying the architecture exists. Governance-sensitive: Category B (phase/readiness) and Category D (decision vocabulary)."
+      }
+    ],
+    "scope_constraints": [
+      "Request text from governance_context.request_text",
+      "Classified claims c1\u2013c6 from claim_classification_map",
+      "Canonical term table from canonical-terminology-map skill definition",
+      "Constitutional rules referenced via governance_context (CLAUDE.md Sections 2, 3, 6, 7, 10, 11)"
+    ],
+    "excluded_reference_types": [
+      "Documentation/ directory files not read directly \u2014 content scan limited to claim text and claim_classification_map findings",
+      "Code module files, import paths, and layer2/ directory not evaluated \u2014 protected per claim c3 scope constraint",
+      "Historical and superseded documents excluded per CLAUDE.md Section 2.3"
+    ],
+    "filename_rename_candidates": [
+      "README_LAYER2.md \u2014 canonical document #7 per CLAUDE.md Section 2.1 with declared role in Section 2.2; rename requires updates to CLAUDE.md Sections 2.1, 2.2, 2.4, and 11 plus all cross-references in the full canonical set; assessed highest-risk rename candidate",
+      "CLAUDE.md \u2014 self-referential: contains 'Layer-2' and 'Layer-3' terminology in Sections 2.1, 2.2, 2.4, 3.1, 3.2, 4, 6, 11; rename would require the governing constitutional document to modify its own foundational terms",
+      "Documentation/SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md \u2014 primary architectural source of truth; Layer-2 and Layer-3 terms are load-bearing in boundary and sequencing definitions",
+      "Documentation/DOCUMENTATION_VERIFICATION_MATRIX_v1.md \u2014 cross-document consistency map; any term rename propagates into verification references",
+      "Documentation/SYSTEM_TECHNICAL_HANDBOOK_v1.md \u2014 technical constraints and contract behavior reference Layer-2 boundary explicitly",
+      "Documentation/SYSTEM_IMPLEMENTATION_RECORD_v1.md \u2014 implementation state claims reference Layer-2 operational status",
+      "Documentation/SYSTEM_LIMITATIONS_AND_APPROXIMATIONS_v1.md \u2014 constraint boundaries defined in terms of Layer-2 and Layer-3 scope"
+    ],
+    "ambiguity_flags": [
+      {
+        "term": "truth_store",
+        "concepts": [
+          "LAYER_2",
+          "SNAPSHOT_TRUTH",
+          "OBSERVATIONS"
+        ],
+        "governance_sensitive": true,
+        "note": "Unrecognized proposed term with unresolvable concept mapping. Depending on reader context, 'truth_store' could denote the full Layer-2 architectural boundary (LAYER_2), the published snapshot as the source of downstream truth (SNAPSHOT_TRUTH), or the raw observations database (OBSERVATIONS). This tri-way ambiguity is governance-critical: downstream consumers classifying claims against 'truth_store' cannot determine which snapshot-boundary, ingestion-pipeline, or publication rules apply. Fail-closed per CLAUDE.md Section 7: adoption blocked pending disambiguation."
+      },
+      {
+        "term": "decision_layer",
+        "concepts": [
+          "LAYER_3",
+          "DECISION_PACKET",
+          "NO_TRADE"
+        ],
+        "governance_sensitive": true,
+        "note": "Unrecognized proposed term with unresolvable concept mapping. 'decision_layer' could denote the full planned Layer-3 multi-stage architecture (LAYER_3), the DecisionPacket output schema (DECISION_PACKET), or the NO_TRADE signal routing logic (NO_TRADE). Collapsing a multi-component planned architecture into a singular 'layer' label risks weakening phase-gate enforcement (CLAUDE.md Section 4) and violating strong-claim discipline (Section 10): a 'decision_layer' that sounds implemented could enable forbidden claims that 'decisions are automated'. Fail-closed per CLAUDE.md Section 7: adoption blocked pending disambiguation."
+      },
+      {
+        "term": "Layer-2 \u2192 Layer 2",
+        "concepts": [
+          "LAYER_2"
+        ],
+        "governance_sensitive": false,
+        "note": "Two-form variant for a single concept (hyphenated vs. space-separated). Both are acceptable per the canonical term table: 'Layer-2' is canonical; 'Layer 2' is an allowed prose variant. No normalization required. Hyphenated form preferred in technical and governance contexts."
+      },
+      {
+        "term": "Layer-3 \u2192 Layer 3",
+        "concepts": [
+          "LAYER_3"
+        ],
+        "governance_sensitive": false,
+        "note": "Two-form variant for a single concept (hyphenated vs. space-separated). Both are acceptable per the canonical term table: 'Layer-3' is canonical; 'Layer 3' is an allowed prose variant. No normalization required. Hyphenated form preferred in technical and governance contexts."
+      }
+    ]
+  }
+}

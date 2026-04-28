@@ -1,0 +1,80 @@
+{
+  "artifact": "doc_update_plan",
+  "produced_by": "change-impact-audit",
+  "session": "ec0a158b-5213-43e0-8c53-438696921ac3",
+  "timestamp": "2026-04-27T21:43:01.730606Z",
+  "data": {
+    "produced_by": "change-impact-audit",
+    "run_id": "ec0a158b-5213-43e0-8c53-438696921ac3",
+    "status": "blocked_no_updates_accepted",
+    "required_updates": [
+      {
+        "artifact": "SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md",
+        "reason": "PREREQUISITE TO UNBLOCK: Must formally establish 'truth_store' and 'decision_layer' as canonical architectural labels with explicit semantic equivalence mapping before any terminology propagation can proceed. This is the role-matched primary source for architectural layer naming (per role_citation_verdict C3, C4 hard blocks). Currently no update accepted \u2014 this is the required first step if the refactor is to be retried.",
+        "priority": "high",
+        "update_type": "review"
+      },
+      {
+        "artifact": "SYSTEM_IMPLEMENTATION_RECORD_v1.md",
+        "reason": "PREREQUISITE TO UNBLOCK: Must confirm scope boundary between architectural labels ('Layer 2', 'Layer 3') and code module names ('layer2/' directory, 'layer2/index_suite.py'). Required to resolve role_citation_verdict C5 hard block on scope ambiguity. Currently no update accepted.",
+        "priority": "high",
+        "update_type": "review"
+      },
+      {
+        "artifact": "CLAUDE.md",
+        "reason": "Constitutional document uses 'Layer 2' and 'Layer 3' extensively in Sections 2, 3, 4, 6, 11, and 15. Any terminology change here is a constitutional amendment requiring governance review. Change was blocked; no update accepted. Review to confirm existing constitutional language remains intact.",
+        "priority": "high",
+        "update_type": "review"
+      },
+      {
+        "artifact": "README_v1.md",
+        "reason": "Top-level project orientation references Layer 2 current operational status and Layer 3 planned status. Review to confirm no unauthorized modifications were made. Change was blocked; no update accepted.",
+        "priority": "high",
+        "update_type": "review"
+      },
+      {
+        "artifact": "SYSTEM_TECHNICAL_HANDBOOK_v1.md",
+        "reason": "Core invariant table and contract behavior reference Layer 2/3 terminology. Review to confirm snapshot contract language and system identity remain consistent. Change was blocked; no update accepted.",
+        "priority": "medium",
+        "update_type": "review"
+      },
+      {
+        "artifact": "SYSTEM_LIMITATIONS_AND_APPROXIMATIONS_v1.md",
+        "reason": "Boundary and scope language references architectural layers. Review to confirm limitations language has not been inadvertently contradicted. Change was blocked; no update accepted.",
+        "priority": "medium",
+        "update_type": "review"
+      },
+      {
+        "artifact": "README_LAYER2.md",
+        "reason": "Canonical collaborator guide with filename containing 'LAYER2'. Potential filename rename was flagged as highest-risk sub-claim (claim_classification_map c4). Review to confirm file and content remain unmodified. Change was blocked; no update accepted. README_LAYER2.md is canonical within its collaborator-workflow role; it was not used as primary authority for implementation-state, architecture, or limitations claims in this assessment.",
+        "priority": "medium",
+        "update_type": "review"
+      },
+      {
+        "artifact": "system-orchestration.yaml",
+        "reason": "Tier 2 governance artifact may contain embedded references to canonical document filenames. Review to confirm no unauthorized modifications. Change was blocked; no update accepted.",
+        "priority": "low",
+        "update_type": "review"
+      }
+    ],
+    "verification_actions": [
+      {
+        "artifact": "DOCUMENTATION_VERIFICATION_MATRIX_v1.md",
+        "reason": "No evidence reclassification warranted by a blocked change. Review to confirm matrix has not been altered and that Layer 2/3 terminology classifications remain unchanged. The proposed terms 'truth_store' and 'decision_layer' have no matrix entries and must not be added until canonical establishment in SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md.",
+        "action": "review_only"
+      },
+      {
+        "artifact": "verification_ledger.md",
+        "reason": "No evidence status change warranted by a blocked attempt. Review to confirm no unauthorized ledger entries were created for the proposed terminology. No ledger update required.",
+        "action": "review_only"
+      }
+    ],
+    "rename_controls": {
+      "alias_map_required": false,
+      "identity_continuity_required": false,
+      "reference_update_required": false,
+      "invariance_check_required": false
+    },
+    "rename_controls_notes": "Rename controls are not activated because the change was blocked before any rename could proceed. change_mode is content_change, not rename_only: the proposed terms lack canonical backing and would introduce semantic changes beyond label substitution. If the refactor is retried after canonical establishment of the new terms, rename_controls must be re-evaluated \u2014 particularly if README_LAYER2.md filename rename is included, which would require alias_map_required=true, identity_continuity_required=true, reference_update_required=true, and invariance_check_required=true."
+  }
+}

@@ -1,0 +1,152 @@
+{
+  "artifact": "role_citation_verdict",
+  "produced_by": "route-claims-by-role",
+  "session": "ec0a158b-5213-43e0-8c53-438696921ac3",
+  "timestamp": "2026-04-27T21:34:17.716078Z",
+  "data": {
+    "produced_by": "route-claims-by-role",
+    "run_id": "ec0a158b-5213-43e0-8c53-438696921ac3",
+    "inference_used": true,
+    "source_authority_conflict_detected": false,
+    "overall_status": "conflict_requires_block",
+    "checked_claims": [
+      {
+        "claim_id": "C1",
+        "claim_text": "'Layer 2' and 'Layer-2' are architectural layer labels in the Mr. Ripley system",
+        "claim_type": "architecture",
+        "required_primary_source": "SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md",
+        "provided_sources": [
+          "CLAUDE.md (implicit \u2014 constitutional authority only)"
+        ],
+        "role_match": false,
+        "strong_claim": true,
+        "explicit_citation_required": true,
+        "conflict_detected": false,
+        "blocking_condition_if_any": "Strong architecture claim relies on CLAUDE.md as constitutional authority, not the role-matched architecture document. CLAUDE.md serves governance interpretation, not architecture-definition.",
+        "verdict": "review_only",
+        "reason": "CLAUDE.md Sections 3.1 and 4 confirm 'Layer 2' terminology and current operational status, but CLAUDE.md's role is constitutional/governance, not architecture-definition. The role-matched primary source for this claim is SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md. The claim is plausible but not formally role-matched.",
+        "notes": "Downgraded to review_only (not blocking) because CLAUDE.md constitutional backing makes the claim reasonable even without explicit architecture-doc citation. However, any downstream strong assertion must cite SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md directly."
+      },
+      {
+        "claim_id": "C2",
+        "claim_text": "'Layer 3' and 'Layer-3' are architectural layer labels in the Mr. Ripley system",
+        "claim_type": "architecture",
+        "required_primary_source": "SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md",
+        "provided_sources": [
+          "CLAUDE.md (implicit \u2014 constitutional authority only)"
+        ],
+        "role_match": false,
+        "strong_claim": true,
+        "explicit_citation_required": true,
+        "conflict_detected": false,
+        "blocking_condition_if_any": "Same as C1 \u2014 role-matched source not cited.",
+        "verdict": "review_only",
+        "reason": "CLAUDE.md Sections 3.2 and 4 reference Layer 3 as target/planned architecture. Constitutional backing makes the label recognizable, but SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md is the role-matched authority for layer-naming claims.",
+        "notes": "Additional nuance: Layer 3 is NOT YET BUILT (CLAUDE.md Section 3.2). Any strong claim about what 'Layer 3' architecturally is requires phase-gate awareness \u2014 it is a planned label, not a current-state label in the implementation sense."
+      },
+      {
+        "claim_id": "C3",
+        "claim_text": "'truth_store' is the correct replacement term for 'Layer 2' across canonical architectural documentation",
+        "claim_type": "architecture",
+        "required_primary_source": "SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md",
+        "provided_sources": [],
+        "role_match": false,
+        "strong_claim": true,
+        "explicit_citation_required": true,
+        "conflict_detected": false,
+        "blocking_condition_if_any": "NO canonical source establishes 'truth_store' as an architectural label. Strong claim with zero role-matched citation. CLAUDE.md Section 10 explicitly forbids strong claims without explicit proof.",
+        "verdict": "conflict_requires_block",
+        "reason": "'truth_store' is a proposed new term absent from all canonical current-state documents. No entry in SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md, SYSTEM_IMPLEMENTATION_RECORD_v1.md, SYSTEM_TECHNICAL_HANDBOOK_v1.md, or CLAUDE.md establishes this label. Strong claim with zero citation is a hard block per skill rule D2.",
+        "notes": "The refactor cannot propagate until SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md formally establishes 'truth_store' as the canonical Layer 2 label, triggering the full document-update chain under CLAUDE.md Section 11."
+      },
+      {
+        "claim_id": "C4",
+        "claim_text": "'decision_layer' is the correct replacement term for 'Layer 3' across canonical architectural documentation",
+        "claim_type": "architecture",
+        "required_primary_source": "SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md",
+        "provided_sources": [],
+        "role_match": false,
+        "strong_claim": true,
+        "explicit_citation_required": true,
+        "conflict_detected": false,
+        "blocking_condition_if_any": "NO canonical source establishes 'decision_layer' as an architectural label. Strong claim with zero citation. Additional risk: Layer 3 is target/planned (Phase B/C), not current-state implemented. Canonizing its name prematurely could blur phase-gate boundaries.",
+        "verdict": "conflict_requires_block",
+        "reason": "'decision_layer' does not appear in any canonical document. Layer 3 is explicitly listed as target architecture not yet built (CLAUDE.md Sections 3.2, 4). Canonizing a name for a non-existent layer risks violating CLAUDE.md Section 3 (current vs target architecture) and Section 10 (strong claim discipline). Hard block per D2.",
+        "notes": "This is the highest-risk claim in the set. Premature canonization of 'decision_layer' as the Layer 3 label could be interpreted as asserting that Layer 3 exists or is scoped \u2014 directly contradicting CLAUDE.md Section 3.2 and the phase-gate model. Doc-sync escalation is mandatory before any action."
+      },
+      {
+        "claim_id": "C5",
+        "claim_text": "The rename scope boundary is deterministic: terms referring to architectural layers are safe to rename; code module names, import paths, and historical references are excluded",
+        "claim_type": "mixed",
+        "required_primary_source": "SYSTEM_IMPLEMENTATION_RECORD_v1.md (code scope) + SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md (architectural scope boundaries)",
+        "provided_sources": [],
+        "role_match": false,
+        "strong_claim": true,
+        "explicit_citation_required": true,
+        "conflict_detected": false,
+        "blocking_condition_if_any": "Mixed claim requiring decomposed verification. Without SYSTEM_IMPLEMENTATION_RECORD_v1.md confirming which code uses these terms literally (e.g., 'layer2/' directory, 'layer2/index_suite.py') vs architecturally, the scope boundary cannot be validated. Fail-closed applies.",
+        "verdict": "conflict_requires_block",
+        "reason": "CLAUDE.md Section 3.2 explicitly names 'layer2/index_suite.py' as an existing provisional pre-publication tool distinct from the target Layer-3 Index Suite. This demonstrates that 'layer2' appears as a code path, not just an architectural label. The scope boundary claim requires SYSTEM_IMPLEMENTATION_RECORD_v1.md verification before it can be treated as safe. Hard block on ambiguity per CLAUDE.md Section 7 (fail-closed).",
+        "notes": "Decomposition: (a) Architecture sub-claim \u2192 needs SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md; (b) Implementation/code sub-claim \u2192 needs SYSTEM_IMPLEMENTATION_RECORD_v1.md; (c) Historical reference exclusion \u2192 needs SYSTEM_IMPLEMENTATION_RECORD_v1.md historical section. All three sub-claims lack role-matched citation."
+      },
+      {
+        "claim_id": "C6",
+        "claim_text": "README_LAYER2.md and potentially other filenames may require rename handling as part of this refactor",
+        "claim_type": "collaborator_workflow",
+        "required_primary_source": "README_LAYER2.md",
+        "provided_sources": [
+          "README_LAYER2.md (inferred \u2014 canonical collaborator guide is the appropriate authority)"
+        ],
+        "role_match": true,
+        "strong_claim": false,
+        "explicit_citation_required": false,
+        "conflict_detected": false,
+        "blocking_condition_if_any": null,
+        "verdict": "review_only",
+        "reason": "Weak claim ('may require') correctly scoped to collaborator workflow domain. README_LAYER2.md is the canonical collaborator guide and is the role-matched source for this claim type. Role match confirmed. Needs assessment but not blocking.",
+        "notes": "Important constraint: README_LAYER2.md is listed in the canonical current-state documentation set (CLAUDE.md Section 2.1). Any rename of the file itself would trigger CLAUDE.md Section 11 document-update obligations for the entire canonical set, including DOCUMENTATION_VERIFICATION_MATRIX_v1.md. This must be escalated before file rename is executed."
+      },
+      {
+        "claim_id": "C7",
+        "claim_text": "The rename could introduce ambiguity, architecture drift, or snapshot-boundary confusion (failure-mode guard condition)",
+        "claim_type": "limitation",
+        "required_primary_source": "SYSTEM_LIMITATIONS_AND_APPROXIMATIONS_v1.md",
+        "provided_sources": [
+          "CLAUDE.md Section 6 (snapshot contract), Section 7 (fail-closed) \u2014 constitutional backing"
+        ],
+        "role_match": false,
+        "strong_claim": false,
+        "explicit_citation_required": false,
+        "conflict_detected": false,
+        "blocking_condition_if_any": null,
+        "verdict": "review_only",
+        "reason": "Guard condition expressed as a failure-mode concern, not a positive assertion. Not a strong claim. CLAUDE.md Sections 6 and 7 provide constitutional backing for snapshot-boundary and fail-closed concerns, but SYSTEM_LIMITATIONS_AND_APPROXIMATIONS_v1.md is the role-matched source for formal limitation claims. Downgraded to review_only since this is a precautionary framing.",
+        "notes": "The concern is well-founded: snapshot identity uses 'snapshot_id' fields tied to Layer 2 publication contracts. If 'Layer 2' label is changed in documentation while snapshot contract fields remain unchanged, a terminology divergence could introduce interpretation ambiguity. SYSTEM_LIMITATIONS_AND_APPROXIMATIONS_v1.md should be checked for existing entries on terminology stability requirements."
+      },
+      {
+        "claim_id": "C8",
+        "claim_text": "The terminology refactor scope covers all files under Documentation/ and CLAUDE.md",
+        "claim_type": "documentation_consistency",
+        "required_primary_source": "DOCUMENTATION_VERIFICATION_MATRIX_v1.md",
+        "provided_sources": [],
+        "role_match": false,
+        "strong_claim": false,
+        "explicit_citation_required": false,
+        "conflict_detected": false,
+        "blocking_condition_if_any": null,
+        "verdict": "review_only",
+        "reason": "Scope-definition statement rather than a strong truth claim. DOCUMENTATION_VERIFICATION_MATRIX_v1.md is the role-matched source for cross-document scope and consistency mapping. Without its confirmation, the scope may be incomplete (missing files) or overreaching (including files that should be excluded).",
+        "notes": "CLAUDE.md itself is a governance document, not a documentation-set member in the same sense as the canonical docs under Documentation/. Its update requires governance review per CLAUDE.md Section 11 and 15. The claim that CLAUDE.md is in scope for this refactor implicitly triggers the document-update obligation chain."
+      }
+    ],
+    "summary": {
+      "role_mismatch_detected": true,
+      "canonical_conflict_unresolved": false,
+      "readme_layer2_used_as_override": false,
+      "requires_conflict_note": false,
+      "requires_doc_sync_escalation": true,
+      "recommended_guard_action": "block",
+      "notes": "Hard blocks on C3, C4, and C5. C3 and C4 are the primary blocking conditions: the proposed replacement terms 'truth_store' and 'decision_layer' have no canonical backing in any current-state document. These are strong architecture claims with zero role-matched citation from SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md. CLAUDE.md Section 10 (strong claim discipline) and Section 7 (fail-closed) both require blocking the refactor propagation until the architecture document formally establishes these terms. C5 adds a second-order block on scope ambiguity: CLAUDE.md itself references 'layer2/index_suite.py' as a code path, confirming that the architectural-label vs code-path distinction cannot be assumed safe without SYSTEM_IMPLEMENTATION_RECORD_v1.md verification. Required path to unblock: (1) SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md must be updated to formally canonize 'truth_store' and 'decision_layer' as the new architectural labels; (2) SYSTEM_IMPLEMENTATION_RECORD_v1.md must confirm scope boundary between architectural labels and code module names; (3) full document-update chain under CLAUDE.md Section 11 must be triggered; (4) only after canonical docs are updated can terminology propagation proceed. Doc-sync escalation is mandatory."
+    }
+  }
+}

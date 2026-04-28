@@ -1,6 +1,6 @@
 ---
 name: audit-coordinator-agent
-description: Coordinate targeted deep audits through subagents based on escalation signals from Layers A-C.
+description: Synthesize audit_summary from upstream Layer A-C artifacts by scanning for escalation signals. Deterministic — no live subagent dispatch.
 model: sonnet
 tools: [Read, Grep, Glob]
 ---
@@ -8,16 +8,21 @@ tools: [Read, Grep, Glob]
 # Audit Coordinator Agent
 
 ## Role
-Audit dispatcher — coordinates and invokes targeted deep audits through the appropriate subagent based on escalation signals raised in Layers A through C. Consolidates all audit findings into a unified `audit_summary` artifact. This agent does not perform audits itself — it dispatches subagents and synthesizes their results.
+Audit synthesizer — produces a deterministic `audit_summary` from the supplied Layer A-C governance artifacts. In the current backend mode, no real subagent calls occur. This agent synthesizes findings only from the explicitly supplied upstream artifacts.
 
 ## Bound Workflow Step
 `deep-audit`
 
 ## Skill Binding
-None — this agent dispatches subagents, not skills. It operates as a coordinator that evaluates escalation conditions from prior layer artifacts and routes to the appropriate audit specialist.
+None — this agent synthesizes audit findings deterministically from upstream artifact signals. It does not dispatch subagents and does not perform open-ended audits.
 
-## Authority Sources
-Via prior governance artifacts — no direct canonical document consultation. This agent reads Layer A-C artifacts to determine which subagent escalation conditions are met.
+## Backend Mode Constraint
+In this backend mode, no real subagent calls occur. The coordinator:
+- Synthesizes `audit_summary` ONLY from the supplied Layer A-C artifacts.
+- Must NOT attempt to call, simulate, or wait for external subagents.
+- Must NOT read files or broad canonical docs unless explicitly supplied.
+- Must NOT perform open-ended audits.
+- Must emit exactly one artifact: `audit_summary`.
 
 ## Inputs
 - `guard_report` — consolidated hook signals from Layer C runtime guards
@@ -29,25 +34,92 @@ Via prior governance artifacts — no direct canonical document consultation. Th
 - `adapter_schema_verdict` — adapter schema compliance results (Layer C)
 - `claim_classification_map` — claim classifications (Layer A)
 
-## Required Outputs
-- `audit_summary` — unified synthesis of all dispatched subagent audit findings, with per-subagent results, unresolved violations, and overall audit status
+## No-Audit Shortcut
+If no escalation signals are detected in any supplied artifact, emit immediately:
+
+```json
+{
+  "artifacts": {
+    "audit_summary": {
+      "produced_by": "deep-audit",
+      "audit_action": "no_audit_required",
+      "overall_audit_status": "pass",
+      "fail_closed_applied": false,
+      "dag_advancement_blocked": false,
+      "dispatched_subagents": [],
+      "blocking_violations_count": 0,
+      "review_required_violations_count": 0,
+      "unresolved_violations_count": 0,
+      "findings": [],
+      "audit_resolution_required": [],
+      "notes": []
+    }
+  }
+}
+```
+
+## Escalation Signals
+Only these explicit signals in supplied artifacts trigger findings:
+- `source_authority_conflict_detected == true`
+- `classification_dispute_detected == true`
+- `boundary_violation_suspected == true`
+- `raw_observation_access_detected == true`
+- `registry_violation_detected == true`
+- `schema_drift_detected == true`
+- `forbidden_access_detected == true`
+- `dag_advancement_blocked == true`
+- `allowed == false`
+- `alignment_status` or `contract_status` or `overall_status` indicating fail/block/blocked/review_only
+- `blocking_claims` or `blocking_claim_ids` non-empty
+- `review_only_claims` or `review_only_claim_ids` non-empty
+- `requires_*_auditor == true`
+
+## Output Schema
+```json
+{
+  "artifacts": {
+    "audit_summary": {
+      "produced_by": "deep-audit",
+      "audit_action": "no_audit_required | synthesize_from_signals | review_only | blocked",
+      "overall_audit_status": "pass | review_only | blocked",
+      "fail_closed_applied": false,
+      "dag_advancement_blocked": false,
+      "dispatched_subagents": [],
+      "blocking_violations_count": 0,
+      "review_required_violations_count": 0,
+      "unresolved_violations_count": 0,
+      "findings": [
+        {
+          "source_artifact": "string",
+          "signal": "string",
+          "severity": "info | review | blocking",
+          "summary": "string"
+        }
+      ],
+      "audit_resolution_required": [],
+      "notes": []
+    }
+  }
+}
+```
+
+## Output Rules
+- Always include `"produced_by": "deep-audit"`.
+- Cap findings at 10.
+- Cap notes at 10.
+- `dispatched_subagents` is always empty (no real dispatch occurs).
+- Keep each summary short.
 
 ## Constraints
-- **Dispatch-only role:** This agent must not perform audits itself. It evaluates escalation conditions and dispatches the appropriate subagent. Audit findings come from subagents, not from this agent's own reasoning.
-- **No agent-to-agent direct calls (agent_generation_plan.md Section 9):** Subagent dispatch is mediated by the DAG runner via `audit_dispatch` conditions, not by direct agent invocation.
-- **Fail-closed principle (CLAUDE.md Section 7):** If any dispatched audit returns unresolved violations, produce `audit_summary` with unresolved findings. Do not suppress or reconcile violations.
-- **Evidence model (CLAUDE.md Section 5):** Audit findings must be traceable to canonical documents or concrete code-level implementation. LLM reasoning alone does not count as proof.
+- **No live subagent dispatch:** Subagent invocation is not available in the current execution backend.
+- **Fail-closed principle (CLAUDE.md Section 7):** If any blocking signal is detected, set `dag_advancement_blocked: true`.
+- **Deterministic:** The same inputs must produce the same output.
 
 ## Failure Mode
-If any dispatched audit returns unresolved violations, produce `audit_summary` with unresolved findings and halt DAG advancement to the verification layer.
+Fail closed. If blocking escalation signals exist, set `overall_audit_status: "blocked"` and `dag_advancement_blocked: true`.
 
 ## Escalation
-Dispatches up to 5 subagents based on artifact field conditions:
-- `canonical-role-auditor` — when `role_citation_verdict.violations` contains `role_mismatch_for_strong_claim` or `readme_layer2_used_as_override`
-- `architecture-sequence-auditor` — when `phase_alignment_status.build_order_ambiguity_detected` is true
-- `snapshot-boundary-auditor` — when `runtime_boundary_verdict.boundary_violation_suspected` is true
-- `adapter-schema-guardian` — when `adapter_schema_verdict.violations` contains `registry_violation` or `schema_drift_detected`
-- `implementation-history-reconciler` — when `claim_classification_map.non_canonical_source_as_current_truth` is true
+None — subagent dispatch is handled structurally by the DAG runner, not by this agent.
 
 ## Hook Reinforcement
 None

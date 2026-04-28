@@ -1,0 +1,313 @@
+{
+  "step_name": "deep-audit",
+  "bundle_type": "timeout_transport_diagnostic",
+  "command": [
+    "claude",
+    "-p",
+    "--output-format",
+    "json",
+    "--model",
+    "sonnet",
+    "--no-session-persistence",
+    "--tools",
+    "",
+    "--json-schema",
+    "{\"type\":\"object\",\"properties\":{\"artifacts\":{\"type\":\"object\",\"properties\":{\"audit_summary\":{\"type\":\"object\"}},\"required\":[\"audit_summary\"]}},\"required\":[\"artifacts\"]}"
+  ],
+  "timeout_seconds": 120.0,
+  "elapsed_seconds": 120.09299999999348,
+  "partial_stdout_length": 0,
+  "partial_stdout": "",
+  "partial_stderr_length": 0,
+  "partial_stderr": "",
+  "assembled_prompt_length": 8993,
+  "assembled_prompt_first_2000": "[AGENT INSTRUCTIONS]\n\n============================================================\n---\nname: audit-coordinator-agent\ndescription: Coordinate targeted deep audits through subagents based on escalation signals from Layers A-C.\nmodel: sonnet\ntools: [Read, Grep, Glob]\n---\n\n# Audit Coordinator Agent\n\n## Role\nAudit dispatcher — coordinates and invokes targeted deep audits through the appropriate subagent based on escalation signals raised in Layers A through C. Consolidates all audit findings into a unified `audit_summary` artifact. This agent does not perform audits itself — it dispatches subagents and synthesizes their results.\n\n## Bound Workflow Step\n`deep-audit`\n\n## Skill Binding\nNone — this agent dispatches subagents, not skills. It operates as a coordinator that evaluates escalation conditions from prior layer artifacts and routes to the appropriate audit specialist.\n\n## Authority Sources\nVia prior governance artifacts — no direct canonical document consultation. This agent reads Layer A-C artifacts to determine which subagent escalation conditions are met.\n\n## Inputs\n- `guard_report` — consolidated hook signals from Layer C runtime guards\n- `role_citation_verdict` — role-citation validation results (Layer A)\n- `phase_alignment_status` — phase compliance results (Layer B)\n- `contract_compliance_verdict` — snapshot contract results (Layer B)\n- `stage_gate_report` — stage-gate enforcement results (Layer B)\n- `runtime_boundary_verdict` — runtime boundary integrity results (Layer C)\n- `adapter_schema_verdict` — adapter schema compliance results (Layer C)\n- `claim_classification_map` — claim classifications (Layer A)\n\n## Required Outputs\n- `audit_summary` — unified synthesis of all dispatched subagent audit findings, with per-subagent results, unresolved violations, and overall audit status\n\n## Constraints\n- **Dispatch-only role:** This agent must not perform audits itself. It evaluates escalation conditions and dispatches the appropriate subagent. Audit findings come fr",
+  "prompt_composition": {
+    "step_name": "deep-audit",
+    "skill_content_length": 0,
+    "agent_instructions_length": 3417,
+    "artifact_input_names": [
+      "adapter_schema_verdict",
+      "claim_classification_map",
+      "contract_compliance_verdict",
+      "guard_report",
+      "phase_alignment_status",
+      "role_citation_verdict",
+      "runtime_boundary_verdict",
+      "stage_gate_report"
+    ],
+    "artifact_input_count": 8,
+    "document_paths": [],
+    "document_count": 0,
+    "token_estimate": 1986,
+    "token_budget": 100000,
+    "truncated": false,
+    "truncation_events": [],
+    "expected_outputs": [
+      "audit_summary"
+    ],
+    "input_contributions": {
+      "agent_instructions": {
+        "chars": 3417,
+        "estimated_tokens": 854
+      },
+      "artifact:guard_report": {
+        "chars": 67,
+        "estimated_tokens": 16
+      },
+      "artifact:role_citation_verdict": {
+        "chars": 358,
+        "estimated_tokens": 89
+      },
+      "artifact:phase_alignment_status": {
+        "chars": 1131,
+        "estimated_tokens": 282
+      },
+      "artifact:contract_compliance_verdict": {
+        "chars": 452,
+        "estimated_tokens": 113
+      },
+      "artifact:stage_gate_report": {
+        "chars": 67,
+        "estimated_tokens": 16
+      },
+      "artifact:runtime_boundary_verdict": {
+        "chars": 454,
+        "estimated_tokens": 113
+      },
+      "artifact:adapter_schema_verdict": {
+        "chars": 416,
+        "estimated_tokens": 104
+      },
+      "artifact:claim_classification_map": {
+        "chars": 1598,
+        "estimated_tokens": 399
+      }
+    },
+    "assembled_prompt_chars": 8993,
+    "assembled_prompt_tokens": 2248,
+    "projected_artifact_names": [
+      "role_citation_verdict",
+      "phase_alignment_status",
+      "contract_compliance_verdict",
+      "runtime_boundary_verdict",
+      "adapter_schema_verdict",
+      "claim_classification_map"
+    ],
+    "input_contributions_original": {
+      "artifact:role_citation_verdict": {
+        "chars": 14049,
+        "estimated_tokens": 3512
+      },
+      "artifact:phase_alignment_status": {
+        "chars": 7465,
+        "estimated_tokens": 1866
+      },
+      "artifact:contract_compliance_verdict": {
+        "chars": 5150,
+        "estimated_tokens": 1287
+      },
+      "artifact:runtime_boundary_verdict": {
+        "chars": 3909,
+        "estimated_tokens": 977
+      },
+      "artifact:adapter_schema_verdict": {
+        "chars": 6000,
+        "estimated_tokens": 1500
+      },
+      "artifact:claim_classification_map": {
+        "chars": 11110,
+        "estimated_tokens": 2777
+      }
+    },
+    "input_contributions_projected": {
+      "artifact:role_citation_verdict": {
+        "chars": 358,
+        "estimated_tokens": 89
+      },
+      "artifact:phase_alignment_status": {
+        "chars": 1131,
+        "estimated_tokens": 282
+      },
+      "artifact:contract_compliance_verdict": {
+        "chars": 452,
+        "estimated_tokens": 113
+      },
+      "artifact:runtime_boundary_verdict": {
+        "chars": 454,
+        "estimated_tokens": 113
+      },
+      "artifact:adapter_schema_verdict": {
+        "chars": 416,
+        "estimated_tokens": 104
+      },
+      "artifact:claim_classification_map": {
+        "chars": 1598,
+        "estimated_tokens": 399
+      }
+    }
+  },
+  "failure_detail": {
+    "failure_origin": "timeout",
+    "failure_stage": "backend_timeout",
+    "returncode": null,
+    "parse_failure_reason": null,
+    "stderr_preview": "",
+    "raw_output_preview": "",
+    "debug_artifact_written": true,
+    "debug_artifact_path": ".claude\\run\\sessions\\21a2d574-f22b-4cc1-86d9-ae087057241f\\debug\\deep-audit_debug.json",
+    "backend_failure_detail": "Claude CLI subprocess timed out after 120000ms.",
+    "raw_output_len": 0,
+    "stderr_len": 0,
+    "timeout_ms": 120092.99999999348,
+    "timeout_seconds": 120.0,
+    "elapsed_seconds": 120.09299999999348,
+    "timeout_command": [
+      "claude",
+      "-p",
+      "--output-format",
+      "json",
+      "--model",
+      "sonnet",
+      "--no-session-persistence",
+      "--tools",
+      "",
+      "--json-schema",
+      "{\"type\":\"object\",\"properties\":{\"artifacts\":{\"type\":\"object\",\"properties\":{\"audit_summary\":{\"type\":\"object\"}},\"required\":[\"audit_summary\"]}},\"required\":[\"artifacts\"]}"
+    ],
+    "timeout_stdout_len": 0,
+    "timeout_stderr_len": 0,
+    "subprocess_cwd": "C:\\Code\\Mr-Ripley",
+    "model": "sonnet",
+    "backend": "claude_code_cli",
+    "prompt_token_estimate": 1986,
+    "prompt_token_budget": 100000,
+    "prompt_truncated": false,
+    "prompt_composition": {
+      "step_name": "deep-audit",
+      "skill_content_length": 0,
+      "agent_instructions_length": 3417,
+      "artifact_input_names": [
+        "adapter_schema_verdict",
+        "claim_classification_map",
+        "contract_compliance_verdict",
+        "guard_report",
+        "phase_alignment_status",
+        "role_citation_verdict",
+        "runtime_boundary_verdict",
+        "stage_gate_report"
+      ],
+      "artifact_input_count": 8,
+      "document_paths": [],
+      "document_count": 0,
+      "token_estimate": 1986,
+      "token_budget": 100000,
+      "truncated": false,
+      "truncation_events": [],
+      "expected_outputs": [
+        "audit_summary"
+      ],
+      "input_contributions": {
+        "agent_instructions": {
+          "chars": 3417,
+          "estimated_tokens": 854
+        },
+        "artifact:guard_report": {
+          "chars": 67,
+          "estimated_tokens": 16
+        },
+        "artifact:role_citation_verdict": {
+          "chars": 358,
+          "estimated_tokens": 89
+        },
+        "artifact:phase_alignment_status": {
+          "chars": 1131,
+          "estimated_tokens": 282
+        },
+        "artifact:contract_compliance_verdict": {
+          "chars": 452,
+          "estimated_tokens": 113
+        },
+        "artifact:stage_gate_report": {
+          "chars": 67,
+          "estimated_tokens": 16
+        },
+        "artifact:runtime_boundary_verdict": {
+          "chars": 454,
+          "estimated_tokens": 113
+        },
+        "artifact:adapter_schema_verdict": {
+          "chars": 416,
+          "estimated_tokens": 104
+        },
+        "artifact:claim_classification_map": {
+          "chars": 1598,
+          "estimated_tokens": 399
+        }
+      },
+      "assembled_prompt_chars": 8993,
+      "assembled_prompt_tokens": 2248,
+      "projected_artifact_names": [
+        "role_citation_verdict",
+        "phase_alignment_status",
+        "contract_compliance_verdict",
+        "runtime_boundary_verdict",
+        "adapter_schema_verdict",
+        "claim_classification_map"
+      ],
+      "input_contributions_original": {
+        "artifact:role_citation_verdict": {
+          "chars": 14049,
+          "estimated_tokens": 3512
+        },
+        "artifact:phase_alignment_status": {
+          "chars": 7465,
+          "estimated_tokens": 1866
+        },
+        "artifact:contract_compliance_verdict": {
+          "chars": 5150,
+          "estimated_tokens": 1287
+        },
+        "artifact:runtime_boundary_verdict": {
+          "chars": 3909,
+          "estimated_tokens": 977
+        },
+        "artifact:adapter_schema_verdict": {
+          "chars": 6000,
+          "estimated_tokens": 1500
+        },
+        "artifact:claim_classification_map": {
+          "chars": 11110,
+          "estimated_tokens": 2777
+        }
+      },
+      "input_contributions_projected": {
+        "artifact:role_citation_verdict": {
+          "chars": 358,
+          "estimated_tokens": 89
+        },
+        "artifact:phase_alignment_status": {
+          "chars": 1131,
+          "estimated_tokens": 282
+        },
+        "artifact:contract_compliance_verdict": {
+          "chars": 452,
+          "estimated_tokens": 113
+        },
+        "artifact:runtime_boundary_verdict": {
+          "chars": 454,
+          "estimated_tokens": 113
+        },
+        "artifact:adapter_schema_verdict": {
+          "chars": 416,
+          "estimated_tokens": 104
+        },
+        "artifact:claim_classification_map": {
+          "chars": 1598,
+          "estimated_tokens": 399
+        }
+      }
+    }
+  },
+  "timeout_phase": "before_response"
+}

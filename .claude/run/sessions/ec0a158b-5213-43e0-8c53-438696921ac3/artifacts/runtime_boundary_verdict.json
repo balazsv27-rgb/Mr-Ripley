@@ -1,0 +1,158 @@
+{
+  "artifact": "runtime_boundary_verdict",
+  "produced_by": "runtime-boundary-check",
+  "session": "ec0a158b-5213-43e0-8c53-438696921ac3",
+  "timestamp": "2026-04-27T21:40:01.444442Z",
+  "data": {
+    "produced_by": "runtime-boundary-check",
+    "overall_status": "ambiguous_requires_review",
+    "inference_used": true,
+    "raw_observation_access_detected": false,
+    "latest_snapshot_misuse_detected": false,
+    "layer2_storage_coupling_detected": false,
+    "boundary_violation_suspected": true,
+    "upstream_block_inherited": true,
+    "checked_items": [
+      {
+        "item_id": "D1-raw-observation-access",
+        "target": "layer2/adapters/*, layer2/db.py, governance/dag_runner/executor.py",
+        "assessment": "review",
+        "raw_observations_access_detected": false,
+        "latest_snapshot_misuse_detected": false,
+        "snapshot_truth_rewrite_risk": false,
+        "layer2_storage_touch_detected": false,
+        "affected_files": [
+          "governance/dag_runner/executor.py"
+        ],
+        "missing_inputs": [
+          "layer2/adapters/* (all adapter source files)",
+          "layer2/db.py",
+          "layer2/alignment.py",
+          "layer2/config/series_registry.json"
+        ],
+        "reason": "Code-level inspection tools unavailable in this execution context. Cannot grep for SELECT FROM observations, upsert_observations imports, or get_connection() usage in downstream code. git status shows governance/dag_runner/executor.py as modified \u2014 this file is a downstream orchestration component and a priority target for D1 inspection. No violation detected, but absence of detection is not compliance evidence.",
+        "canonical_source": "SYSTEM_TECHNICAL_HANDBOOK_v1.md (invariant/contract rules), CLAUDE.md \u00a76.1",
+        "notes": [
+          "governance/dag_runner/executor.py was modified (M) per git status \u2014 must be inspected for observation-table access",
+          "Cannot confirm absence of SELECT FROM observations without file read access"
+        ]
+      },
+      {
+        "item_id": "D2-snapshot-interface-discipline",
+        "target": "layer2/adapters/*, any downstream snapshot consumers",
+        "assessment": "review",
+        "raw_observations_access_detected": false,
+        "latest_snapshot_misuse_detected": false,
+        "snapshot_truth_rewrite_risk": false,
+        "layer2_storage_touch_detected": false,
+        "affected_files": [],
+        "missing_inputs": [
+          "layer2/adapters/* (snapshot query patterns)",
+          "Any Layer-3+ stub files that may consume snapshots"
+        ],
+        "reason": "Cannot verify snapshot_id-anchored query discipline without code access. Upstream contract_compliance_verdict reports ambiguous_requires_block due to unverified terminology equivalence (truth_store_vs_layer2, decision_layer_vs_layer3), which directly affects whether downstream access patterns can be assessed as governed.",
+        "canonical_source": "SYSTEM_TECHNICAL_HANDBOOK_v1.md, SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md",
+        "notes": [
+          "terminology_equivalence_unverified prevents resolving whether observed access patterns map to governed or ungoverned paths",
+          "upstream role_citation_verdict.conflict_requires_block prevents trusting access-layer claims from documentation"
+        ]
+      },
+      {
+        "item_id": "D3-latest-snapshot-json-misuse",
+        "target": "latest_snapshot.json",
+        "assessment": "review",
+        "raw_observations_access_detected": false,
+        "latest_snapshot_misuse_detected": false,
+        "snapshot_truth_rewrite_risk": false,
+        "layer2_storage_touch_detected": false,
+        "affected_files": [
+          "latest_snapshot.json"
+        ],
+        "missing_inputs": [
+          "latest_snapshot.json (runtime artifact \u2014 not readable without tool access)",
+          "snapshot_publisher.py (to confirm sole write authority)"
+        ],
+        "reason": "Cannot read latest_snapshot.json to verify snapshot_id/as_of field integrity, nor can grep all downstream code for writes or polling patterns against this file. Cannot confirm snapshot_publisher.py is sole writer.",
+        "canonical_source": "CLAUDE.md \u00a76.2, CLAUDE.md \u00a76.3",
+        "notes": [
+          "Without read access cannot confirm snapshot_id is present and used by all consumers"
+        ]
+      },
+      {
+        "item_id": "D4-snapshot-truth-ownership",
+        "target": "All downstream stubs and governance components",
+        "assessment": "review",
+        "raw_observations_access_detected": false,
+        "latest_snapshot_misuse_detected": false,
+        "snapshot_truth_rewrite_risk": false,
+        "layer2_storage_touch_detected": false,
+        "affected_files": [],
+        "missing_inputs": [
+          "All Layer-3+ stub files",
+          "governance/dag_runner/executor.py content"
+        ],
+        "reason": "Cannot grep for INSERT/UPDATE/DELETE on snapshot tables or volatility-annotating patterns in downstream code. Snapshot truth rewrite risk cannot be confirmed absent from governance/dag_runner/executor.py without reading it.",
+        "canonical_source": "SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md (architectural responsibility boundary)",
+        "notes": []
+      },
+      {
+        "item_id": "D5-layer2-storage-touch",
+        "target": "governance/dag_runner/executor.py, any non-Layer-2 code",
+        "assessment": "review",
+        "raw_observations_access_detected": false,
+        "latest_snapshot_misuse_detected": false,
+        "snapshot_truth_rewrite_risk": false,
+        "layer2_storage_touch_detected": false,
+        "affected_files": [
+          "governance/dag_runner/executor.py"
+        ],
+        "missing_inputs": [
+          "governance/dag_runner/executor.py (modified, unread)",
+          "layer2_truth.db schema inspection"
+        ],
+        "reason": "governance/dag_runner/executor.py is the highest-risk unread file \u2014 it is a modified downstream orchestration component and could contain write connections to layer2_truth.db or DDL against snapshot tables. Cannot confirm absence of layer2 storage coupling without reading this file.",
+        "canonical_source": "CLAUDE.md \u00a76.3, code-conventions.md (INSERT OR REPLACE forbidden)",
+        "notes": [
+          "code-conventions.md prohibits INSERT OR REPLACE; cannot verify compliance in executor.py without file read"
+        ]
+      },
+      {
+        "item_id": "D1-upstream-contract-block-inheritance",
+        "target": "contract_compliance_verdict (upstream artifact)",
+        "assessment": "blocked",
+        "raw_observations_access_detected": false,
+        "latest_snapshot_misuse_detected": false,
+        "snapshot_truth_rewrite_risk": false,
+        "layer2_storage_touch_detected": false,
+        "affected_files": [],
+        "missing_inputs": [],
+        "reason": "Upstream contract_compliance_verdict.contract_status = ambiguous_requires_block. Blocking reason: upstream_block_inherited; terminology_equivalence_unverified (truth_store_vs_layer2, decision_layer_vs_layer3); role_citation_verdict.conflict_requires_block. Per skill decision rules and CLAUDE.md \u00a77, this block is inherited into the runtime boundary verdict. boundary_violation_suspected is elevated to true.",
+        "canonical_source": "CLAUDE.md \u00a77 (fail-closed principle), \u00a714 (block strong claims when evidence incomplete or contradictory)",
+        "notes": [
+          "ambiguous_requires_block from snapshot-contract-check propagates directly to this agent's verdict",
+          "Cannot reduce to compliant or review_only without resolving terminology equivalence conflict upstream"
+        ]
+      }
+    ],
+    "summary": {
+      "raw_observations_violation_detected": false,
+      "latest_snapshot_misuse_detected": false,
+      "snapshot_truth_rewrite_risk_detected": false,
+      "layer2_storage_touch_detected": false,
+      "requires_snapshot_boundary_guard": true,
+      "requires_snapshot_boundary_auditor": true,
+      "requires_doc_code_sync_review": true,
+      "source_authority_conflict_detected": true,
+      "notes": [
+        "Code-level inspection tools (Read, Grep, Glob, Bash) were unavailable in this execution context \u2014 no direct file evidence gathered across any dimension (D1\u2013D5)",
+        "Absence of detected violations does NOT constitute compliance evidence; fail-closed applies per CLAUDE.md \u00a77",
+        "boundary_violation_suspected=true: derived from (a) missing code evidence, (b) upstream contract_compliance_verdict=ambiguous_requires_block, (c) terminology_equivalence_unverified blocking access-layer trust, (d) governance/dag_runner/executor.py modified but unread",
+        "requires_snapshot_boundary_auditor=true: code evidence is insufficient for any material compliance decision across all five boundary dimensions",
+        "requires_snapshot_boundary_guard=true: PostToolUse guard must remain active given boundary_violation_suspected=true",
+        "source_authority_conflict_detected=true: inherited from upstream role_citation_verdict.conflict_requires_block \u2014 access-layer claims in documentation cannot be trusted without resolution",
+        "Priority inspection target for auditor: governance/dag_runner/executor.py (modified, downstream orchestration \u2014 highest D5/D1 risk), layer2/db.py (connection management), layer2/adapters/* (snapshot query discipline)",
+        "Resolution path: (1) resolve terminology equivalence (truth_store_vs_layer2, decision_layer_vs_layer3) upstream, (2) read and grep governance/dag_runner/executor.py for observation access and storage writes, (3) confirm snapshot_publisher.py sole-writer invariant for latest_snapshot.json"
+      ]
+    }
+  }
+}

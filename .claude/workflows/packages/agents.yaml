@@ -255,15 +255,14 @@ data:
   # -------------------------------------------------------
 
   - name: audit-coordinator-agent
-    role: audit_dispatcher
+    role: audit_synthesizer
     layer: D_audit_impact
     purpose: >
-      Coordinate and invoke targeted deep audits through the appropriate subagent
-      based on escalation signals raised in Layers A through C.
-      Consolidate all audit findings into a unified audit_summary artifact.
-      This agent does NOT perform audits itself — it dispatches subagents
-      and synthesizes their results.
+      Synthesize audit_summary from upstream Layer A-C artifacts by scanning
+      for escalation signals. Deterministic — no live subagent dispatch in
+      the current backend. Produces a compact audit_summary artifact.
     model: sonnet
+    timeout_ms: 240000
     tools: [Read, Grep, Glob]
     workflow_steps:
       - deep-audit

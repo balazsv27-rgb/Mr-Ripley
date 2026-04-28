@@ -1,0 +1,184 @@
+{
+  "artifact": "verification_ledger_delta",
+  "produced_by": "update-verification-ledger",
+  "session": "ec0a158b-5213-43e0-8c53-438696921ac3",
+  "timestamp": "2026-04-27T21:47:17.578230Z",
+  "data": {
+    "produced_by": "update-verification-ledger",
+    "ledger_action": "update",
+    "inference_used": true,
+    "source_authority_conflict_detected": true,
+    "affected_claims": [
+      {
+        "claim_id": "s8-truth-store-terminology",
+        "claim": "'truth_store' is used as an architectural label equivalent to 'Layer 2'",
+        "classification": "current-state",
+        "claim_type": "architecture",
+        "preferred_canonical_source": "SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md",
+        "evidence_source": [
+          "verification_matrix_delta (add_new_entry)",
+          "change_impact_report (role_citation_verdict C3 hard block)",
+          "audit_summary (blocked)"
+        ],
+        "evidence_type": "doc",
+        "proposed_status": "unverified",
+        "reason": "Doc-only evidence with no Tier 1 canonical backing for 'truth_store' as equivalent to 'Layer 2'. LU-4: strong doc claims require role-matched canonical source. LU-1: doc-only evidence cannot produce proven. Source authority conflict confirmed (verification_matrix_delta.source_authority_conflict_detected=true, C3 hard block in role_citation_verdict). No runtime or code evidence of the equivalence.",
+        "traceability_notes": [
+          "verification_matrix_delta entry s8-truth-store-terminology: add_new_entry, change_type=add_new_entry, confidence=high",
+          "change_impact_report risk_summary: BLOCKED \u2014 role_citation_verdict C3 hard block, 'truth_store' has no canonical backing",
+          "audit_summary: dag_advancement_blocked=true, fail_closed_applied=true",
+          "Semantic precision risk noted: 'truth_store' may lose ingestion, publication, and snapshot-boundary semantics carried by 'Layer 2'",
+          "verification_ledger.md could not be read \u2014 existing entry state unknown; inference_used=true for prior ledger state"
+        ],
+        "confidence": "high"
+      },
+      {
+        "claim_id": "s5-decision-layer-terminology",
+        "claim": "'decision_layer' is used as an architectural label in governance artifacts",
+        "classification": "target-state",
+        "claim_type": "architecture",
+        "preferred_canonical_source": "SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md",
+        "evidence_source": [
+          "verification_matrix_delta (add_new_entry)",
+          "change_impact_report (role_citation_verdict C4 hard block)",
+          "audit_summary (blocked)"
+        ],
+        "evidence_type": "doc",
+        "proposed_status": "unverified",
+        "reason": "Doc-only evidence with no Tier 1 canonical backing for 'decision_layer' as an architectural label. LU-4 applies. Canonical CLAUDE.md \u00a73.2 uses 'Decision Engine', not 'decision_layer' \u2014 terminology mismatch without reconciliation. LU-1 caps at supported; LU-4 further constrains to unverified absent canonical source alignment.",
+        "traceability_notes": [
+          "verification_matrix_delta entry s5-decision-layer-terminology: add_new_entry, Section 5 \u2014 Future/Target Architecture, confidence=high",
+          "change_impact_report risk_summary: BLOCKED \u2014 role_citation_verdict C4 hard block, 'decision_layer' has no canonical backing",
+          "CLAUDE.md \u00a73.2 uses 'Decision Engine' \u2014 label mismatch not reconciled",
+          "Decision Engine is a planned/target component per CLAUDE.md \u00a73.2 and \u00a74 Phase C/D",
+          "verification_ledger.md could not be read \u2014 existing entry state unknown; inference_used=true"
+        ],
+        "confidence": "high"
+      },
+      {
+        "claim_id": "s4-phase-gate-alignment",
+        "claim": "Phase gate enforcement and phase advancement control are functioning within current phase constraints",
+        "classification": "current-state",
+        "claim_type": "governance",
+        "preferred_canonical_source": "SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md",
+        "evidence_source": [
+          "audit_summary (blocking violation \u2014 phase_alignment_status allowed=false)",
+          "change_impact_report (BLOCKED: phase_jump_detected=true, scope_exceeds_current_allowance=true)",
+          "verification_matrix_delta (status_review, confidence=high)"
+        ],
+        "evidence_type": "doc",
+        "proposed_status": "contradicted",
+        "reason": "audit_summary reports phase_alignment_status allowed=false as a blocking violation. change_impact_report confirms phase_jump_detected=true and scope_exceeds_current_allowance=true. These are direct contradictions of any claim that phase gate enforcement is functioning within bounds. LU-5: guard-blocked attempts are not positive evidence. The contradiction is sourced from governance artifacts, not runtime observation.",
+        "traceability_notes": [
+          "audit_summary finding: source_artifact=phase_alignment_status, signal=allowed=false, severity=blocking",
+          "change_impact_report risk_summary: BLOCKED \u2014 phase_alignment_status reports allowed=false; phase_jump_detected=true; scope_exceeds_current_allowance=true",
+          "verification_matrix_delta entry s4-phase-gate-alignment: change_type=status_review, Section 4 \u2014 Current Known Open Items",
+          "Required follow-up per matrix_delta: resolve phase_alignment_status blocked state before any Section 4 phase-gate classification changes",
+          "verification_ledger.md could not be read \u2014 existing entry state unknown; inference_used=true"
+        ],
+        "confidence": "high"
+      },
+      {
+        "claim_id": "s3-runtime-boundary-snapshot-contract",
+        "claim": "Runtime boundary and snapshot contract enforcement are intact",
+        "classification": "current-state",
+        "claim_type": "runtime",
+        "preferred_canonical_source": "SYSTEM_TECHNICAL_HANDBOOK_v1.md",
+        "evidence_source": [
+          "audit_summary (blocking violation \u2014 runtime_boundary_verdict boundary_violation_suspected)",
+          "change_impact_report (BLOCKED: runtime_boundary_verdict boundary_violation_suspected)",
+          "verification_matrix_delta (contradiction_note, confidence=high)"
+        ],
+        "evidence_type": "doc",
+        "proposed_status": "contradicted",
+        "reason": "audit_summary reports boundary_violation_suspected from runtime_boundary_verdict as a blocking violation with fail_closed_applied=true. This directly contradicts any claim that runtime boundary and snapshot contract enforcement are intact. LU-2: runtime evidence is highest weight \u2014 however boundary_violation_suspected is a governance artifact signal, not a direct runtime observation. Nonetheless, under fail-closed principle (CLAUDE.md \u00a77), the suspected violation must be treated as contradicting the intact-enforcement claim until resolved.",
+        "traceability_notes": [
+          "audit_summary finding: source_artifact=runtime_boundary_verdict, signal=boundary_violation_suspected, severity=blocking",
+          "change_impact_report risk_summary: BLOCKED \u2014 runtime_boundary_verdict reports boundary_violation_suspected",
+          "verification_matrix_delta entry s3-runtime-boundary-snapshot-contract: change_type=contradiction_note, Section 3 \u2014 Current Layer-2 Contract Items, confidence=high",
+          "Required follow-up per matrix_delta: resolve runtime_boundary_verdict boundary_violation_suspected before any Section 3 classification upgrades",
+          "Fail-closed principle (CLAUDE.md \u00a77) applies: default to no-output / contradiction rather than assumed compliance",
+          "verification_ledger.md could not be read \u2014 existing entry state unknown; inference_used=true"
+        ],
+        "confidence": "high"
+      },
+      {
+        "claim_id": "s3-scope-boundary-architectural-labels",
+        "claim": "Scope boundary is aligned between architectural labels and code paths",
+        "classification": "current-state",
+        "claim_type": "architecture",
+        "preferred_canonical_source": "SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md",
+        "evidence_source": [
+          "verification_matrix_delta (status_review, confidence=medium)",
+          "change_impact_report (role_citation_verdict C5 \u2014 scope boundary ambiguity)",
+          "doc_code_sync_status (doc_code_alignment_status=review_required)"
+        ],
+        "evidence_type": "doc",
+        "proposed_status": "unverified",
+        "reason": "role_citation_verdict C5 identifies scope boundary ambiguity between architectural labels and code paths as a hard block. doc_code_sync_status shows doc_code_alignment_status=review_required. Evidence is doc-only at medium confidence; LU-1 caps at supported, but the active C5 block and ambiguity prevent even supported status \u2014 unverified is appropriate until C5 is resolved.",
+        "traceability_notes": [
+          "verification_matrix_delta entry s3-scope-boundary-architectural-labels: change_type=status_review, Section 3, confidence=medium",
+          "change_impact_report risk_summary: BLOCKED \u2014 role_citation_verdict C5 scope boundary ambiguity between architectural labels and code paths",
+          "doc_code_sync_status: doc_code_alignment_status=review_required, follow_up_required=mandatory",
+          "Required follow-up per matrix_delta: confirm C5 scope boundary resolution before settling Section 3 entry states",
+          "verification_ledger.md could not be read \u2014 existing entry state unknown; inference_used=true"
+        ],
+        "confidence": "medium"
+      },
+      {
+        "claim_id": "s8-canonical-document-role-sweep",
+        "claim": "Canonical document role assignments are current and correctly classified across the full document set",
+        "classification": "current-state",
+        "claim_type": "documentation_policy",
+        "preferred_canonical_source": "DOCUMENTATION_VERIFICATION_MATRIX_v1.md",
+        "evidence_source": [
+          "verification_matrix_delta (status_review, confidence=medium)",
+          "doc_code_sync_status (required_actions covering all canonical docs)",
+          "change_impact_report (canonical_document_set in impacted_components)"
+        ],
+        "evidence_type": "doc",
+        "proposed_status": "supported",
+        "reason": "Doc-only evidence. LU-1 caps at supported. The required_actions in doc_code_sync_status list all canonical documents as needing review (4 at high priority, 3 at medium, 1 at low), confirming that role sweep has not been completed. Status is supported (reviews are pending) rather than proven (no code or runtime evidence of role correctness, and reviews are outstanding).",
+        "traceability_notes": [
+          "verification_matrix_delta entry s8-canonical-document-role-sweep: change_type=status_review, Section 8 \u2014 Document Role Classification, confidence=medium",
+          "doc_code_sync_status required_actions: SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md (high), SYSTEM_IMPLEMENTATION_RECORD_v1.md (high), CLAUDE.md (high), README_v1.md (high), SYSTEM_TECHNICAL_HANDBOOK_v1.md (medium), SYSTEM_LIMITATIONS_AND_APPROXIMATIONS_v1.md (medium), README_LAYER2.md (medium), system-orchestration.yaml (low)",
+          "Required follow-up per matrix_delta: perform manual Section 8 role review after all canonical document reviews complete",
+          "LU-1 applied: doc-only evidence cannot produce proven status",
+          "verification_ledger.md could not be read \u2014 existing entry state unknown; inference_used=true"
+        ],
+        "confidence": "medium"
+      }
+    ],
+    "summary": {
+      "ledger_update_required": true,
+      "runtime_status_upgrade_attempt_blocked": false,
+      "doc_only_evidence_detected": true,
+      "role_mismatch_detected": true,
+      "conflicts_detected": true,
+      "missing_evidence": [
+        "verification_ledger.md could not be read \u2014 existing ledger entry states are unknown; delta is computed from upstream artifacts only",
+        "Runtime evidence for snapshot contract / runtime boundary enforcement (boundary_violation_suspected remains unresolved)",
+        "Tier 1 canonical backing for 'truth_store' as an equivalent label to 'Layer 2'",
+        "Tier 1 canonical backing for 'decision_layer' as an architectural label (CLAUDE.md \u00a73.2 uses 'Decision Engine')",
+        "C5 scope boundary resolution between architectural labels and code paths",
+        "Completed manual Section 8 canonical document role review"
+      ],
+      "unresolved_conflicts": [
+        "runtime_boundary_verdict: boundary_violation_suspected \u2014 blocking, unresolved (s3-runtime-boundary-snapshot-contract = contradicted)",
+        "phase_alignment_status: allowed=false, phase_jump_detected=true, scope_exceeds_current_allowance=true \u2014 blocking, unresolved (s4-phase-gate-alignment = contradicted)",
+        "source_authority_conflict: 'truth_store' used without Tier 1 canonical backing \u2014 C3 hard block (s8-truth-store-terminology = unverified)",
+        "source_authority_conflict: 'decision_layer' used without Tier 1 canonical backing \u2014 C4 hard block (s5-decision-layer-terminology = unverified)"
+      ],
+      "notes": [
+        "inference_used=true because verification_ledger.md could not be read in this execution context; all proposed status changes are derived from upstream artifact signals only",
+        "No runtime status upgrades are proposed in this delta \u2014 runtime_status_upgrade_attempt_blocked=false reflects absence of upgrade attempts, not absence of blocking conditions",
+        "doc_only_evidence_detected=true: all six claims are backed exclusively by doc/governance artifact evidence; no code or runtime evidence available for any entry",
+        "role_mismatch_detected=true: 'truth_store' and 'decision_layer' terminology lacks Tier 1 canonical source alignment (DR-5/DR-6 apply per matrix_delta notes)",
+        "dag_advancement_blocked=true (from audit_summary) is propagated as a ledger signal; this delta does NOT clear any blocking violation",
+        "LU-7 observed: this skill does not modify or produce verification_matrix_delta",
+        "LU-8 observed: no upstream verdicts were recomputed; all signals consumed as-is from supplied artifacts",
+        "All six claims are provisionally assigned using conservative classification per fail-closed principle (CLAUDE.md \u00a77)"
+      ]
+    }
+  }
+}

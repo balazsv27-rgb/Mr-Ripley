@@ -1,0 +1,145 @@
+{
+  "artifact": "claim_classification_map",
+  "produced_by": "classify-claims",
+  "session": "ec0a158b-5213-43e0-8c53-438696921ac3",
+  "timestamp": "2026-04-27T21:30:19.484758Z",
+  "data": {
+    "produced_by": "classify-claims",
+    "run_id": "ec0a158b-5213-43e0-8c53-438696921ac3",
+    "request_id": "rename-layer-terms-2026-04-20",
+    "status": "complete",
+    "request_classification": {
+      "request_type": "documentation-wide terminology refactor with governance enforcement",
+      "claims": [
+        {
+          "claim_id": "c1",
+          "claim_text": "Replace 'Layer 2' and 'Layer-2' with 'truth_store' across all files under Documentation/ and CLAUDE.md where terms refer to the project's architectural layers.",
+          "claim_scope": "current-state",
+          "evidence_class": "documented_current_state_claim",
+          "source_priority": [
+            "SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md",
+            "README_v1.md",
+            "CLAUDE.md",
+            "SYSTEM_TECHNICAL_HANDBOOK_v1.md",
+            "README_LAYER2.md"
+          ],
+          "confidence_level": "high",
+          "classification_rationale": "Layer 2 is explicitly documented as current operational architecture in CLAUDE.md Section 3.1 ('Layer 2 = operational at snapshot boundary') and throughout the canonical document set. Renaming this terminology is a contract-affecting change to current-state documentation per CLAUDE.md Section 11.",
+          "notes": [
+            "Layer 2 terminology is pervasive in CLAUDE.md itself (Sections 3, 4, 11)",
+            "This is a current-state modification, not a target-state promotion",
+            "Contract-affecting: triggers full document review obligations per Section 11"
+          ]
+        },
+        {
+          "claim_id": "c2",
+          "claim_text": "Replace 'Layer 3' and 'Layer-3' with 'decision_layer' across all files under Documentation/ and CLAUDE.md where terms refer to the project's architectural layers.",
+          "claim_scope": "target-state",
+          "evidence_class": "planned_target_architecture",
+          "source_priority": [
+            "SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md",
+            "CLAUDE.md",
+            "SYSTEM_LIMITATIONS_AND_APPROXIMATIONS_v1.md",
+            "README_LAYER2.md"
+          ],
+          "confidence_level": "high",
+          "classification_rationale": "Layer 3 is explicitly documented as target architecture NOT YET BUILT in CLAUDE.md Section 3.2. Renaming its terminology does not promote it to current-state but changes how planned architecture is referenced. The term appears in current docs as a planned/future concept.",
+          "notes": [
+            "Layer 3 components listed in Section 3.2 are all planned-only",
+            "Renaming does not change implementation status \u2014 only label",
+            "Must not inadvertently imply Layer 3 is now built by giving it a more concrete-sounding name"
+          ]
+        },
+        {
+          "claim_id": "c3",
+          "claim_text": "Enforce this as a strict naming convention only where the terms refer to the project's architectural layers \u2014 do not blindly alter unrelated literals, code module names, import paths, or historical references.",
+          "claim_scope": "current-state",
+          "evidence_class": "verified_in_current_documentation_set",
+          "source_priority": [
+            "CLAUDE.md",
+            "SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md"
+          ],
+          "confidence_level": "high",
+          "classification_rationale": "This constraint aligns directly with CLAUDE.md Section 2.3 (historical source exclusion), Section 8 (registry as source of truth \u2014 no hardcoded logic), and code-conventions.md (no hidden side effects). The request explicitly respects existing governance boundaries.",
+          "notes": [
+            "Aligns with historical source exclusion rule",
+            "Protects code module names like layer2/ directory and imports",
+            "Consistent with fail-closed principle"
+          ]
+        },
+        {
+          "claim_id": "c4",
+          "claim_text": "Detect whether README_LAYER2.md and any other filenames require rename handling.",
+          "claim_scope": "current-state",
+          "evidence_class": "documented_current_state_claim",
+          "source_priority": [
+            "CLAUDE.md",
+            "DOCUMENTATION_VERIFICATION_MATRIX_v1.md",
+            "README_LAYER2.md"
+          ],
+          "confidence_level": "high",
+          "classification_rationale": "README_LAYER2.md is explicitly listed as canonical document #7 in CLAUDE.md Section 2.1. It has a declared role (Section 2.2) as canonical collaborator guide. Renaming this file would require updating CLAUDE.md Section 2.1, 2.2, 2.4, and Section 11, plus all cross-references throughout the canonical set. This is a high-impact structural change to the canonical document registry.",
+          "notes": [
+            "README_LAYER2.md is referenced by name in CLAUDE.md Sections 2.1, 2.2, 2.4, and 11",
+            "Filename rename breaks canonical document list integrity",
+            "Would require DOCUMENTATION_VERIFICATION_MATRIX_v1.md update",
+            "Highest-risk sub-claim in this request"
+          ]
+        },
+        {
+          "claim_id": "c5",
+          "claim_text": "Fail closed if the rename would introduce ambiguity, architecture drift, or snapshot-boundary confusion.",
+          "claim_scope": "current-state",
+          "evidence_class": "verified_in_current_documentation_set",
+          "source_priority": [
+            "CLAUDE.md"
+          ],
+          "confidence_level": "high",
+          "classification_rationale": "Directly implements CLAUDE.md Section 7 (fail-closed principle: NO OUTPUT rather than incorrect output) and Section 6 (snapshot contract). This is an explicit governance safeguard consistent with constitutional rules.",
+          "notes": [
+            "Section 7: system MUST default to no output rather than incorrect output",
+            "Section 6: snapshot contract is non-negotiable",
+            "This claim is a governance constraint, not a modification"
+          ]
+        },
+        {
+          "claim_id": "c6",
+          "claim_text": "The refactor implicitly asserts that 'truth_store' and 'decision_layer' are equivalent replacements for 'Layer 2' and 'Layer 3' without loss of meaning or architectural precision.",
+          "claim_scope": "unverified",
+          "evidence_class": "cannot_verify_from_current_materials",
+          "source_priority": [
+            "SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md",
+            "SYSTEM_TECHNICAL_HANDBOOK_v1.md",
+            "CLAUDE.md"
+          ],
+          "confidence_level": "low",
+          "classification_rationale": "No canonical document currently establishes 'truth_store' or 'decision_layer' as accepted terminology. The equivalence claim cannot be verified from current materials. 'Layer 2' in current docs carries specific semantics (snapshot boundary, deterministic ingestion, immutability) that 'truth_store' may or may not fully capture. 'Layer 3' carries phase-gated, multi-component semantics that 'decision_layer' may flatten.",
+          "notes": [
+            "'truth_store' is not found in any canonical document",
+            "'decision_layer' is not found in any canonical document",
+            "Semantic equivalence is an unverified assertion requiring governance review",
+            "Risk: 'truth_store' may imply storage-only and lose ingestion/publication semantics",
+            "Risk: 'decision_layer' may imply a single component rather than multi-stage architecture"
+          ]
+        }
+      ],
+      "summary": {
+        "dominant_scope": "mixed",
+        "needs_phase_check": true,
+        "touches_current_truth": true,
+        "touches_target_architecture": true,
+        "touches_historical_reconciliation": true,
+        "touches_verification_matrix": true,
+        "touches_snapshot_contract": true,
+        "possible_blocking_conditions": [
+          "contract_affecting_documentation_change",
+          "canonical_document_filename_rename_breaks_registry",
+          "terminology_equivalence_unverified",
+          "semantic_precision_loss_risk_truth_store_vs_layer2",
+          "semantic_precision_loss_risk_decision_layer_vs_layer3",
+          "claude_md_self_referential_rename_required"
+        ]
+      }
+    }
+  }
+}

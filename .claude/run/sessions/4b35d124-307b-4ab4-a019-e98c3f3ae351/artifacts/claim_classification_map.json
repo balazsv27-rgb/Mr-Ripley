@@ -1,0 +1,157 @@
+{
+  "artifact": "claim_classification_map",
+  "produced_by": "classify-claims",
+  "session": "4b35d124-307b-4ab4-a019-e98c3f3ae351",
+  "timestamp": "2026-04-27T01:00:56.594053Z",
+  "data": {
+    "produced_by": "classify-claims",
+    "run_id": "4b35d124-307b-4ab4-a019-e98c3f3ae351",
+    "request_id": "rename-layer-terms-2026-04-20",
+    "status": "complete",
+    "request_classification": {
+      "request_type": "documentation_terminology_refactor",
+      "claims": [
+        {
+          "claim_id": "c1",
+          "claim_text": "Replace 'Layer 2' and 'Layer-2' with 'truth_store' across all documentation files and CLAUDE.md where the terms refer to the project's architectural layers.",
+          "claim_scope": "current-state",
+          "evidence_class": "verified_in_current_documentation_set",
+          "source_priority": [
+            "CLAUDE.md",
+            "SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md",
+            "SYSTEM_TECHNICAL_HANDBOOK_v1.md",
+            "README_v1.md",
+            "README_LAYER2.md"
+          ],
+          "confidence_level": "high",
+          "classification_rationale": "'Layer 2' is deeply embedded current-state terminology across the entire canonical document set and the project constitution (CLAUDE.md). It is used in Sections 2, 3, 4, 6, and 11 of CLAUDE.md, and throughout all canonical documents. This rename is a contract-affecting documentation change to currently established terminology. The term 'truth_store' is not established in any current canonical document \u2014 this introduces new authoritative terminology.",
+          "notes": [
+            "CLAUDE.md Section 6 (Snapshot Contract) uses 'Layer 3+' phrasing tied to Layer 2 boundary semantics \u2014 rename must preserve snapshot-contract clarity",
+            "CLAUDE.md Section 4 (Stage-Gate) references 'Layer 2 Closure' \u2014 phase-gate language must remain unambiguous after rename",
+            "This is a constitution-affecting change since CLAUDE.md itself uses the term extensively"
+          ]
+        },
+        {
+          "claim_id": "c2",
+          "claim_text": "Replace 'Layer 3' and 'Layer-3' with 'decision_layer' across all documentation files and CLAUDE.md where the terms refer to the project's architectural layers.",
+          "claim_scope": "current-state",
+          "evidence_class": "verified_in_current_documentation_set",
+          "source_priority": [
+            "CLAUDE.md",
+            "SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md",
+            "SYSTEM_TECHNICAL_HANDBOOK_v1.md",
+            "SYSTEM_LIMITATIONS_AND_APPROXIMATIONS_v1.md",
+            "README_LAYER2.md"
+          ],
+          "confidence_level": "high",
+          "classification_rationale": "'Layer 3' is current-state terminology used to describe target/planned architecture throughout the canonical set and CLAUDE.md. Although the components Layer 3 refers to are target-state (not yet built), the terminology itself is established current-state documentation. CLAUDE.md Sections 3.2, 4, and 6 all use 'Layer 3' as the canonical name for the planned architecture. The rename modifies how current documentation refers to future-state components. The replacement term 'decision_layer' is not currently established in any canonical source.",
+          "notes": [
+            "The subject matter (Layer 3 components) is target-state, but the terminology being renamed is current-state documentation",
+            "CLAUDE.md Section 3.1 distinguishes the Layer-2 'layer2/index_suite.py' from the planned Layer-3 'Index Suite' \u2014 the rename must preserve this disambiguation",
+            "CLAUDE.md Section 6.1 uses 'Layer 3+' in the snapshot downstream rule \u2014 rename must not introduce ambiguity about which layers are downstream"
+          ]
+        },
+        {
+          "claim_id": "c3",
+          "claim_text": "Enforce the rename as a strict naming convention only where the terms refer to the project's architectural layers; do not blindly alter unrelated literals, code module names, import paths, or historical references.",
+          "claim_scope": "current-state",
+          "evidence_class": "verified_in_current_documentation_set",
+          "source_priority": [
+            "CLAUDE.md",
+            "SYSTEM_TECHNICAL_HANDBOOK_v1.md"
+          ],
+          "confidence_level": "high",
+          "classification_rationale": "This constraint is well-aligned with CLAUDE.md governance principles: Section 2.3 (historical source exclusion), Section 7 (fail-closed), and Section 11 (document update obligations). The request explicitly distinguishes between semantic architectural references and literal strings in code or historical context. This is a sound governance safeguard that protects code-doc sync integrity and historical traceability.",
+          "notes": [
+            "Code module paths like 'layer2/' and 'layer2/index_suite.py' must be preserved as code-level references",
+            "Historical references retained for traceability (per CLAUDE.md Section 2.3) must not be silently altered",
+            "Import paths and Python module names are code artifacts, not documentation terminology"
+          ]
+        },
+        {
+          "claim_id": "c4",
+          "claim_text": "Detect whether README_LAYER2.md and any other filenames require rename handling.",
+          "claim_scope": "current-state",
+          "evidence_class": "verified_in_current_documentation_set",
+          "source_priority": [
+            "CLAUDE.md",
+            "DOCUMENTATION_VERIFICATION_MATRIX_v1.md",
+            "README_LAYER2.md"
+          ],
+          "confidence_level": "high",
+          "classification_rationale": "README_LAYER2.md is explicitly listed as a canonical document in CLAUDE.md Section 2.1 (item 7) and Section 2.2 (role definition). Its filename is hardcoded into the project constitution. Renaming this file would require updating CLAUDE.md Section 2.1, Section 2.2, Section 2.4, and Section 11, as well as all cross-references in the verification matrix and other canonical documents. This is a high-impact governance change with cascading constitutional implications.",
+          "notes": [
+            "CLAUDE.md references 'README_LAYER2.md' by exact filename in at least 6 locations across Sections 2 and 11",
+            "The doc-truth-classification skill references README_LAYER2.md by exact filename in its source priority rules",
+            "Any filename rename creates a break in all existing cross-references, git history links, and workflow configurations",
+            "This is the highest-risk sub-claim in the request due to constitutional-level cascading dependencies"
+          ]
+        },
+        {
+          "claim_id": "c5",
+          "claim_text": "The replacement terms 'truth_store' and 'decision_layer' are valid and non-ambiguous substitutes for 'Layer 2' and 'Layer 3' respectively.",
+          "claim_scope": "unverified",
+          "evidence_class": "cannot_verify_from_current_materials",
+          "source_priority": [
+            "SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md",
+            "SYSTEM_TECHNICAL_HANDBOOK_v1.md",
+            "CLAUDE.md"
+          ],
+          "confidence_level": "low",
+          "classification_rationale": "Neither 'truth_store' nor 'decision_layer' appears in any current canonical document. Their semantic equivalence to the existing 'Layer 2' and 'Layer 3' terms cannot be verified from current materials. 'truth_store' may or may not capture the full scope of Layer 2 (which includes adapters, ingestion, snapshot publication, and the snapshot boundary \u2014 not just storage). 'decision_layer' may or may not capture the full scope of Layer 3 (which includes Feature Builder, Index Suite, Regime Gate, Supervisor Engine, Decision Engine, and DecisionPacket generation \u2014 not just decisions). The adequacy of these replacement terms requires explicit architectural review.",
+          "notes": [
+            "'Layer 2' encompasses ingestion, adapters, snapshot publication, registry, and the snapshot boundary \u2014 'truth_store' may under-represent this scope",
+            "'Layer 3' encompasses computation, feature building, regime analysis, supervision, and decision packaging \u2014 'decision_layer' may under-represent this scope",
+            "The request itself acknowledges this risk by requiring fail-closed behavior on ambiguity",
+            "This claim is implicit in the request but is the most governance-critical classification"
+          ]
+        },
+        {
+          "claim_id": "c6",
+          "claim_text": "The rename must fail closed if it would introduce ambiguity, architecture drift, or snapshot-boundary confusion.",
+          "claim_scope": "current-state",
+          "evidence_class": "verified_in_current_documentation_set",
+          "source_priority": [
+            "CLAUDE.md"
+          ],
+          "confidence_level": "high",
+          "classification_rationale": "Directly aligned with CLAUDE.md Section 7 (Fail-Closed Principle): 'The system MUST default to NO OUTPUT rather than incorrect output.' Also aligned with Section 6 (Snapshot Contract) which establishes the snapshot boundary as non-negotiable. The fail-closed requirement in the request is a restatement of existing constitutional governance.",
+          "notes": []
+        },
+        {
+          "claim_id": "c7",
+          "claim_text": "The refactor affects CLAUDE.md itself, which is the highest-priority interpretive authority.",
+          "claim_scope": "current-state",
+          "evidence_class": "verified_in_current_documentation_set",
+          "source_priority": [
+            "CLAUDE.md"
+          ],
+          "confidence_level": "high",
+          "classification_rationale": "CLAUDE.md declares itself as 'the highest-priority interpretative authority for Claude.' The request explicitly includes CLAUDE.md in the rename scope. Modifying constitutional terminology in the governing document is a meta-governance change \u2014 it changes the language of the rules themselves, not just the governed documents. This has the highest possible governance weight.",
+          "notes": [
+            "This is a self-referential governance change: the constitution is being modified by a process it governs",
+            "All downstream governance workflows, skills, and agent instructions reference 'Layer 2' and 'Layer 3' terminology from CLAUDE.md",
+            "Workflow files, agent definitions, and skill instructions may also contain Layer 2/3 references that need synchronized updates"
+          ]
+        }
+      ],
+      "summary": {
+        "dominant_scope": "current-state",
+        "needs_phase_check": true,
+        "touches_current_truth": true,
+        "touches_target_architecture": true,
+        "touches_historical_reconciliation": true,
+        "touches_verification_matrix": true,
+        "touches_snapshot_contract": true,
+        "possible_blocking_conditions": [
+          "constitutional_terminology_change \u2014 CLAUDE.md itself uses 'Layer 2' and 'Layer 3' as foundational terms; modifying these changes the language of governance enforcement",
+          "canonical_filename_rename \u2014 README_LAYER2.md is a canonical document whose filename is hardcoded in the constitution; renaming cascades across all governance references",
+          "replacement_term_semantic_adequacy_unverified \u2014 'truth_store' and 'decision_layer' are not established in any canonical source and their semantic equivalence to the existing terms cannot be verified from current materials",
+          "code_doc_sync_boundary \u2014 code paths (layer2/, layer2/index_suite.py) use Layer 2 naming; documentation rename without code rename creates a naming schism",
+          "workflow_and_skill_cascade \u2014 governance workflows, agent definitions, and skill instructions reference Layer 2/3 terminology; these must be updated synchronously or the governance system itself becomes inconsistent",
+          "snapshot_contract_terminology_stability \u2014 Section 6 snapshot contract rules use 'Layer 3+' phrasing; rename must preserve the exact semantics of the downstream consumption rule"
+        ]
+      }
+    }
+  }
+}

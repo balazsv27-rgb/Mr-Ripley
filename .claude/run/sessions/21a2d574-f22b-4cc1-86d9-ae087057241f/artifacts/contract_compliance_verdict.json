@@ -1,0 +1,96 @@
+{
+  "artifact": "contract_compliance_verdict",
+  "produced_by": "snapshot-contract-check",
+  "session": "21a2d574-f22b-4cc1-86d9-ae087057241f",
+  "timestamp": "2026-04-26T21:12:18.260732Z",
+  "data": {
+    "produced_by": "snapshot-contract-check",
+    "snapshot_contract_status": {
+      "allowed": false,
+      "contract_status": "ambiguous_requires_block",
+      "valid_interface": "none",
+      "forbidden_access_detected": false,
+      "snapshot_anchor_required": false,
+      "blocking_reason_if_any": "Upstream phase_alignment_status reports snapshot_boundary_risk:true with canonical_conflict_unresolved. Renaming 'Layer-3' to 'decision_layer' in CLAUDE.md and canonical documents introduces ambiguity into the constitutional snapshot contract definition (Section 6 \u2014 non-negotiable). In strict mode, ambiguous contract-scope documentation changes are promoted to blocked per B8/SCC-1. The snapshot boundary cannot be safely redefined while a canonical conflict remains unresolved upstream.",
+      "checked_claims": [
+        {
+          "claim_id": "c1",
+          "claim_text": "Renaming 'Layer-3' to 'decision_layer' across canonical documents including CLAUDE.md Section 6 (snapshot contract definition)",
+          "assessment": "blocked",
+          "violated_invariants": [
+            "SCC-1",
+            "SCC-6"
+          ],
+          "triggered_forbidden_patterns": [
+            "FP-7"
+          ],
+          "valid_interface_if_compliant": "none",
+          "reason": "CLAUDE.md Section 6 is the constitutional snapshot contract definition. Renaming the downstream layer identifier within this definition while role_citation_verdict reports canonical_conflict_unresolved:true introduces ambiguity about whether 'decision_layer' is subject to the same snapshot-only access invariant currently binding Layer-3. The phase_alignment_status explicitly flags snapshot_boundary_risk:true. FP-7 applies: documentation that ambiguously redefines the contract boundary is treated identically to documentation implying forbidden access. Promoted to blocked in strict mode per B8.",
+          "contract_reference": [
+            "SCC-1",
+            "SCC-6",
+            "FP-7",
+            "B7",
+            "B8"
+          ]
+        },
+        {
+          "claim_id": "c2",
+          "claim_text": "Self-referential update to CLAUDE.md under unresolved canonical conflict reported by role_citation_verdict (blocking claim C-02)",
+          "assessment": "blocked",
+          "violated_invariants": [
+            "SCC-1",
+            "SCC-6"
+          ],
+          "triggered_forbidden_patterns": [
+            "FP-7"
+          ],
+          "valid_interface_if_compliant": "none",
+          "reason": "CLAUDE.md is the highest-priority interpretative authority. Modifying it while canonical_conflict_unresolved:true risks embedding ambiguous or incorrect contract scope into the constitutional document \u2014 the same document that makes the snapshot contract non-negotiable. SCC-6: handoff gate satisfaction does not relax any invariant; by parallel logic, a terminology rename does not reset or suspend contract obligations. Any contract definition change under unresolved upstream conflict is ambiguous and promoted to blocked in strict mode.",
+          "contract_reference": [
+            "SCC-1",
+            "SCC-6",
+            "FP-7",
+            "B7",
+            "B8"
+          ]
+        },
+        {
+          "claim_id": "c3",
+          "claim_text": "README_LAYER2.md rename",
+          "assessment": "compliant",
+          "violated_invariants": [],
+          "triggered_forbidden_patterns": [],
+          "valid_interface_if_compliant": "none",
+          "reason": "README_LAYER2.md is Tier 3 authority (collaborator role only; corroboration of Tier 1/2, never standalone contract authority). Its rename does not directly alter snapshot contract invariants or access patterns. Compliant in isolation. Cannot proceed independently while c1 and c2 are blocked \u2014 cross-reference integrity in Tier 1/2 canonical sources would be broken by a Tier 3 rename without coordinated Tier 1/2 updates, which are themselves blocked.",
+          "contract_reference": []
+        },
+        {
+          "claim_id": "c4",
+          "claim_text": "Inherited snapshot_boundary_risk flag from phase_alignment_status upstream (scope_exceeds_current_allowance:true)",
+          "assessment": "blocked",
+          "violated_invariants": [
+            "SCC-1"
+          ],
+          "triggered_forbidden_patterns": [],
+          "valid_interface_if_compliant": "none",
+          "reason": "phase_alignment_status explicitly reports snapshot_boundary_risk:true and scope_exceeds_current_allowance:true. Per fail-closed principle (CLAUDE.md Section 7), upstream risk flags must propagate as blocking until resolved by the originating gate. The snapshot contract cannot be confirmed as intact when the upstream phase gate is blocked with an explicit boundary risk flag. Upstream blocks are inherited and do not require independent re-derivation.",
+          "contract_reference": [
+            "SCC-1",
+            "SCC-6",
+            "B8"
+          ]
+        }
+      ],
+      "summary": {
+        "raw_observations_access_risk": false,
+        "snapshot_bypass_risk": false,
+        "layer2_storage_touch_risk": false,
+        "decisionpacket_anchor_risk": false,
+        "contract_definition_ambiguity_risk": true,
+        "upstream_block_inherited": true,
+        "followup_guard_recommended": true
+      }
+    }
+  }
+}

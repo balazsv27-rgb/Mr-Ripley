@@ -1,0 +1,146 @@
+{
+  "artifact": "claim_classification_map",
+  "produced_by": "classify-claims",
+  "session": "21a2d574-f22b-4cc1-86d9-ae087057241f",
+  "timestamp": "2026-04-26T21:03:38.845798Z",
+  "data": {
+    "produced_by": "classify-claims",
+    "run_id": "21a2d574-f22b-4cc1-86d9-ae087057241f",
+    "request_id": "rename-layer-terms-2026-04-20",
+    "status": "complete",
+    "request_classification": {
+      "request_type": "documentation-wide terminology refactor with governance review",
+      "claims": [
+        {
+          "claim_id": "c1",
+          "claim_text": "Replace 'Layer 2' and 'Layer-2' with 'truth_store' across all documentation where the term refers to the project's architectural layer.",
+          "claim_scope": "current-state",
+          "evidence_class": "verified_in_current_documentation_set",
+          "source_priority": [
+            "SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md",
+            "CLAUDE.md",
+            "SYSTEM_TECHNICAL_HANDBOOK_v1.md",
+            "SYSTEM_IMPLEMENTATION_RECORD_v1.md",
+            "README_LAYER2.md"
+          ],
+          "confidence_level": "high",
+          "classification_rationale": "Layer 2 is documented as operational at the snapshot boundary (CLAUDE.md Section 3.1: 'Layer 2 = operational at snapshot boundary'). It is referenced extensively across the canonical set \u2014 in architecture (SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md), in CLAUDE.md itself (Sections 2, 3, 4), in the technical handbook, and in the implementation record. The term is firmly current-state. Renaming it is a contract-affecting documentation change to current truth.",
+          "notes": [
+            "This rename touches CLAUDE.md itself \u2014 Sections 2.1, 2.2, 3.1, 4 (Phase A), and 15 all reference 'Layer 2'",
+            "Triggers full Section 11 document update obligations across all seven canonical documents",
+            "Must not alter layer2/ code directory names, import paths, or Python module references without separate governance"
+          ]
+        },
+        {
+          "claim_id": "c2",
+          "claim_text": "Replace 'Layer 3' and 'Layer-3' with 'decision_layer' across all documentation where the term refers to the project's architectural layer.",
+          "claim_scope": "current-state",
+          "evidence_class": "verified_in_current_documentation_set",
+          "source_priority": [
+            "SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md",
+            "CLAUDE.md",
+            "SYSTEM_LIMITATIONS_AND_APPROXIMATIONS_v1.md",
+            "SYSTEM_IMPLEMENTATION_RECORD_v1.md"
+          ],
+          "confidence_level": "high",
+          "classification_rationale": "Layer 3 is documented as planned/target architecture (CLAUDE.md Section 3.2: 'NOT YET BUILT'). However, the *documentation* that describes Layer 3 as planned is itself current-state truth. The rename modifies current canonical documents \u2014 their descriptions of target architecture. The act of renaming is a current-state documentation change even though the thing being renamed refers to target-state components. Current docs explicitly describe Layer 3's planned status in multiple locations (Sections 3.2, 4, 10).",
+          "notes": [
+            "Layer 3 references in docs describe target architecture \u2014 the rename must preserve 'not yet built' / 'planned only' semantics",
+            "CLAUDE.md Section 3.2 lists specific planned components (Feature Builder, Index Suite, Regime Gate, etc.) \u2014 these must retain their target-state classification post-rename",
+            "The existing layer2/index_suite.py is explicitly distinguished from the planned Layer-3 Index Suite (CLAUDE.md Section 3.2) \u2014 rename must not collapse this distinction",
+            "Must not introduce any language that could be read as promoting Layer 3 / decision_layer to current implementation"
+          ]
+        },
+        {
+          "claim_id": "c3",
+          "claim_text": "Enforce the rename as a strict naming convention only where terms refer to the project's architectural layers \u2014 do not blindly alter unrelated literals, code module names, or import paths.",
+          "claim_scope": "current-state",
+          "evidence_class": "documented_current_state_claim",
+          "source_priority": [
+            "CLAUDE.md",
+            "SYSTEM_TECHNICAL_HANDBOOK_v1.md"
+          ],
+          "confidence_level": "high",
+          "classification_rationale": "This constraint aligns with CLAUDE.md code conventions (.claude/rules/code-conventions.md: 'explicit imports', 'no hardcoded series logic'), the registry-as-single-source-of-truth rule (Section 8), and the general principle that code paths and import structures are implementation artifacts governed separately from documentation terminology. The request itself correctly scopes the rename to documentation-level architectural terminology.",
+          "notes": [
+            "Code paths like layer2/, layer2/index_suite.py, and any import references must be explicitly excluded or separately governed",
+            "series_registry.json entries must not be altered by this rename",
+            "Snapshot contract fields (snapshot_id, clock_ts, etc.) must not be affected"
+          ]
+        },
+        {
+          "claim_id": "c4",
+          "claim_text": "Do not alter historical references without governance review \u2014 preserve historical context where it exists.",
+          "claim_scope": "current-state",
+          "evidence_class": "verified_in_current_documentation_set",
+          "source_priority": [
+            "CLAUDE.md",
+            "SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md",
+            "README_LAYER2.md"
+          ],
+          "confidence_level": "high",
+          "classification_rationale": "CLAUDE.md Section 2.3 explicitly states: 'Historical documents that are outside the canonical set MUST NOT be used as current truth sources.' This establishes that historical references have a distinct governance status. README_LAYER2.md is known to contain preserved historical context (older DecisionPacket examples, previous Layer-3 framing). Renaming historical references blindly could destroy traceability or misrepresent what was actually documented at earlier points.",
+          "notes": [
+            "README_LAYER2.md may contain historical Layer-3 framing that should be flagged for reconciliation rather than blind rename",
+            "Any preserved older wording must be reviewed for whether the rename applies or whether it should remain as historical artifact with annotation",
+            "touches_historical_reconciliation = true for this claim"
+          ]
+        },
+        {
+          "claim_id": "c5",
+          "claim_text": "Detect whether README_LAYER2.md and any other filenames require rename handling due to the terminology change.",
+          "claim_scope": "current-state",
+          "evidence_class": "verified_in_current_documentation_set",
+          "source_priority": [
+            "CLAUDE.md",
+            "DOCUMENTATION_VERIFICATION_MATRIX_v1.md",
+            "README_LAYER2.md"
+          ],
+          "confidence_level": "high",
+          "classification_rationale": "README_LAYER2.md is explicitly listed in the canonical document set (CLAUDE.md Section 2.1, item 7) and has a defined canonical role (Section 2.2: 'Canonical collaborator guide and living build reference for Layer-2 implementation and operational navigation'). Its filename is hardcoded into CLAUDE.md in multiple sections (2.1, 2.2, 2.4, 11). Renaming this file would require updating CLAUDE.md's canonical document list, conflict resolution rules, document update obligations, and any cross-references in the verification matrix and other canonical documents. This is a high-impact current-state change with cascading update obligations.",
+          "notes": [
+            "CLAUDE.md references README_LAYER2.md by exact filename in Sections 2.1, 2.2, 2.4, and 11",
+            "Renaming the file cascades to: CLAUDE.md canonical list, DOCUMENTATION_VERIFICATION_MATRIX_v1.md cross-references, any other docs that reference it by name",
+            "The filename contains 'LAYER2' which is an architectural layer reference \u2014 it falls within rename scope",
+            "This is a potentially blocking condition: the rename could temporarily break the canonical document set definition if not atomically applied",
+            "Consider whether README_TRUTH_STORE.md or similar is the target filename"
+          ]
+        },
+        {
+          "claim_id": "c6",
+          "claim_text": "Fail closed if the rename would introduce ambiguity, architecture drift, or snapshot-boundary confusion.",
+          "claim_scope": "current-state",
+          "evidence_class": "verified_in_current_documentation_set",
+          "source_priority": [
+            "CLAUDE.md"
+          ],
+          "confidence_level": "high",
+          "classification_rationale": "Directly supported by CLAUDE.md Section 7 (Fail-Closed Principle): 'The system MUST default to NO OUTPUT rather than incorrect output.' Applied to 'invalid states' and 'unverified assumptions.' The request's fail-closed constraint is constitutionally aligned. Architecture drift prevention is supported by Section 3 (current vs target separation) and Section 10 (strong claim discipline). Snapshot-boundary confusion prevention is supported by Section 6 (snapshot contract, non-negotiable).",
+          "notes": [
+            "If the rename from 'Layer 2' to 'truth_store' could blur the snapshot boundary semantics, the change must be blocked",
+            "If 'decision_layer' could be misread as implying Layer 3 is implemented, the change must be blocked",
+            "Ambiguity between the existing layer2/index_suite.py (provisional pre-publication tool) and the planned Layer-3 Index Suite must not be introduced or worsened"
+          ]
+        }
+      ],
+      "summary": {
+        "dominant_scope": "current-state",
+        "needs_phase_check": true,
+        "touches_current_truth": true,
+        "touches_target_architecture": true,
+        "touches_historical_reconciliation": true,
+        "touches_verification_matrix": true,
+        "touches_snapshot_contract": true,
+        "possible_blocking_conditions": [
+          "canonical_filename_rename_cascading_update \u2014 README_LAYER2.md is hardcoded in CLAUDE.md canonical set; renaming it requires atomic updates across CLAUDE.md, verification matrix, and all cross-references",
+          "terminology_promotion_risk \u2014 replacing 'Layer 3' with 'decision_layer' must not introduce language that reads as current implementation rather than planned architecture",
+          "code_documentation_boundary \u2014 layer2/ directory, import paths, and module names must be explicitly excluded or separately governed to prevent code breakage",
+          "historical_reference_preservation \u2014 README_LAYER2.md and potentially other docs contain historical Layer-3 framing that must be reviewed before rename, not blindly transformed",
+          "claude_md_self_referential_update \u2014 CLAUDE.md itself uses 'Layer 2' and 'Layer 3' extensively; updating it changes the constitutional authority document and requires special care",
+          "snapshot_contract_terminology_integrity \u2014 Section 6 snapshot contract language must not be made ambiguous by the rename",
+          "index_suite_disambiguation \u2014 the existing layer2/index_suite.py vs planned Layer-3 Index Suite distinction (CLAUDE.md Section 3.2 parenthetical) must survive the rename without confusion"
+        ]
+      }
+    }
+  }
+}

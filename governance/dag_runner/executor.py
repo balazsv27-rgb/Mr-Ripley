@@ -315,11 +315,12 @@ _STRUCTURAL_KINDS: frozenset[str] = frozenset({
     "constitution", "stage_gates", "hooks",
     "final_gate", "blocking_evaluator", "verification_update",
     "artifact_gate", "predicate_gate", "workflow_step",
+    "subagents",
 })
 
 # Backend-dispatched component kinds — require ExecutionBackend.
 _BACKEND_KINDS: frozenset[str] = frozenset({
-    "skill", "subagents",
+    "skill",
 })
 
 
@@ -418,6 +419,470 @@ def _write_debug_and_update(
         )
 
 
+# ---------------------------------------------------------------------------
+# Deterministic audit synthesis for deep-audit (subagents component)
+# ---------------------------------------------------------------------------
+# Scans upstream artifacts for explicit escalation signals and produces
+# audit_summary without invoking Claude.  This replaces the impossible
+# "live subagent dispatch" contract that the one-shot backend cannot fulfil.
+
+_ESCALATION_BOOL_SIGNALS: tuple[str, ...] = (
+    "source_authority_conflict_detected",
+    "classification_dispute_detected",
+    "boundary_violation_suspected",
+    "raw_observation_access_detected",
+    "registry_violation_detected",
+    "schema_drift_detected",
+    "forbidden_access_detected",
+    "dag_advancement_blocked",
+    "hardcoded_series_detected",
+    "boundary_violation_detected",
+)
+
+_ESCALATION_FALSE_SIGNALS: tuple[str, ...] = (
+    "allowed",
+)
+
+_ESCALATION_STATUS_BLOCK_VALUES: frozenset[str] = frozenset({
+    "fail", "block", "blocked", "review_only",
+})
+
+_ESCALATION_LIST_SIGNALS: tuple[str, ...] = (
+    "blocking_claims",
+    "blocking_claim_ids",
+    "review_only_claims",
+    "review_only_claim_ids",
+)
+
+_ESCALATION_AUDITOR_SIGNALS: tuple[str, ...] = (
+    "requires_snapshot_boundary_auditor",
+    "requires_adapter_schema_guardian",
+    "requires_doc_code_sync_review",
+)
+
+
+def _scan_for_escalation_signals(
+    artifacts: dict[str, dict[str, Any]],
+) -> list[dict[str, Any]]:
+    """Scan upstream artifacts for explicit escalation signals.
+
+    Returns a list of finding dicts with source_artifact, signal, severity, summary.
+    """
+    findings: list[dict[str, Any]] = []
+
+    for art_name, payload in artifacts.items():
+        if not isinstance(payload, dict):
+            continue
+
+        # Boolean signals that indicate escalation when True
+        for sig in _ESCALATION_BOOL_SIGNALS:
+            if payload.get(sig) is True:
+                findings.append({
+                    "source_artifact": art_name,
+                    "signal": sig,
+                    "severity": "blocking" if "violation" in sig or "forbidden" in sig else "review",
+                    "summary": f"{sig} detected in {art_name}",
+                })
+
+        # Boolean signals that indicate escalation when False
+        for sig in _ESCALATION_FALSE_SIGNALS:
+            if payload.get(sig) is False:
+                findings.append({
+                    "source_artifact": art_name,
+                    "signal": f"{sig}=false",
+                    "severity": "blocking",
+                    "summary": f"{art_name} reports {sig}=false (blocked)",
+                })
+
+        # Status fields indicating block/fail
+        for status_key in ("overall_status", "contract_status", "alignment_status"):
+            val = payload.get(status_key)
+            if isinstance(val, str) and val.lower() in _ESCALATION_STATUS_BLOCK_VALUES:
+                findings.append({
+                    "source_artifact": art_name,
+                    "signal": f"{status_key}={val}",
+                    "severity": "blocking" if val.lower() in ("fail", "block", "blocked") else "review",
+                    "summary": f"{art_name} reports {status_key}={val}",
+                })
+
+        # Non-empty list signals
+        for sig in _ESCALATION_LIST_SIGNALS:
+            val = payload.get(sig)
+            if isinstance(val, list) and len(val) > 0:
+                findings.append({
+                    "source_artifact": art_name,
+                    "signal": sig,
+                    "severity": "blocking" if "blocking" in sig else "review",
+                    "summary": f"{art_name} has {len(val)} entries in {sig}",
+                })
+
+        # Auditor requirement flags
+        for sig in _ESCALATION_AUDITOR_SIGNALS:
+            if payload.get(sig) is True:
+                findings.append({
+                    "source_artifact": art_name,
+                    "signal": sig,
+                    "severity": "review",
+                    "summary": f"{sig} flagged in {art_name}",
+                })
+
+    return findings
+
+
+def _synthesize_audit_summary(
+    step: WorkflowStep,
+    run_state: GovernanceRunState,
+) -> dict[str, Any]:
+    """Produce a deterministic audit_summary from upstream artifact signals.
+
+    Scans all available upstream artifacts for escalation signals and
+    synthesizes a compact audit_summary without invoking an LLM.
+    """
+    # Gather upstream artifacts referenced by this step's inputs
+    input_names: list[str] = []
+    raw_inputs = step.raw.get("inputs", []) or []
+    if isinstance(raw_inputs, list):
+        input_names.extend(str(i) for i in raw_inputs)
+
+    upstream: dict[str, dict[str, Any]] = {}
+    for name in input_names:
+        artifact = run_state.artifacts.get(name)
+        if artifact is not None and artifact.status == "present":
+            upstream[name] = artifact.payload
+
+    # Scan for escalation signals
+    findings = _scan_for_escalation_signals(upstream)
+    # Cap at 10
+    findings = findings[:10]
+
+    blocking_count = sum(1 for f in findings if f["severity"] == "blocking")
+    review_count = sum(1 for f in findings if f["severity"] == "review")
+
+    if not findings:
+        return {
+            "produced_by": "deep-audit",
+            "audit_action": "no_audit_required",
+            "overall_audit_status": "pass",
+            "fail_closed_applied": False,
+            "dag_advancement_blocked": False,
+            "dispatched_subagents": [],
+            "blocking_violations_count": 0,
+            "review_required_violations_count": 0,
+            "unresolved_violations_count": 0,
+            "findings": [],
+            "audit_resolution_required": [],
+            "notes": ["No escalation signals detected in upstream artifacts."],
+        }
+
+    # Determine audit action and status
+    if blocking_count > 0:
+        audit_action = "blocked"
+        overall_status = "blocked"
+        dag_blocked = True
+    elif review_count > 0:
+        audit_action = "synthesize_from_signals"
+        overall_status = "review_only"
+        dag_blocked = False
+    else:
+        audit_action = "synthesize_from_signals"
+        overall_status = "pass"
+        dag_blocked = False
+
+    return {
+        "produced_by": "deep-audit",
+        "audit_action": audit_action,
+        "overall_audit_status": overall_status,
+        "fail_closed_applied": dag_blocked,
+        "dag_advancement_blocked": dag_blocked,
+        "dispatched_subagents": [],
+        "blocking_violations_count": blocking_count,
+        "review_required_violations_count": review_count,
+        "unresolved_violations_count": blocking_count + review_count,
+        "findings": findings,
+        "audit_resolution_required": [
+            f["summary"] for f in findings if f["severity"] == "blocking"
+        ][:10],
+        "notes": [
+            f"Deterministic synthesis from {len(upstream)} upstream artifacts.",
+            f"Detected {len(findings)} escalation signal(s).",
+        ],
+    }
+
+
+def _synthesize_doc_code_sync_status(
+    step: WorkflowStep,
+    run_state: GovernanceRunState,
+) -> dict[str, Any]:
+    """Produce a deterministic doc_code_sync_status from upstream artifacts.
+
+    Synthesizes the sync verdict from ``change_impact_report`` and
+    ``doc_update_plan`` without invoking an LLM.  Decision rules are
+    applied in priority order A–E (see inline comments).
+    """
+    _CAP = 10  # array cap for all list fields
+
+    # --- Gather upstream artifacts ---
+    cir_record = run_state.artifacts.get("change_impact_report")
+    dup_record = run_state.artifacts.get("doc_update_plan")
+
+    cir_raw: dict[str, Any] = (
+        cir_record.payload if cir_record and cir_record.status == "present" else {}
+    )
+    dup_raw: dict[str, Any] = (
+        dup_record.payload if dup_record and dup_record.status == "present" else {}
+    )
+
+    # --- Unwrap nested schemas ---
+    cir = cir_raw.get("change_impact_summary", cir_raw)
+    dup = dup_raw.get("doc_update_plan", dup_raw)
+
+    # --- Extract fields ---
+    change_mode = cir.get("change_mode")
+    impact_type = cir.get("impact_type")
+    contributing_categories = cir.get("contributing_categories")
+    impacted_components = cir.get("impacted_components")
+    impacted_docs_raw = cir.get("impacted_docs") or cir.get("canonical_docs_impacted") or []
+    affected_paths = cir.get("affected_paths") or cir.get("impacted_code_paths") or []
+    follow_up_cir = cir.get("follow_up_required")
+    risk_summary = cir.get("risk_summary")
+    doc_only_change = cir.get("doc_only_change", False)
+    code_path_governance_required = cir.get("code_path_governance_required", False)
+    verification_update_required = cir.get("verification_update_required", False)
+    blocked_change = cir.get("blocked_change", False)
+
+    plan_status = dup.get("plan_status")
+    required_updates = dup.get("required_updates") or []
+    verification_actions = dup.get("verification_actions") or []
+    rename_controls = dup.get("rename_controls")
+    code_path_governance = dup.get("code_path_governance")
+    resolution_prerequisites = dup.get("resolution_prerequisites") or []
+
+    # --- Build result skeleton ---
+    result: dict[str, Any] = {
+        "produced_by": "doc-code-sync-check",
+        "overall_status": "in_sync",
+        "sync_status": "in_sync",
+        "drift_detected": False,
+        "docs_changed_without_code": False,
+        "code_changed_without_docs": False,
+        "doc_code_alignment_status": "aligned",
+        "follow_up_required": "none",
+        "verification_matrix_update_required": False,
+        "verification_ledger_update_required": False,
+        "impacted_docs": [],
+        "impacted_code_paths": [],
+        "required_actions": [],
+        "blocking_reasons": [],
+        "inference_used": False,
+        "notes": [],
+    }
+
+    # --- Fail-closed: missing/ambiguous upstream artifacts ---
+    has_cir = bool(cir_raw) and ("impact_type" in cir or "change_mode" in cir)
+    has_dup = bool(dup_raw) and ("plan_status" in dup or "required_updates" in dup)
+    if not has_cir and not has_dup:
+        result["overall_status"] = "review_only"
+        result["sync_status"] = "review_only"
+        result["doc_code_alignment_status"] = "review_required"
+        result["follow_up_required"] = "advisory"
+        result["inference_used"] = True
+        result["notes"].append(
+            "Upstream artifacts missing or ambiguous — fail-closed to review_only."
+        )
+        return result
+
+    # --- Populate impacted docs and code paths ---
+    if isinstance(impacted_docs_raw, list):
+        result["impacted_docs"] = impacted_docs_raw[:_CAP]
+    if isinstance(affected_paths, list):
+        result["impacted_code_paths"] = affected_paths[:_CAP]
+
+    # --- Rule A: Blocked change ---
+    blocking_reasons: list[str] = []
+    is_blocked = False
+    if blocked_change:
+        blocking_reasons.append("change_impact_report indicates blocked_change=true")
+        is_blocked = True
+    if plan_status and str(plan_status).lower() == "blocked":
+        blocking_reasons.append("doc_update_plan.plan_status is blocked")
+        is_blocked = True
+    for rp in resolution_prerequisites[:_CAP]:
+        rp_str = str(rp) if not isinstance(rp, str) else rp
+        if any(kw in rp_str.lower() for kw in ("blocked", "blocking", "prerequisite")):
+            blocking_reasons.append(f"resolution prerequisite: {rp_str[:200]}")
+            is_blocked = True
+
+    if is_blocked:
+        result["overall_status"] = "blocked"
+        result["sync_status"] = "blocked"
+        result["doc_code_alignment_status"] = "blocked"
+        result["drift_detected"] = True
+        result["follow_up_required"] = "mandatory"
+        result["blocking_reasons"] = blocking_reasons[:_CAP]
+        # Determine verification update needs from verification_actions
+        _vm_needed, _vl_needed = _check_verification_targets(verification_actions)
+        if _vm_needed or _vl_needed:
+            result["verification_matrix_update_required"] = _vm_needed
+            result["verification_ledger_update_required"] = _vl_needed
+        else:
+            # Block affects verification docs — default to true
+            result["verification_matrix_update_required"] = True
+            result["verification_ledger_update_required"] = True
+        result["notes"].append("Blocked change detected in upstream artifacts.")
+        _populate_required_actions(result, required_updates, verification_actions, _CAP)
+        return result
+
+    # --- Rule B: doc_update_plan contains required updates or verification actions ---
+    if required_updates or verification_actions:
+        _vm_needed, _vl_needed = _check_verification_targets(verification_actions)
+        result["verification_matrix_update_required"] = _vm_needed
+        result["verification_ledger_update_required"] = _vl_needed
+
+        # Determine follow-up urgency
+        has_mandatory = any(
+            (isinstance(u, dict) and (
+                str(u.get("priority", "")).lower() in ("critical", "high")
+                or str(u.get("action", "")).lower() == "update"
+            ))
+            for u in required_updates
+        )
+        if has_mandatory:
+            result["follow_up_required"] = "mandatory"
+        else:
+            result["follow_up_required"] = "advisory"
+
+        result["overall_status"] = "review_only"
+        result["sync_status"] = "review_only"
+        result["doc_code_alignment_status"] = "review_required"
+        _populate_required_actions(result, required_updates, verification_actions, _CAP)
+        result["notes"].append(
+            f"{len(required_updates)} required update(s), "
+            f"{len(verification_actions)} verification action(s) from doc_update_plan."
+        )
+
+    # --- Rule C: Doc-only change ---
+    if doc_only_change:
+        result["docs_changed_without_code"] = True
+        # Drift only if making current-state/runtime claims without supporting code
+        _has_runtime_claims = _doc_only_has_runtime_claims(cir, contributing_categories)
+        if _has_runtime_claims:
+            result["drift_detected"] = True
+            result["overall_status"] = "review_only"
+            result["sync_status"] = "review_only"
+            result["doc_code_alignment_status"] = "review_required"
+            result["follow_up_required"] = "mandatory"
+            result["notes"].append(
+                "Doc-only change makes current-state/runtime claims without code evidence."
+            )
+        else:
+            # Doc-only, no runtime claims — status stays as-is or review_only
+            if result["overall_status"] == "in_sync":
+                result["overall_status"] = "review_only"
+                result["sync_status"] = "review_only"
+                result["doc_code_alignment_status"] = "review_required"
+            result["notes"].append(
+                "Doc-only change — no runtime claims detected."
+            )
+
+    # --- Rule D: Code/runtime change without docs ---
+    if code_path_governance_required and not doc_only_change:
+        result["code_changed_without_docs"] = True
+        result["drift_detected"] = True
+        result["follow_up_required"] = "mandatory"
+        if result["overall_status"] not in ("blocked",):
+            result["overall_status"] = "out_of_sync"
+            result["sync_status"] = "out_of_sync"
+            result["doc_code_alignment_status"] = "misaligned"
+        result["notes"].append(
+            "Code/runtime change detected without corresponding documentation update."
+        )
+
+    # --- Rule E: No drift or update signals (default in_sync is already set) ---
+    # If we haven't changed from the defaults, we stay at in_sync.
+
+    # Cap all arrays
+    result["impacted_docs"] = result["impacted_docs"][:_CAP]
+    result["impacted_code_paths"] = result["impacted_code_paths"][:_CAP]
+    result["required_actions"] = result["required_actions"][:_CAP]
+    result["blocking_reasons"] = result["blocking_reasons"][:_CAP]
+    result["notes"] = result["notes"][:_CAP]
+
+    return result
+
+
+def _check_verification_targets(
+    verification_actions: list[Any],
+) -> tuple[bool, bool]:
+    """Check if verification actions target the matrix or ledger.
+
+    Returns ``(matrix_needed, ledger_needed)``.
+    """
+    vm = False
+    vl = False
+    for action in verification_actions:
+        if not isinstance(action, dict):
+            continue
+        artifact = str(action.get("artifact", "")).lower()
+        act = str(action.get("action", "")).lower()
+        if any(k in artifact for k in (
+            "documentation_verification_matrix", "verification_matrix",
+        )):
+            vm = True
+        if any(k in artifact for k in (
+            "verification_ledger",
+        )):
+            vl = True
+    return vm, vl
+
+
+def _populate_required_actions(
+    result: dict[str, Any],
+    required_updates: list[Any],
+    verification_actions: list[Any],
+    cap: int,
+) -> None:
+    """Populate result['required_actions'] from updates and verification actions."""
+    actions: list[dict[str, Any]] = []
+    for u in required_updates:
+        if isinstance(u, dict):
+            compact: dict[str, Any] = {}
+            if "artifact" in u:
+                compact["artifact"] = u["artifact"]
+            if "update_type" in u:
+                compact["action"] = u["update_type"]
+            if "priority" in u:
+                compact["priority"] = u["priority"]
+            if compact:
+                actions.append(compact)
+    for va in verification_actions:
+        if isinstance(va, dict):
+            compact = {}
+            if "artifact" in va:
+                compact["artifact"] = va["artifact"]
+            if "action" in va:
+                compact["action"] = va["action"]
+            if compact:
+                actions.append(compact)
+    result["required_actions"] = actions[:cap]
+
+
+def _doc_only_has_runtime_claims(
+    cir: dict[str, Any],
+    contributing_categories: Any,
+) -> bool:
+    """Return True if a doc-only change makes current-state/runtime claims."""
+    # Check contributing categories for runtime/implementation evidence
+    if isinstance(contributing_categories, list):
+        runtime_cats = {"implementation", "runtime", "code", "current_state"}
+        if any(str(c).lower() in runtime_cats for c in contributing_categories):
+            return True
+    # Check impact_type for runtime indicators
+    impact = str(cir.get("impact_type", "")).lower()
+    if impact in ("runtime", "implementation", "code_change"):
+        return True
+    return False
+
+
 def _execute_v2_step(
     step: WorkflowStep,
     run_state: GovernanceRunState,
@@ -434,6 +899,7 @@ def _execute_v2_step(
     Routes by component kind:
     - structural kinds → ``backend.execute_structural_step()``
     - skill / subagents → resolve agent, assemble prompt, ``backend.execute_step()``
+    - doc-code-sync-check → deterministic synthesis (no LLM)
 
     In dry-run mode, prompt is assembled for diagnostics but backend is not invoked.
     """
@@ -490,6 +956,8 @@ def _execute_v2_step(
     # Track prompt context and composition metadata for timeout diagnostics
     prompt_ctx = None
     prompt_composition = None
+    # Track whether this step was executed via deterministic synthesis
+    _deterministic_synthesis = False
 
     # R3-D: backend_invocation_started trace event
     _append_trace(
@@ -499,7 +967,36 @@ def _execute_v2_step(
         detail={"component_kind": kind, "backend": type(backend).__name__},
     )
 
-    if _is_structural_step(step.component):
+    # Deterministic synthesis for doc-code-sync-check — bypass LLM backend.
+    # This step aggregates upstream artifacts (change_impact_report, doc_update_plan)
+    # into a sync verdict; it does not need to inspect files or code.
+    if step.name == "doc-code-sync-check" and "doc_code_sync_status" in step.outputs:
+        sync_payload = _synthesize_doc_code_sync_status(step, run_state)
+        bootstrap_payload = {"doc_code_sync_status": sync_payload}
+        result = backend.execute_structural_step(
+            step=step,
+            component_kind="workflow_step",  # structural kind
+            run_state=run_state,
+            spec=spec,
+            bootstrap_payload=bootstrap_payload,
+        )
+        _deterministic_synthesis = True
+        # Record as completed structural step in trace
+        _append_trace(
+            run_state,
+            node_name=step.name,
+            event_type="deterministic_synthesis",
+            detail={
+                "synthesized_artifact": "doc_code_sync_status",
+                "overall_status": sync_payload.get("overall_status"),
+                "drift_detected": sync_payload.get("drift_detected"),
+                "inference_used": sync_payload.get("inference_used"),
+            },
+        )
+        # Skip to the common post-dispatch logic (artifact recording, etc.)
+        # by falling through — result is set, subsequent code handles it.
+
+    elif _is_structural_step(step.component):
         # Build bootstrap payload for load-context step
         bootstrap_payload: dict[str, dict[str, Any]] | None = None
         if step.name == "load-context" and "governance_context" in step.outputs:
@@ -507,6 +1004,11 @@ def _execute_v2_step(
                 run_state, config, run_state.current_phase or "",
             )
             bootstrap_payload = {"governance_context": ctx_payload}
+
+        # Deterministic audit synthesis for subagents (deep-audit)
+        if kind == "subagents" and "audit_summary" in step.outputs:
+            audit_payload = _synthesize_audit_summary(step, run_state)
+            bootstrap_payload = {"audit_summary": audit_payload}
 
         result = backend.execute_structural_step(
             step=step,
@@ -698,7 +1200,7 @@ def _execute_v2_step(
                     evidence=schema_evidence,
                     produced_artifacts=[],
                     triggered_blocks=list(step.raises),
-                    inference_used=kind in _BACKEND_KINDS,
+                    inference_used=(kind in _BACKEND_KINDS and not _deterministic_synthesis),
                     latency_ms=result.latency_ms,
                     token_count=result.token_count,
                     failure_detail=schema_fd,
@@ -831,7 +1333,7 @@ def _execute_v2_step(
                 evidence=evidence,
                 produced_artifacts=produced,
                 triggered_blocks=list(step.raises),
-                inference_used=kind in _BACKEND_KINDS,
+                inference_used=(kind in _BACKEND_KINDS and not _deterministic_synthesis),
                 latency_ms=result.latency_ms,
                 token_count=result.token_count,
                 failure_detail=fd,
@@ -846,7 +1348,7 @@ def _execute_v2_step(
             evidence=[f"component_kind={kind}", f"backend={type(backend).__name__}"],
             produced_artifacts=list(result.artifacts_produced.keys()),
             triggered_blocks=list(step.raises),
-            inference_used=kind in _BACKEND_KINDS,
+            inference_used=(kind in _BACKEND_KINDS and not _deterministic_synthesis),
             latency_ms=result.latency_ms,
             token_count=result.token_count,
         )
@@ -962,7 +1464,7 @@ def _execute_v2_step(
         evidence=[f"component_kind={kind}", f"backend={type(backend).__name__}"],
         produced_artifacts=list(result.artifacts_produced.keys()),
         triggered_blocks=list(step.raises),
-        inference_used=kind in _BACKEND_KINDS,
+        inference_used=(kind in _BACKEND_KINDS and not _deterministic_synthesis),
         latency_ms=result.latency_ms,
         token_count=result.token_count,
         failure_detail=fd,

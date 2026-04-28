@@ -1,0 +1,9 @@
+{
+  "artifact": "claim_classification_map",
+  "produced_by": "classify-claims",
+  "session": "38006ca0-8d31-49a6-99ea-a98204e0f346",
+  "timestamp": "2026-04-27T00:57:40.518029Z",
+  "data": {
+    "produced_by": "classify-claims"
+  }
+}

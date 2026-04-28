@@ -1,0 +1,89 @@
+{
+  "artifact": "phase_alignment_status",
+  "produced_by": "phase-check",
+  "session": "ec0a158b-5213-43e0-8c53-438696921ac3",
+  "timestamp": "2026-04-27T21:37:24.640555Z",
+  "data": {
+    "produced_by": "phase-check",
+    "current_phase": "Phase A (complete at contract boundary); Phase B (allowed, not completed)",
+    "requested_phase": "inferred:Phase B / governance-maintenance",
+    "allowed": false,
+    "alignment_status": "ambiguous_requires_block",
+    "gate_reference": [
+      "phase_a_layer2_closure",
+      "phase_b_layer3_bootstrap"
+    ],
+    "blocking_reason_if_any": "role_mismatch_detected_upstream; terminology_equivalence_unverified (truth_store_vs_layer2, decision_layer_vs_layer3); canonical_document_rename_would_break_registry; claude_md_self_referential_rename_is_constitutional_change_exceeding_phase_b_scope; unverified_claim_c6_fails_closed; contract_affecting_change_without_full_canonical_review",
+    "checked_claims": [
+      {
+        "claim_id": "c1",
+        "claim_text": "Current-state documentation claim (exact text not supplied by upstream)",
+        "effective_capability": "Documentation assertion about current system state",
+        "phase_assessment": "ambiguous",
+        "gate_reference": [
+          "phase_a_layer2_closure"
+        ],
+        "reason": "Classified current-state but upstream role_citation_verdict detected role mismatch across the claim set; cannot be cleared without role-matched canonical verification and doc-sync resolution"
+      },
+      {
+        "claim_id": "c2",
+        "claim_text": "Target-state claim (exact text not supplied by upstream)",
+        "effective_capability": "Target architecture reference mixed into documentation context alongside current-state claims",
+        "phase_assessment": "ambiguous",
+        "gate_reference": [
+          "phase_b_layer3_bootstrap",
+          "phase_c_layer3_structured_buildout"
+        ],
+        "reason": "Target-state claim co-located with current-state claims without clean separation; possible_blocking_conditions include decision_layer vs layer3 terminology risk, which could imply Layer-3 framing before Phase B bootstrap is confirmed complete \u2014 implicit phase promotion risk detected"
+      },
+      {
+        "claim_id": "c3",
+        "claim_text": "Current-state documentation claim (exact text not supplied by upstream)",
+        "effective_capability": "Documentation assertion about current system state",
+        "phase_assessment": "ambiguous",
+        "gate_reference": [
+          "phase_a_layer2_closure"
+        ],
+        "reason": "Current-state but subject to unresolved terminology equivalence flags propagated from upstream classification; cannot be confirmed phase-compatible without canonical source trace"
+      },
+      {
+        "claim_id": "c4",
+        "claim_text": "Current-state documentation claim (exact text not supplied by upstream)",
+        "effective_capability": "Documentation assertion about current system state",
+        "phase_assessment": "ambiguous",
+        "gate_reference": [
+          "phase_a_layer2_closure"
+        ],
+        "reason": "Current-state but part of a claim set with detected role mismatch; pending canonical doc-sync before any current-state assertion in this batch can be cleared"
+      },
+      {
+        "claim_id": "c5",
+        "claim_text": "Current-state documentation claim (exact text not supplied by upstream)",
+        "effective_capability": "Documentation assertion about current system state",
+        "phase_assessment": "ambiguous",
+        "gate_reference": [
+          "phase_a_layer2_closure"
+        ],
+        "reason": "Current-state but role mismatch propagated from upstream verdict contaminates the full claim batch; doc-sync escalation required before individual claims can be evaluated in isolation"
+      },
+      {
+        "claim_id": "c6",
+        "claim_text": "Unverified claim (exact text not supplied by upstream)",
+        "effective_capability": "Unverifiable documentation or state assertion",
+        "phase_assessment": "blocked",
+        "gate_reference": [
+          "phase_a_layer2_closure"
+        ],
+        "reason": "Classified unverified by upstream; fail-closed principle (CLAUDE.md Section 7) requires block; no canonical source trace available; cannot be phase-aligned without traceable proof per Section 5.2"
+      }
+    ],
+    "summary": {
+      "phase_jump_detected": true,
+      "live_readiness_implication_detected": false,
+      "scope_exceeds_current_allowance": true,
+      "snapshot_boundary_risk": false,
+      "followup_audit_recommended": true,
+      "recommended_next_step": "Route to doc-sync escalation (flagged by role_citation_verdict.requires_doc_sync_escalation=true) to resolve role mismatch before any claims are re-evaluated; isolate c2 target-state claim from current-state context and label explicitly as planned/target; provide canonical source trace for c6 or remove the claim; audit whether 'decision_layer' and 'truth_store' terminology maps to Layer-3 and Layer-2 respectively without implying those layers are further along than Phase B bootstrap; canonical document rename and CLAUDE.md constitutional amendment require full Section 11 document-update obligation review before proceeding"
+    }
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "artifact": "doc_code_sync_status",
+  "produced_by": "doc-code-sync-check",
+  "session": "9164c8b5-59a1-4cb4-9416-df44076b0efb",
+  "timestamp": "2026-04-27T21:04:42.044011Z",
+  "data": {
+    "produced_by": "doc-code-sync-check",
+    "overall_status": "review_only",
+    "sync_status": "review_only",
+    "drift_detected": false,
+    "docs_changed_without_code": false,
+    "code_changed_without_docs": false,
+    "doc_code_alignment_status": "review_required",
+    "follow_up_required": "advisory",
+    "verification_matrix_update_required": false,
+    "verification_ledger_update_required": false,
+    "impacted_docs": [],
+    "impacted_code_paths": [],
+    "required_actions": [],
+    "blocking_reasons": [],
+    "inference_used": true,
+    "notes": [
+      "Upstream artifacts missing or ambiguous \u2014 fail-closed to review_only."
+    ]
+  }
+}

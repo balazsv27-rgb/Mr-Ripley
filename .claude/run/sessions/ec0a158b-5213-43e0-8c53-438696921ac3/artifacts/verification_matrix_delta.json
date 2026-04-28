@@ -1,0 +1,141 @@
+{
+  "artifact": "verification_matrix_delta",
+  "produced_by": "update-verification-matrix",
+  "session": "ec0a158b-5213-43e0-8c53-438696921ac3",
+  "timestamp": "2026-04-27T21:45:32.770875Z",
+  "data": {
+    "produced_by": "update-verification-matrix",
+    "matrix_action": "update",
+    "classification_dispute_detected": false,
+    "runtime_status_upgrade_blocked": false,
+    "source_authority_conflict_detected": true,
+    "affected_entries": [
+      {
+        "entry_id": "s8-truth-store-terminology",
+        "section": "Section 8 \u2014 Document Role Classification",
+        "claim_or_topic": "'truth_store' used as architectural label equivalent to 'Layer 2'",
+        "change_type": "add_new_entry",
+        "reason": "role_citation_verdict C3 (surfaced via change_impact_report) flags 'truth_store' as having no canonical backing in any Tier 1 document. The term is used as an alias for 'Layer 2' but does not appear in README_v1.md, SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md, SYSTEM_TECHNICAL_HANDBOOK_v1.md, or SYSTEM_IMPLEMENTATION_RECORD_v1.md. change_impact_report explicitly notes semantic precision loss risk: 'truth_store' may imply storage-only and drop ingestion, publication, and snapshot-boundary semantics that 'Layer 2' currently carries. DR-5 applies: source authority conflict prevents any settled classification; new entry must record unverified status.",
+        "source_documents": [
+          "change_impact_report",
+          "audit_summary"
+        ],
+        "proposed_old_state": null,
+        "proposed_new_state": "Cannot verify from current materials",
+        "confidence": "high"
+      },
+      {
+        "entry_id": "s5-decision-layer-terminology",
+        "section": "Section 5 \u2014 Future / Target Architecture Items",
+        "claim_or_topic": "'decision_layer' used as architectural label",
+        "change_type": "add_new_entry",
+        "reason": "role_citation_verdict C4 (surfaced via change_impact_report) flags 'decision_layer' as having no canonical backing. While CLAUDE.md \u00a73.2 references a planned 'Decision Engine' as a target-state component (Phase C/D), the specific label 'decision_layer' is not established in any Tier 1 canonical document. Cannot be classified higher than 'Cannot verify from current materials' without explicit Tier 1 registration. DR-3 applies: upgrading requires all Tier 1 docs consistent; no single doc suffices.",
+        "source_documents": [
+          "change_impact_report",
+          "audit_summary"
+        ],
+        "proposed_old_state": null,
+        "proposed_new_state": "Cannot verify from current materials",
+        "confidence": "high"
+      },
+      {
+        "entry_id": "s4-phase-gate-alignment",
+        "section": "Section 4 \u2014 Current Known Open Items",
+        "claim_or_topic": "Phase gate enforcement and phase advancement control",
+        "change_type": "status_review",
+        "reason": "phase_alignment_status (surfaced via audit_summary) reports allowed=false, alignment_status=ambiguous_requires_block, phase_jump_detected=true, scope_exceeds_current_allowance=true. Existing matrix entries covering phase-gate enforcement and advancement sequencing require manual review to confirm their classification posture remains accurate under the blocked and ambiguous phase state. DR-8 applies: fail closed on ambiguous direction \u2014 no automatic reclassification, status_review only.",
+        "source_documents": [
+          "audit_summary",
+          "change_impact_report"
+        ],
+        "proposed_old_state": null,
+        "proposed_new_state": null,
+        "confidence": "high"
+      },
+      {
+        "entry_id": "s3-runtime-boundary-snapshot-contract",
+        "section": "Section 3 \u2014 Current Layer-2 Contract Items",
+        "claim_or_topic": "Runtime boundary and snapshot contract enforcement",
+        "change_type": "contradiction_note",
+        "reason": "runtime_boundary_verdict reports boundary_violation_suspected (propagated via audit_summary with severity=blocking). Per DR-2, blocked guard attempts flow into contradiction check only \u2014 not into classification updates. The snapshot contract enforcement entry cannot be upgraded; the suspected violation must be recorded as an unresolved contradiction pending explicit remediation and re-audit. fail_closed_applied=true in audit_summary confirms no forward movement is permitted.",
+        "source_documents": [
+          "audit_summary",
+          "change_impact_report"
+        ],
+        "proposed_old_state": null,
+        "proposed_new_state": null,
+        "confidence": "high"
+      },
+      {
+        "entry_id": "s3-scope-boundary-architectural-labels",
+        "section": "Section 3 \u2014 Current Layer-2 Contract Items",
+        "claim_or_topic": "Scope boundary alignment between architectural labels and code paths",
+        "change_type": "status_review",
+        "reason": "role_citation_verdict C5 (surfaced via change_impact_report) flags scope boundary ambiguity between architectural labels and code paths. This intersects with the Layer-2 contract boundary definitions tracked in Section 3. DR-8 applies: ambiguous direction requires fail-closed posture. Manual review required before any reclassification of boundary-related Section 3 entries.",
+        "source_documents": [
+          "change_impact_report"
+        ],
+        "proposed_old_state": null,
+        "proposed_new_state": null,
+        "confidence": "medium"
+      },
+      {
+        "entry_id": "s8-canonical-document-role-sweep",
+        "section": "Section 8 \u2014 Document Role Classification",
+        "claim_or_topic": "Canonical document role assignments \u2014 full set",
+        "change_type": "status_review",
+        "reason": "doc_code_sync_status reports verification_matrix_update_required=true and flags all canonical Tier 1 documents (README_v1.md, SYSTEM_TECHNICAL_HANDBOOK_v1.md, SYSTEM_LIMITATIONS_AND_APPROXIMATIONS_v1.md, SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md, DOCUMENTATION_VERIFICATION_MATRIX_v1.md, SYSTEM_IMPLEMENTATION_RECORD_v1.md, README_LAYER2.md) as impacted with follow_up_required=mandatory. Section 8 role assignments should be confirmed stable before the next governance cycle closes. Four required_actions are flagged at high or medium priority in doc_code_sync_status.",
+        "source_documents": [
+          "doc_code_sync_status",
+          "change_impact_report"
+        ],
+        "proposed_old_state": null,
+        "proposed_new_state": null,
+        "confidence": "medium"
+      }
+    ],
+    "unresolved_conflicts": [
+      {
+        "conflict_id": "UC-1",
+        "description": "'truth_store' cited as equivalent to 'Layer 2' in governance artifacts without canonical backing in any Tier 1 document. Semantic precision loss risk documented in change_impact_report.",
+        "source_authority_rule": "DR-5 \u2014 source authority conflict prevents settled classification update. DR-6 \u2014 README_LAYER2 authority conflict must be reported if README_LAYER2 is cited as canonical source for this equivalence.",
+        "affected_entries": [
+          "s8-truth-store-terminology"
+        ]
+      },
+      {
+        "conflict_id": "UC-2",
+        "description": "runtime_boundary_verdict reports boundary_violation_suspected; snapshot contract classification cannot be settled while violation is unresolved. audit_summary confirms fail_closed_applied=true.",
+        "source_authority_rule": "DR-2 \u2014 blocked guard attempts flow into contradiction check only, not classification updates.",
+        "affected_entries": [
+          "s3-runtime-boundary-snapshot-contract"
+        ]
+      },
+      {
+        "conflict_id": "UC-3",
+        "description": "phase_alignment_status reports phase_jump_detected=true and scope_exceeds_current_allowance=true with allowed=false. Phase gate entries cannot be reclassified while phase alignment is ambiguous and blocked.",
+        "source_authority_rule": "DR-8 \u2014 fail closed on ambiguous direction, default to status_review.",
+        "affected_entries": [
+          "s4-phase-gate-alignment"
+        ]
+      }
+    ],
+    "required_follow_up": [
+      "Resolve runtime_boundary_verdict boundary_violation_suspected before any Section 3 classification upgrades.",
+      "Resolve phase_alignment_status blocked state (phase_jump_detected=true, scope_exceeds_current_allowance=true) before any Section 4 phase-gate classification changes.",
+      "Establish canonical Tier 1 backing for 'truth_store' or remove the term from all governance artifacts and replace with 'Layer 2'.",
+      "Establish canonical Tier 1 backing for 'decision_layer' or align with existing 'Decision Engine' terminology from CLAUDE.md \u00a73.2.",
+      "Confirm C5 scope boundary resolution (architectural labels vs. code paths) before settling Section 3 entry states.",
+      "Perform manual Section 8 role review after all canonical document reviews complete per doc_code_sync_status required_actions (4 actions, 3 at high priority)."
+    ],
+    "inference_used": true,
+    "notes": [
+      "DOCUMENTATION_VERIFICATION_MATRIX_v1.md could not be read directly in this execution context; all affected entry IDs are provisional and must be reconciled against actual matrix section headings during the review phase.",
+      "All classification decisions are conservative per DR-8 (fail closed on ambiguous direction).",
+      "runtime_status_upgrade_blocked=false because no runtime status upgrade is proposed in this delta; all proposed changes are add_new_entry, status_review, or contradiction_note.",
+      "source_authority_conflict_detected=true due to 'truth_store' citation without Tier 1 canonical backing, triggering DR-5 and DR-6.",
+      "audit_summary overall_audit_status=blocked with fail_closed_applied=true and dag_advancement_blocked=true. This matrix update is informational and records current governance state. It does NOT clear any blocking violation.",
+      "matrix_action=update (not review_only) because MU-3 (contradiction_note) and MU-5 (add_new_entry) changes require actual matrix edits, not manual review alone."
+    ]
+  }
+}

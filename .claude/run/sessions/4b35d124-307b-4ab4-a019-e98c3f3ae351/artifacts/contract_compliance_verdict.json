@@ -1,0 +1,115 @@
+{
+  "artifact": "contract_compliance_verdict",
+  "produced_by": "snapshot-contract-check",
+  "session": "4b35d124-307b-4ab4-a019-e98c3f3ae351",
+  "timestamp": "2026-04-27T01:07:46.593016Z",
+  "data": {
+    "produced_by": "snapshot-contract-check",
+    "snapshot_contract_status": {
+      "allowed": false,
+      "contract_status": "boundary_violation",
+      "valid_interface": "none",
+      "forbidden_access_detected": false,
+      "snapshot_anchor_required": false,
+      "blocking_reason_if_any": "Constitutional terminology rename (Layer 2 \u2192 truth_store, Layer 3 \u2192 decision_layer) violates the snapshot contract's documentary enforcement foundation across four distinct vectors: (1) CLAUDE.md Section 6 uses 'Layer 3+' as the explicit bounded term for the snapshot-only downstream rule \u2014 renaming without verified semantic equivalence in any canonical source creates an ambiguous boundary definition under SCC-1 and SCC-6; (2) the code-doc naming schism (layer2/, layer2/index_suite.py unchanged while docs reference 'truth_store') produces an undefined snapshot boundary that enforcement mechanisms cannot deterministically evaluate, constituting FP-7; (3) partial rename of enforcement layers (agents, skills, workflows) while CLAUDE.md Section 6 retains 'Layer 3+' creates gaps across all SCC-1 through SCC-6 invariants; (4) README_LAYER2.md is a named canonical document in CLAUDE.md Section 2.1 \u2014 renaming without a formal constitutional amendment breaks the canonical set integrity and SCC-6. Upstream phase_alignment_status (ambiguous_requires_block, snapshot_boundary_risk=true) and role_citation_verdict (conflict_requires_block, blocking claims C-001/C-002/C-004) are both inherited.",
+      "upstream_block_inherited": true,
+      "checked_claims": [
+        {
+          "claim_id": "c1",
+          "claim_text": "Renaming 'Layer 3+' to 'decision_layer' in CLAUDE.md Section 6 changes the phrasing of the snapshot-only downstream rule without verified semantic equivalence established in any canonical source.",
+          "assessment": "blocked",
+          "violated_invariants": [
+            "SCC-1",
+            "SCC-6"
+          ],
+          "triggered_forbidden_patterns": [
+            "FP-7"
+          ],
+          "valid_interface_if_compliant": "none",
+          "reason": "CLAUDE.md Section 6 uses 'Layer 3+' as the explicit subject of the snapshot contract rule (Layer 3+ must read only from published snapshots, never raw observations). Renaming the term to 'decision_layer' without proving semantic equivalence in all seven canonical documents creates ambiguity about whether the renamed construct is still bound by SCC-1. FP-7 applies: docs producing an ambiguous access boundary are treated identically to docs explicitly permitting forbidden access. Strict mode promotes ambiguity to block. SCC-6 is additionally violated because handoff gate satisfaction does not authorize relaxation of any invariant, including the terminological precision of SCC-1's subject.",
+          "contract_reference": [
+            "SCC-1",
+            "SCC-6",
+            "FP-7"
+          ]
+        },
+        {
+          "claim_id": "c2",
+          "claim_text": "Code paths (layer2/, layer2/index_suite.py) remain unchanged while governance documentation would reference 'truth_store', creating a naming schism at the snapshot boundary definition point.",
+          "assessment": "blocked",
+          "violated_invariants": [
+            "SCC-1"
+          ],
+          "triggered_forbidden_patterns": [
+            "FP-7"
+          ],
+          "valid_interface_if_compliant": "none",
+          "reason": "The snapshot boundary is defined by the separation between Layer-2 storage (observations, snapshots, snapshot_values) and Layer-3 consumption. A naming schism where code uses 'layer2/' but canonical docs use 'truth_store' produces an undefined boundary: enforcement mechanisms auditing compliance with SCC-1 cannot deterministically identify what constitutes the Layer-2 side of the contract. This is a structural contract violation through documentary inconsistency. FP-7 applies: any doc state that obscures the forbidden-access boundary is treated as implying that forbidden access may be permitted.",
+          "contract_reference": [
+            "SCC-1",
+            "FP-7"
+          ]
+        },
+        {
+          "claim_id": "c3",
+          "claim_text": "Governance workflows, agent definitions, and skill instructions that enforce the snapshot contract all use Layer-2/Layer-3 terminology. A unilateral rename without coordinated simultaneous update creates enforcement gaps across all SCC invariants.",
+          "assessment": "blocked",
+          "violated_invariants": [
+            "SCC-1",
+            "SCC-2",
+            "SCC-3",
+            "SCC-4",
+            "SCC-5",
+            "SCC-6"
+          ],
+          "triggered_forbidden_patterns": [
+            "FP-7"
+          ],
+          "valid_interface_if_compliant": "none",
+          "reason": "The snapshot contract is enforced through layered mechanisms: CLAUDE.md Section 6, canonical documents, agent constraint blocks, skill invariant tables, and workflow gate conditions all reference 'Layer 2/Layer 3' as the subject identity. A partial rename where some enforcement layers use the new terminology while others retain the old creates a gap where no SCC invariant can be deterministically enforced \u2014 the subject identity ('what is Layer-3') becomes ambiguous. All six SCC invariants are degraded simultaneously. FP-7 is triggered at the system enforcement level, not just the document level.",
+          "contract_reference": [
+            "SCC-1",
+            "SCC-2",
+            "SCC-3",
+            "SCC-4",
+            "SCC-5",
+            "SCC-6",
+            "FP-7"
+          ]
+        },
+        {
+          "claim_id": "c4",
+          "claim_text": "README_LAYER2.md is a named canonical document in CLAUDE.md Section 2.1. Renaming it to align with 'truth_store' terminology would break the canonical document set definition without a formal constitutional amendment.",
+          "assessment": "blocked",
+          "violated_invariants": [
+            "SCC-6"
+          ],
+          "triggered_forbidden_patterns": [
+            "FP-7"
+          ],
+          "valid_interface_if_compliant": "none",
+          "reason": "The canonical document set is defined by specific filenames enumerated in CLAUDE.md Section 2.1. README_LAYER2.md is explicitly listed as the collaborator guide and living build reference for Layer-2 implementation and operational navigation. Renaming it without a formal amendment to CLAUDE.md Section 2.1 breaks the canonical set's integrity. The snapshot contract's authority chain is rooted in this canonical set \u2014 a document identity gap in the set undermines the contract's evidentiary foundation. SCC-6 applies: no handoff gate outcome or phase transition authorizes modification of the constitutional document authority structure.",
+          "contract_reference": [
+            "SCC-6",
+            "FP-7"
+          ]
+        }
+      ],
+      "summary": {
+        "raw_observations_access_risk": false,
+        "snapshot_bypass_risk": true,
+        "layer2_storage_touch_risk": false,
+        "decisionpacket_anchor_risk": false,
+        "followup_guard_recommended": true,
+        "upstream_blocks_inherited": [
+          "phase_alignment_status",
+          "role_citation_verdict"
+        ],
+        "snapshot_boundary_risk_confirmed": true,
+        "escalation_target": "snapshot-boundary-auditor",
+        "escalation_reason": "Constitutional rename creates snapshot boundary ambiguity across all six SCC invariants and all enforcement layers simultaneously. No partial fix is viable. A full constitutional amendment process \u2014 verified semantic equivalence, coordinated single-pass update of CLAUDE.md, all seven canonical v1 documents, README_LAYER2.md identity, all governance workflows, agent definitions, skill instructions, and code paths \u2014 is required before any terminology change may proceed.",
+        "remediation_required": "Do not proceed with the rename in any partial form. If the terminology change is still desired, initiate a constitutional amendment: (1) establish verified semantic equivalence of proposed terms in all canonical sources, (2) draft a single coordinated change covering CLAUDE.md, all seven canonical v1 documents, README_LAYER2.md, all governance workflows, agent definitions, skill instructions, and code directory names simultaneously, (3) route the full amendment through doc-code-sync-check and deep audit before applying. No partial or staged application is permitted under any phase gate status."
+      }
+    }
+  }
+}

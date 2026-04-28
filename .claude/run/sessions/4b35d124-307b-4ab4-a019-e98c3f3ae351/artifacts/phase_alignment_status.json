@@ -1,0 +1,104 @@
+{
+  "artifact": "phase_alignment_status",
+  "produced_by": "phase-check",
+  "session": "4b35d124-307b-4ab4-a019-e98c3f3ae351",
+  "timestamp": "2026-04-27T01:06:20.503391Z",
+  "data": {
+    "produced_by": "phase-check",
+    "current_phase": "Phase A complete at contract boundary; Phase B bootstrap permitted but not completed",
+    "requested_phase": "inferred:cross-cutting-constitutional-governance-rename",
+    "allowed": false,
+    "alignment_status": "ambiguous_requires_block",
+    "gate_reference": [
+      "phase_a_layer2_closure",
+      "phase_b_layer3_bootstrap",
+      "snapshot_contract_rule"
+    ],
+    "blocking_reason_if_any": "Constitutional terminology rename (Layer 2 \u2192 truth_store, Layer 3 \u2192 decision_layer) lacks verified semantic equivalence in any canonical source, cascades into snapshot contract rule phrasing (CLAUDE.md Section 6 uses 'Layer 3+'), creates a code-doc naming schism (layer2/, layer2/index_suite.py unchanged), and requires synchronous updates across governance workflows, agent definitions, skill instructions, and all seven canonical documents. Role citation verdict independently mandates block: role_mismatch_detected=true, recommended_guard_action=block.",
+    "checked_claims": [
+      {
+        "claim_id": "c1",
+        "claim_text": "Layer 2 is the current operationally named layer at the contract boundary",
+        "effective_capability": "affirms existing naming as foundational current-state \u2014 no phase advancement",
+        "phase_assessment": "allowed_now",
+        "gate_reference": [
+          "phase_a_layer2_closure"
+        ],
+        "reason": "Describing Layer 2 as the current operational layer is consistent with Phase A closure. No phase jump or scope expansion. Allowed as a factual current-state description."
+      },
+      {
+        "claim_id": "c2",
+        "claim_text": "Renaming Layer 2 to truth_store across canonical documents",
+        "effective_capability": "constitutional terminology change \u2014 alters CLAUDE.md foundational language and cascades across all canonical v1 documents",
+        "phase_assessment": "blocked",
+        "gate_reference": [
+          "phase_a_layer2_closure",
+          "snapshot_contract_rule"
+        ],
+        "reason": "CLAUDE.md Section 6 snapshot contract uses 'Layer 3+' phrasing to define the downstream consumption boundary. Renaming Layer 2 cascades into that boundary definition. Cannot be safely applied without verified semantic equivalence and synchronous update of all governance artifacts."
+      },
+      {
+        "claim_id": "c3",
+        "claim_text": "Renaming Layer 3 to decision_layer across canonical documents",
+        "effective_capability": "constitutional terminology change \u2014 alters Phase B/C/D language and snapshot downstream consumption rule phrasing",
+        "phase_assessment": "blocked",
+        "gate_reference": [
+          "phase_b_layer3_bootstrap",
+          "phase_c_layer3_structured_buildout",
+          "snapshot_contract_rule"
+        ],
+        "reason": "Layer 3 naming is embedded in CLAUDE.md Sections 3, 4, and 6, and in canonical phase gate definitions throughout SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md. Renaming without a synchronous cascade across all governance references and without verified semantic equivalence is blocked under the fail-closed principle."
+      },
+      {
+        "claim_id": "c4",
+        "claim_text": "README_LAYER2.md canonical filename is hardcoded in the constitutional document authority hierarchy",
+        "effective_capability": "canonical filename rename \u2014 filename is explicitly enumerated in CLAUDE.md Section 2.1 and Section 2.2",
+        "phase_assessment": "blocked",
+        "gate_reference": [
+          "phase_a_layer2_closure"
+        ],
+        "reason": "README_LAYER2.md is explicitly listed in CLAUDE.md Section 2.1 (canonical current-state sources) and Section 2.2 (canonical role definitions). Renaming the file requires amending CLAUDE.md itself and cascades into every governance reference that cites this document. A direct rename without constitutional amendment process is not compliant."
+      },
+      {
+        "claim_id": "c5",
+        "claim_text": "truth_store and decision_layer are semantically equivalent replacements for Layer 2 and Layer 3",
+        "effective_capability": "semantic equivalence assertion \u2014 not verifiable from current canonical materials",
+        "phase_assessment": "blocked",
+        "gate_reference": [
+          "phase_a_layer2_closure",
+          "phase_b_layer3_bootstrap"
+        ],
+        "reason": "Claim is classified as unverified. Neither 'truth_store' nor 'decision_layer' appears in any canonical current-state document. Semantic equivalence cannot be established from current materials. Per CLAUDE.md Section 5.3, inferred or asserted equivalence does not count as proof."
+      },
+      {
+        "claim_id": "c6",
+        "claim_text": "Code paths (layer2/, layer2/index_suite.py) currently use Layer 2 naming",
+        "effective_capability": "affirms existing code naming convention \u2014 establishes code-doc sync boundary risk",
+        "phase_assessment": "allowed_now",
+        "gate_reference": [
+          "phase_a_layer2_closure"
+        ],
+        "reason": "Describing existing code paths as using Layer 2 naming is a factual current-state observation. Allowed as a description. However, this observation directly supports blocking a doc-only rename without a synchronous code rename, as it would create a naming schism between implementation and documentation."
+      },
+      {
+        "claim_id": "c7",
+        "claim_text": "Governance workflows, agent definitions, and skill instructions reference Layer 2/3 terminology and must be updated synchronously",
+        "effective_capability": "cross-system cascade requirement \u2014 piecemeal rename creates governance system inconsistency",
+        "phase_assessment": "blocked",
+        "gate_reference": [
+          "phase_a_layer2_closure",
+          "phase_b_layer3_bootstrap"
+        ],
+        "reason": "A rename applied partially \u2014 without synchronously updating .claude/workflows/, agent definitions, skill instructions, and all seven canonical documents \u2014 creates an internally inconsistent governance system. Partial application is blocked; full synchronous cascade is a prerequisite, not a follow-up."
+      }
+    ],
+    "summary": {
+      "phase_jump_detected": false,
+      "live_readiness_implication_detected": false,
+      "scope_exceeds_current_allowance": true,
+      "snapshot_boundary_risk": true,
+      "followup_audit_recommended": true,
+      "recommended_next_step": "Do not proceed with the rename. If the terminology change is still desired, a constitutional amendment process is required: (1) establish semantic equivalence of proposed terms against canonical sources, (2) draft a single coordinated change that updates CLAUDE.md, all seven canonical v1 documents, README_LAYER2.md with new filename, all governance workflows, agent definitions, skill instructions, and code paths simultaneously, (3) route the full amendment through doc-code-sync-check and deep audit before applying. No partial application is permitted."
+    }
+  }
+}

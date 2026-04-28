@@ -1,0 +1,119 @@
+{
+  "artifact": "adapter_schema_verdict",
+  "produced_by": "adapter-schema-check",
+  "session": "ec0a158b-5213-43e0-8c53-438696921ac3",
+  "timestamp": "2026-04-27T21:40:53.518925Z",
+  "data": {
+    "produced_by": "adapter-schema-check",
+    "adapter_schema_status": {
+      "overall_status": "ambiguous_requires_review",
+      "inference_used": true,
+      "checked_items": [
+        {
+          "item_id": "ASC-001",
+          "target": "layer2/adapters/* (all adapters)",
+          "assessment": "review",
+          "registry_driven": null,
+          "hardcoded_series_detected": null,
+          "schema_drift_detected": null,
+          "boundary_fit": null,
+          "affected_files": [
+            "layer2/adapters/",
+            "layer2/config/series_registry.json",
+            "layer2/db.py"
+          ],
+          "missing_inputs": [
+            "adapter source code (Read/Grep/Glob tools unavailable in execution context)",
+            "series_registry.json contents",
+            "layer2/db.py schema"
+          ],
+          "reason": "Code inspection tools (Read, Grep, Glob) were unavailable at runtime. No adapter source code could be examined. Per skill rules, `compliant` cannot be asserted without code evidence. Status is `ambiguous_requires_review` pending manual or tooled inspection.",
+          "canonical_source": "SYSTEM_TECHNICAL_HANDBOOK_v1.md",
+          "notes": [
+            "Upstream runtime_boundary_verdict carries boundary_violation_suspected=true, which elevates caution for adapter boundary compliance.",
+            "source_authority_conflict_detected=true upstream; any doc-based adapter compliance claims cannot be trusted without code corroboration."
+          ]
+        },
+        {
+          "item_id": "ASC-002",
+          "target": "Registry-driven discipline (CLAUDE.md \u00a78)",
+          "assessment": "review",
+          "registry_driven": null,
+          "hardcoded_series_detected": null,
+          "schema_drift_detected": null,
+          "boundary_fit": null,
+          "affected_files": [
+            "layer2/config/series_registry.json"
+          ],
+          "missing_inputs": [
+            "series_registry.json contents",
+            "adapter import chains for get_registry()"
+          ],
+          "reason": "Cannot verify that adapters call get_registry() or that series_registry.json is loaded as single source of truth. No file access was possible. Per CLAUDE.md \u00a78 and fail-closed principle (\u00a77), unverified registry compliance must not be treated as passing.",
+          "canonical_source": "SYSTEM_TECHNICAL_HANDBOOK_v1.md",
+          "notes": [
+            "Fail-closed: absence of verification = flag, not pass."
+          ]
+        },
+        {
+          "item_id": "ASC-003",
+          "target": "Schema consistency (observations table)",
+          "assessment": "review",
+          "registry_driven": null,
+          "hardcoded_series_detected": null,
+          "schema_drift_detected": null,
+          "boundary_fit": null,
+          "affected_files": [
+            "layer2/db.py"
+          ],
+          "missing_inputs": [
+            "layer2/db.py schema definition",
+            "adapter INSERT statements"
+          ],
+          "reason": "Cannot inspect db.py for canonical schema or adapter INSERT operations. INSERT OR IGNORE vs INSERT OR REPLACE compliance unverifiable. Schema drift cannot be confirmed absent or present.",
+          "canonical_source": "SYSTEM_TECHNICAL_HANDBOOK_v1.md",
+          "notes": [
+            "Expected schema: series_id TEXT, obs_ts TEXT, as_of_ts TEXT, value REAL, revision_seq INTEGER DEFAULT 0, source TEXT, ingested_at TEXT; PK (series_id, obs_ts, revision_seq)."
+          ]
+        },
+        {
+          "item_id": "ASC-004",
+          "target": "Boundary fit \u2014 upstream runtime_boundary_verdict",
+          "assessment": "review",
+          "registry_driven": null,
+          "hardcoded_series_detected": null,
+          "schema_drift_detected": null,
+          "boundary_fit": null,
+          "affected_files": [],
+          "missing_inputs": [],
+          "reason": "Upstream runtime_boundary_verdict has boundary_violation_suspected=true and source_authority_conflict_detected=true. These inherited flags cannot be cleared by this agent without direct code inspection. Adapter boundary_fit is therefore unconfirmed and must be treated as suspect.",
+          "canonical_source": "SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md",
+          "notes": [
+            "Inherited: runtime_boundary_verdict.boundary_violation_suspected=true",
+            "Inherited: runtime_boundary_verdict.source_authority_conflict_detected=true",
+            "Inherited: runtime_boundary_verdict.requires_snapshot_boundary_guard=true",
+            "Inherited: runtime_boundary_verdict.requires_snapshot_boundary_auditor=true"
+          ]
+        }
+      ],
+      "summary": {
+        "registry_violation_detected": false,
+        "hardcoded_series_detected": false,
+        "schema_drift_detected": false,
+        "boundary_violation_detected": false,
+        "requires_adapter_schema_guard": true,
+        "requires_adapter_schema_guardian": true,
+        "requires_doc_code_sync_review": true,
+        "source_authority_conflict_detected": true,
+        "notes": [
+          "overall_status=ambiguous_requires_review triggers requires_adapter_schema_guard=true per skill decision rules.",
+          "Code evidence unavailable for all material compliance dimensions \u2014 requires_adapter_schema_guardian=true.",
+          "requires_doc_code_sync_review inherited from upstream runtime_boundary_verdict and confirmed: doc-based claims cannot be verified without code inspection.",
+          "source_authority_conflict_detected inherited from upstream; no resolution possible without code + doc cross-reference.",
+          "All boolean violation flags (registry_violation_detected, hardcoded_series_detected, schema_drift_detected, boundary_violation_detected) remain false because no evidence was found \u2014 but absence of evidence is NOT evidence of absence given unavailable tools.",
+          "Fail-closed disposition: this verdict must not be used to authorize adapter compliance. Human or tooled re-inspection required."
+        ]
+      }
+    }
+  }
+}

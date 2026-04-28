@@ -1,0 +1,14 @@
+{
+  "artifact": "adapter_schema_verdict",
+  "produced_by": "adapter-schema-check",
+  "session": "",
+  "timestamp": "2026-04-27T00:52:09.134148Z",
+  "data": {
+    "file_path": "C:\\Code\\Mr-Ripley\\.claude\\workflows\\packages\\agents.yaml",
+    "scanned": false,
+    "registry_driven": true,
+    "hardcoded_series_detected": false,
+    "implicit_interpretation_detected": false,
+    "violations": []
+  }
+}

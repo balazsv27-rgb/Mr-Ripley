@@ -1,0 +1,97 @@
+{
+  "artifact": "contract_compliance_verdict",
+  "produced_by": "snapshot-contract-check",
+  "session": "ec0a158b-5213-43e0-8c53-438696921ac3",
+  "timestamp": "2026-04-27T21:38:29.479281Z",
+  "data": {
+    "produced_by": "snapshot-contract-check",
+    "snapshot_contract_status": {
+      "allowed": false,
+      "contract_status": "ambiguous_requires_block",
+      "valid_interface": "none",
+      "forbidden_access_detected": false,
+      "snapshot_anchor_required": false,
+      "blocking_reason_if_any": "upstream_block_inherited; terminology_equivalence_unverified (truth_store_vs_layer2, decision_layer_vs_layer3) \u2014 cannot confirm downstream access pattern without verified mapping; strict mode promotes ambiguous to blocked; role_citation_verdict.conflict_requires_block prevents trusting access-layer claims",
+      "checked_claims": [
+        {
+          "claim_id": "c1",
+          "claim_text": "Upstream phase check identifies 'truth_store' as unverified equivalent of Layer-2 storage",
+          "assessment": "ambiguous",
+          "violated_invariants": [],
+          "triggered_forbidden_patterns": [],
+          "valid_interface_if_compliant": "none",
+          "reason": "If 'truth_store' resolves to Layer-2 raw observations and any downstream component reads it directly, SCC-1/FP-1 applies. Cannot confirm compliance without verified terminology mapping. Strict mode requires block.",
+          "contract_reference": [
+            "SCC-1",
+            "FP-1"
+          ]
+        },
+        {
+          "claim_id": "c2",
+          "claim_text": "Upstream phase check identifies 'decision_layer' as unverified equivalent of Layer-3",
+          "assessment": "ambiguous",
+          "violated_invariants": [],
+          "triggered_forbidden_patterns": [],
+          "valid_interface_if_compliant": "none",
+          "reason": "If 'decision_layer' maps to Layer-3 and accesses 'truth_store' (Layer-2) directly rather than through governed snapshots, SCC-1 and SCC-6 are violated. Unresolvable without verified canonical mapping.",
+          "contract_reference": [
+            "SCC-1",
+            "SCC-6",
+            "FP-1"
+          ]
+        },
+        {
+          "claim_id": "c3",
+          "claim_text": "phase_alignment_status explicitly reports snapshot_boundary_risk: false",
+          "assessment": "compliant",
+          "violated_invariants": [],
+          "triggered_forbidden_patterns": [],
+          "valid_interface_if_compliant": "none",
+          "reason": "Upstream phase check found no direct evidence of FP-1 through FP-7 forbidden access patterns. No explicit observation query or snapshot bypass was flagged.",
+          "contract_reference": [
+            "SCC-1"
+          ]
+        },
+        {
+          "claim_id": "c4",
+          "claim_text": "Canonical document rename flagged upstream as breaking series_registry.json integrity",
+          "assessment": "ambiguous",
+          "violated_invariants": [],
+          "triggered_forbidden_patterns": [],
+          "valid_interface_if_compliant": "none",
+          "reason": "CLAUDE.md Section 8 makes series_registry.json the single source of truth for all series definitions. A rename breaking registry linkage could undermine snapshot determinism (SCC-4). Cannot confirm contract safety without full impact trace.",
+          "contract_reference": [
+            "SCC-4"
+          ]
+        },
+        {
+          "claim_id": "c5",
+          "claim_text": "role_citation_verdict.overall_status = conflict_requires_block",
+          "assessment": "ambiguous",
+          "violated_invariants": [],
+          "triggered_forbidden_patterns": [],
+          "valid_interface_if_compliant": "none",
+          "reason": "Citation conflicts upstream mean claims about which layer reads what cannot be trusted without resolution. Ambiguous contract claims in strict mode are promoted to blocked per skill rule B8.",
+          "contract_reference": [
+            "SCC-1",
+            "SCC-6"
+          ]
+        }
+      ],
+      "summary": {
+        "raw_observations_access_risk": false,
+        "snapshot_bypass_risk": false,
+        "layer2_storage_touch_risk": false,
+        "decisionpacket_anchor_risk": false,
+        "followup_guard_recommended": true
+      },
+      "upstream_block_inherited": true,
+      "upstream_blocks": [
+        "phase_alignment_status.allowed=false (ambiguous_requires_block)",
+        "role_citation_verdict.overall_status=conflict_requires_block"
+      ],
+      "mode": "strict",
+      "notes": "No direct forbidden access pattern (FP-1 through FP-7) was detected in upstream artifacts. phase_alignment_status.snapshot_boundary_risk=false. However, unverified terminology equivalences (truth_store_vs_layer2, decision_layer_vs_layer3) leave Layer-2/Layer-3 access paths unresolvable. In strict mode, these ambiguous access claims are promoted to blocked. Verdict cannot reach compliant until terminology is canonically resolved and confirmed to not imply direct observation access by any downstream component."
+    }
+  }
+}

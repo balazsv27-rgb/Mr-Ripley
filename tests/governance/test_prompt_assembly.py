@@ -3617,3 +3617,776 @@ def test_existing_matrix_projections_still_work() -> None:
         "update-verification-matrix", "audit_summary", minimal,
     )
     assert result is minimal
+
+
+# ── deep-audit deterministic synthesis ──
+
+
+def test_deep_audit_is_structural() -> None:
+    """deep-audit (subagents component) is now a structural step — no LLM invocation."""
+    from governance.dag_runner.executor import _STRUCTURAL_KINDS, _BACKEND_KINDS
+
+    assert "subagents" in _STRUCTURAL_KINDS
+    assert "subagents" not in _BACKEND_KINDS
+
+
+def test_deep_audit_no_escalation_signals() -> None:
+    """No escalation signals -> audit_action no_audit_required."""
+    from governance.dag_runner.executor import _synthesize_audit_summary
+    from governance.dag_runner.models import WorkflowStep, GovernanceRunState, ArtifactRecord
+
+    step = WorkflowStep(
+        name="deep-audit",
+        component="subagents",
+        raw={"inputs": ["role_citation_verdict", "phase_alignment_status"]},
+    )
+    run_state = GovernanceRunState(run_id="test", started_at=datetime(2026, 1, 1, tzinfo=timezone.utc))
+    # Add clean upstream artifacts
+    run_state.artifacts["role_citation_verdict"] = ArtifactRecord(
+        name="role_citation_verdict",
+        producer_step="role-citation-check",
+        status="present",
+        payload={"produced_by": "role-citation-check", "overall_status": "pass"},
+    )
+    run_state.artifacts["phase_alignment_status"] = ArtifactRecord(
+        name="phase_alignment_status",
+        producer_step="phase-check",
+        status="present",
+        payload={"produced_by": "phase-check", "allowed": True, "alignment_status": "within_current_phase"},
+    )
+
+    result = _synthesize_audit_summary(step, run_state)
+
+    assert result["produced_by"] == "deep-audit"
+    assert result["audit_action"] == "no_audit_required"
+    assert result["overall_audit_status"] == "pass"
+    assert result["dag_advancement_blocked"] is False
+    assert result["findings"] == []
+    assert result["blocking_violations_count"] == 0
+
+
+def test_deep_audit_blocking_signal() -> None:
+    """Blocking escalation signal -> audit_action blocked."""
+    from governance.dag_runner.executor import _synthesize_audit_summary
+    from governance.dag_runner.models import WorkflowStep, GovernanceRunState, ArtifactRecord
+
+    step = WorkflowStep(
+        name="deep-audit",
+        component="subagents",
+        raw={"inputs": ["runtime_boundary_verdict", "adapter_schema_verdict"]},
+    )
+    run_state = GovernanceRunState(run_id="test", started_at=datetime(2026, 1, 1, tzinfo=timezone.utc))
+    run_state.artifacts["runtime_boundary_verdict"] = ArtifactRecord(
+        name="runtime_boundary_verdict",
+        producer_step="runtime-boundary-check",
+        status="present",
+        payload={
+            "produced_by": "runtime-boundary-check",
+            "boundary_violation_suspected": True,
+            "forbidden_access_detected": True,
+        },
+    )
+    run_state.artifacts["adapter_schema_verdict"] = ArtifactRecord(
+        name="adapter_schema_verdict",
+        producer_step="adapter-schema-check",
+        status="present",
+        payload={"produced_by": "adapter-schema-check", "overall_status": "pass"},
+    )
+
+    result = _synthesize_audit_summary(step, run_state)
+
+    assert result["produced_by"] == "deep-audit"
+    assert result["audit_action"] == "blocked"
+    assert result["overall_audit_status"] == "blocked"
+    assert result["dag_advancement_blocked"] is True
+    assert result["blocking_violations_count"] >= 1
+    assert len(result["findings"]) >= 1
+    # Check finding structure
+    finding = result["findings"][0]
+    assert "source_artifact" in finding
+    assert "signal" in finding
+    assert "severity" in finding
+    assert "summary" in finding
+
+
+def test_deep_audit_review_signal() -> None:
+    """Review-only escalation signal -> synthesize_from_signals, review_only."""
+    from governance.dag_runner.executor import _synthesize_audit_summary
+    from governance.dag_runner.models import WorkflowStep, GovernanceRunState, ArtifactRecord
+
+    step = WorkflowStep(
+        name="deep-audit",
+        component="subagents",
+        raw={"inputs": ["role_citation_verdict"]},
+    )
+    run_state = GovernanceRunState(run_id="test", started_at=datetime(2026, 1, 1, tzinfo=timezone.utc))
+    run_state.artifacts["role_citation_verdict"] = ArtifactRecord(
+        name="role_citation_verdict",
+        producer_step="role-citation-check",
+        status="present",
+        payload={
+            "produced_by": "role-citation-check",
+            "overall_status": "review_only",
+            "source_authority_conflict_detected": True,
+        },
+    )
+
+    result = _synthesize_audit_summary(step, run_state)
+
+    assert result["produced_by"] == "deep-audit"
+    assert result["overall_audit_status"] in ("review_only", "blocked")
+    assert result["review_required_violations_count"] >= 1
+
+
+def test_deep_audit_findings_capped_at_10() -> None:
+    """Findings are capped at 10 entries."""
+    from governance.dag_runner.executor import _synthesize_audit_summary
+    from governance.dag_runner.models import WorkflowStep, GovernanceRunState, ArtifactRecord
+
+    step = WorkflowStep(
+        name="deep-audit",
+        component="subagents",
+        raw={"inputs": ["art1", "art2", "art3", "art4"]},
+    )
+    run_state = GovernanceRunState(run_id="test", started_at=datetime(2026, 1, 1, tzinfo=timezone.utc))
+    # Each artifact has 3+ signals => >10 total findings
+    for i in range(4):
+        run_state.artifacts[f"art{i+1}"] = ArtifactRecord(
+            name=f"art{i+1}",
+            producer_step=f"step-{i}",
+            status="present",
+            payload={
+                "produced_by": f"step-{i}",
+                "source_authority_conflict_detected": True,
+                "classification_dispute_detected": True,
+                "boundary_violation_suspected": True,
+                "registry_violation_detected": True,
+            },
+        )
+
+    result = _synthesize_audit_summary(step, run_state)
+
+    assert len(result["findings"]) <= 10
+
+
+def test_deep_audit_no_claude_invocation_in_mock_backend() -> None:
+    """deep-audit does not invoke Claude backend in agent_execution mode."""
+    from governance.dag_runner.loader import load_workflow_packages
+    from governance.dag_runner.assembler import assemble_workflow_spec
+    from governance.dag_runner.validator import validate_or_raise
+    from governance.dag_runner.planner import build_execution_plan
+    from governance.dag_runner.executor import execute_plan
+    from governance.dag_runner.execution_backend import MockExecutionBackend
+    from governance.dag_runner.models import ExecutionConfig
+
+    loaded = load_workflow_packages()
+    spec = assemble_workflow_spec(loaded)
+    validate_or_raise(spec)
+    plan = build_execution_plan(spec)
+
+    config = ExecutionConfig(mode="agent_execution", request_text="Test")
+    backend = MockExecutionBackend()
+    result = execute_plan(spec, plan, verdict_status="ready", config=config, backend=backend)
+
+    # deep-audit should have produced audit_summary
+    audit = result.run_state.artifacts.get("audit_summary")
+    assert audit is not None
+    assert audit.status == "present"
+    assert audit.payload["produced_by"] == "deep-audit"
+    assert audit.payload["audit_action"] == "no_audit_required"
+
+    # Verify deep-audit node result is PASS (structural)
+    deep_audit_result = result.run_state.node_results.get("deep-audit")
+    assert deep_audit_result is not None
+    assert deep_audit_result.status == "PASS"
+
+
+def test_deep_audit_agent_instructions_include_no_subagent_calls() -> None:
+    """Audit coordinator agent .md includes 'no real subagent calls' constraint."""
+    agent_path = _REPO_ROOT / ".claude" / "agents" / "audit-coordinator-agent.md"
+    content = agent_path.read_text(encoding="utf-8")
+    assert "no real subagent calls" in content.lower()
+
+
+def test_deep_audit_agent_no_audit_shortcut_present() -> None:
+    """Audit coordinator agent .md includes the no-audit shortcut."""
+    agent_path = _REPO_ROOT / ".claude" / "agents" / "audit-coordinator-agent.md"
+    content = agent_path.read_text(encoding="utf-8")
+    assert "no_audit_required" in content
+
+
+def test_deep_audit_timeout_set() -> None:
+    """audit-coordinator-agent has timeout_ms: 240000."""
+    from governance.dag_runner.loader import load_workflow_packages
+    from governance.dag_runner.assembler import assemble_workflow_spec
+
+    loaded = load_workflow_packages()
+    spec = assemble_workflow_spec(loaded)
+    assert "audit-coordinator-agent" in spec.agents
+    agent = spec.agents["audit-coordinator-agent"]
+    assert agent.raw.get("timeout_ms") == 240000
+
+
+def test_dependency_skip_behavior_preserved() -> None:
+    """Steps depending on a failed step are still skipped."""
+    from governance.dag_runner.loader import load_workflow_packages
+    from governance.dag_runner.assembler import assemble_workflow_spec
+    from governance.dag_runner.validator import validate_or_raise
+    from governance.dag_runner.planner import build_execution_plan
+    from governance.dag_runner.executor import execute_plan
+    from governance.dag_runner.execution_backend import MockExecutionBackend
+    from governance.dag_runner.models import (
+        ExecutionConfig,
+        GovernanceRunState,
+        ArtifactRecord,
+        NodeResult,
+    )
+
+    loaded = load_workflow_packages()
+    spec = assemble_workflow_spec(loaded)
+    validate_or_raise(spec)
+    plan = build_execution_plan(spec)
+
+    config = ExecutionConfig(
+        mode="agent_execution",
+        request_text="Test",
+        continue_from="deep-audit",
+    )
+    backend = MockExecutionBackend()
+
+    # Build a prior state where deep-audit FAILED
+    prior = GovernanceRunState(run_id="test-dep-skip", started_at=datetime(2026, 1, 1, tzinfo=timezone.utc))
+    prior.node_results["deep-audit"] = NodeResult(
+        node_name="deep-audit",
+        node_type="subagents",
+        status="FAIL",
+        summary="Simulated failure",
+        evidence=[],
+        produced_artifacts=[],
+        triggered_blocks=[],
+        inference_used=False,
+    )
+    # Add minimal artifacts for steps before deep-audit
+    for art in ("governance_context", "claim_classification_map",
+                "normalized_terminology_map", "role_citation_verdict",
+                "phase_alignment_status", "contract_compliance_verdict",
+                "stage_gate_report", "guard_report",
+                "runtime_boundary_verdict", "adapter_schema_verdict"):
+        prior.artifacts[art] = ArtifactRecord(
+            name=art, producer_step="test",
+            status="present", payload={"produced_by": "test"},
+        )
+
+    result = execute_plan(
+        spec, plan, verdict_status="ready", config=config, backend=backend,
+        prior_state=prior,
+    )
+
+    # change-impact-audit depends on deep-audit -> should be SKIP
+    cia = result.run_state.node_results.get("change-impact-audit")
+    assert cia is not None
+    assert cia.status == "SKIP"
+
+
+# ── doc-code-sync-check deterministic synthesis ──
+
+
+def test_doc_code_sync_check_no_signals() -> None:
+    """No upstream signals -> in_sync."""
+    from governance.dag_runner.executor import _synthesize_doc_code_sync_status
+    from governance.dag_runner.models import WorkflowStep, GovernanceRunState, ArtifactRecord
+
+    step = WorkflowStep(
+        name="doc-code-sync-check",
+        component="skill:doc-code-sync-rules",
+        outputs=["doc_code_sync_status"],
+        raises=["verification_without_evidence"],
+    )
+    run_state = GovernanceRunState(run_id="test", started_at=datetime(2026, 1, 1, tzinfo=timezone.utc))
+    # Provide change_impact_report and doc_update_plan with no drift signals
+    run_state.artifacts["change_impact_report"] = ArtifactRecord(
+        name="change_impact_report", producer_step="change-impact-audit",
+        status="present",
+        payload={
+            "produced_by": "change-impact-audit",
+            "change_mode": "documentation",
+            "impact_type": "documentation_only",
+            "doc_only_change": False,
+            "code_path_governance_required": False,
+            "blocked_change": False,
+        },
+    )
+    run_state.artifacts["doc_update_plan"] = ArtifactRecord(
+        name="doc_update_plan", producer_step="change-impact-audit",
+        status="present",
+        payload={
+            "produced_by": "change-impact-audit",
+            "plan_status": "no_updates_required",
+            "required_updates": [],
+            "verification_actions": [],
+        },
+    )
+
+    result = _synthesize_doc_code_sync_status(step, run_state)
+
+    assert result["produced_by"] == "doc-code-sync-check"
+    assert result["overall_status"] == "in_sync"
+    assert result["sync_status"] == "in_sync"
+    assert result["drift_detected"] is False
+    assert result["inference_used"] is False
+    assert result["doc_code_alignment_status"] == "aligned"
+    assert result["follow_up_required"] == "none"
+
+
+def test_doc_code_sync_check_missing_inputs() -> None:
+    """Missing/ambiguous upstream artifacts -> review_only with inference_used=true."""
+    from governance.dag_runner.executor import _synthesize_doc_code_sync_status
+    from governance.dag_runner.models import WorkflowStep, GovernanceRunState
+
+    step = WorkflowStep(
+        name="doc-code-sync-check",
+        component="skill:doc-code-sync-rules",
+        outputs=["doc_code_sync_status"],
+        raises=[],
+    )
+    run_state = GovernanceRunState(run_id="test", started_at=datetime(2026, 1, 1, tzinfo=timezone.utc))
+    # No upstream artifacts at all
+
+    result = _synthesize_doc_code_sync_status(step, run_state)
+
+    assert result["overall_status"] == "review_only"
+    assert result["sync_status"] == "review_only"
+    assert result["inference_used"] is True
+    assert result["doc_code_alignment_status"] == "review_required"
+
+
+def test_doc_code_sync_check_blocked_change() -> None:
+    """blocked_change=true -> blocked status."""
+    from governance.dag_runner.executor import _synthesize_doc_code_sync_status
+    from governance.dag_runner.models import WorkflowStep, GovernanceRunState, ArtifactRecord
+
+    step = WorkflowStep(
+        name="doc-code-sync-check",
+        component="skill:doc-code-sync-rules",
+        outputs=["doc_code_sync_status"],
+        raises=[],
+    )
+    run_state = GovernanceRunState(run_id="test", started_at=datetime(2026, 1, 1, tzinfo=timezone.utc))
+    run_state.artifacts["change_impact_report"] = ArtifactRecord(
+        name="change_impact_report", producer_step="test",
+        status="present",
+        payload={
+            "produced_by": "test",
+            "change_mode": "mixed",
+            "impact_type": "contract_affecting",
+            "blocked_change": True,
+        },
+    )
+    run_state.artifacts["doc_update_plan"] = ArtifactRecord(
+        name="doc_update_plan", producer_step="test",
+        status="present",
+        payload={
+            "produced_by": "test",
+            "plan_status": "blocked",
+            "required_updates": [],
+            "verification_actions": [],
+        },
+    )
+
+    result = _synthesize_doc_code_sync_status(step, run_state)
+
+    assert result["overall_status"] == "blocked"
+    assert result["sync_status"] == "blocked"
+    assert result["doc_code_alignment_status"] == "blocked"
+    assert result["drift_detected"] is True
+    assert result["follow_up_required"] == "mandatory"
+    assert len(result["blocking_reasons"]) > 0
+    assert result["verification_matrix_update_required"] is True
+    assert result["verification_ledger_update_required"] is True
+
+
+def test_doc_code_sync_check_verification_matrix_action() -> None:
+    """Verification action targeting matrix -> verification_matrix_update_required=true."""
+    from governance.dag_runner.executor import _synthesize_doc_code_sync_status
+    from governance.dag_runner.models import WorkflowStep, GovernanceRunState, ArtifactRecord
+
+    step = WorkflowStep(
+        name="doc-code-sync-check",
+        component="skill:doc-code-sync-rules",
+        outputs=["doc_code_sync_status"],
+        raises=[],
+    )
+    run_state = GovernanceRunState(run_id="test", started_at=datetime(2026, 1, 1, tzinfo=timezone.utc))
+    run_state.artifacts["change_impact_report"] = ArtifactRecord(
+        name="change_impact_report", producer_step="test",
+        status="present",
+        payload={
+            "produced_by": "test",
+            "change_mode": "documentation",
+            "impact_type": "documentation_only",
+        },
+    )
+    run_state.artifacts["doc_update_plan"] = ArtifactRecord(
+        name="doc_update_plan", producer_step="test",
+        status="present",
+        payload={
+            "produced_by": "test",
+            "plan_status": "updates_required",
+            "required_updates": [
+                {"artifact": "DOCUMENTATION_VERIFICATION_MATRIX_v1.md", "update_type": "review", "priority": "medium"},
+            ],
+            "verification_actions": [
+                {"artifact": "DOCUMENTATION_VERIFICATION_MATRIX_v1.md", "action": "update"},
+            ],
+        },
+    )
+
+    result = _synthesize_doc_code_sync_status(step, run_state)
+
+    assert result["verification_matrix_update_required"] is True
+    assert result["overall_status"] == "review_only"
+    assert len(result["required_actions"]) > 0
+
+
+def test_doc_code_sync_check_verification_ledger_action() -> None:
+    """Verification action targeting ledger -> verification_ledger_update_required=true."""
+    from governance.dag_runner.executor import _synthesize_doc_code_sync_status
+    from governance.dag_runner.models import WorkflowStep, GovernanceRunState, ArtifactRecord
+
+    step = WorkflowStep(
+        name="doc-code-sync-check",
+        component="skill:doc-code-sync-rules",
+        outputs=["doc_code_sync_status"],
+        raises=[],
+    )
+    run_state = GovernanceRunState(run_id="test", started_at=datetime(2026, 1, 1, tzinfo=timezone.utc))
+    run_state.artifacts["change_impact_report"] = ArtifactRecord(
+        name="change_impact_report", producer_step="test",
+        status="present",
+        payload={
+            "produced_by": "test",
+            "change_mode": "documentation",
+            "impact_type": "documentation_only",
+        },
+    )
+    run_state.artifacts["doc_update_plan"] = ArtifactRecord(
+        name="doc_update_plan", producer_step="test",
+        status="present",
+        payload={
+            "produced_by": "test",
+            "plan_status": "updates_required",
+            "required_updates": [],
+            "verification_actions": [
+                {"artifact": "verification_ledger.md", "action": "update"},
+            ],
+        },
+    )
+
+    result = _synthesize_doc_code_sync_status(step, run_state)
+
+    assert result["verification_ledger_update_required"] is True
+
+
+def test_doc_code_sync_check_required_updates_mandatory() -> None:
+    """Required updates with high priority -> follow_up mandatory."""
+    from governance.dag_runner.executor import _synthesize_doc_code_sync_status
+    from governance.dag_runner.models import WorkflowStep, GovernanceRunState, ArtifactRecord
+
+    step = WorkflowStep(
+        name="doc-code-sync-check",
+        component="skill:doc-code-sync-rules",
+        outputs=["doc_code_sync_status"],
+        raises=[],
+    )
+    run_state = GovernanceRunState(run_id="test", started_at=datetime(2026, 1, 1, tzinfo=timezone.utc))
+    run_state.artifacts["change_impact_report"] = ArtifactRecord(
+        name="change_impact_report", producer_step="test",
+        status="present",
+        payload={
+            "produced_by": "test",
+            "change_mode": "documentation",
+            "impact_type": "documentation_only",
+        },
+    )
+    run_state.artifacts["doc_update_plan"] = ArtifactRecord(
+        name="doc_update_plan", producer_step="test",
+        status="present",
+        payload={
+            "produced_by": "test",
+            "plan_status": "updates_required",
+            "required_updates": [
+                {"artifact": "README_v1.md", "update_type": "update", "priority": "critical"},
+            ],
+            "verification_actions": [],
+        },
+    )
+
+    result = _synthesize_doc_code_sync_status(step, run_state)
+
+    assert result["overall_status"] == "review_only"
+    assert result["follow_up_required"] == "mandatory"
+
+
+def test_doc_code_sync_check_doc_only_runtime_claims() -> None:
+    """Doc-only change with runtime claims -> drift_detected and review_only."""
+    from governance.dag_runner.executor import _synthesize_doc_code_sync_status
+    from governance.dag_runner.models import WorkflowStep, GovernanceRunState, ArtifactRecord
+
+    step = WorkflowStep(
+        name="doc-code-sync-check",
+        component="skill:doc-code-sync-rules",
+        outputs=["doc_code_sync_status"],
+        raises=[],
+    )
+    run_state = GovernanceRunState(run_id="test", started_at=datetime(2026, 1, 1, tzinfo=timezone.utc))
+    run_state.artifacts["change_impact_report"] = ArtifactRecord(
+        name="change_impact_report", producer_step="test",
+        status="present",
+        payload={
+            "produced_by": "test",
+            "change_mode": "documentation",
+            "impact_type": "documentation_only",
+            "doc_only_change": True,
+            "contributing_categories": ["implementation", "runtime"],
+        },
+    )
+    run_state.artifacts["doc_update_plan"] = ArtifactRecord(
+        name="doc_update_plan", producer_step="test",
+        status="present",
+        payload={
+            "produced_by": "test",
+            "plan_status": "no_updates_required",
+            "required_updates": [],
+            "verification_actions": [],
+        },
+    )
+
+    result = _synthesize_doc_code_sync_status(step, run_state)
+
+    assert result["docs_changed_without_code"] is True
+    assert result["drift_detected"] is True
+    assert result["overall_status"] == "review_only"
+    assert result["follow_up_required"] == "mandatory"
+
+
+def test_doc_code_sync_check_doc_only_no_runtime_claims() -> None:
+    """Doc-only change without runtime claims -> review_only, no drift."""
+    from governance.dag_runner.executor import _synthesize_doc_code_sync_status
+    from governance.dag_runner.models import WorkflowStep, GovernanceRunState, ArtifactRecord
+
+    step = WorkflowStep(
+        name="doc-code-sync-check",
+        component="skill:doc-code-sync-rules",
+        outputs=["doc_code_sync_status"],
+        raises=[],
+    )
+    run_state = GovernanceRunState(run_id="test", started_at=datetime(2026, 1, 1, tzinfo=timezone.utc))
+    run_state.artifacts["change_impact_report"] = ArtifactRecord(
+        name="change_impact_report", producer_step="test",
+        status="present",
+        payload={
+            "produced_by": "test",
+            "change_mode": "documentation",
+            "impact_type": "documentation_only",
+            "doc_only_change": True,
+            "contributing_categories": ["documentation", "editorial"],
+        },
+    )
+    run_state.artifacts["doc_update_plan"] = ArtifactRecord(
+        name="doc_update_plan", producer_step="test",
+        status="present",
+        payload={
+            "produced_by": "test",
+            "plan_status": "no_updates_required",
+            "required_updates": [],
+            "verification_actions": [],
+        },
+    )
+
+    result = _synthesize_doc_code_sync_status(step, run_state)
+
+    assert result["docs_changed_without_code"] is True
+    assert result["drift_detected"] is False
+    assert result["overall_status"] == "review_only"
+
+
+def test_doc_code_sync_check_code_change_without_docs() -> None:
+    """Code/runtime change without docs -> drift_detected=true and mandatory follow-up."""
+    from governance.dag_runner.executor import _synthesize_doc_code_sync_status
+    from governance.dag_runner.models import WorkflowStep, GovernanceRunState, ArtifactRecord
+
+    step = WorkflowStep(
+        name="doc-code-sync-check",
+        component="skill:doc-code-sync-rules",
+        outputs=["doc_code_sync_status"],
+        raises=[],
+    )
+    run_state = GovernanceRunState(run_id="test", started_at=datetime(2026, 1, 1, tzinfo=timezone.utc))
+    run_state.artifacts["change_impact_report"] = ArtifactRecord(
+        name="change_impact_report", producer_step="test",
+        status="present",
+        payload={
+            "produced_by": "test",
+            "change_mode": "code",
+            "impact_type": "implementation",
+            "doc_only_change": False,
+            "code_path_governance_required": True,
+        },
+    )
+    run_state.artifacts["doc_update_plan"] = ArtifactRecord(
+        name="doc_update_plan", producer_step="test",
+        status="present",
+        payload={
+            "produced_by": "test",
+            "plan_status": "no_updates_required",
+            "required_updates": [],
+            "verification_actions": [],
+        },
+    )
+
+    result = _synthesize_doc_code_sync_status(step, run_state)
+
+    assert result["code_changed_without_docs"] is True
+    assert result["drift_detected"] is True
+    assert result["overall_status"] == "out_of_sync"
+    assert result["follow_up_required"] == "mandatory"
+    assert result["doc_code_alignment_status"] == "misaligned"
+
+
+def test_doc_code_sync_check_arrays_capped() -> None:
+    """All arrays are capped at 10."""
+    from governance.dag_runner.executor import _synthesize_doc_code_sync_status
+    from governance.dag_runner.models import WorkflowStep, GovernanceRunState, ArtifactRecord
+
+    step = WorkflowStep(
+        name="doc-code-sync-check",
+        component="skill:doc-code-sync-rules",
+        outputs=["doc_code_sync_status"],
+        raises=[],
+    )
+    run_state = GovernanceRunState(run_id="test", started_at=datetime(2026, 1, 1, tzinfo=timezone.utc))
+    run_state.artifacts["change_impact_report"] = ArtifactRecord(
+        name="change_impact_report", producer_step="test",
+        status="present",
+        payload={
+            "produced_by": "test",
+            "change_mode": "mixed",
+            "impact_type": "contract_affecting",
+            "impacted_docs": [f"doc_{i}.md" for i in range(20)],
+            "impacted_code_paths": [f"path/{i}.py" for i in range(20)],
+        },
+    )
+    run_state.artifacts["doc_update_plan"] = ArtifactRecord(
+        name="doc_update_plan", producer_step="test",
+        status="present",
+        payload={
+            "produced_by": "test",
+            "plan_status": "updates_required",
+            "required_updates": [
+                {"artifact": f"doc_{i}.md", "update_type": "review", "priority": "low"}
+                for i in range(20)
+            ],
+            "verification_actions": [],
+        },
+    )
+
+    result = _synthesize_doc_code_sync_status(step, run_state)
+
+    assert len(result["impacted_docs"]) <= 10
+    assert len(result["impacted_code_paths"]) <= 10
+    assert len(result["required_actions"]) <= 10
+    assert len(result["blocking_reasons"]) <= 10
+    assert len(result["notes"]) <= 10
+
+
+def test_doc_code_sync_check_wrapped_schema() -> None:
+    """Wrapped schema (nested change_impact_summary / doc_update_plan)."""
+    from governance.dag_runner.executor import _synthesize_doc_code_sync_status
+    from governance.dag_runner.models import WorkflowStep, GovernanceRunState, ArtifactRecord
+
+    step = WorkflowStep(
+        name="doc-code-sync-check",
+        component="skill:doc-code-sync-rules",
+        outputs=["doc_code_sync_status"],
+        raises=[],
+    )
+    run_state = GovernanceRunState(run_id="test", started_at=datetime(2026, 1, 1, tzinfo=timezone.utc))
+    run_state.artifacts["change_impact_report"] = ArtifactRecord(
+        name="change_impact_report", producer_step="test",
+        status="present",
+        payload={
+            "produced_by": "test",
+            "change_impact_summary": {
+                "change_mode": "code",
+                "impact_type": "implementation",
+                "doc_only_change": False,
+                "code_path_governance_required": True,
+                "impacted_docs": ["README_v1.md"],
+                "affected_paths": ["layer2/adapters/fred.py"],
+            },
+        },
+    )
+    run_state.artifacts["doc_update_plan"] = ArtifactRecord(
+        name="doc_update_plan", producer_step="test",
+        status="present",
+        payload={
+            "produced_by": "test",
+            "doc_update_plan": {
+                "plan_status": "updates_required",
+                "required_updates": [
+                    {"artifact": "README_v1.md", "update_type": "update", "priority": "high"},
+                ],
+                "verification_actions": [
+                    {"artifact": "verification_matrix", "action": "review"},
+                ],
+            },
+        },
+    )
+
+    result = _synthesize_doc_code_sync_status(step, run_state)
+
+    assert result["code_changed_without_docs"] is True
+    assert result["drift_detected"] is True
+    assert result["verification_matrix_update_required"] is True
+    assert result["impacted_docs"] == ["README_v1.md"]
+    assert result["impacted_code_paths"] == ["layer2/adapters/fred.py"]
+
+
+def test_doc_code_sync_no_claude_invocation_in_mock_backend() -> None:
+    """doc-code-sync-check does not invoke Claude backend in agent_execution mode."""
+    from governance.dag_runner.loader import load_workflow_packages
+    from governance.dag_runner.assembler import assemble_workflow_spec
+    from governance.dag_runner.validator import validate_or_raise
+    from governance.dag_runner.planner import build_execution_plan
+    from governance.dag_runner.executor import execute_plan
+    from governance.dag_runner.execution_backend import MockExecutionBackend
+    from governance.dag_runner.models import ExecutionConfig
+
+    loaded = load_workflow_packages()
+    spec = assemble_workflow_spec(loaded)
+    validate_or_raise(spec)
+    plan = build_execution_plan(spec)
+
+    config = ExecutionConfig(mode="agent_execution", request_text="Test")
+    backend = MockExecutionBackend()
+    result = execute_plan(spec, plan, verdict_status="ready", config=config, backend=backend)
+
+    # doc-code-sync-check should have produced doc_code_sync_status
+    sync = result.run_state.artifacts.get("doc_code_sync_status")
+    assert sync is not None
+    assert sync.status == "present"
+    assert sync.payload["produced_by"] == "doc-code-sync-check"
+
+    # Verify doc-code-sync-check node result is PASS (structural)
+    dcsc_result = result.run_state.node_results.get("doc-code-sync-check")
+    assert dcsc_result is not None
+    assert dcsc_result.status == "PASS"
+    assert dcsc_result.inference_used is False
+
+    # Verify deterministic_synthesis trace event exists
+    synth_events = [
+        e for e in result.run_state.execution_trace
+        if e.event_type == "deterministic_synthesis" and e.node_name == "doc-code-sync-check"
+    ]
+    assert len(synth_events) == 1
+    assert synth_events[0].detail["synthesized_artifact"] == "doc_code_sync_status"
