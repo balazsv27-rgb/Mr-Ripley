@@ -1,0 +1,122 @@
+{
+  "artifact": "doc_update_plan",
+  "produced_by": "change-impact-audit",
+  "session": "b1d7c86d-bd5a-45f0-bb3e-53b49620f3a3",
+  "timestamp": "2026-04-28T01:31:58.370821Z",
+  "data": {
+    "produced_by": "change-impact-audit",
+    "run_id": "b1d7c86d-bd5a-45f0-bb3e-53b49620f3a3",
+    "plan_status": "blocked_pending_prerequisite_resolution",
+    "plan_status_reason": "All upstream governance steps blocked the change. The doc_update_plan below describes the updates that WOULD be required if the prerequisite conditions are satisfied and the refactor is re-submitted. These updates are not actionable until the blocking conditions are resolved.",
+    "prerequisite_conditions": [
+      "SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md must define 'truth_store' and 'decision_layer' as canonical architectural names for Layer 2 and Layer 3 respectively, establishing the new terms as canonical before any refactor proceeds.",
+      "CLAUDE.md must be amended to reflect the new terminology as a prior governance action, since it is the highest-priority interpretive authority and currently uses 'Layer 2'/'Layer 3' throughout.",
+      "DOCUMENTATION_VERIFICATION_MATRIX_v1.md must be consulted to map all cross-document references affected by the rename.",
+      "SYSTEM_TECHNICAL_HANDBOOK_v1.md must define the explicit constraint boundary distinguishing architectural naming from code module names and import paths.",
+      "README_LAYER2.md rename requires prior governance amendment of CLAUDE.md Section 2.1 to update the canonical document list.",
+      "SYSTEM_IMPLEMENTATION_RECORD_v1.md must identify which Layer 3 references are historical vs current-state before any substitution.",
+      "Orchestration workflow authorisation (CLAUDE.md Section 15) must be confirmed for the full refactor scope.",
+      "SYSTEM_LIMITATIONS_AND_APPROXIMATIONS_v1.md must be reviewed for limitation-boundary implications of the rename."
+    ],
+    "required_updates": [
+      {
+        "artifact": "CLAUDE.md",
+        "reason": "Constitutional document uses 'Layer 2' and 'Layer 3' throughout Sections 1, 2.1, 2.2, 2.4, 3, 4, 6, 10, 11, and 15. This is the highest-priority interpretive authority and must be amended before any downstream canonical documents can be renamed. Amendment must preserve all semantic invariants: phase-gate definitions, snapshot contract rules, strong claim prohibitions, evidence model constraints, and current-vs-target architecture separation.",
+        "priority": "high",
+        "update_type": "revise",
+        "blocked_until": "prerequisite_conditions_1_and_2_satisfied"
+      },
+      {
+        "artifact": "SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md",
+        "reason": "Primary architectural source of truth. Must establish 'truth_store' and 'decision_layer' as canonical architectural names before the terms can be used elsewhere. This is a prerequisite-establishing update, not a follow-on update. Phase definitions, build sequence, and Layer-2/Layer-3 interface contracts use current terminology throughout.",
+        "priority": "high",
+        "update_type": "revise",
+        "blocked_until": "prerequisite_condition_1_satisfied"
+      },
+      {
+        "artifact": "README_v1.md",
+        "reason": "Top-level project orientation references Layer 2 operational status and Layer 3 target architecture. Terminology must be updated to match new canonical names while preserving current-state vs target-state distinction. Section 11 mandatory review artifact for contract-affecting changes.",
+        "priority": "high",
+        "update_type": "revise",
+        "blocked_until": "CLAUDE.md_and_SYSTEM_ARCHITECTURE_amended"
+      },
+      {
+        "artifact": "SYSTEM_TECHNICAL_HANDBOOK_v1.md",
+        "reason": "Technical implementation constraints reference Layer 2/Layer 3 in core invariant tables, contract behavior rules, and operating constraints. Must define the explicit boundary between architectural naming and code module names (layer2/ directory, import paths). Section 11 mandatory review artifact.",
+        "priority": "high",
+        "update_type": "revise",
+        "blocked_until": "CLAUDE.md_and_SYSTEM_ARCHITECTURE_amended"
+      },
+      {
+        "artifact": "SYSTEM_LIMITATIONS_AND_APPROXIMATIONS_v1.md",
+        "reason": "Limitation and constraint boundary language is scoped to 'Layer 2' operational boundaries. Rename must preserve the specificity of limitation scoping. Section 11 mandatory review artifact. Must be reviewed for limitation-boundary implications before substitution.",
+        "priority": "high",
+        "update_type": "revise",
+        "blocked_until": "CLAUDE.md_and_SYSTEM_ARCHITECTURE_amended"
+      },
+      {
+        "artifact": "DOCUMENTATION_VERIFICATION_MATRIX_v1.md",
+        "reason": "Cross-document consistency map references all canonical documents by current terminology. Must be fully updated to reflect new terminology while preserving evidence classifications, claim statuses, and cross-reference integrity. This is both a Section 11 obligation and a prerequisite (must be consulted to map all affected references before execution).",
+        "priority": "high",
+        "update_type": "revise",
+        "blocked_until": "all_tier1_docs_amended"
+      },
+      {
+        "artifact": "SYSTEM_IMPLEMENTATION_RECORD_v1.md",
+        "reason": "Contains both current-state implementation claims and historical references using Layer 2/Layer 3 terminology. Historical references must be identified and preserved or annotated rather than blindly substituted. Section 11 mandatory review when implementation state language changes.",
+        "priority": "high",
+        "update_type": "revise",
+        "blocked_until": "prerequisite_condition_6_satisfied"
+      },
+      {
+        "artifact": "README_LAYER2.md",
+        "reason": "Canonical filename contains 'LAYER2'. Both the filename and content use current terminology. Filename rename requires prior CLAUDE.md Section 2.1 amendment. Content update requires prior establishment of new terms in SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md. Historical references within this document need case-by-case governance review. README_LAYER2.md is canonical within its collaborator-workflow role; it must not be used as primary authority for implementation-state, architecture, or limitations claims during this update.",
+        "priority": "high",
+        "update_type": "revise",
+        "blocked_until": "CLAUDE.md_Section_2.1_amended_and_prerequisite_condition_5_satisfied"
+      },
+      {
+        "artifact": "system-orchestration.yaml",
+        "reason": "Tier 2 governance artifact. May contain references to canonical document filenames (including README_LAYER2.md) and layer terminology in skill/workflow definitions. Must be reviewed and updated if canonical filenames or terminology references are embedded.",
+        "priority": "medium",
+        "update_type": "review",
+        "blocked_until": "CLAUDE.md_amended"
+      }
+    ],
+    "verification_actions": [
+      {
+        "artifact": "DOCUMENTATION_VERIFICATION_MATRIX_v1.md",
+        "reason": "All cross-document reference mappings use current terminology. A documentation-wide terminology refactor requires full matrix update to maintain cross-reference integrity. Evidence classifications and claim statuses must be reviewed to confirm they are not inadvertently altered by the rename. Per Rule DR-7, any implied evidence reclassification requires verification matrix update.",
+        "action": "update",
+        "blocked_until": "prerequisite_conditions_resolved"
+      },
+      {
+        "artifact": "verification_ledger.md",
+        "reason": "Ledger entries reference canonical documents and system components by current terminology. Terminology change requires ledger review and update to maintain traceability. Must confirm that no evidence status has been inadvertently promoted or demoted by the rename. Per Rule DR-7, evidence reclassification triggers ledger update.",
+        "action": "update",
+        "blocked_until": "prerequisite_conditions_resolved"
+      }
+    ],
+    "rename_controls": {
+      "alias_map_required": true,
+      "alias_map_reason": "README_LAYER2.md is a canonical document referenced by exact filename in CLAUDE.md Sections 2.1, 2.2, 2.4, and 11, in DOCUMENTATION_VERIFICATION_MATRIX_v1.md, and potentially in system-orchestration.yaml. An alias map must be created mapping the old filename to the new filename to preserve identity continuity and enable historical traceability.",
+      "identity_continuity_required": true,
+      "identity_continuity_reason": "CLAUDE.md Section 2.1 lists README_LAYER2.md as one of seven canonical current-state sources. The document's identity and canonical role must be preserved through the rename. Git history must remain traceable.",
+      "reference_update_required": true,
+      "reference_update_reason": "Every reference to README_LAYER2.md by filename across CLAUDE.md, DOCUMENTATION_VERIFICATION_MATRIX_v1.md, system-orchestration.yaml, and any other governance artifacts must be atomically updated to the new filename.",
+      "invariance_check_required": true,
+      "invariance_check_reason": "Per Rule DR-10, the rename must preserve semantic content, evidence posture, and role mapping. The new terminology (truth_store, decision_layer) must be verified to not alter claim scope, evidence classification, canonical role mapping, or current-vs-target labeling. Currently unverifiable because the new terms are absent from canonical sources."
+    },
+    "execution_sequence_if_unblocked": [
+      "Step 1: Establish new terms in SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md as canonical architectural names.",
+      "Step 2: Amend CLAUDE.md to adopt the new terminology, updating all sections while preserving every semantic invariant.",
+      "Step 3: Update CLAUDE.md Section 2.1 to reflect any canonical filename changes (README_LAYER2.md \u2192 new name).",
+      "Step 4: Update Tier 1 canonical documents (README_v1.md, SYSTEM_TECHNICAL_HANDBOOK_v1.md, SYSTEM_LIMITATIONS_AND_APPROXIMATIONS_v1.md, SYSTEM_IMPLEMENTATION_RECORD_v1.md) with new terminology, preserving historical references.",
+      "Step 5: Rename README_LAYER2.md file and update its content.",
+      "Step 6: Update DOCUMENTATION_VERIFICATION_MATRIX_v1.md with all cross-reference changes and verify no evidence classification drift.",
+      "Step 7: Update verification_ledger.md entries.",
+      "Step 8: Update system-orchestration.yaml if it contains affected references.",
+      "Step 9: Run full verification pipeline to confirm cross-reference integrity and semantic invariance."
+    ]
+  }
+}

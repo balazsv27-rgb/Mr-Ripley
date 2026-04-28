@@ -1,0 +1,77 @@
+{
+  "artifact": "adapter_schema_verdict",
+  "produced_by": "adapter-schema-check",
+  "session": "b1d7c86d-bd5a-45f0-bb3e-53b49620f3a3",
+  "timestamp": "2026-04-28T01:29:23.591725Z",
+  "data": {
+    "produced_by": "adapter-schema-check",
+    "adapter_schema_status": {
+      "overall_status": "ambiguous_requires_review",
+      "inference_used": true,
+      "checked_items": [
+        {
+          "item_id": "registry-compliance",
+          "target": "layer2/adapters/* (all adapters)",
+          "assessment": "review",
+          "registry_driven": null,
+          "hardcoded_series_detected": null,
+          "schema_drift_detected": null,
+          "boundary_fit": null,
+          "affected_files": [
+            "layer2/adapters/"
+          ],
+          "missing_inputs": [
+            "adapter source files (tool unavailable)",
+            "layer2/config/series_registry.json",
+            "layer2/db.py",
+            "layer2/alignment.py"
+          ],
+          "reason": "File-reading tools (Glob, Read, Grep) were unavailable in this execution context. No code-level inspection of adapters, registry, or DB schema was possible. Compliance cannot be confirmed or denied from evidence.",
+          "canonical_source": "SYSTEM_TECHNICAL_HANDBOOK_v1.md",
+          "notes": [
+            "Tools required for static analysis (Glob, Read, Grep) returned tool_use_error \u2014 no files could be inspected.",
+            "All adapter compliance dimensions (registry-driven, schema consistency, hardcoding, boundary fit) remain unverified.",
+            "Upstream runtime_boundary_verdict carries boundary_violation_suspected: true with several null fields, indicating incomplete upstream evidence as well."
+          ]
+        },
+        {
+          "item_id": "upstream-boundary-inheritance",
+          "target": "runtime_boundary_verdict (upstream artifact)",
+          "assessment": "review",
+          "registry_driven": null,
+          "hardcoded_series_detected": null,
+          "schema_drift_detected": null,
+          "boundary_fit": null,
+          "affected_files": [],
+          "missing_inputs": [
+            "upstream code inspection results"
+          ],
+          "reason": "Upstream artifact reports boundary_violation_suspected: true but overall_boundary_status: null, code_inspection_possible: null, and all downstream flag fields null. This indicates the runtime-boundary-check step itself could not complete a confirmed verdict. Per fail-closed principle (CLAUDE.md \u00a77), this inherited suspicion cannot be discarded.",
+          "canonical_source": "SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md",
+          "notes": [
+            "boundary_violation_suspected: true is treated as a soft flag \u2014 not confirmed, but not clearable without evidence.",
+            "Fail-closed principle requires treating unresolvable suspicion as requiring review, not as clean."
+          ]
+        }
+      ],
+      "summary": {
+        "registry_violation_detected": false,
+        "hardcoded_series_detected": false,
+        "schema_drift_detected": false,
+        "boundary_violation_detected": false,
+        "requires_adapter_schema_guard": true,
+        "requires_adapter_schema_guardian": true,
+        "requires_doc_code_sync_review": true,
+        "source_authority_conflict_detected": false,
+        "notes": [
+          "Code inspection tools unavailable \u2014 no adapter files, registry, or DB schema could be read. No compliance dimension can be confirmed or denied.",
+          "requires_adapter_schema_guardian: true because code evidence is absent for all material compliance decisions.",
+          "requires_adapter_schema_guard: true because overall_status is ambiguous_requires_review.",
+          "requires_doc_code_sync_review: true because no adapter compliance claims can be verified from code in this run.",
+          "Upstream boundary_violation_suspected: true cannot be cleared \u2014 treat as unresolved suspicion per fail-closed principle.",
+          "To resolve: re-run with Read/Glob/Grep tools available and inspect layer2/adapters/*, layer2/config/series_registry.json, layer2/db.py."
+        ]
+      }
+    }
+  }
+}

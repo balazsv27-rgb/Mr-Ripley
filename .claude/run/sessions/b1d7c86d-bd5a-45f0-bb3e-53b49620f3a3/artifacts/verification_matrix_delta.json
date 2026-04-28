@@ -1,0 +1,121 @@
+{
+  "artifact": "verification_matrix_delta",
+  "produced_by": "update-verification-matrix",
+  "session": "b1d7c86d-bd5a-45f0-bb3e-53b49620f3a3",
+  "timestamp": "2026-04-28T01:33:39.170580Z",
+  "data": {
+    "produced_by": "update-verification-matrix",
+    "matrix_action": "contradiction_note",
+    "classification_dispute_detected": true,
+    "runtime_status_upgrade_blocked": true,
+    "source_authority_conflict_detected": true,
+    "inference_used": true,
+    "affected_entries": [
+      {
+        "entry_id": "s3-snapshot-boundary-contract",
+        "section": "Section 3 \u2014 Current Layer-2 Contract Items",
+        "claim_or_topic": "Snapshot boundary contract language and enforcement",
+        "change_type": "status_review",
+        "reason": "Boundary violation suspected (runtime_boundary_verdict): terminology refactor touches snapshot contract language directly governed by CLAUDE.md \u00a76.1 ('Layer 3+ MUST read ONLY from published snapshots'). Replacement terminology ('truth_store', 'decision_layer') not yet verified to preserve the existing contract exactly. Cannot settle classification while blocking violation is unresolved.",
+        "source_documents": [
+          "CLAUDE.md",
+          "SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md"
+        ],
+        "proposed_old_state": null,
+        "proposed_new_state": null,
+        "confidence": "high"
+      },
+      {
+        "entry_id": "s4-constitutional-doc-self-modification",
+        "section": "Section 4 \u2014 Current Known Open Items",
+        "claim_or_topic": "CLAUDE.md self-modification attempt \u2014 exceeds Phase B scope, triggers Section 11 obligation cascade",
+        "change_type": "add_new_entry",
+        "reason": "Phase alignment blocked (phase_alignment_status: allowed=false): constitutional document self-modification and canonical filename rename exceed Phase B bootstrap scope. Phase B allowed envelope is limited to snapshot consumer, DecisionPacket skeleton, NO_TRADE default, state/guard taxonomy stubs, 2-3 deterministic calculations. CLAUDE.md is the highest-priority interpretive authority; modifying it is a contract-affecting change triggering the full Section 11 obligation cascade. Must be tracked as an open governance item until scope alignment is resolved.",
+        "source_documents": [
+          "CLAUDE.md",
+          "system-orchestration.yaml"
+        ],
+        "proposed_old_state": null,
+        "proposed_new_state": "Cannot verify from current materials",
+        "confidence": "high"
+      },
+      {
+        "entry_id": "s4-unverified-terminology-introduction",
+        "section": "Section 4 \u2014 Current Known Open Items",
+        "claim_or_topic": "New terms 'truth_store' and 'decision_layer' introduced without traceable canonical source",
+        "change_type": "add_new_entry",
+        "reason": "Contract compliance blocked (contract_compliance_verdict: allowed=false) with 5 blocking claims (RC-C001, RC-C002, RC-C004, RC-C006, RC-C007). Terms 'truth_store' and 'decision_layer' are not traceable to any Tier 1 canonical source, violating CLAUDE.md \u00a716 ('If a statement cannot be traced to a canonical source AND cannot be proven from implementation THEN it MUST be treated as unverified and non-binding'). Strong architecture claims (Layer 2 = truth_store, Layer 3 = decision_layer) lack role-matched citations from SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md. Classification vocabulary must use only: 'Verified in current documentation set', 'Documented current-state claim', 'Planned / target architecture', 'Cannot verify from current materials'.",
+        "source_documents": [
+          "CLAUDE.md",
+          "SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md"
+        ],
+        "proposed_old_state": null,
+        "proposed_new_state": "Cannot verify from current materials",
+        "confidence": "high"
+      },
+      {
+        "entry_id": "s8-claude-md-document-role",
+        "section": "Section 8 \u2014 Document Role Classification",
+        "claim_or_topic": "CLAUDE.md role classification integrity under proposed self-modification",
+        "change_type": "status_review",
+        "reason": "CLAUDE.md is simultaneously: (a) the highest-priority interpretive authority per the document authority hierarchy, and (b) the proposed target of modification in this change. The deep audit is blocked with dag_advancement_blocked=true. A source authority conflict exists (role_citation_verdict: source_authority_conflict_detected=true, canonical_conflict_unresolved=true). Role classification requires manual review to confirm that CLAUDE.md's governing authority is not undermined by the proposed modification scope before any settled update can be made.",
+        "source_documents": [
+          "CLAUDE.md"
+        ],
+        "proposed_old_state": null,
+        "proposed_new_state": null,
+        "confidence": "high"
+      },
+      {
+        "entry_id": "s8-verification-ledger-governance-role",
+        "section": "Section 8 \u2014 Document Role Classification",
+        "claim_or_topic": "verification_ledger.md governance role \u2014 not currently classified in Tier 1 canonical set but appears in multiple governance step impacted_docs lists",
+        "change_type": "add_new_entry",
+        "reason": "verification_ledger.md appears in impacted_docs across both doc_code_sync_status and change_impact_report but is not a Tier 1 canonical document (not in the canonical current-state documentation set defined in CLAUDE.md \u00a72.1). Its governance role relative to the canonical set must be explicitly classified in the matrix. DR-7 applies: new governance artifacts require Section 8 entry assessment.",
+        "source_documents": [
+          "CLAUDE.md",
+          "system-orchestration.yaml"
+        ],
+        "proposed_old_state": null,
+        "proposed_new_state": "Cannot verify from current materials",
+        "confidence": "medium"
+      }
+    ],
+    "required_follow_up": [
+      "Resolve 3 blocking violations (phase_alignment_status, contract_compliance_verdict, runtime_boundary_verdict) before DAG can advance and before matrix entries can be settled",
+      "Establish traceable Tier 1 canonical source for proposed terms 'truth_store' and 'decision_layer', or remove them and revert to existing canonical vocabulary",
+      "Determine governance-compliant scope for any CLAUDE.md modification \u2014 confirm whether constitutional document changes require a dedicated phase or explicit governance authorization beyond Phase B",
+      "Verify that any terminology replacing snapshot contract language (CLAUDE.md \u00a76.1) preserves the existing contract exactly \u2014 obtain explicit cross-doc Tier 1 consistency check",
+      "Classify verification_ledger.md's governance role explicitly in Section 8 \u2014 determine whether it is a governance addendum (Tier 2), an implementation record, or outside the canonical hierarchy"
+    ],
+    "unresolved_conflicts": [
+      {
+        "conflict_id": "UC-001",
+        "description": "New terms 'truth_store' and 'decision_layer' asserted as architecture-level identifiers (Layer 2 = truth_store, Layer 3 = decision_layer) but not traceable to SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md or any other Tier 1 canonical source. Contradicts CLAUDE.md \u00a716 and the canonical classification vocabulary.",
+        "blocking": true
+      },
+      {
+        "conflict_id": "UC-002",
+        "description": "CLAUDE.md is both the highest-priority interpretive authority and the target of proposed modification. Modification scope (constitutional document self-modification + canonical filename rename) exceeds Phase B allowed envelope per phase_alignment_status. This creates a governance circularity that cannot be resolved by the matrix layer \u2014 requires explicit phase authorization.",
+        "blocking": true
+      },
+      {
+        "conflict_id": "UC-003",
+        "description": "Snapshot contract language touched by terminology refactor; runtime_boundary_verdict flags boundary_violation_suspected. The exact preservation of \u00a76.1 contract terms cannot be confirmed from current governance step outputs. Settled classification requires explicit verification.",
+        "blocking": true
+      },
+      {
+        "conflict_id": "UC-004",
+        "description": "role_citation_verdict reports source_authority_conflict_detected=true and canonical_conflict_unresolved=true. Five blocking claims (RC-C001, RC-C002, RC-C004, RC-C006, RC-C007) remain unresolved. DR-5 prevents settled matrix updates while these conflicts are active.",
+        "blocking": false
+      }
+    ],
+    "notes": [
+      "matrix_action=contradiction_note selected per DR-5 (source authority conflict prevents settled updates) and DR-8 (fail-closed on ambiguous direction). The deep audit's dag_advancement_blocked=true prevents classification advancement.",
+      "inference_used=true: DOCUMENTATION_VERIFICATION_MATRIX_v1.md could not be read (Read tool unavailable in this agent context). Entry IDs are inferred from the matrix section taxonomy defined in skill instructions. Confidence ratings reflect this limitation for entry ID specificity, not for the underlying governance signal analysis.",
+      "runtime_status_upgrade_blocked=true per DR-1: all proposed changes are doc-only. No code-level implementation evidence was presented. Classification upgrades to 'Verified in current documentation set' are blocked.",
+      "classification_dispute_detected=true: proposed terminology ('truth_store', 'decision_layer') conflicts with the canonical classification vocabulary and cannot be mapped to allowed evidence classes without traceable Tier 1 sourcing.",
+      "This delta does NOT update the verification ledger. Ledger update is a downstream step (verification-ledger-update) and is blocked until audit violations are resolved."
+    ]
+  }
+}

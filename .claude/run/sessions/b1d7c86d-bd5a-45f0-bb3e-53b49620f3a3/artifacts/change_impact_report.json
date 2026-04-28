@@ -1,0 +1,67 @@
+{
+  "artifact": "change_impact_report",
+  "produced_by": "change-impact-audit",
+  "session": "b1d7c86d-bd5a-45f0-bb3e-53b49620f3a3",
+  "timestamp": "2026-04-28T01:31:58.368809Z",
+  "data": {
+    "produced_by": "change-impact-audit",
+    "run_id": "b1d7c86d-bd5a-45f0-bb3e-53b49620f3a3",
+    "change_impact_summary": {
+      "change_mode": "content_change",
+      "impact_type": "mixed",
+      "contributing_categories": [
+        "documentation",
+        "architecture",
+        "verification"
+      ],
+      "impacted_components": [
+        "governance_framework",
+        "canonical_document_registry",
+        "document_authority_hierarchy",
+        "phase_gate_framework",
+        "snapshot_boundary_contract",
+        "strong_claim_discipline",
+        "verification_ledger",
+        "verification_matrix",
+        "collaborator_workflow"
+      ],
+      "impacted_docs": [
+        "CLAUDE.md",
+        "README_v1.md",
+        "SYSTEM_TECHNICAL_HANDBOOK_v1.md",
+        "SYSTEM_LIMITATIONS_AND_APPROXIMATIONS_v1.md",
+        "SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md",
+        "DOCUMENTATION_VERIFICATION_MATRIX_v1.md",
+        "SYSTEM_IMPLEMENTATION_RECORD_v1.md",
+        "README_LAYER2.md",
+        "verification_ledger.md",
+        "system-orchestration.yaml"
+      ],
+      "follow_up_required": "mandatory",
+      "inference_used": true,
+      "inference_details": "stage_gate_report and guard_report are structural-only; detailed guard signals inferred from audit_summary consolidation. No direct file-access verification of canonical document contents was possible; canonical awareness derived from upstream governance artifacts.",
+      "risk_summary": [
+        "Phase alignment blocked (ambiguous_requires_block): constitutional document self-modification and canonical filename rename exceed Phase B bootstrap scope. Neither activity is within the Phase B allowed envelope (snapshot consumer, DecisionPacket skeleton, NO_TRADE default, state/guard taxonomy stubs, 2-3 deterministic calculations).",
+        "Contract compliance blocked: role_citation_verdict reports conflict_requires_block with 5 blocking claims (RC-C001, RC-C002, RC-C004, RC-C006, RC-C007). New terms 'truth_store' and 'decision_layer' are not traceable to any canonical source, violating CLAUDE.md Section 16.",
+        "Boundary violation suspected: runtime_boundary_verdict flagged boundary_violation_suspected. The terminology refactor touches snapshot contract language (CLAUDE.md Section 6.1: 'Layer 3+ MUST read ONLY from published snapshots') \u2014 replacement terminology must preserve this contract exactly.",
+        "Source authority conflict detected: role_citation_verdict found role_mismatch_detected=true and canonical_conflict_unresolved=true. Strong architecture claims (Layer 2 = truth_store, Layer 3 = decision_layer) lack role-matched citations from SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md.",
+        "Constitutional document self-modification: CLAUDE.md is the highest-priority interpretive authority. Modifying its terminology is a contract-affecting change that triggers the full Section 11 obligation cascade. The phase governance framework itself depends on the document being modified.",
+        "Canonical filename rename breaks reference chain: README_LAYER2.md is listed by exact filename in CLAUDE.md Sections 2.1, 2.2, 2.4, and 11. Renaming it without prior CLAUDE.md amendment breaks the canonical source resolution chain.",
+        "Semantic drift risk \u2014 truth_store: 'truth_store' may be interpreted as a data store rather than a layer with specific contract obligations, subtly shifting architectural semantics away from the snapshot-boundary-publishing layer concept.",
+        "Semantic drift risk \u2014 decision_layer: 'decision_layer' may be confused with 'Decision Engine' (a specific planned component within Layer 3 per CLAUDE.md Section 3.2), collapsing the distinction between the layer and one of its planned components.",
+        "Cross-reference integrity risk: all seven canonical documents plus CLAUDE.md use 'Layer 2' and/or 'Layer 3' as established terms. Post-rename cross-reference consistency cannot be asserted without DOCUMENTATION_VERIFICATION_MATRIX_v1.md review (per RC-C006 blocking verdict).",
+        "Section 11 full obligation cascade triggered but not satisfied: the refactor is unambiguously contract-affecting, requiring review of all canonical documents. The prerequisite conditions identified by role_citation_verdict (8 conditions) have not been met.",
+        "Layer-2 index_suite.py disambiguation required: CLAUDE.md Section 3.2 contains a parenthetical distinguishing the existing Layer-2 index_suite.py provisional pre-publication tool from the planned Layer-3 Index Suite. The rename must preserve this disambiguation or risks collapsing a current-state vs target-state distinction."
+      ],
+      "notes": [
+        "Change mode classified as content_change, not rename_only. Although the request intends terminology substitution with preserved semantics, the rename_only prerequisites are not met: (1) new terms are absent from canonical sources so semantic equivalence is unverified, (2) no alias mapping exists, (3) canonical filename rename (README_LAYER2.md) lacks identity continuity provisions, (4) role_citation_verdict found the equivalence claims are strong architecture claims without role-matched citations. Per Rule DR-11, a purported rename that cannot demonstrate semantic invariance must not be classified as rename_only.",
+        "All upstream governance steps that issued verdicts (audit_summary, claim_classification_map, role_citation_verdict, phase_alignment_status) converge on block. This is the strongest possible upstream signal \u2014 no governance step cleared the change.",
+        "The request's own fail-closed constraint (c5) and scope restriction (c3) align with existing governance obligations and are not in conflict. The issue is not the request's intent but the prerequisite conditions for execution.",
+        "No target-state work has been described as current-state implementation. Layer 3 references describe target architecture; the rename does not promote them to current. The terminology modification itself is a current-state documentation action.",
+        "Doc-only change assessment: even though this is documentation-only, it does not qualify for DR-1 (doc-only change with no evidence impact) because it modifies the vocabulary used to express evidence classifications, phase-gate definitions, snapshot contract rules, and strong claim prohibitions \u2014 all of which affect evidence and verification posture.",
+        "One claim (c6: layer2_index_suite_disambiguation) was assessed as phase-compatible in isolation by phase_alignment_status, but cannot be safely executed while the broader batch carries unresolved source authority conflicts.",
+        "Prerequisite resolution path identified by role_citation_verdict: 8 conditions must be satisfied before the refactor may proceed. These are governance prerequisites, not implementation tasks."
+      ]
+    }
+  }
+}
