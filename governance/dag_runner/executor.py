@@ -609,6 +609,180 @@ def _synthesize_audit_summary(
     }
 
 
+def _synthesize_artifact_hygiene_verdict(
+    step: WorkflowStep,
+    run_state: GovernanceRunState,
+) -> dict[str, Any]:
+    """Produce a deterministic artifact_hygiene_verdict from run_state metadata.
+
+    Evaluates artifact presence/absence, verification ledger signals,
+    and artifact payload consistency without invoking an LLM or scanning
+    arbitrary files.  Decision rules A–E are applied in priority order.
+    """
+    _CAP_CHECKED = 20
+    _CAP_MISSING = 20
+    _CAP_FINDINGS = 20
+    _CAP_BLOCKING = 10
+    _CAP_ACTIONS = 10
+    _CAP_NOTES = 10
+
+    # --- Base result skeleton ---
+    result: dict[str, Any] = {
+        "produced_by": "runtime-artifact-hygiene-check",
+        "overall_status": "clean",
+        "hygiene_status": "clean",
+        "unexpected_runtime_artifacts_detected": False,
+        "stale_artifacts_detected": False,
+        "commit_sensitive_artifacts_detected": False,
+        "evidence_confusing_artifacts_detected": False,
+        "missing_expected_artifacts_detected": False,
+        "artifact_counts": {
+            "declared_artifacts": 0,
+            "present_artifacts": 0,
+            "missing_artifacts": 0,
+            "session_artifacts": 0,
+        },
+        "checked_artifacts": [],
+        "missing_artifacts": [],
+        "hygiene_findings": [],
+        "blocking_reasons": [],
+        "required_actions": [],
+        "inference_used": False,
+        "notes": [],
+    }
+
+    # --- A: Declared vs present artifacts ---
+    declared_count = len(run_state.artifacts)
+    present_count = sum(
+        1 for a in run_state.artifacts.values()
+        if a.status == "present"
+    )
+    missing_names = sorted(
+        name for name, a in run_state.artifacts.items()
+        if a.status != "present"
+    )
+
+    result["artifact_counts"]["declared_artifacts"] = declared_count
+    result["artifact_counts"]["present_artifacts"] = present_count
+    result["artifact_counts"]["missing_artifacts"] = len(missing_names)
+
+    checked: list[dict[str, Any]] = []
+    for name, art in sorted(run_state.artifacts.items()):
+        checked.append({
+            "name": name,
+            "status": art.status,
+            "producer_step": art.producer_step,
+        })
+    result["checked_artifacts"] = checked[:_CAP_CHECKED]
+
+    if missing_names:
+        result["missing_artifacts"] = missing_names[:_CAP_MISSING]
+        result["missing_expected_artifacts_detected"] = True
+
+    # --- B: Verification ledger delta signal ---
+    ledger_record = run_state.artifacts.get("verification_ledger_delta")
+    if ledger_record is not None and ledger_record.status == "present":
+        ledger = ledger_record.payload
+        summary = ledger.get("summary", {})
+
+        has_conflicts = summary.get("conflicts_detected") is True
+        has_source_conflict = (
+            ledger.get("source_authority_conflict_detected") is True
+        )
+        upgrade_blocked = (
+            summary.get("runtime_status_upgrade_attempt_blocked") is True
+        )
+        missing_evidence = summary.get("missing_evidence") or []
+        unresolved_conflicts = summary.get("unresolved_conflicts") or []
+
+        if unresolved_conflicts or upgrade_blocked:
+            result["overall_status"] = "blocked"
+            result["hygiene_status"] = "blocked"
+            if unresolved_conflicts:
+                result["blocking_reasons"].append(
+                    f"verification_ledger_delta has "
+                    f"{len(unresolved_conflicts)} unresolved conflict(s)"
+                )
+            if upgrade_blocked:
+                result["blocking_reasons"].append(
+                    "verification_ledger_delta reports "
+                    "runtime_status_upgrade_attempt_blocked"
+                )
+        elif missing_evidence or has_conflicts or has_source_conflict:
+            if result["overall_status"] == "clean":
+                result["overall_status"] = "review_only"
+                result["hygiene_status"] = "review_only"
+            if missing_evidence:
+                result["hygiene_findings"].append({
+                    "source": "verification_ledger_delta",
+                    "signal": "missing_evidence",
+                    "count": len(missing_evidence),
+                })
+            if has_conflicts:
+                result["hygiene_findings"].append({
+                    "source": "verification_ledger_delta",
+                    "signal": "conflicts_detected",
+                })
+            if has_source_conflict:
+                result["hygiene_findings"].append({
+                    "source": "verification_ledger_delta",
+                    "signal": "source_authority_conflict_detected",
+                })
+
+    # --- D: Evidence-confusing artifacts ---
+    confusion_findings: list[dict[str, Any]] = []
+    for name, art in run_state.artifacts.items():
+        if art.status not in ("present", "missing"):
+            confusion_findings.append({
+                "source": name,
+                "signal": f"unexpected_status={art.status}",
+            })
+        if art.status == "present" and isinstance(art.payload, dict):
+            if "produced_by" not in art.payload:
+                confusion_findings.append({
+                    "source": name,
+                    "signal": "missing_produced_by_in_payload",
+                })
+            elif (
+                art.producer_step
+                and art.payload.get("produced_by") != art.producer_step
+            ):
+                confusion_findings.append({
+                    "source": name,
+                    "signal": "producer_step_mismatch",
+                    "producer_step": art.producer_step,
+                    "payload_produced_by": art.payload.get("produced_by"),
+                })
+
+    if confusion_findings:
+        result["evidence_confusing_artifacts_detected"] = True
+        if result["overall_status"] == "clean":
+            result["overall_status"] = "review_only"
+            result["hygiene_status"] = "review_only"
+        result["hygiene_findings"].extend(confusion_findings)
+
+    # --- C: Session artifact count ---
+    if run_state.session_dir:
+        result["artifact_counts"]["session_artifacts"] = present_count
+
+    # --- E: Clean case ---
+    if result["overall_status"] == "clean":
+        result["notes"].append(
+            "No runtime artifact hygiene issues detected "
+            "from run_state/session metadata."
+        )
+
+    # --- Cap all arrays ---
+    result["checked_artifacts"] = result["checked_artifacts"][:_CAP_CHECKED]
+    result["missing_artifacts"] = result["missing_artifacts"][:_CAP_MISSING]
+    result["hygiene_findings"] = result["hygiene_findings"][:_CAP_FINDINGS]
+    result["blocking_reasons"] = result["blocking_reasons"][:_CAP_BLOCKING]
+    result["required_actions"] = result["required_actions"][:_CAP_ACTIONS]
+    result["notes"] = result["notes"][:_CAP_NOTES]
+
+    return result
+
+
 def _synthesize_doc_code_sync_status(
     step: WorkflowStep,
     run_state: GovernanceRunState,
@@ -899,6 +1073,7 @@ def _execute_v2_step(
     Routes by component kind:
     - structural kinds → ``backend.execute_structural_step()``
     - skill / subagents → resolve agent, assemble prompt, ``backend.execute_step()``
+    - runtime-artifact-hygiene-check → deterministic synthesis (no LLM)
     - doc-code-sync-check → deterministic synthesis (no LLM)
 
     In dry-run mode, prompt is assembled for diagnostics but backend is not invoked.
@@ -967,10 +1142,36 @@ def _execute_v2_step(
         detail={"component_kind": kind, "backend": type(backend).__name__},
     )
 
+    # Deterministic synthesis for runtime-artifact-hygiene-check — bypass LLM backend.
+    # This step evaluates run_state artifact metadata and verification ledger signals;
+    # it does not need to inspect arbitrary files or invoke Claude.
+    if step.name == "runtime-artifact-hygiene-check" and "artifact_hygiene_verdict" in step.outputs:
+        hygiene_payload = _synthesize_artifact_hygiene_verdict(step, run_state)
+        bootstrap_payload = {"artifact_hygiene_verdict": hygiene_payload}
+        result = backend.execute_structural_step(
+            step=step,
+            component_kind="workflow_step",
+            run_state=run_state,
+            spec=spec,
+            bootstrap_payload=bootstrap_payload,
+        )
+        _deterministic_synthesis = True
+        _append_trace(
+            run_state,
+            node_name=step.name,
+            event_type="deterministic_synthesis",
+            detail={
+                "synthesized_artifact": "artifact_hygiene_verdict",
+                "overall_status": hygiene_payload.get("overall_status"),
+                "hygiene_status": hygiene_payload.get("hygiene_status"),
+                "inference_used": hygiene_payload.get("inference_used"),
+            },
+        )
+
     # Deterministic synthesis for doc-code-sync-check — bypass LLM backend.
     # This step aggregates upstream artifacts (change_impact_report, doc_update_plan)
     # into a sync verdict; it does not need to inspect files or code.
-    if step.name == "doc-code-sync-check" and "doc_code_sync_status" in step.outputs:
+    elif step.name == "doc-code-sync-check" and "doc_code_sync_status" in step.outputs:
         sync_payload = _synthesize_doc_code_sync_status(step, run_state)
         bootstrap_payload = {"doc_code_sync_status": sync_payload}
         result = backend.execute_structural_step(

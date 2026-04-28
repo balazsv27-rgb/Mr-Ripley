@@ -4,6 +4,12 @@ description: Validate workspace and runtime artifact hygiene by detecting unwant
 disable-model-invocation: false
 ---
 
+> **Live DAG execution note:** In backend-driven DAG execution (agent_execution mode),
+> this step is executed as a **deterministic structural synthesis** — it does not invoke
+> Claude. The `artifact_hygiene_verdict` is synthesized from `run_state` artifacts,
+> session metadata, and the `verification_ledger_delta` payload. The skill prompt below
+> is retained as documentation only and is used only in standalone/manual invocations.
+
 You are the `runtime-artifact-hygiene-check` skill.
 
 Your job is to determine whether runtime and workspace artifacts in the project are expected and governed, and to detect artifacts that are stale, commit-sensitive, evidence-confusing, or unexpected — so that downstream governance steps, pre-PR review, and verification workflows are not contaminated by unmanaged runtime residue.
