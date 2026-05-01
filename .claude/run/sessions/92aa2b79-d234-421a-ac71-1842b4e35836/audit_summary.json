@@ -1,0 +1,46 @@
+{
+  "artifact": "audit_summary",
+  "produced_by": "deep-audit",
+  "session": "92aa2b79-d234-421a-ac71-1842b4e35836",
+  "timestamp": "2026-04-28T10:24:17.127401Z",
+  "data": {
+    "produced_by": "deep-audit",
+    "audit_action": "blocked",
+    "overall_audit_status": "blocked",
+    "fail_closed_applied": true,
+    "dag_advancement_blocked": true,
+    "dispatched_subagents": [],
+    "blocking_violations_count": 3,
+    "review_required_violations_count": 0,
+    "unresolved_violations_count": 3,
+    "findings": [
+      {
+        "source_artifact": "phase_alignment_status",
+        "signal": "allowed=false",
+        "severity": "blocking",
+        "summary": "phase_alignment_status reports allowed=false (blocked)"
+      },
+      {
+        "source_artifact": "contract_compliance_verdict",
+        "signal": "allowed=false",
+        "severity": "blocking",
+        "summary": "contract_compliance_verdict reports allowed=false (blocked)"
+      },
+      {
+        "source_artifact": "runtime_boundary_verdict",
+        "signal": "boundary_violation_suspected",
+        "severity": "blocking",
+        "summary": "boundary_violation_suspected detected in runtime_boundary_verdict"
+      }
+    ],
+    "audit_resolution_required": [
+      "phase_alignment_status reports allowed=false (blocked)",
+      "contract_compliance_verdict reports allowed=false (blocked)",
+      "boundary_violation_suspected detected in runtime_boundary_verdict"
+    ],
+    "notes": [
+      "Deterministic synthesis from 8 upstream artifacts.",
+      "Detected 3 escalation signal(s)."
+    ]
+  }
+}

@@ -1,0 +1,68 @@
+{
+  "artifact": "normalized_terminology_map",
+  "produced_by": "normalize-terminology",
+  "session": "92aa2b79-d234-421a-ac71-1842b4e35836",
+  "timestamp": "2026-04-28T10:15:53.699999Z",
+  "data": {
+    "produced_by": "normalize-terminology",
+    "overall_status": "governance_sensitive_term_conflict",
+    "inference_used": false,
+    "canonical_term_mappings": [
+      {
+        "from": "truth_store",
+        "to": "Layer-2",
+        "concept_id": "LAYER_2",
+        "reason": "Unrecognized term \u2014 absent from canonical term table in all columns (canonical, allowed, discouraged). Proposed as wholesale replacement for canonical 'Layer-2'. Cannot be adopted without explicit governance recognition. Governance-sensitive Category A: risks conflating the LAYER_2 architectural layer with SNAPSHOT_TRUTH (a distinct canonical concept) and the OBSERVATIONS boundary, weakening snapshot-boundary semantics."
+      },
+      {
+        "from": "decision_layer",
+        "to": "Layer-3",
+        "concept_id": "LAYER_3",
+        "reason": "Unrecognized term \u2014 absent from canonical term table. Semantically adjacent to explicitly discouraged variant 'decision engine' for LAYER_3. Conflicts with CLAUDE.md Sections 9 and 10: naming the architectural layer 'decision_layer' implies decision-making or execution capability that is constitutionally forbidden. Governance-sensitive Category D: touches decision vocabulary and execution-boundary claim classification."
+      }
+    ],
+    "scope_constraints": [
+      "governance_context.request_text evaluated for proposed terminology introductions",
+      "claim_classification_map claims c1\u2013c8 evaluated for term usage and proposed term semantics",
+      "Layer 2 (prose) confirmed as explicitly allowed variant of Layer-2 (canonical) \u2014 existing usage in artifacts is compliant, no normalization required",
+      "Layer 3 (prose) confirmed as explicitly allowed variant of Layer-3 (canonical) \u2014 existing usage in artifacts is compliant, no normalization required",
+      "layer2/index_suite.py confirmed as protected code module path \u2014 constitutionally excluded from documentation rename scope per c3 and c8; CLAUDE.md Section 3.2 explicitly distinguishes it from the planned Layer-3 Index Suite",
+      "handoff gate confirmed as allowed variant of HANDOFF_GATE canonical term \u2014 usage in claim_classification_map is compliant"
+    ],
+    "excluded_reference_types": [
+      "canonical Documentation/ files not read directly \u2014 directory not traversed at this normalization step",
+      "series_registry.json not inspected \u2014 LAYER_2 series definitions not cross-checked",
+      "code module paths and import graphs not traversed",
+      "DOCUMENTATION_VERIFICATION_MATRIX_v1.md cross-references not directly verified",
+      "README_LAYER2.md file content not read \u2014 filename identified as rename candidate from governance_context and claim c4 only"
+    ],
+    "filename_rename_candidates": [
+      "README_LAYER2.md"
+    ],
+    "ambiguity_flags": [
+      {
+        "term": "truth_store",
+        "concepts": [
+          "LAYER_2",
+          "SNAPSHOT_TRUTH",
+          "OBSERVATIONS"
+        ],
+        "governance_sensitive": true,
+        "note": "Category A \u2014 snapshot boundary. Proposed as replacement for LAYER_2 (the architectural ingestion and snapshot-publication layer) but semantically overlaps with SNAPSHOT_TRUTH (a distinct canonical concept referring to the published artifact state) and risks confusion with OBSERVATIONS (the raw data boundary that Layer-2 is explicitly designed to separate). A 'store' framing implies a data-storage artifact rather than an architectural layer, compounding the conflation risk."
+      },
+      {
+        "term": "decision_layer",
+        "concepts": [
+          "LAYER_3",
+          "DECISION_PACKET",
+          "NO_TRADE",
+          "GUARD_TAXONOMY",
+          "TRIGGER_TAXONOMY",
+          "STATE_TAXONOMY"
+        ],
+        "governance_sensitive": true,
+        "note": "Category D \u2014 decision vocabulary. Proposed as replacement for LAYER_3 (an architectural layer whose planned components include Feature Builder, Regime Gate, Supervisor Engine, etc.) but creates direct ambiguity with the decision-vocabulary domain (DecisionPacket, NO_TRADE, guard/trigger/state taxonomies). CLAUDE.md Sections 9 and 10 constitute a constitutional prohibition on implying automated decision or execution capability. Labeling the architectural layer 'decision_layer' would cause downstream governance steps to misclassify architectural-boundary claims as decision-execution claims, affecting enforcement routing."
+      }
+    ]
+  }
+}

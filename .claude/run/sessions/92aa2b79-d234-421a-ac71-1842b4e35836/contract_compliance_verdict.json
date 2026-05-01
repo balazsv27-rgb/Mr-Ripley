@@ -1,0 +1,121 @@
+{
+  "artifact": "contract_compliance_verdict",
+  "produced_by": "snapshot-contract-check",
+  "session": "92aa2b79-d234-421a-ac71-1842b4e35836",
+  "timestamp": "2026-04-28T10:22:15.296758Z",
+  "data": {
+    "produced_by": "snapshot-contract-check",
+    "allowed": false,
+    "contract_status": "ambiguous_requires_block",
+    "valid_interface": "none",
+    "forbidden_access_detected": false,
+    "snapshot_anchor_required": true,
+    "blocking_reason_if_any": "Upstream canonical conflict is unresolved (role_citation_verdict=conflict_requires_block, canonical_conflict_unresolved=true). In strict mode, all ambiguous claims are promoted to blocked (B8). No direct raw observation access was detected, and phase_alignment_status reports snapshot_boundary_risk=false; however: (1) c2 decision_layer_naming_may_conflict_with_execution_boundary introduces ambiguity about Layer-3 access patterns and whether downstream consumption paths are snapshot-anchored or imply forbidden execution-layer access; (2) constitutional document modification and filename-rename cascade conditions (flagged upstream) may alter the authoritative definition of snapshot contract rules without resolved source authority \u2014 any such modification touches the canonical Tier-1 documents (Handbook, Architecture) that define SCC-1 through SCC-6 and FP-1 through FP-7; (3) unverified claim c7 cannot be assessed for snapshot contract compliance while it remains untraced to canonical sources. Fail-closed principle (CLAUDE.md Section 7) applied: contract compliance cannot be confirmed; proceed is blocked.",
+    "upstream_block_inherited": true,
+    "checked_claims": [
+      {
+        "claim_id": "upstream-block",
+        "claim_text": "Upstream canonical conflict unresolved: role_citation_verdict=conflict_requires_block, canonical_conflict_unresolved=true",
+        "assessment": "blocked",
+        "violated_invariants": [],
+        "triggered_forbidden_patterns": [],
+        "valid_interface_if_compliant": "none",
+        "reason": "Contract compliance verification requires traceable canonical authority. With source authority conflict unresolved, no claim in scope can be assessed as definitively compliant. Strict mode promotes all resulting ambiguity to blocked per B8.",
+        "contract_reference": [
+          "SCC-1",
+          "SCC-6",
+          "CLAUDE.md-Section-6"
+        ]
+      },
+      {
+        "claim_id": "c2",
+        "claim_text": "Decision-layer naming may conflict with execution boundary (decision_layer_naming_may_conflict_with_execution_boundary flagged in phase_alignment_status)",
+        "assessment": "blocked",
+        "violated_invariants": [
+          "SCC-1",
+          "SCC-6"
+        ],
+        "triggered_forbidden_patterns": [
+          "FP-2",
+          "FP-7"
+        ],
+        "valid_interface_if_compliant": "none",
+        "reason": "Execution-boundary terminology introduced before Phase D creates ambiguity about whether the named layer implies downstream access patterns that bypass the snapshot boundary or imply direct observation access. Handoff gate satisfaction does not relax any invariant (SCC-6). Strict mode: ambiguous \u2192 blocked. Cannot confirm snapshot_id-anchored valid interface is in use.",
+        "contract_reference": [
+          "SCC-1",
+          "SCC-6",
+          "FP-2",
+          "FP-7",
+          "CLAUDE.md-Section-9"
+        ]
+      },
+      {
+        "claim_id": "c-doc-modification",
+        "claim_text": "Constitutional document modification and filename-rename cascade across canonical set (flagged in phase_alignment_status as constitutional_document_modification and filename_rename_cascade_across_canonical_set)",
+        "assessment": "blocked",
+        "violated_invariants": [
+          "SCC-1",
+          "SCC-2",
+          "SCC-3",
+          "SCC-4",
+          "SCC-5",
+          "SCC-6"
+        ],
+        "triggered_forbidden_patterns": [
+          "FP-7"
+        ],
+        "valid_interface_if_compliant": "none",
+        "reason": "The Tier-1 canonical documents \u2014 SYSTEM_TECHNICAL_HANDBOOK_v1.md and SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md \u2014 are the primary authority sources for SCC-1 through SCC-6 and all forbidden patterns. Modification or renaming of these documents without resolved source authority constitutes an implicit attempt to alter contract definition. Any documentation implying a change to what Layer-3 may access must be blocked identically to code that enacts the same change (FP-7). Immutability and version-lock (CLAUDE.md Section 12) extend to the contract-defining canonical set.",
+        "contract_reference": [
+          "FP-7",
+          "SCC-4",
+          "CLAUDE.md-Section-11",
+          "CLAUDE.md-Section-12"
+        ]
+      },
+      {
+        "claim_id": "c7",
+        "claim_text": "Unverified claim c7 \u2014 cannot be traced to canonical sources (flagged in phase_alignment_status)",
+        "assessment": "blocked",
+        "violated_invariants": [
+          "SCC-1"
+        ],
+        "triggered_forbidden_patterns": [],
+        "valid_interface_if_compliant": "none",
+        "reason": "An unverified claim that cannot be traced to canonical sources cannot be assessed for snapshot contract compliance. CLAUDE.md Section 16 requires claims to be traceable to a canonical source or proven from implementation. Neither condition is met. Fail-closed applied: unverified \u2192 blocked.",
+        "contract_reference": [
+          "SCC-1",
+          "CLAUDE.md-Section-16",
+          "CLAUDE.md-Section-7"
+        ]
+      },
+      {
+        "claim_id": "c-snapshot-boundary-risk",
+        "claim_text": "phase_alignment_status reports snapshot_boundary_risk=false \u2014 no direct raw observation access detected",
+        "assessment": "compliant",
+        "violated_invariants": [],
+        "triggered_forbidden_patterns": [],
+        "valid_interface_if_compliant": "none",
+        "reason": "This specific sub-finding is noted as favorable: no direct evidence of FP-1 (SELECT FROM observations by Layer-3+) or FP-2 (bypassing snapshot_id to read latest observation row) was detected in the upstream phase check. However, this finding is narrowly scoped and does not override the overall ambiguous_requires_block verdict, which is driven by unresolved canonical authority conflict and strict-mode promotion of ambiguity.",
+        "contract_reference": [
+          "SCC-1",
+          "FP-1",
+          "FP-2"
+        ]
+      }
+    ],
+    "summary": {
+      "raw_observations_access_risk": false,
+      "snapshot_bypass_risk": false,
+      "layer2_storage_touch_risk": false,
+      "decisionpacket_anchor_risk": true,
+      "canonical_conflict_blocks_assessment": true,
+      "execution_boundary_naming_risk": true,
+      "constitutional_document_modification_risk": true,
+      "followup_guard_recommended": true,
+      "followup_guard_target": "snapshot-boundary-auditor",
+      "escalation_condition": "canonical_conflict_unresolved=true and constitutional_document_modification conditions must be resolved before any contract compliance can be confirmed; escalate to snapshot-boundary-auditor if decision_layer_naming proceeds without canonical authority clearance",
+      "recommended_next_step": "Do not proceed. All claims blocked or unresolvable in strict mode. Required preconditions before re-assessment: (1) resolve role_citation_verdict=conflict_requires_block \u2014 source authority conflict must be cleared; (2) validate or reject c7 against canonical Tier-1 materials; (3) audit c2 decision-layer naming against CLAUDE.md Section 9 and confirm it carries no Phase-D execution implication and no snapshot-bypass access pattern; (4) fully scope filename-rename cascade impact on Tier-1 canonical document authority before any modification is permitted. Only after all four preconditions are met may snapshot-contract-check be re-run."
+    }
+  }
+}

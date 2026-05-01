@@ -1,9 +1,0 @@
-{
-  "artifact": "runtime_boundary_verdict",
-  "produced_by": "runtime-boundary-check",
-  "session": "9164c8b5-59a1-4cb4-9416-df44076b0efb",
-  "timestamp": "2026-04-27T21:04:42.037481Z",
-  "data": {
-    "produced_by": "runtime-boundary-check"
-  }
-}

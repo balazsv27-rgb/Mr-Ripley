@@ -370,6 +370,21 @@ Any action that bypasses enforced workflow execution is considered invalid and n
 > AND cannot be proven from implementation  
 > THEN it MUST be treated as unverified and non-binding.
 
+# 16.1 Constitutional amendment rule:
+A change to CLAUDE.md terminology is valid only if:
+1. the change request identifies affected constitutional sections;
+2. role-matched canonical sources are cited;
+3. semantic equivalence is proven or old/new terms are kept as aliases;
+4. all canonical cross-references are updated atomically;
+5. verification matrix and ledger entries are updated;
+6. the DAG returns no blocking conditions.
+
+ ▎ Non-canonical aliases MAY be introduced for architectural layers if:
+  ▎ (a) the canonical term is preserved as the primary identifier in all constitutional and canonical documents;
+  ▎ (b) the alias is registered in the terminology normalization map;
+  ▎ (c) the alias does not conflict with §9 (execution boundary), §10 (forbidden claims), or any existing canonical concept;
+  ▎ (d) the alias is annotated as non-canonical wherever it appears.
+  
 ---
 
 # SUMMARY

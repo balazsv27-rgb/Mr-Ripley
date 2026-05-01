@@ -1,3 +1,53 @@
 {
-  "request_text": "Evaluate and govern a documentation-wide terminology refactor affecting all files under Documentation/ and CLAUDE.md. Replace 'Layer 2' and 'Layer-2' with 'truth_store'. Replace 'Layer 3' and 'Layer-3' with 'decision_layer'. Enforce this as a strict naming convention only where the terms refer to the project's architectural layers. Do not blindly alter unrelated literals, code module names, import paths, or historical references without governance review. Detect whether README_LAYER2.md and any other filenames require rename handling. Produce terminology, role-citation, phase-alignment, change-impact, rename-invariance, and doc-code-sync outputs. Fail closed if the rename would introduce ambiguity, architecture drift, or snapshot-boundary confusion."
+  "request_id": "alias-layer-terms-2026-04-28",
+  "request_type": "non-canonical alias introduction",
+  "supersedes": "rename-layer-terms-2026-04-20",
+  "request_text": "Introduce non-canonical aliases for architectural layer terminology in documentation. Register 'Ingestion Layer' as a non-canonical alias for 'Layer 2' / 'Layer-2', and 'Computation Layer' as a non-canonical alias for 'Layer 3' / 'Layer-3'. Canonical terms 'Layer 2' and 'Layer 3' remain the primary identifiers in all constitutional and canonical documents. Aliases may appear in parenthetical annotations or glossary sections only — they do not replace canonical terms anywhere. Do not rename README_LAYER2.md or any code paths (layer2/, layer2/index_suite.py). Do not introduce terminology that implies capabilities prohibited under CLAUDE.md §9 or §10. The rejected terms 'truth_store' and 'decision_layer' are explicitly excluded from this request. Cite SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md for architecture naming authority, SYSTEM_IMPLEMENTATION_RECORD_v1.md for implementation-state alignment, DOCUMENTATION_VERIFICATION_MATRIX_v1.md for documentation consistency scope, and system-orchestration.yaml for workflow enforcement scope. This request invokes CLAUDE.md Section 16.1 (constitutional amendment rule) — specifically criterion 3 (old/new terms kept as aliases). Produce terminology, role-citation, phase-alignment, change-impact, and doc-code-sync outputs. Fail closed if any alias introduces ambiguity, boundary conflict, or snapshot-boundary confusion.",
+  "constitutional_amendment_criteria": {
+    "section_16_1_criterion_1": "Affected sections: CLAUDE.md §§1, 3, 4, 6, 11. Aliases annotate existing terms — no section text is replaced.",
+    "section_16_1_criterion_2": "Role-matched citations: SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md (architecture), SYSTEM_IMPLEMENTATION_RECORD_v1.md (implementation state), DOCUMENTATION_VERIFICATION_MATRIX_v1.md (consistency), system-orchestration.yaml (workflow).",
+    "section_16_1_criterion_3": "Old terms 'Layer 2' / 'Layer 3' are preserved as canonical identifiers. New terms 'Ingestion Layer' / 'Computation Layer' are introduced as non-canonical aliases only.",
+    "section_16_1_criterion_4": "No cross-references require updating — canonical terms are unchanged. Alias appearances are additive parenthetical annotations.",
+    "section_16_1_criterion_5": "Verification matrix entry required for alias registration. Verification ledger entry required to record alias governance status.",
+    "section_16_1_criterion_6": "DAG must return no blocking conditions before any alias is registered."
+  },
+  "alias_definitions": [
+    {
+      "canonical_term": "Layer 2",
+      "canonical_variants": ["Layer-2", "Layer 2"],
+      "proposed_alias": "Ingestion Layer",
+      "alias_status": "non-canonical",
+      "semantic_justification": "Matches CLAUDE.md §1: 'deterministic data ingestion (Layer 2)'. Describes the layer's function (data ingestion) without conflating it with snapshot truth, observations, or storage concepts.",
+      "boundary_check": "No §9 or §10 implication. Describes a data-processing function.",
+      "conflation_risk": "None — 'ingestion' is not a canonical concept that overlaps with other defined terms."
+    },
+    {
+      "canonical_term": "Layer 3",
+      "canonical_variants": ["Layer-3", "Layer 3"],
+      "proposed_alias": "Computation Layer",
+      "alias_status": "non-canonical",
+      "semantic_justification": "Matches CLAUDE.md §3.2: 'Layer-3 snapshot-consuming computation'. Describes the layer's function (computation on published snapshots). Term is semantically neutral and does not imply any capability prohibited under §9 or §10.",
+      "boundary_check": "No §9 or §10 implication. 'Computation' is neutral and consistent with the system's declared constraints.",
+      "conflation_risk": "None — 'computation' does not overlap with DECISION_PACKET, NO_TRADE, GUARD_TAXONOMY, TRIGGER_TAXONOMY, or STATE_TAXONOMY concepts."
+    }
+  ],
+  "rejected_terms": [
+    {
+      "term": "truth_store",
+      "rejection_session": "92aa2b79-d234-421a-ac71-1842b4e35836",
+      "rejection_reason": "Conflates three distinct canonical concepts: LAYER_2 (architectural layer), SNAPSHOT_TRUTH (published artifact state), and OBSERVATIONS (raw data boundary). 'Store' framing implies a data-storage artifact rather than an architectural layer."
+    },
+    {
+      "term": "decision_layer",
+      "rejection_session": "92aa2b79-d234-421a-ac71-1842b4e35836",
+      "rejection_reason": "Conflicts with CLAUDE.md §9 and §10 constraints. Implies capabilities the system constitutionally prohibits prior to Phase D. Semantically adjacent to explicitly discouraged variant. Would cause downstream governance misrouting of architectural claims."
+    }
+  ],
+  "scope_exclusions": [
+    "README_LAYER2.md filename — not renamed",
+    "Code paths: layer2/, layer2/index_suite.py — not touched",
+    "Import paths and module names — not touched",
+    "series_registry.json — not touched",
+    "Historical references — preserved per CLAUDE.md §2.3"
+  ]
 }
