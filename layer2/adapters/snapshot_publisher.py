@@ -45,7 +45,7 @@ for _candidate in [_HERE.parent.parent, _HERE.parent]:
 
 from layer2.db import get_connection, read_latest_as_of  # noqa: E402
 from layer2.config.registry import get_registry          # noqa: E402
-from layer2.constants import build_guards                # noqa: E402
+from layer2.constants import build_guards, validate_snapshot_contract  # noqa: E402
 from layer2.clock import get_engine_clock               # noqa: E402
 
 # ---------------------------------------------------------------------------
@@ -488,6 +488,8 @@ def write_snapshot_json(
             for v in values
         },
     }
+
+    validate_snapshot_contract(output)
 
     with open(p, "w", encoding="utf-8") as f:
         json.dump(output, f, indent=2)
