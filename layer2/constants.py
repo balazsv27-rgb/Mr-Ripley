@@ -38,7 +38,7 @@ Layer-3 bootstrap note:
 from __future__ import annotations
 
 from enum import Enum
-from typing import Union
+from typing import Any, Dict, List, Union
 
 
 # ---------------------------------------------------------------------------
@@ -163,33 +163,57 @@ class ReasonCode(str, Enum):
 
 
 # ---------------------------------------------------------------------------
-# Guards schema documentation
+# Snapshot contract — required fields
 # ---------------------------------------------------------------------------
 
-# The `guards` dict in every snapshot JSON has this shape.
-# Layer-2 populates `data_ok` based on quality gate outcome.
-# All other guards are stubbed at the Layer-2 boundary — they are evaluated
-# or overridden by Layer-3 (Supervisor Engine) and Layer-4 (execution layer).
-#
+SNAPSHOT_REQUIRED_FIELDS: List[str] = [
+    "snapshot_id", "engine_version", "config_version",
+    "clock_ts", "clock_date", "verdict", "forced", "dry_run",
+    "guards", "tier1_series", "tier2_series", "missing_series",
+    "layer1_events", "run_ts", "published_at", "series_count",
+    "quality_summary", "values_by_group", "values",
+    "revision_policy", "revision_risk_summary",
+]
+
+VALUE_REQUIRED_FIELDS: List[str] = [
+    "obs_ts", "value", "staleness_days", "tier", "source",
+    "as_of_ts", "revision_seq", "revision_risk",
+]
+
+# ---------------------------------------------------------------------------
+# Guards schema
+# ---------------------------------------------------------------------------
+
+# Layer-2 populates the data-layer fields; Layer-3/4 stubs are passed through.
 # Layer-3 MUST check guards.data_ok == True before consuming snapshot values.
 # Layer-3 MUST emit VETO_DATA if data_ok is False and action != NOTHING.
-#
-GUARDS_SCHEMA = {
-    "data_ok":        bool,   # True if quality gate PASS and not forced
-    "idempotent_ok":  bool,   # True if this snapshot_id has not already been acted on
-    "cooldown_ok":    bool,   # True if not within a post-trade cooldown window
-    "risk_ok":        bool,   # True if position and drawdown caps are not exceeded
-    "supervisor_veto": bool,  # False unless Supervisor Engine sets an explicit block
+GUARDS_SCHEMA: Dict[str, type] = {
+    # ── Layer-2 computed ──────────────────────────────────────────────────
+    "data_ok":               bool,   # True if gate PASS, not forced, no missing Tier-1
+    "freshness_ok":          bool,   # True if all Tier-1 series within staleness threshold
+    "idempotent_ok":         bool,   # True if snapshot_id not yet acted on (L3 responsibility)
+    "revision_risk_present": bool,   # True if any payload value carries revision_risk=True
+    "forced":                bool,   # True if published with --force
+    "missing_tier1":         bool,   # True if any required Tier-1 series absent from payload
+    "snapshot_ok":           bool,   # Quality gate verdict (True = PASS)
+    "reason_code":           str,    # ReasonCode enum value — no free text permitted
+    # ── Layer-3/4 stubs ──────────────────────────────────────────────────
+    "cooldown_ok":           bool,   # Layer-3/4 responsibility
+    "risk_ok":               bool,   # Layer-3/4 responsibility
+    "supervisor_veto":       bool,   # Layer-3 Supervisor Engine responsibility
 }
 
-# Stub values Layer-2 emits for guards it cannot evaluate.
-# Layer-3 must override these with real evaluations before execution.
-GUARDS_L2_STUB = {
-    "data_ok":        None,   # Computed from quality gate — see build_guards()
+GUARDS_L2_STUB: Dict[str, Any] = {
     "idempotent_ok":  True,   # Layer-3 responsibility: check snapshot_id not yet acted on
     "cooldown_ok":    True,   # Layer-3/4 responsibility: check cooldown state
     "risk_ok":        True,   # Layer-3/4 responsibility: check position + drawdown caps
     "supervisor_veto": False, # Layer-3 responsibility: Supervisor Engine evaluation
+}
+
+# Required fields in the guards object (enforced by validate_guards).
+_GUARDS_REQUIRED: Dict[str, type] = {
+    k: v for k, v in GUARDS_SCHEMA.items()
+    if k not in ("cooldown_ok", "risk_ok", "supervisor_veto")
 }
 
 
@@ -197,32 +221,101 @@ def build_guards(
     snapshot_ok: bool,
     forced: bool,
     missing_tier1: bool = False,
+    freshness_ok: bool = True,
+    revision_risk_present: bool = False,
 ) -> dict:
     """
     Build the `guards` dict for a snapshot JSON.
 
-    Layer-2 is responsible for `data_ok` only.
-    All other guards are emitted as their Layer-2 stub values and must be
-    re-evaluated by Layer-3 before any execution decision is made.
+    Layer-2 computes data-layer guard fields; Layer-3/4 stubs are passed through.
 
     Args:
-        snapshot_ok:    Quality gate verdict (True = PASS).
-        forced:         True if snapshot was published with --force.
-        missing_tier1:  True if any Tier-1 series is missing from the payload.
-
-    Returns:
-        Guards dict with data_ok computed and all other fields stubbed.
+        snapshot_ok:            Quality gate verdict (True = PASS).
+        forced:                 True if published with --force.
+        missing_tier1:          True if any required Tier-1 series absent from payload.
+        freshness_ok:           True if all Tier-1 series within staleness threshold.
+        revision_risk_present:  True if any payload value carries revision_risk=True.
     """
-    # data_ok is false if:
-    #   - quality gate failed (any Tier-1 stale)
-    #   - snapshot was forced (gate bypassed — data integrity not guaranteed)
-    #   - any Tier-1 series is missing from the payload
     data_ok = snapshot_ok and not forced and not missing_tier1
 
+    if forced:
+        reason_code = ReasonCode.DATA_FORCED
+    elif missing_tier1:
+        reason_code = ReasonCode.DATA_MISSING
+    elif not freshness_ok or not snapshot_ok:
+        reason_code = ReasonCode.DATA_STALE
+    else:
+        reason_code = ReasonCode.DATA_OK
+
     return {
-        "data_ok":        data_ok,
-        "idempotent_ok":  GUARDS_L2_STUB["idempotent_ok"],
-        "cooldown_ok":    GUARDS_L2_STUB["cooldown_ok"],
-        "risk_ok":        GUARDS_L2_STUB["risk_ok"],
-        "supervisor_veto": GUARDS_L2_STUB["supervisor_veto"],
+        "data_ok":               data_ok,
+        "freshness_ok":          freshness_ok,
+        "idempotent_ok":         GUARDS_L2_STUB["idempotent_ok"],
+        "revision_risk_present": revision_risk_present,
+        "forced":                forced,
+        "missing_tier1":         missing_tier1,
+        "snapshot_ok":           snapshot_ok,
+        "reason_code":           reason_code.value,
+        "cooldown_ok":           GUARDS_L2_STUB["cooldown_ok"],
+        "risk_ok":               GUARDS_L2_STUB["risk_ok"],
+        "supervisor_veto":       GUARDS_L2_STUB["supervisor_veto"],
     }
+
+
+def validate_guards(guards: dict) -> None:
+    """
+    Validate a guards dict against GUARDS_SCHEMA required fields.
+
+    Raises ValueError if any required field is missing, has the wrong type,
+    or if reason_code is not a valid ReasonCode.
+    """
+    for field, expected_type in _GUARDS_REQUIRED.items():
+        if field not in guards:
+            raise ValueError(f"guards missing required field: {field!r}")
+        if not isinstance(guards[field], expected_type):
+            raise ValueError(
+                f"guards.{field} must be {expected_type.__name__}, "
+                f"got {type(guards[field]).__name__}: {guards[field]!r}"
+            )
+    ReasonCode.validate(guards["reason_code"])
+
+
+def validate_snapshot_contract(snapshot: dict) -> None:
+    """
+    Validate a snapshot dict against the Layer-2 snapshot contract.
+
+    Checks:
+    - All required top-level fields are present.
+    - guards sub-object is valid (via validate_guards).
+    - All values entries contain required per-series fields.
+    - series_ids in values and values_by_group are equivalent.
+
+    Raises ValueError with a descriptive message on the first violation found.
+    """
+    for field in SNAPSHOT_REQUIRED_FIELDS:
+        if field not in snapshot:
+            raise ValueError(f"snapshot missing required top-level field: {field!r}")
+
+    validate_guards(snapshot["guards"])
+
+    values: Dict[str, Any] = snapshot.get("values", {})
+    for sid, v in values.items():
+        for field in VALUE_REQUIRED_FIELDS:
+            if field not in v:
+                raise ValueError(
+                    f"snapshot.values[{sid!r}] missing required field: {field!r}"
+                )
+
+    vbg_ids: set = set()
+    for group_vals in snapshot.get("values_by_group", {}).values():
+        for item in group_vals:
+            vbg_ids.add(item["series_id"])
+    values_ids = set(values.keys())
+    if vbg_ids != values_ids:
+        extra_vbg = vbg_ids - values_ids
+        extra_v = values_ids - vbg_ids
+        raise ValueError(
+            f"values and values_by_group series_id mismatch — "
+            f"extra in values_by_group: {sorted(extra_vbg)}; "
+            f"extra in values: {sorted(extra_v)}"
+        )

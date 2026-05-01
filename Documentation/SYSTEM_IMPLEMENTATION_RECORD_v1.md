@@ -35,6 +35,22 @@ If this document conflicts with a more role-matched canonical document on those 
 
 ## 2. Current-State Addendum (2026-05-01)
 
+### 2.0-B Snapshot contract completeness — Phase 2 (2026-05-01)
+
+Implemented formal schema validation and fully structured guards for the Layer-2 snapshot JSON contract:
+
+- `layer2/constants.py`: Added `SNAPSHOT_REQUIRED_FIELDS`, `VALUE_REQUIRED_FIELDS`, updated `GUARDS_SCHEMA` to include all required guard fields. Added `validate_guards()` and `validate_snapshot_contract()` functions. Updated `build_guards()` to accept `freshness_ok` and `revision_risk_present` params and return eight Layer-2 fields: `data_ok`, `freshness_ok`, `idempotent_ok`, `revision_risk_present`, `forced`, `missing_tier1`, `snapshot_ok`, `reason_code` (enum-backed, no free text). `reason_code` is determined from `ReasonCode` Group 0 data-layer codes only.
+- `layer2/adapters/snapshot_publisher.py`: Updated `write_snapshot_json()` to compute `freshness_ok` from `quality["summary"]["tier1_fail"]` and `revision_risk_present` from the aligned payload, and pass both to `build_guards()`.
+- `tests/layer2/test_snapshot_contract.py`: 63 new tests covering valid snapshot passes, missing top-level field rejects, missing guards field rejects, invalid reason_code rejects, forced snapshot guard semantics, Tier-1 missing/stale guard semantics, values/values_by_group series_id equivalence, per-series required field enforcement, revision_risk in guards and values, and `write_snapshot_json` end-to-end contract validation.
+
+Constraints honored:
+- `snapshot_id` hash unchanged.
+- Tier-1 fail-closed publication behavior unchanged.
+- No DB schema changes.
+- Layer-3 not built.
+- Revision writer not implemented.
+- CLI behavior unchanged.
+
 ### 2.0-A revision_risk contract completion — Phase 1 (2026-05-01)
 
 Implemented the minimal contract-complete `revision_risk` patch for Layer-2 snapshot JSON handoff:

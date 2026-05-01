@@ -413,10 +413,15 @@ def write_snapshot_json(
     tier1_got = {v["series_id"] for v in tier1_values}
     missing_tier1 = any(sid not in tier1_got for sid in tier1_expected)
 
+    freshness_ok = quality.get("summary", {}).get("tier1_fail", 0) == 0
+    revision_risk_present = any(v.get("revision_risk") for v in values)
+
     guards = build_guards(
         snapshot_ok=quality["snapshot_ok"],
         forced=forced,
         missing_tier1=missing_tier1,
+        freshness_ok=freshness_ok,
+        revision_risk_present=revision_risk_present,
     )
 
     rr_series = sorted(v["series_id"] for v in values if v.get("revision_risk"))

@@ -172,6 +172,27 @@ New contract fields added 2026-05-01:
 
 `revision_risk` is interpretive metadata. It does not block snapshot publication. The revision writer (`revision_seq=1` write path) is not yet implemented.
 
+New fields added 2026-05-01 (Phase 2 — snapshot contract completeness):
+
+The `guards` object is now fully structured and enum-backed. Required fields:
+
+| Field | Type | Notes |
+|---|---|---|
+| `data_ok` | bool | True if gate PASS, not forced, no missing Tier-1 |
+| `freshness_ok` | bool | True if all Tier-1 within staleness threshold |
+| `idempotent_ok` | bool | True if snapshot_id not yet acted on (Layer-3 responsibility) |
+| `revision_risk_present` | bool | True if any payload value carries `revision_risk=True` |
+| `forced` | bool | True if published with `--force` |
+| `missing_tier1` | bool | True if any required Tier-1 series absent |
+| `snapshot_ok` | bool | Quality gate verdict |
+| `reason_code` | str | ReasonCode enum value — no free text permitted |
+
+Snapshot JSON is now schema-validated on write via `validate_snapshot_contract()` in `layer2/constants.py`. Every snapshot is required to pass this validation before being considered Layer-3-safe.
+
+`reason_code` is drawn from `ReasonCode` Group 0 (data-layer codes): `DATA_OK`, `DATA_STALE`, `DATA_MISSING`, `DATA_FORCED`. Free-text reason codes at the snapshot boundary are rejected.
+
+Layer-3 is not built. Revision writer remains not implemented.
+
 ### snapshot_id as Layer-3 anchor
 
 The `snapshot_id` is the primary contract anchor between Layer-2 and Layer-3.

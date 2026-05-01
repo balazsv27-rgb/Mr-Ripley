@@ -62,6 +62,8 @@ Important distinction:
 | Item | Classification | Notes |
 |---|---|---|
 | `revision_risk` flag in snapshot JSON | Verified in current documentation set | `revision_risk` bool added to registry, alignment payload, and snapshot JSON. Monthly macro series (CPILFESL, PCEPI, FEDFUNDS, PCU2122212122210) are `true`; daily market/yield series are `false`. Flag is interpretive metadata — does not block publication. Implemented 2026-05-01. |
+| Snapshot contract schema-validated | Documented current-state claim | `validate_snapshot_contract()` in `layer2/constants.py` enforces all required top-level fields, guards completeness, per-series fields, and series_id equivalence between `values` and `values_by_group`. Implemented 2026-05-01. |
+| `guards` object fully structured and enum-backed | Documented current-state claim | Guards now include `freshness_ok`, `revision_risk_present`, `forced`, `missing_tier1`, `snapshot_ok`, and `reason_code` (enum-validated). `build_guards()` and `validate_guards()` enforce this structure. Implemented 2026-05-01. |
 | Revision writer | Documented current-state claim | Current docs consistently say it is not yet built (`revision_seq=1` write path absent) |
 | Scheduler / orchestrator | Documented current-state claim | Current docs consistently say it is not yet built |
 | Alerting / retry / kill switch | Documented current-state claim | Current docs consistently say these are not yet built |

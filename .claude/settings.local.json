@@ -73,7 +73,9 @@
       "Bash(py -m pytest tests/layer2/test_revision_risk.py -v)",
       "Bash(del *)",
       "Bash(py -m pytest tests/governance/ -q)",
-      "Bash(py -m pytest tests/ -q)"
+      "Bash(py -m pytest tests/ -q)",
+      "Bash(py -m pytest tests/layer2/test_snapshot_contract.py tests/layer2/test_revision_risk.py -v --tb=short)",
+      "Bash(py -m pytest tests/layer2/ -v --tb=short)"
     ]
   }
 }

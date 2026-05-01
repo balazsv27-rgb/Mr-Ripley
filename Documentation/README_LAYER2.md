@@ -586,6 +586,8 @@ Forced snapshots should be filtered out of backtests.
 | Auto-migration for existing DBs | ✅ DONE | — | `_ensure_snapshot_schema_migrations()` |
 | Three-way snapshot dedup | ✅ DONE | — | `clock_ts + engine_version + config_version` |
 | `guards` structured object in snapshot JSON | ✅ DONE | — | Resolved — see §16 previously-blocked items |
+| `guards` fully structured + enum-backed (Phase 2) | ✅ DONE | — | `freshness_ok`, `revision_risk_present`, `forced`, `missing_tier1`, `snapshot_ok`, `reason_code` added 2026-05-01 |
+| Snapshot contract schema-validated (Phase 2) | ✅ DONE | — | `validate_snapshot_contract()` in `layer2/constants.py` — 2026-05-01 |
 | `reason_code` enum in shared constants file | ✅ DONE | — | Resolved — see §16 previously-blocked items |
 | SP500 history fix (use SPY via Yahoo) | ⬜ TODO | **High** | Affects calibration validity — 2014–2016 gap |
 | `revision_risk` column in `observations` | ⬜ TODO | Medium | Architecture4 vintage discipline requirement |
@@ -910,6 +912,7 @@ Use `SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md` section 7 as the authoritativ
 | v5 | 2026-03-07 | Architecture audit | Post-Audit 5: engine_version/config_version, scorecard, Layer-3 separation, stale to-do corrections |
 | v6 | 2026-03-22 | Architecture audit | Layer-3 decision philosophy frozen (state-driven / event-driven). DecisionPacket schema v0 defined. Layer-3 build order updated. Old timeframe-centric DecisionPacket example superseded. |
 | v7 | 2026-04-18 | Layer-2 refactor | All adapters migrated from `layer2.adapters.v0.*` to canonical `layer2.db` / `layer2.clock`. `layer2/adapters/v0/` removed. `index_suite.py` classified as Layer-2 internal pre-publication tool. |
+| v8 | 2026-05-01 | Phase 2 snapshot contract | Guards fully structured and enum-backed. `validate_snapshot_contract()` added. `revision_risk` contract complete. 63 new tests. |
 
 ---
 
