@@ -160,6 +160,8 @@ def run_quality_gate(conn, clock) -> dict:
 
     snapshot_ok = len(tier1_fail) == 0
 
+    rr_series = sorted(v["series_id"] for v in aligned_payload if v.get("revision_risk"))
+
     return {
         "run_ts": run_ts.isoformat(),
         "clock_date": clock.clock_date.isoformat(),
@@ -178,6 +180,8 @@ def run_quality_gate(conn, clock) -> dict:
             "tier1_fail": len(tier1_fail),
             "tier2_total": len(tier2_results),
             "tier2_warn": len(tier2_warn),
+            "revision_risk_series_count": len(rr_series),
+            "revision_risk_series": rr_series,
         },
         "blocking_failures": [{"series_id": r["series_id"], "reason": r["reason"]} for r in tier1_fail],
         "tier2_warnings": [{"series_id": r["series_id"], "reason": r["reason"]} for r in tier2_warn],

@@ -51,6 +51,7 @@ _REQUIRED_FIELDS: Dict[str, type] = {
     "discontinued":        bool,
     "is_estimate":         bool,
     "include_in_snapshot": bool,
+    "revision_risk":       bool,
 }
 
 _VALID_FREQUENCIES = {"D", "W", "M", "Q", "A"}
@@ -225,6 +226,13 @@ class SeriesRegistry:
         if s is None:
             raise KeyError(f"Unknown series_id: {series_id!r}")
         return s["blocks_snapshot"]
+
+    def revision_risk(self, series_id: str) -> bool:
+        """Return revision_risk for a series. Raises KeyError if not found."""
+        s = self.get(series_id)
+        if s is None:
+            raise KeyError(f"Unknown series_id: {series_id!r}")
+        return s["revision_risk"]
 
     def full_history_start(self, series_id: str) -> date:
         """Return full_history_start as a date object."""

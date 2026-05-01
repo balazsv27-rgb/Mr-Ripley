@@ -194,7 +194,7 @@ on next `get_connection(with_snapshot_tables=True)` call (handled by `_ensure_sn
 | DTWEXM / DTWEXO / TWEXB | Discontinued series in DB | Low | Bridge with DTWEXBGS or drop |
 | GLD history | Approximation only — uniform shares across dates | Low | Accept or find paid source |
 | AlphaVantage | No AlphaVantage data integration (file not present in repo) | Low | Acquire data and wire into observations table |
-| `revision_risk` | Not tracked; monthly macro series carry unacknowledged revision exposure | Medium | Add column to `observations`; populate for FRED monthly series |
+| `revision_risk` | ✅ Implemented (2026-05-01): registry-driven bool flag per series. Monthly macro series (CPILFESL, PCEPI, FEDFUNDS, PCU2122212122210) marked `true`. Exposed in aligned payload, quality gate summary, and snapshot JSON (`revision_policy`, `revision_risk_summary`, per-series `revision_risk`). Does not block publication. | — |
 | Revision writer | `revision_seq=1` path not built; FRED corrections silently dropped | Medium | Implement rev-1 write path |
 | `--full-reload` help text | Describes deprecated `INSERT OR REPLACE` behavior | Low | Update help text across all 4 adapters |
 

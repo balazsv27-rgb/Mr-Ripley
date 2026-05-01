@@ -314,6 +314,7 @@ def _minimal_quality_check(conn, clock) -> dict:
                 "source": source,
                 "as_of_ts": None,
                 "revision_seq": 0,
+                "revision_risk": bool(s.get("revision_risk", False)),
             }
         )
 
@@ -418,6 +419,8 @@ def write_snapshot_json(
         missing_tier1=missing_tier1,
     )
 
+    rr_series = sorted(v["series_id"] for v in values if v.get("revision_risk"))
+
     output = {
         "snapshot_id": snapshot_id,
         "engine_version": engine_version,
@@ -428,6 +431,15 @@ def write_snapshot_json(
         "forced": forced,
         "dry_run": dry_run,
         "guards": guards,
+        "revision_policy": {
+            "method": "latest_available_with_revision_risk_flag",
+            "revision_writer": "not_implemented",
+            "revision_risk_blocks_snapshot": False,
+        },
+        "revision_risk_summary": {
+            "series_count": len(rr_series),
+            "series": rr_series,
+        },
         "tier1_series": {
             v["series_id"]: {
                 "obs_ts": v["obs_ts"],
@@ -435,6 +447,7 @@ def write_snapshot_json(
                 "staleness_days": v["staleness_days"],
                 "source": v["source"],
                 "group": v["group"],
+                "revision_risk": v.get("revision_risk", False),
             }
             for v in tier1_values
         },
@@ -445,6 +458,7 @@ def write_snapshot_json(
                 "staleness_days": v["staleness_days"],
                 "source": v["source"],
                 "group": v["group"],
+                "revision_risk": v.get("revision_risk", False),
             }
             for v in tier2_values
         },
@@ -464,6 +478,7 @@ def write_snapshot_json(
                 "source": v["source"],
                 "as_of_ts": v.get("as_of_ts"),
                 "revision_seq": v.get("revision_seq"),
+                "revision_risk": v.get("revision_risk", False),
             }
             for v in values
         },

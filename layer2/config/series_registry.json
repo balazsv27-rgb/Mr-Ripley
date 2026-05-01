@@ -14,7 +14,8 @@
       "full_history_start": "2014-01-02",
       "discontinued": false,
       "is_estimate": false,
-      "include_in_snapshot": true
+      "include_in_snapshot": true,
+      "revision_risk": false
     },
     {
       "series_id": "rates_vol_stress_move",
@@ -28,7 +29,8 @@
       "full_history_start": "2021-03-06",
       "discontinued": false,
       "is_estimate": false,
-      "include_in_snapshot": true
+      "include_in_snapshot": true,
+      "revision_risk": false
     },
     {
       "series_id": "DFII10",
@@ -42,7 +44,8 @@
       "full_history_start": "2003-01-02",
       "discontinued": false,
       "is_estimate": false,
-      "include_in_snapshot": true
+      "include_in_snapshot": true,
+      "revision_risk": false
     },
     {
       "series_id": "DFII5",
@@ -56,7 +59,8 @@
       "full_history_start": "2003-01-02",
       "discontinued": false,
       "is_estimate": false,
-      "include_in_snapshot": true
+      "include_in_snapshot": true,
+      "revision_risk": false
     },
     {
       "series_id": "DGS10",
@@ -70,7 +74,8 @@
       "full_history_start": "2005-01-03",
       "discontinued": false,
       "is_estimate": false,
-      "include_in_snapshot": true
+      "include_in_snapshot": true,
+      "revision_risk": false
     },
     {
       "series_id": "DGS2",
@@ -84,7 +89,8 @@
       "full_history_start": "2005-01-03",
       "discontinued": false,
       "is_estimate": false,
-      "include_in_snapshot": true
+      "include_in_snapshot": true,
+      "revision_risk": false
     },
     {
       "series_id": "DGS5",
@@ -98,7 +104,8 @@
       "full_history_start": "2005-01-03",
       "discontinued": false,
       "is_estimate": false,
-      "include_in_snapshot": true
+      "include_in_snapshot": true,
+      "revision_risk": false
     },
     {
       "series_id": "T10YIE",
@@ -112,7 +119,8 @@
       "full_history_start": "2003-01-02",
       "discontinued": false,
       "is_estimate": false,
-      "include_in_snapshot": true
+      "include_in_snapshot": true,
+      "revision_risk": false
     },
     {
       "series_id": "T5YIE",
@@ -126,7 +134,8 @@
       "full_history_start": "2003-01-02",
       "discontinued": false,
       "is_estimate": false,
-      "include_in_snapshot": true
+      "include_in_snapshot": true,
+      "revision_risk": false
     },
     {
       "series_id": "T5YIFR",
@@ -140,7 +149,8 @@
       "full_history_start": "2003-01-02",
       "discontinued": false,
       "is_estimate": false,
-      "include_in_snapshot": true
+      "include_in_snapshot": true,
+      "revision_risk": false
     },
     {
       "series_id": "DFF",
@@ -154,7 +164,8 @@
       "full_history_start": "2005-01-03",
       "discontinued": false,
       "is_estimate": false,
-      "include_in_snapshot": true
+      "include_in_snapshot": true,
+      "revision_risk": false
     },
     {
       "series_id": "EFFR",
@@ -168,7 +179,8 @@
       "full_history_start": "2005-01-03",
       "discontinued": false,
       "is_estimate": false,
-      "include_in_snapshot": true
+      "include_in_snapshot": true,
+      "revision_risk": false
     },
     {
       "series_id": "DTWEXBGS",
@@ -183,6 +195,7 @@
       "discontinued": false,
       "is_estimate": false,
       "include_in_snapshot": true,
+      "revision_risk": false,
       "notes": "FRED publishes with ~1 week structural lag. Threshold set to 10 days."
     },
     {
@@ -197,7 +210,8 @@
       "full_history_start": "2005-01-03",
       "discontinued": false,
       "is_estimate": false,
-      "include_in_snapshot": true
+      "include_in_snapshot": true,
+      "revision_risk": false
     },
     {
       "series_id": "SP500",
@@ -212,6 +226,7 @@
       "discontinued": false,
       "is_estimate": false,
       "include_in_snapshot": true,
+      "revision_risk": false,
       "notes": "FRED only has SP500 from 2016. Fix planned: use SPY via Yahoo back to 2005."
     },
     {
@@ -227,6 +242,7 @@
       "discontinued": false,
       "is_estimate": true,
       "include_in_snapshot": true,
+      "revision_risk": false,
       "notes": "Fetched from SPDR State Street archive CSV. ounces = shares_outstanding x 0.09585. Yahoo shares_outstanding applied uniformly to past dates — approximation, not true historical. is_estimate=true flags this for Layer-3."
     },
     {
@@ -241,7 +257,8 @@
       "full_history_start": "2005-01-01",
       "discontinued": false,
       "is_estimate": false,
-      "include_in_snapshot": true
+      "include_in_snapshot": true,
+      "revision_risk": true
     },
     {
       "series_id": "FEDFUNDS",
@@ -255,7 +272,8 @@
       "full_history_start": "2005-01-01",
       "discontinued": false,
       "is_estimate": false,
-      "include_in_snapshot": true
+      "include_in_snapshot": true,
+      "revision_risk": true
     },
     {
       "series_id": "PCEPI",
@@ -269,7 +287,8 @@
       "full_history_start": "2005-01-01",
       "discontinued": false,
       "is_estimate": false,
-      "include_in_snapshot": true
+      "include_in_snapshot": true,
+      "revision_risk": true
     },
     {
       "series_id": "PCU2122212122210",
@@ -284,6 +303,7 @@
       "discontinued": true,
       "is_estimate": false,
       "include_in_snapshot": true,
+      "revision_risk": true,
       "notes": "Discontinued December 2017. Staleness check disabled (threshold=9999). Kept for historical context."
     },
     {
@@ -299,6 +319,7 @@
       "discontinued": true,
       "is_estimate": false,
       "include_in_snapshot": false,
+      "revision_risk": false,
       "notes": "Discontinued December 2019. Excluded from snapshots. Historical data retained in DB."
     },
     {
@@ -314,6 +335,7 @@
       "discontinued": true,
       "is_estimate": false,
       "include_in_snapshot": false,
+      "revision_risk": false,
       "notes": "Discontinued December 2019. Excluded from snapshots. Historical data retained in DB."
     },
     {
@@ -329,6 +351,7 @@
       "discontinued": true,
       "is_estimate": false,
       "include_in_snapshot": false,
+      "revision_risk": false,
       "notes": "Discontinued January 2020. Weekly frequency. Excluded from snapshots. Historical data retained in DB."
     }
   ]

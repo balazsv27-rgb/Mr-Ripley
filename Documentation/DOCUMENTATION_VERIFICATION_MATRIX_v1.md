@@ -61,8 +61,8 @@ Important distinction:
 
 | Item | Classification | Notes |
 |---|---|---|
-| `revision_risk` tracking | Documented current-state claim | Current docs consistently say this remains incomplete |
-| Revision writer | Documented current-state claim | Current docs consistently say it is not yet built |
+| `revision_risk` flag in snapshot JSON | Verified in current documentation set | `revision_risk` bool added to registry, alignment payload, and snapshot JSON. Monthly macro series (CPILFESL, PCEPI, FEDFUNDS, PCU2122212122210) are `true`; daily market/yield series are `false`. Flag is interpretive metadata — does not block publication. Implemented 2026-05-01. |
+| Revision writer | Documented current-state claim | Current docs consistently say it is not yet built (`revision_seq=1` write path absent) |
 | Scheduler / orchestrator | Documented current-state claim | Current docs consistently say it is not yet built |
 | Alerting / retry / kill switch | Documented current-state claim | Current docs consistently say these are not yet built |
 | Repo hygiene for runtime artifacts | Documented current-state claim | Current docs treat this as an open verification / hygiene concern |

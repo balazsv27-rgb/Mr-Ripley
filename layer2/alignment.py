@@ -73,6 +73,7 @@ class AlignedSeriesValue:
     value: Optional[float]
     source: Optional[str]
     staleness_days: Optional[int]
+    revision_risk: bool = False
 
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -87,6 +88,7 @@ class AlignedSeriesValue:
             "value": self.value,
             "source": self.source,
             "staleness_days": self.staleness_days,
+            "revision_risk": self.revision_risk,
         }
 
 
@@ -135,6 +137,8 @@ def align_snapshot_state(conn: sqlite3.Connection, clock: EngineClock) -> Alignm
     if not series_cfgs:
         return AlignmentResult(clock.clock_date, clock.clock_ts, [], [])
 
+    revision_risk_map = {cfg["series_id"]: bool(cfg.get("revision_risk", False)) for cfg in series_cfgs}
+
     rows = read_aligned_snapshot_rows(conn, _required_series_tuples(series_cfgs), clock.clock_ts)
 
     aligned_values: List[AlignedSeriesValue] = []
@@ -147,9 +151,10 @@ def align_snapshot_state(conn: sqlite3.Connection, clock: EngineClock) -> Alignm
         revision_seq = int(row["revision_seq"]) if row["revision_seq"] is not None else None
         source = str(row["source"]) if row["source"] is not None else None
         staleness_days = (clock.clock_date - obs_ts).days if obs_ts is not None else None
+        sid = str(row["series_id"])
 
         aligned = AlignedSeriesValue(
-            series_id=str(row["series_id"]),
+            series_id=sid,
             description=str(row["description"]),
             tier=int(row["tier"]),
             group=str(row["group_name"]),
@@ -160,6 +165,7 @@ def align_snapshot_state(conn: sqlite3.Connection, clock: EngineClock) -> Alignm
             value=value,
             source=source,
             staleness_days=staleness_days,
+            revision_risk=revision_risk_map.get(sid, False),
         )
 
         if obs_ts is None:
@@ -184,6 +190,7 @@ def build_snapshot_values_payload(result: AlignmentResult) -> List[Dict[str, Any
                 "source": v.source,
                 "as_of_ts": v.as_of_ts.isoformat() if v.as_of_ts else None,
                 "revision_seq": v.revision_seq,
+                "revision_risk": v.revision_risk,
             }
         )
     return payload

@@ -1,7 +1,7 @@
 # Known Gaps and Approximations
 ## Mr. Ripley — Layer-2 Truth Layer
 
-> **Last updated:** 2026-03-22
+> **Last updated:** 2026-05-01
 > **Primary sources:** `README_v1.md`, `SYSTEM_TECHNICAL_HANDBOOK_v1.md`
 > **Supporting sources:** `SYSTEM_IMPLEMENTATION_RECORD_v1.md`, `SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md`, `README_LAYER2.md`
 
@@ -52,8 +52,8 @@ These items should no longer be described as open Layer-3 bootstrap blockers.
 
 | Item | Why it matters | Current status |
 |---|---|---|
-| `revision_risk` tracking incomplete | Revised macro series are not yet explicitly marked in downstream interpretation | ⬜ Open |
-| Revision writer not built | Historical corrections cannot yet be written as explicit higher revision rows | ⬜ Open |
+| `revision_risk` flag in snapshot JSON | Monthly macro series (CPILFESL, PCEPI, FEDFUNDS, PCU2122212122210) carry `revision_risk=true` in aligned payload and snapshot JSON. Flag is interpretive metadata — does not block publication. Registry-driven, validated as required bool field. | ✅ Implemented (2026-05-01) |
+| Revision writer not built | Historical corrections cannot yet be written as explicit higher revision rows (`revision_seq=1`). The current path always writes `revision_seq=0`. | ⬜ Open |
 
 ### 3.2 Operational limitations
 

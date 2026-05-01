@@ -162,7 +162,15 @@ Current informational fields also included:
 - `values_by_group`
 - `values`
 
-Current published grouped / flat value views include `as_of_ts` and `revision_seq`.
+Current published grouped / flat value views include `as_of_ts`, `revision_seq`, and `revision_risk`.
+
+New contract fields added 2026-05-01:
+
+- `revision_policy` — top-level object documenting the revision handling method, revision writer status, and whether `revision_risk` blocks snapshots (it does not).
+- `revision_risk_summary` — top-level object listing all series with `revision_risk=true` and their count.
+- `revision_risk` per series — present in `values`, `tier1_series`, and `tier2_series` entries. Set `true` for monthly macro series subject to FRED revisions (CPILFESL, PCEPI, FEDFUNDS, PCU2122212122210). All daily market/yield/price series are `false`.
+
+`revision_risk` is interpretive metadata. It does not block snapshot publication. The revision writer (`revision_seq=1` write path) is not yet implemented.
 
 ### snapshot_id as Layer-3 anchor
 

@@ -33,7 +33,30 @@ If this document conflicts with a more role-matched canonical document on those 
 
 ---
 
-## 2. Current-State Addendum (2026-04-18)
+## 2. Current-State Addendum (2026-05-01)
+
+### 2.0-A revision_risk contract completion — Phase 1 (2026-05-01)
+
+Implemented the minimal contract-complete `revision_risk` patch for Layer-2 snapshot JSON handoff:
+
+- `series_registry.json`: `revision_risk` added as a required `bool` field on all 23 series. Monthly macro series (`CPILFESL`, `PCEPI`, `FEDFUNDS`, `PCU2122212122210`) set `true`; all daily market/yield/price series and discontinued series set `false`.
+- `layer2/config/registry.py`: `revision_risk: bool` added to `_REQUIRED_FIELDS` (validation enforced at load time). `revision_risk(series_id)` lookup method added.
+- `layer2/alignment.py`: `AlignedSeriesValue` extended with `revision_risk: bool`. `to_dict()` and `build_snapshot_values_payload()` include it. `align_snapshot_state()` looks up `revision_risk` from registry at alignment time — no DB column added.
+- `layer2/adapters/quality_gate.py`: `run_quality_gate()` returns `revision_risk_series_count` and `revision_risk_series` in `summary`.
+- `layer2/adapters/snapshot_publisher.py`: `write_snapshot_json()` emits `revision_policy`, `revision_risk_summary`, and per-series `revision_risk` in `values`, `tier1_series`, and `tier2_series`. Minimal quality check fallback propagates `revision_risk` from registry.
+- `tests/layer2/test_revision_risk.py`: 19 tests covering registry validation, canonical classification, alignment payload, quality gate summary, and snapshot JSON contract.
+
+Constraints honored:
+- `revision_risk=true` does not block snapshot publication.
+- `snapshot_id` hash unchanged (revision_risk is not a hash input — it is registry metadata, not observation data).
+- Tier-1 fail-closed behavior unchanged.
+- No DB schema changes.
+- Layer-3 not built.
+- Revision writer (`revision_seq=1` write path) not implemented.
+
+---
+
+## 3. Current-State Addendum (2026-04-18)
 
 This addendum supersedes earlier addenda where they conflict.
 

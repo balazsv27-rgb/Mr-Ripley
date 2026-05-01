@@ -69,7 +69,11 @@
       "Bash(find . -name run_state*.json -newer governance/dag_runner/prompt_assembly.py)",
       "Bash(find .claude/run -name run_state*.json -type f)",
       "Bash(find .claude/run -name *.json -type f)",
-      "Bash(find C:/Code/Mr-Ripley -maxdepth 1 -name *state* -o -name *governance*)"
+      "Bash(find C:/Code/Mr-Ripley -maxdepth 1 -name *state* -o -name *governance*)",
+      "Bash(py -m pytest tests/layer2/test_revision_risk.py -v)",
+      "Bash(del *)",
+      "Bash(py -m pytest tests/governance/ -q)",
+      "Bash(py -m pytest tests/ -q)"
     ]
   }
 }
