@@ -1,5 +1,5 @@
 {
-  "registry_version": "1.0.0",
+  "registry_version": "1.1.0",
   "description": "Mr. Ripley Layer-2 series registry — single source of truth for all series metadata. All staleness thresholds, tier assignments, and snapshot inclusion rules live here. quality_gate.py, fred_loader.py, and snapshot_publisher.py must read from this file.",
   "series": [
     {
@@ -195,8 +195,8 @@
       "discontinued": false,
       "is_estimate": false,
       "include_in_snapshot": true,
-      "revision_risk": false,
-      "notes": "FRED publishes with ~1 week structural lag. Threshold set to 10 days."
+      "notes": "FRED publishes with ~1 week structural lag. Threshold set to 10 days.",
+      "revision_risk": false
     },
     {
       "series_id": "VIXCLS",
@@ -226,8 +226,24 @@
       "discontinued": false,
       "is_estimate": false,
       "include_in_snapshot": true,
+      "notes": "FRED only has SP500 from 2016. Fix planned: use SPY via Yahoo back to 2005.",
+      "revision_risk": false
+    },
+    {
+      "series_id": "SP500_PROXY",
+      "description": "S&P 500 proxy via SPY ETF adjusted close",
+      "tier": 1,
+      "frequency": "D",
+      "staleness_days": 3,
+      "blocks_snapshot": true,
+      "group": "risk",
+      "source": "yahoo_spy",
+      "full_history_start": "2005-01-03",
+      "discontinued": false,
+      "is_estimate": false,
+      "include_in_snapshot": true,
       "revision_risk": false,
-      "notes": "FRED only has SP500 from 2016. Fix planned: use SPY via Yahoo back to 2005."
+      "notes": "Yahoo Finance SPY adjusted close. Long-history equity proxy from 2005. Does not replace FRED SP500."
     },
     {
       "series_id": "gld_holdings_flow_confirm",
@@ -242,8 +258,8 @@
       "discontinued": false,
       "is_estimate": true,
       "include_in_snapshot": true,
-      "revision_risk": false,
-      "notes": "Fetched from SPDR State Street archive CSV. ounces = shares_outstanding x 0.09585. Yahoo shares_outstanding applied uniformly to past dates — approximation, not true historical. is_estimate=true flags this for Layer-3."
+      "notes": "Fetched from SPDR State Street archive CSV. ounces = shares_outstanding x 0.09585. Yahoo shares_outstanding applied uniformly to past dates — approximation, not true historical. is_estimate=true flags this for Layer-3.",
+      "revision_risk": false
     },
     {
       "series_id": "CPILFESL",
@@ -303,8 +319,8 @@
       "discontinued": true,
       "is_estimate": false,
       "include_in_snapshot": true,
-      "revision_risk": true,
-      "notes": "Discontinued December 2017. Staleness check disabled (threshold=9999). Kept for historical context."
+      "notes": "Discontinued December 2017. Staleness check disabled (threshold=9999). Kept for historical context.",
+      "revision_risk": false
     },
     {
       "series_id": "DTWEXM",
@@ -319,8 +335,8 @@
       "discontinued": true,
       "is_estimate": false,
       "include_in_snapshot": false,
-      "revision_risk": false,
-      "notes": "Discontinued December 2019. Excluded from snapshots. Historical data retained in DB."
+      "notes": "Discontinued December 2019. Excluded from snapshots. Historical data retained in DB.",
+      "revision_risk": false
     },
     {
       "series_id": "DTWEXO",
@@ -335,8 +351,8 @@
       "discontinued": true,
       "is_estimate": false,
       "include_in_snapshot": false,
-      "revision_risk": false,
-      "notes": "Discontinued December 2019. Excluded from snapshots. Historical data retained in DB."
+      "notes": "Discontinued December 2019. Excluded from snapshots. Historical data retained in DB.",
+      "revision_risk": false
     },
     {
       "series_id": "TWEXB",
@@ -351,8 +367,8 @@
       "discontinued": true,
       "is_estimate": false,
       "include_in_snapshot": false,
-      "revision_risk": false,
-      "notes": "Discontinued January 2020. Weekly frequency. Excluded from snapshots. Historical data retained in DB."
+      "notes": "Discontinued January 2020. Weekly frequency. Excluded from snapshots. Historical data retained in DB.",
+      "revision_risk": false
     }
   ]
 }

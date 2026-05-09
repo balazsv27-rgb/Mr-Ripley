@@ -1,53 +1,208 @@
 {
-  "request_id": "alias-layer-terms-2026-04-28",
-  "request_type": "non-canonical alias introduction",
-  "supersedes": "rename-layer-terms-2026-04-20",
-  "request_text": "Introduce non-canonical aliases for architectural layer terminology in documentation. Register 'Ingestion Layer' as a non-canonical alias for 'Layer 2' / 'Layer-2', and 'Computation Layer' as a non-canonical alias for 'Layer 3' / 'Layer-3'. Canonical terms 'Layer 2' and 'Layer 3' remain the primary identifiers in all constitutional and canonical documents. Aliases may appear in parenthetical annotations or glossary sections only — they do not replace canonical terms anywhere. Do not rename README_LAYER2.md or any code paths (layer2/, layer2/index_suite.py). Do not introduce terminology that implies capabilities prohibited under CLAUDE.md §9 or §10. The rejected terms 'truth_store' and 'decision_layer' are explicitly excluded from this request. Cite SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md for architecture naming authority, SYSTEM_IMPLEMENTATION_RECORD_v1.md for implementation-state alignment, DOCUMENTATION_VERIFICATION_MATRIX_v1.md for documentation consistency scope, and system-orchestration.yaml for workflow enforcement scope. This request invokes CLAUDE.md Section 16.1 (constitutional amendment rule) — specifically criterion 3 (old/new terms kept as aliases). Produce terminology, role-citation, phase-alignment, change-impact, and doc-code-sync outputs. Fail closed if any alias introduces ambiguity, boundary conflict, or snapshot-boundary confusion.",
-  "constitutional_amendment_criteria": {
-    "section_16_1_criterion_1": "Affected sections: CLAUDE.md §§1, 3, 4, 6, 11. Aliases annotate existing terms — no section text is replaced.",
-    "section_16_1_criterion_2": "Role-matched citations: SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md (architecture), SYSTEM_IMPLEMENTATION_RECORD_v1.md (implementation state), DOCUMENTATION_VERIFICATION_MATRIX_v1.md (consistency), system-orchestration.yaml (workflow).",
-    "section_16_1_criterion_3": "Old terms 'Layer 2' / 'Layer 3' are preserved as canonical identifiers. New terms 'Ingestion Layer' / 'Computation Layer' are introduced as non-canonical aliases only.",
-    "section_16_1_criterion_4": "No cross-references require updating — canonical terms are unchanged. Alias appearances are additive parenthetical annotations.",
-    "section_16_1_criterion_5": "Verification matrix entry required for alias registration. Verification ledger entry required to record alias governance status.",
-    "section_16_1_criterion_6": "DAG must return no blocking conditions before any alias is registered."
+  "request_text": "Evaluate and govern a canonical documentation update after completion of the SP500 history gap fix and the remaining Layer-2 TODO items. The requested outcome is a documentation update plan and verification deltas that align the canonical current-state documents with the implemented Layer-2 state. Do not claim that Layer-3 is implemented. Do not claim live execution readiness. Preserve Layer-2 / Layer-3 canonical terminology. Treat this as a documentation synchronization and verification request, not a semantic rename or constitutional amendment.",
+  "request_id": "layer2-doc-sync-after-sp500-and-todo-closure-2026-05-09",
+  "request_source": "manual",
+  "change_type": "documentation_synchronization",
+  "scope": {
+    "primary_goal": "Update canonical documents to reflect implemented Layer-2 changes.",
+    "mode": "governance_evaluation_and_doc_update_plan",
+    "allowed_outputs": [
+      "claim_classification_map",
+      "normalized_terminology_map",
+      "role_citation_verdict",
+      "phase_alignment_status",
+      "contract_compliance_verdict",
+      "runtime_boundary_verdict",
+      "adapter_schema_verdict",
+      "audit_summary",
+      "change_impact_report",
+      "doc_update_plan",
+      "doc_code_sync_status",
+      "verification_matrix_delta",
+      "verification_ledger_delta",
+      "artifact_hygiene_verdict",
+      "pr_readiness_verdict"
+    ],
+    "disallowed_outputs_or_actions": [
+      "Do not directly edit canonical markdown files from this request.",
+      "Do not rename Layer 2 or Layer 3.",
+      "Do not introduce truth_store or decision_layer terminology.",
+      "Do not mark Layer-3 implementation as built.",
+      "Do not mark live execution, trading, order generation, or execution orchestration as available.",
+      "Do not treat documentation-only evidence as proof of runtime behavior."
+    ]
   },
-  "alias_definitions": [
+  "evidence_inputs": {
+    "implementation_plan": {
+      "path": "SP500_HISTORY_GAP_FIX_IMPLEMENTATION_PLAN_FINAL.md",
+      "status_assertion": "implemented_by_user",
+      "claims_to_verify": [
+        "A new SP500_PROXY series exists as a long-history equity proxy sourced from Yahoo Finance SPY adjusted close data.",
+        "Existing FRED SP500 remains unchanged and is not replaced.",
+        "SP500_PROXY has full_history_start 2005-01-03.",
+        "SP500_PROXY is included in snapshots through registry-driven inclusion.",
+        "The registry_version was incremented to reflect the new series configuration.",
+        "The SPY adapter/backfill path is idempotent and uses INSERT OR IGNORE semantics.",
+        "Quality gate and snapshot dry-run should account for SP500_PROXY as a Tier-1 snapshot-included series if the registry marks it as such."
+      ]
+    },
+    "current_canonical_documents_to_check": [
+      "CLAUDE.md",
+      "README_v1.md",
+      "SYSTEM_TECHNICAL_HANDBOOK_v1.md",
+      "SYSTEM_LIMITATIONS_AND_APPROXIMATIONS_v1.md",
+      "SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md",
+      "DOCUMENTATION_VERIFICATION_MATRIX_v1.md",
+      "SYSTEM_IMPLEMENTATION_RECORD_v1.md",
+      "README_LAYER2.md"
+    ],
+    "source_code_and_config_to_check": [
+      "layer2/config/series_registry.json",
+      "layer2/config/registry.py",
+      "layer2/adapters/spy_adapter.py",
+      "layer2/adapters/fred_loader.py",
+      "layer2/adapters/quality_gate.py",
+      "layer2/adapters/snapshot_publisher.py",
+      "layer2/alignment.py",
+      "layer2/db.py",
+      "layer2/constants.py"
+    ]
+  },
+  "claims_to_classify": [
     {
-      "canonical_term": "Layer 2",
-      "canonical_variants": ["Layer-2", "Layer 2"],
-      "proposed_alias": "Ingestion Layer",
-      "alias_status": "non-canonical",
-      "semantic_justification": "Matches CLAUDE.md §1: 'deterministic data ingestion (Layer 2)'. Describes the layer's function (data ingestion) without conflating it with snapshot truth, observations, or storage concepts.",
-      "boundary_check": "No §9 or §10 implication. Describes a data-processing function.",
-      "conflation_risk": "None — 'ingestion' is not a canonical concept that overlaps with other defined terms."
+      "claim_id": "L2-SP500-PROXY-01",
+      "claim": "SP500_PROXY has been added as a new Layer-2 equity proxy series sourced from Yahoo Finance SPY adjusted close data.",
+      "claim_type": "implementation_state",
+      "required_primary_source": "SYSTEM_IMPLEMENTATION_RECORD_v1.md plus code/config evidence",
+      "expected_evidence": [
+        "series_registry.json contains SP500_PROXY",
+        "SPY adapter exists or equivalent ingestion path exists",
+        "source/provenance is distinct from FRED SP500"
+      ]
     },
     {
-      "canonical_term": "Layer 3",
-      "canonical_variants": ["Layer-3", "Layer 3"],
-      "proposed_alias": "Computation Layer",
-      "alias_status": "non-canonical",
-      "semantic_justification": "Matches CLAUDE.md §3.2: 'Layer-3 snapshot-consuming computation'. Describes the layer's function (computation on published snapshots). Term is semantically neutral and does not imply any capability prohibited under §9 or §10.",
-      "boundary_check": "No §9 or §10 implication. 'Computation' is neutral and consistent with the system's declared constraints.",
-      "conflation_risk": "None — 'computation' does not overlap with DECISION_PACKET, NO_TRADE, GUARD_TAXONOMY, TRIGGER_TAXONOMY, or STATE_TAXONOMY concepts."
-    }
-  ],
-  "rejected_terms": [
-    {
-      "term": "truth_store",
-      "rejection_session": "92aa2b79-d234-421a-ac71-1842b4e35836",
-      "rejection_reason": "Conflates three distinct canonical concepts: LAYER_2 (architectural layer), SNAPSHOT_TRUTH (published artifact state), and OBSERVATIONS (raw data boundary). 'Store' framing implies a data-storage artifact rather than an architectural layer."
+      "claim_id": "L2-SP500-PRESERVE-02",
+      "claim": "Existing SP500 remains the FRED S&P 500 index and must not be described as replaced by SPY.",
+      "claim_type": "data_provenance",
+      "required_primary_source": "SYSTEM_TECHNICAL_HANDBOOK_v1.md plus series_registry.json",
+      "expected_evidence": [
+        "SP500 registry entry remains source=fred or equivalent",
+        "SP500_PROXY is documented as a proxy, not a replacement"
+      ]
     },
     {
-      "term": "decision_layer",
-      "rejection_session": "92aa2b79-d234-421a-ac71-1842b4e35836",
-      "rejection_reason": "Conflicts with CLAUDE.md §9 and §10 constraints. Implies capabilities the system constitutionally prohibits prior to Phase D. Semantically adjacent to explicitly discouraged variant. Would cause downstream governance misrouting of architectural claims."
+      "claim_id": "L2-SP500-HISTORY-03",
+      "claim": "The previous SP500 history gap is resolved for downstream calibration by adding SP500_PROXY from 2005-01-03 onward, while the original SP500 gap remains historically true for the FRED series.",
+      "claim_type": "documentation_consistency",
+      "required_primary_source": "SYSTEM_LIMITATIONS_AND_APPROXIMATIONS_v1.md and DOCUMENTATION_VERIFICATION_MATRIX_v1.md",
+      "expected_evidence": [
+        "Known-risk language distinguishes original SP500 FRED coverage from new proxy coverage",
+        "SP500 history gap is no longer listed as an unresolved Layer-2 blocker if SP500_PROXY validation passes"
+      ]
+    },
+    {
+      "claim_id": "L2-TODO-CLOSURE-04",
+      "claim": "All completed Layer-2 TODO items in README_LAYER2.md should be reclassified from TODO/open to DONE/resolved only when supported by code/config evidence.",
+      "claim_type": "documentation_consistency",
+      "required_primary_source": "README_LAYER2.md plus code/config evidence",
+      "expected_evidence": [
+        "No item is marked done solely because the request says it is done",
+        "Each status change has a corresponding implementation or validation artifact"
+      ]
+    },
+    {
+      "claim_id": "L2-SNAPSHOT-CONTRACT-05",
+      "claim": "Layer-2 snapshot contract remains valid and registry-driven after SP500_PROXY inclusion.",
+      "claim_type": "contract_compliance",
+      "required_primary_source": "SYSTEM_TECHNICAL_HANDBOOK_v1.md plus quality_gate.py/snapshot_publisher.py/alignment.py",
+      "expected_evidence": [
+        "quality_gate uses registry snapshot_series",
+        "snapshot_publisher reuses aligned payload and does not hardcode series",
+        "alignment handles registry-driven series"
+      ]
+    },
+    {
+      "claim_id": "L3-NOT-BUILT-06",
+      "claim": "Layer-3 remains not implemented; only Layer-3 bootstrap readiness or dependency status may be updated if supported.",
+      "claim_type": "phase_alignment",
+      "required_primary_source": "CLAUDE.md and SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md",
+      "expected_evidence": [
+        "No Feature Builder, Layer-3 Index Suite, Regime Gate, Supervisor Engine, Decision Engine, Live Market State adapters, or Event Risk Stream are claimed as current implementation",
+        "Live execution remains blocked"
+      ]
     }
   ],
-  "scope_exclusions": [
-    "README_LAYER2.md filename — not renamed",
-    "Code paths: layer2/, layer2/index_suite.py — not touched",
-    "Import paths and module names — not touched",
-    "series_registry.json — not touched",
-    "Historical references — preserved per CLAUDE.md §2.3"
-  ]
+  "canonical_document_update_targets": {
+    "README_v1.md": [
+      "Remove or revise stale short-form risk language that still says the SP500 history gap is unresolved, if SP500_PROXY is verified.",
+      "Add concise current-state mention of SP500_PROXY only if verified from registry/code.",
+      "Preserve current warnings that revision writer, scheduler/orchestrator, alerting/retry/kill switch, Layer-3 components, and live execution remain not built unless separately verified."
+    ],
+    "SYSTEM_LIMITATIONS_AND_APPROXIMATIONS_v1.md": [
+      "Move SP500 history gap from unresolved high-priority data limitation to resolved/mitigated status if SP500_PROXY is verified.",
+      "Document the accepted approximation/provenance distinction: SP500 remains FRED index; SP500_PROXY is SPY adjusted-close proxy.",
+      "Keep unresolved operational limitations intact unless code evidence proves otherwise."
+    ],
+    "SYSTEM_TECHNICAL_HANDBOOK_v1.md": [
+      "Update current adapter/series documentation to include SP500_PROXY if verified.",
+      "Update quality gate semantics from Tier-1 15/15 to 16/16 only if registry and quality-gate evidence support it.",
+      "Preserve snapshot-only downstream-read rule and live-execution prohibition."
+    ],
+    "SYSTEM_IMPLEMENTATION_RECORD_v1.md": [
+      "Add an implementation addendum for SP500_PROXY and any verified Layer-2 TODO closures.",
+      "Record what changed, what stayed unchanged, validation commands, and provenance implications.",
+      "Explicitly state SP500 was not replaced."
+    ],
+    "DOCUMENTATION_VERIFICATION_MATRIX_v1.md": [
+      "Reclassify SP500 history gap and SP500_PROXY according to verified evidence.",
+      "Add or update entries for SP500_PROXY, SP500 preservation, registry-driven inclusion, and any verified TODO closures.",
+      "Do not upgrade Layer-3 implementation entries."
+    ],
+    "README_LAYER2.md": [
+      "Update LAYER-2 REMAINING ITEMS status table to mark only evidence-supported completed items as DONE.",
+      "Update adapter list, registry/series counts, quality-gate counts, run sequence, and revision log as appropriate.",
+      "Retain unresolved Layer-3 and live-execution items."
+    ],
+    "SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md": [
+      "Update only if the SP500_PROXY change affects Layer-3 bootstrap dependency status or calibration-readiness language.",
+      "Do not convert planned Layer-3 components into current implementation."
+    ],
+    "CLAUDE.md": [
+      "No edit expected unless a direct contradiction is detected. Preserve constitution and canonical terminology."
+    ]
+  },
+  "validation_requirements": {
+    "must_verify_before_doc_status_change": [
+      "series_registry.json validates successfully",
+      "SP500_PROXY exists in registry with clear provenance and include_in_snapshot semantics",
+      "SP500 remains distinct and unchanged as FRED-sourced series",
+      "quality_gate and snapshot_publisher remain registry-driven",
+      "Layer-3 remains unimplemented and live execution remains blocked"
+    ],
+    "recommended_commands_to_reference_or_request": [
+      "python -m layer2.config.registry --validate",
+      "python -m layer2.config.registry --summary",
+      "python layer2/adapters/quality_gate.py",
+      "python layer2/adapters/snapshot_publisher.py --dry-run",
+      "python -m governance.dag_runner.cli --mode agent_execution --backend claude_code_cli --use-structured-output --request-file request.json --request-id layer2-doc-sync-after-sp500-and-todo-closure-2026-05-09 --request-source manual --write-state --json"
+    ],
+    "fail_closed_conditions": [
+      "SP500_PROXY cannot be found in code/config evidence",
+      "SP500 appears to have been overwritten or semantically replaced",
+      "registry_version was not incremented when registry semantics changed",
+      "quality gate/snapshot counts are asserted without evidence",
+      "documentation update would imply Layer-3 exists or live execution is available",
+      "canonical documents disagree and no role-matched resolution is available"
+    ]
+  },
+  "expected_governance_result": {
+    "desired_verdict": "review_or_ready_only_if_evidence_supported",
+    "primary_artifact_needed": "doc_update_plan",
+    "secondary_artifacts_needed": [
+      "verification_matrix_delta",
+      "verification_ledger_delta",
+      "doc_code_sync_status"
+    ],
+    "human_next_step_after_dag": "Apply only the approved doc_update_plan edits, then re-run the DAG for verification."
+  }
 }

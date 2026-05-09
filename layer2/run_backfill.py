@@ -10,8 +10,9 @@ and daily EOD maintenance (default).
 Adapter execution order (dependency-safe):
     1. gold_adapter          — Tier-1, primary asset state
     2. move_adapter          — Tier-1, rates-vol / bond-stress
-    3. gld_holdings_adapter  — Tier-2, flow confirmation
-    4. fred_loader           — Tier-1 + Tier-2, 20 FRED series
+    3. spy_adapter           — Tier-1, SP500_PROXY long-history equity proxy
+    4. gld_holdings_adapter  — Tier-2, flow confirmation
+    5. fred_loader           — Tier-1 + Tier-2, 20 FRED series
 
 Usage:
     # Daily EOD top-up (last 5 days, safe to run repeatedly)
@@ -33,7 +34,7 @@ Usage:
     python layer2/run_backfill.py --skip fred
 
     # Run only specific adapters
-    python layer2/run_backfill.py --only gold move
+    python layer2/run_backfill.py --only gold move spy
 
 Environment variables:
     L2_DB_PATH          Path to SQLite DB (default: layer2_truth.db)
@@ -91,6 +92,14 @@ _ADAPTERS = [
         "tier":        1,
         "daily_args":  ["--source", "yahoo", "--backfill-days", "5"],
         "full_history_args": ["--source", "yahoo", "--backfill-days", "1825"],
+    },
+    {
+        "key":         "spy",
+        "label":       "SP500 proxy (SPY)",
+        "script":      "layer2/adapters/spy_adapter.py",
+        "tier":        1,
+        "daily_args":  ["--backfill-days", "5"],
+        "full_history_args": ["--backfill-start", "2005-01-03"],
     },
     {
         "key":         "gld",
@@ -204,6 +213,13 @@ def _window_args(adapter: dict, start: Optional[date], end: Optional[date]) -> L
         args += ["--source", "yahoo"]
         if start:
             args += ["--start-date", start.isoformat()]
+        if end:
+            args += ["--end-date", end.isoformat()]
+        return args
+
+    if key == "spy":
+        if start:
+            args += ["--backfill-start", start.isoformat()]
         if end:
             args += ["--end-date", end.isoformat()]
         return args
@@ -325,8 +341,8 @@ Examples:
   # Repair specific window
   python layer2/run_backfill.py --start-date 2026-01-01 --end-date 2026-02-28
 
-  # Run only gold and FRED (skip MOVE and GLD)
-  python layer2/run_backfill.py --only gold fred
+  # Run only gold, SPY, and FRED (skip MOVE and GLD)
+  python layer2/run_backfill.py --only gold spy fred
 
   # Run everything except FRED (no API key yet)
   python layer2/run_backfill.py --skip fred

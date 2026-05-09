@@ -1,0 +1,33 @@
+2026-05-01T19:24:47Z [INFO] layer2_pipeline: Mr. Ripley Layer-2 pipeline starting
+2026-05-01T19:24:47Z [INFO] layer2_pipeline: run_id=20260501T172447Z | dry_run=False | db=runtime/test_failure_layer2_truth.db
+2026-05-01T19:24:47Z [INFO] layer2_pipeline: ========================================================================
+2026-05-01T19:24:47Z [INFO] layer2_pipeline: Stage adapters | attempt 1/3
+2026-05-01T19:24:47Z [INFO] layer2_pipeline: CMD: C:\Code\Mr-Ripley\venv\Scripts\python.exe layer2/run_backfill.py --db runtime/test_failure_layer2_truth.db
+2026-05-01T19:24:47Z [INFO] layer2_pipeline: ========================================================================
+2026-05-01T19:25:17Z [INFO] layer2_pipeline: Stage adapters PASS | elapsed=30.0s
+2026-05-01T19:25:17Z [INFO] layer2_pipeline: ========================================================================
+2026-05-01T19:25:17Z [INFO] layer2_pipeline: Stage quality_gate | attempt 1/1
+2026-05-01T19:25:17Z [INFO] layer2_pipeline: CMD: C:\Code\Mr-Ripley\venv\Scripts\python.exe layer2/adapters/quality_gate.py
+2026-05-01T19:25:17Z [INFO] layer2_pipeline: ========================================================================
+2026-05-01T19:25:17Z [ERROR] layer2_pipeline: Stage quality_gate FAIL | exit_code=1 | elapsed=0.2s
+2026-05-01T19:25:17Z [ERROR] layer2_pipeline: Layer-2 pipeline failed: Stage 'quality_gate' failed after 1 attempt(s)
+Traceback (most recent call last):
+  File "C:\Code\Mr-Ripley\scripts\run_layer2_pipeline.py", line 348, in main
+    run_command(
+  File "C:\Code\Mr-Ripley\scripts\run_layer2_pipeline.py", line 199, in run_command
+    raise RuntimeError(f"Stage {name!r} failed after {attempts_allowed} attempt(s)")
+RuntimeError: Stage 'quality_gate' failed after 1 attempt(s)
+2026-05-01T19:25:17Z [INFO] layer2_pipeline: 
+2026-05-01T19:25:17Z [INFO] layer2_pipeline: ========================================================================
+2026-05-01T19:25:17Z [INFO] layer2_pipeline: LAYER-2 PIPELINE SUMMARY
+2026-05-01T19:25:17Z [INFO] layer2_pipeline: ========================================================================
+2026-05-01T19:25:17Z [INFO] layer2_pipeline: run_id:      20260501T172447Z
+2026-05-01T19:25:17Z [INFO] layer2_pipeline: run_ts:      2026-05-01T17:24:47.318269+00:00
+2026-05-01T19:25:17Z [INFO] layer2_pipeline: db_path:     runtime/test_failure_layer2_truth.db
+2026-05-01T19:25:17Z [INFO] layer2_pipeline: dry_run:     False
+2026-05-01T19:25:17Z [INFO] layer2_pipeline: force:       False
+2026-05-01T19:25:17Z [INFO] layer2_pipeline: log_path:    C:\Code\Mr-Ripley\runtime\logs\layer2_pipeline_20260501T172447Z.log
+2026-05-01T19:25:17Z [INFO] layer2_pipeline: stage=adapters       status=PASS     attempts=1 elapsed=30.0s
+2026-05-01T19:25:17Z [INFO] layer2_pipeline: stage=quality_gate   status=FAIL(1)  attempts=1 elapsed=0.2s
+2026-05-01T19:25:17Z [INFO] layer2_pipeline: verdict:     FAIL
+2026-05-01T19:25:17Z [INFO] layer2_pipeline: ========================================================================
