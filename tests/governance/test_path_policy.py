@@ -159,3 +159,68 @@ def test_default_policy_denies_env(repo_root: Path) -> None:
     env_path = repo_root / ".env"
     with pytest.raises(PathPolicyViolation):
         validate_path(env_path, policy)
+
+
+# ── Layer-2 code/config governance access ──
+
+
+def test_default_policy_allows_layer2_py(repo_root: Path) -> None:
+    policy = default_governance_policy(repo_root)
+    py_path = repo_root / "layer2" / "db.py"
+    py_path.parent.mkdir(parents=True, exist_ok=True)
+    py_path.write_text("# db")
+    validate_path(py_path, policy)  # should not raise
+
+
+def test_default_policy_allows_layer2_adapters_py(repo_root: Path) -> None:
+    policy = default_governance_policy(repo_root)
+    adapter_path = repo_root / "layer2" / "adapters" / "gold_adapter.py"
+    adapter_path.parent.mkdir(parents=True, exist_ok=True)
+    adapter_path.write_text("# adapter")
+    validate_path(adapter_path, policy)  # should not raise
+
+
+def test_default_policy_allows_layer2_config_json(repo_root: Path) -> None:
+    policy = default_governance_policy(repo_root)
+    json_path = repo_root / "layer2" / "config" / "series_registry.json"
+    json_path.parent.mkdir(parents=True, exist_ok=True)
+    json_path.write_text("{}")
+    validate_path(json_path, policy)  # should not raise
+
+
+def test_default_policy_allows_layer2_config_py(repo_root: Path) -> None:
+    policy = default_governance_policy(repo_root)
+    py_path = repo_root / "layer2" / "config" / "registry.py"
+    py_path.parent.mkdir(parents=True, exist_ok=True)
+    py_path.write_text("# registry")
+    validate_path(py_path, policy)  # should not raise
+
+
+def test_default_policy_allows_latest_snapshot_json(repo_root: Path) -> None:
+    policy = default_governance_policy(repo_root)
+    snap_path = repo_root / "latest_snapshot.json"
+    snap_path.write_text("{}")
+    validate_path(snap_path, policy)  # should not raise
+
+
+def test_default_policy_allows_workflow_packages(repo_root: Path) -> None:
+    policy = default_governance_policy(repo_root)
+    pkg_path = repo_root / ".claude" / "workflows" / "packages" / "artifacts.yaml"
+    pkg_path.parent.mkdir(parents=True, exist_ok=True)
+    pkg_path.write_text("section: artifacts")
+    validate_path(pkg_path, policy)  # should not raise
+
+
+def test_default_policy_still_denies_git(repo_root: Path) -> None:
+    """Expanded policy must not weaken existing denied patterns."""
+    policy = default_governance_policy(repo_root)
+    git_path = repo_root / ".git" / "config"
+    with pytest.raises(PathPolicyViolation):
+        validate_path(git_path, policy)
+
+
+def test_default_policy_still_denies_pem(repo_root: Path) -> None:
+    policy = default_governance_policy(repo_root)
+    pem_path = repo_root / "key.pem"
+    with pytest.raises(PathPolicyViolation):
+        validate_path(pem_path, policy)

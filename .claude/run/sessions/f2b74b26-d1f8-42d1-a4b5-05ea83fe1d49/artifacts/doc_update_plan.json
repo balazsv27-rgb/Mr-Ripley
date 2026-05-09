@@ -1,0 +1,65 @@
+{
+  "artifact": "doc_update_plan",
+  "produced_by": "change-impact-audit",
+  "session": "f2b74b26-d1f8-42d1-a4b5-05ea83fe1d49",
+  "timestamp": "2026-05-09T19:32:50.818815Z",
+  "data": {
+    "produced_by": "change-impact-audit",
+    "required_updates": [
+      {
+        "artifact": "SYSTEM_IMPLEMENTATION_RECORD_v1.md",
+        "reason": "Must be consulted and updated to confirm SP500 history gap fix and Layer-2 TODO completions are recorded as implemented. This is the role-matched canonical source for implementation-state claims (C1, C2, C3a) and must be resolved first to unblock the upstream citation gate. CLAUDE.md \u00a711 mandates review when implementation state changes.",
+        "priority": "high",
+        "update_type": "revise"
+      },
+      {
+        "artifact": "README_v1.md",
+        "reason": "CLAUDE.md \u00a711 mandates review on contract-affecting changes. Current operational status section must be reviewed to confirm Layer-2 completion language reflects actual implementation state after SP500 fix and TODO closure. No revision expected unless operational status wording is stale.",
+        "priority": "high",
+        "update_type": "review"
+      },
+      {
+        "artifact": "SYSTEM_LIMITATIONS_AND_APPROXIMATIONS_v1.md",
+        "reason": "CLAUDE.md \u00a711 mandates update on contract-affecting changes. If SP500 history gap was listed as a known limitation or approximation, the entry must be revised to reflect resolution. Any remaining Layer-2 limitations must be confirmed accurate.",
+        "priority": "high",
+        "update_type": "review"
+      },
+      {
+        "artifact": "SYSTEM_TECHNICAL_HANDBOOK_v1.md",
+        "reason": "CLAUDE.md \u00a711 mandates review on contract-affecting changes. Technical constraints and invariant tables must be reviewed for consistency with Layer-2 completion state. SP500 history coverage may affect data contract language.",
+        "priority": "medium",
+        "update_type": "review"
+      },
+      {
+        "artifact": "SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md",
+        "reason": "CLAUDE.md \u00a711 mandates review on contract-affecting changes. Phase A closure status and Layer-2 build sequence must be confirmed consistent with the completed implementation items. No revision expected unless build-sequence language is stale.",
+        "priority": "medium",
+        "update_type": "review"
+      },
+      {
+        "artifact": "README_LAYER2.md",
+        "reason": "CLAUDE.md \u00a711 mandates review when Layer-2 build navigation changes. TODO items and open-item tracking within this collaborator guide must be reviewed to confirm resolved items are no longer listed as pending. Canonical within its collaborator-workflow role; must not be used to override Tier 1 docs on implementation state, architecture, or limitations.",
+        "priority": "medium",
+        "update_type": "review"
+      }
+    ],
+    "verification_actions": [
+      {
+        "artifact": "DOCUMENTATION_VERIFICATION_MATRIX_v1.md",
+        "reason": "Implementation completion claims (SP500 fix, Layer-2 TODOs) may require evidence reclassification once SYSTEM_IMPLEMENTATION_RECORD_v1.md citations are provided. Verification deltas are explicitly requested as an output of this synchronization request. CLAUDE.md \u00a711 mandates update on contract-affecting changes.",
+        "action": "update"
+      },
+      {
+        "artifact": "verification_ledger.md",
+        "reason": "Ledger entries must be added or updated for SP500 history gap fix completion and Layer-2 TODO closure once implementation evidence is confirmed. Evidence class must reflect code-level or runtime proof, not documentation restatement alone.",
+        "action": "update"
+      }
+    ],
+    "rename_controls": {
+      "alias_map_required": false,
+      "identity_continuity_required": false,
+      "reference_update_required": false,
+      "invariance_check_required": false
+    }
+  }
+}

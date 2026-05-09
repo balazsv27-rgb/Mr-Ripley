@@ -116,10 +116,16 @@ def _build_governance_context_payload(
     """Build a request-bearing governance_context artifact payload.
 
     When bootstrap input is available, the payload contains the real
-    request text, source, and run metadata.  Otherwise, falls back to
+    request text, source, run metadata, and synthesized code/runtime
+    evidence from allowlisted project files.  Otherwise, falls back to
     a structural-only payload (backward compat for non-semantic modes).
     """
     if config.request_text:
+        from governance.dag_runner.governance_context import (
+            build_code_context,
+            build_runtime_context,
+        )
+        repo_root = _get_repo_root()
         return {
             "produced_by": "load-context",
             "run_id": run_state.run_id,
@@ -129,6 +135,8 @@ def _build_governance_context_payload(
             "workflow_name": workflow_name,
             "execution_mode": config.mode,
             "bootstrap_status": "request_bearing",
+            "code_context": build_code_context(repo_root),
+            "runtime_context": build_runtime_context(repo_root),
         }
     return {
         "produced_by": "load-context",
@@ -445,6 +453,12 @@ _ESCALATION_FALSE_SIGNALS: tuple[str, ...] = (
 
 _ESCALATION_STATUS_BLOCK_VALUES: frozenset[str] = frozenset({
     "fail", "block", "blocked", "review_only",
+    # LLM-produced compound statuses
+    "ambiguous_requires_block", "conflict_requires_block",
+})
+
+_ESCALATION_STATUS_REVIEW_VALUES: frozenset[str] = frozenset({
+    "ambiguous_requires_review",
 })
 
 _ESCALATION_LIST_SIGNALS: tuple[str, ...] = (
@@ -494,14 +508,31 @@ def _scan_for_escalation_signals(
                     "summary": f"{art_name} reports {sig}=false (blocked)",
                 })
 
-        # Status fields indicating block/fail
-        for status_key in ("overall_status", "contract_status", "alignment_status"):
+        # Status fields indicating block/fail/review
+        for status_key in ("overall_status", "contract_status", "alignment_status", "overall_boundary_status"):
             val = payload.get(status_key)
-            if isinstance(val, str) and val.lower() in _ESCALATION_STATUS_BLOCK_VALUES:
+            if not isinstance(val, str):
+                continue
+            lowered = val.lower()
+            if lowered in _ESCALATION_STATUS_BLOCK_VALUES:
+                severity = (
+                    "blocking"
+                    if lowered in ("fail", "block", "blocked",
+                                   "ambiguous_requires_block",
+                                   "conflict_requires_block")
+                    else "review"
+                )
                 findings.append({
                     "source_artifact": art_name,
                     "signal": f"{status_key}={val}",
-                    "severity": "blocking" if val.lower() in ("fail", "block", "blocked") else "review",
+                    "severity": severity,
+                    "summary": f"{art_name} reports {status_key}={val}",
+                })
+            elif lowered in _ESCALATION_STATUS_REVIEW_VALUES:
+                findings.append({
+                    "source_artifact": art_name,
+                    "signal": f"{status_key}={val}",
+                    "severity": "review",
                     "summary": f"{art_name} reports {status_key}={val}",
                 })
 

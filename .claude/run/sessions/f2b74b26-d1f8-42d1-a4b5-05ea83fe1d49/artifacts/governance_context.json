@@ -1,0 +1,16 @@
+{
+  "artifact": "governance_context",
+  "produced_by": "load-context",
+  "session": "f2b74b26-d1f8-42d1-a4b5-05ea83fe1d49",
+  "timestamp": "2026-05-09T19:17:17.846014Z",
+  "data": {
+    "produced_by": "load-context",
+    "run_id": "f2b74b26-d1f8-42d1-a4b5-05ea83fe1d49",
+    "request_id": "layer2-doc-sync-after-sp500-and-todo-closure-2026-05-09",
+    "request_text": "Evaluate and govern a canonical documentation update after completion of the SP500 history gap fix and the remaining Layer-2 TODO items. The requested outcome is a documentation update plan and verification deltas that align the canonical current-state documents with the implemented Layer-2 state. Do not claim that Layer-3 is implemented. Do not claim live execution readiness. Preserve Layer-2 / Layer-3 canonical terminology. Treat this as a documentation synchronization and verification request, not a semantic rename or constitutional amendment.",
+    "request_source": "manual",
+    "workflow_name": "mr-ripley-governance-orchestration",
+    "execution_mode": "agent_execution",
+    "bootstrap_status": "request_bearing"
+  }
+}

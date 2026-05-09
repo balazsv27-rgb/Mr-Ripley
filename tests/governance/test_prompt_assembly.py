@@ -3801,6 +3801,47 @@ def test_deep_audit_no_claude_invocation_in_mock_backend() -> None:
     assert deep_audit_result.status == "PASS"
 
 
+def test_governance_context_includes_code_and_runtime_context() -> None:
+    """governance_context artifact includes code_context and runtime_context in agent_execution mode."""
+    from governance.dag_runner.loader import load_workflow_packages
+    from governance.dag_runner.assembler import assemble_workflow_spec
+    from governance.dag_runner.validator import validate_or_raise
+    from governance.dag_runner.planner import build_execution_plan
+    from governance.dag_runner.executor import execute_plan
+    from governance.dag_runner.execution_backend import MockExecutionBackend
+    from governance.dag_runner.models import ExecutionConfig
+
+    loaded = load_workflow_packages()
+    spec = assemble_workflow_spec(loaded)
+    validate_or_raise(spec)
+    plan = build_execution_plan(spec)
+
+    config = ExecutionConfig(mode="agent_execution", request_text="Test evidence injection")
+    backend = MockExecutionBackend()
+    result = execute_plan(spec, plan, verdict_status="ready", config=config, backend=backend)
+
+    gc = result.run_state.artifacts.get("governance_context")
+    assert gc is not None
+    assert gc.status == "present"
+    payload = gc.payload
+
+    # Must include code_context and runtime_context
+    assert "code_context" in payload
+    assert "runtime_context" in payload
+
+    # code_context structure
+    cc = payload["code_context"]
+    assert "series_registry" in cc
+    assert "adapter_inventory" in cc
+    assert "layer2_boundary_checks" in cc
+    assert "execution_artifact_scan" in cc
+
+    # runtime_context structure
+    rc = payload["runtime_context"]
+    assert "latest_snapshot" in rc
+    assert "layer3_runtime_absent" in rc
+
+
 def test_deep_audit_agent_instructions_include_no_subagent_calls() -> None:
     """Audit coordinator agent .md includes 'no real subagent calls' constraint."""
     agent_path = _REPO_ROOT / ".claude" / "agents" / "audit-coordinator-agent.md"
@@ -4390,3 +4431,79 @@ def test_doc_code_sync_no_claude_invocation_in_mock_backend() -> None:
     ]
     assert len(synth_events) == 1
     assert synth_events[0].detail["synthesized_artifact"] == "doc_code_sync_status"
+
+
+# ── document content injection ──
+
+
+def test_build_prompt_text_includes_canonical_documents() -> None:
+    """build_prompt_text includes [CANONICAL DOCUMENTS] section with content."""
+    from governance.dag_runner.prompt_assembly import build_prompt_text
+
+    context = {
+        "skill_content": "",
+        "agent_instructions": "",
+        "artifact_inputs": {},
+        "document_paths": ["/repo/README_v1.md"],
+        "document_contents": {
+            "/repo/README_v1.md": "# README v1\nThis is the project README.",
+        },
+        "expected_outputs": [],
+        "step_name": "test-step",
+    }
+    text = build_prompt_text(context)
+    assert "[CANONICAL DOCUMENTS]" in text
+    assert "--- /repo/README_v1.md ---" in text
+    assert "This is the project README." in text
+    assert "[DOCUMENT PATHS]" not in text
+
+
+def test_build_prompt_text_fallback_to_paths() -> None:
+    """Falls back to [DOCUMENT PATHS] when no document_contents."""
+    from governance.dag_runner.prompt_assembly import build_prompt_text
+
+    context = {
+        "skill_content": "",
+        "agent_instructions": "",
+        "artifact_inputs": {},
+        "document_paths": ["/repo/README_v1.md"],
+        "document_contents": {},
+        "expected_outputs": [],
+        "step_name": "test-step",
+    }
+    text = build_prompt_text(context)
+    assert "[DOCUMENT PATHS]" in text
+    assert "[CANONICAL DOCUMENTS]" not in text
+
+
+def test_build_prompt_text_no_docs_section_when_empty() -> None:
+    """No document section when both paths and contents are empty."""
+    from governance.dag_runner.prompt_assembly import build_prompt_text
+
+    context = {
+        "skill_content": "",
+        "agent_instructions": "",
+        "artifact_inputs": {},
+        "document_paths": [],
+        "document_contents": {},
+        "expected_outputs": [],
+        "step_name": "test-step",
+    }
+    text = build_prompt_text(context)
+    assert "[DOCUMENT PATHS]" not in text
+    assert "[CANONICAL DOCUMENTS]" not in text
+
+
+def test_assemble_step_prompt_populates_document_contents(pipeline) -> None:
+    """assemble_step_prompt includes document_contents in returned dict."""
+    spec, _plan, run_state = pipeline
+
+    # Find a step that consumes documents
+    step = spec.workflow_steps.get("classify-claims")
+    if step is None:
+        pytest.skip("classify-claims step not found")
+
+    result = assemble_step_prompt(step, spec, run_state, repo_root=_REPO_ROOT)
+    # document_contents should be a dict (possibly empty if no docs found)
+    assert "document_contents" in result
+    assert isinstance(result["document_contents"], dict)

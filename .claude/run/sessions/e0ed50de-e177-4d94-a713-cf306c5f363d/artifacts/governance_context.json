@@ -1,0 +1,84 @@
+{
+  "artifact": "governance_context",
+  "produced_by": "load-context",
+  "session": "e0ed50de-e177-4d94-a713-cf306c5f363d",
+  "timestamp": "2026-05-09T21:57:30.878008Z",
+  "data": {
+    "produced_by": "load-context",
+    "run_id": "e0ed50de-e177-4d94-a713-cf306c5f363d",
+    "request_id": null,
+    "request_text": "Test evidence injection",
+    "request_source": null,
+    "workflow_name": "mr-ripley-governance-orchestration",
+    "execution_mode": "agent_execution",
+    "bootstrap_status": "request_bearing",
+    "code_context": {
+      "series_registry": {
+        "file": "layer2/config/series_registry.json",
+        "status": "present",
+        "inference_used": false,
+        "series_count": 3,
+        "series_names": [
+          "description",
+          "registry_version",
+          "series"
+        ],
+        "sp500_proxy_detected": false
+      },
+      "adapter_inventory": {
+        "adapter_dir": "layer2/adapters",
+        "status": "present",
+        "inference_used": false,
+        "adapter_count": 7,
+        "adapter_files": [
+          "fred_loader.py",
+          "gld_holdings_adapter.py",
+          "gold_adapter.py",
+          "move_adapter.py",
+          "quality_gate.py",
+          "snapshot_publisher.py",
+          "spy_adapter.py"
+        ]
+      },
+      "layer2_boundary_checks": {
+        "inference_used": false,
+        "checks": [
+          {
+            "file": "layer2/db.py",
+            "status": "present",
+            "inference_used": false,
+            "insert_or_ignore_count": 2,
+            "insert_or_replace_count": 0,
+            "violation_detected": false
+          },
+          {
+            "file": "layer2/alignment.py",
+            "status": "present",
+            "inference_used": false,
+            "insert_or_ignore_count": 0,
+            "insert_or_replace_count": 0,
+            "violation_detected": false
+          }
+        ],
+        "insert_or_replace_detected": false
+      },
+      "execution_artifact_scan": {
+        "inference_used": false,
+        "layer3_execution_artifacts_absent": true,
+        "detected_layer3_indicators": []
+      }
+    },
+    "runtime_context": {
+      "latest_snapshot": {
+        "file": "latest_snapshot.json",
+        "status": "present",
+        "inference_used": false,
+        "snapshot_id": "952cc83a8f930e27a7c3636cb03cf1c5d9b93a5363fa8d9b1a4891f6af7afaef",
+        "as_of": "2026-05-01T22:00:00+00:00",
+        "engine_version": "gold-v3.3.0",
+        "has_guards_object": true
+      },
+      "layer3_runtime_absent": true
+    }
+  }
+}

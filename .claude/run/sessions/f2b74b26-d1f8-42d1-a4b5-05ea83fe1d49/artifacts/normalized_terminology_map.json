@@ -1,0 +1,114 @@
+{
+  "artifact": "normalized_terminology_map",
+  "produced_by": "normalize-terminology",
+  "session": "f2b74b26-d1f8-42d1-a4b5-05ea83fe1d49",
+  "timestamp": "2026-05-09T19:21:56.440662Z",
+  "data": {
+    "produced_by": "normalize-terminology",
+    "overall_status": "ambiguity_detected",
+    "inference_used": false,
+    "canonical_term_mappings": [
+      {
+        "from": "verified_in_current_documentation_set",
+        "to": "proven (from canonical current-state documentation set)",
+        "concept_id": "EVIDENCE_PROVEN",
+        "reason": "'verified' is a discouraged variant for the EVIDENCE_PROVEN status term (Category C: Evidence status). Used here as a fixed evidence-class schema label across all claims rather than a free-text status assertion, which mitigates severity, but the term conflicts with canonical vocabulary and should be resolved by downstream verification steps against 'proven'."
+      }
+    ],
+    "scope_constraints": [
+      "request_text from governance_context",
+      "claim_classification_map claims c1\u2013c7 (claim_text, evidence_class, source_priority, classification_rationale, notes)",
+      "claim_classification_map summary metadata fields",
+      "classification_notes block"
+    ],
+    "excluded_reference_types": [
+      "canonical documents not read directly (no file reads performed at this step)",
+      "implementation code and series_registry.json",
+      "DOCUMENTATION_VERIFICATION_MATRIX_v1.md cross-references"
+    ],
+    "filename_rename_candidates": [],
+    "ambiguity_flags": [
+      {
+        "term": "current_truth (as field name touches_current_truth in claim_classification_map summary)",
+        "concepts": [
+          "SNAPSHOT_TRUTH",
+          "documentation-state currency (unregistered concept)"
+        ],
+        "governance_sensitive": true,
+        "note": "Category A (Snapshot boundary): 'current truth' is a discouraged variant for SNAPSHOT_TRUTH. The field name 'touches_current_truth: true' appears in the summary metadata of the claim_classification_map. In context it evidently means 'this request touches current-state documentation' rather than 'this request touches Snapshot Truth (snapshot data boundary)'. However, the field name is ambiguous: downstream artifact consumers may conflate it with the SNAPSHOT_TRUTH concept. Recommended remediation: rename field to 'touches_current_state_documentation' or similar to eliminate the ambiguity before downstream consumption."
+      },
+      {
+        "term": "verified (in evidence class label 'verified_in_current_documentation_set')",
+        "concepts": [
+          "EVIDENCE_PROVEN"
+        ],
+        "governance_sensitive": true,
+        "note": "Category C (Evidence status): 'verified' is a discouraged variant for the canonical status term 'proven'. The label is consistently applied as a fixed schema value across claims c4, c5, and c6, which reduces immediate risk of misclassification. However, downstream verification steps that compare evidence class values against canonical terminology will encounter this conflict. The label reads as an evidence-class name ('verified in docs') rather than an evidence-quality assertion, creating dual-concept ambiguity with EVIDENCE_PROVEN."
+      }
+    ],
+    "compliant_terms_confirmed": [
+      {
+        "term": "Layer-2",
+        "concept_id": "LAYER_2",
+        "note": "Canonical hyphenated form used correctly throughout all claims and rationale."
+      },
+      {
+        "term": "Layer-3",
+        "concept_id": "LAYER_3",
+        "note": "Canonical hyphenated form used correctly. Prose form 'Layer 3' (with space) appears in rationale for c4 referencing CLAUDE.md \u00a74 heading \u2014 allowed variant."
+      },
+      {
+        "term": "Phase A / Phase B / Phase C / Phase D",
+        "concept_ids": [
+          "PHASE_A",
+          "PHASE_B",
+          "PHASE_C",
+          "PHASE_D"
+        ],
+        "note": "All four phases named canonically. 'Phase B (Layer 3 Bootstrap)' in c4 rationale is a direct CLAUDE.md \u00a74 heading citation, not a discouraged 'bootstrap phase' variant."
+      },
+      {
+        "term": "planned / planned only",
+        "concept_id": "IMPL_PLANNED",
+        "note": "Used correctly for Layer-3 components in c4."
+      },
+      {
+        "term": "blocked",
+        "concept_id": "IMPL_BLOCKED",
+        "note": "Used correctly for Phase D in c5."
+      },
+      {
+        "term": "implemented / operational at snapshot boundary",
+        "concept_id": "IMPL_OPERATIONAL",
+        "note": "Allowed variant 'implemented' used correctly. 'operational at snapshot boundary' is compliant."
+      },
+      {
+        "term": "analysis-only",
+        "concept_id": "SYSTEM_IDENTITY",
+        "note": "Used correctly in c5 rationale, consistent with CLAUDE.md \u00a79."
+      },
+      {
+        "term": "snapshot contract / handoff gate",
+        "concept_ids": [
+          "SNAPSHOT_CONTRACT",
+          "HANDOFF_GATE"
+        ],
+        "note": "Not directly asserted in claims but referenced indirectly; no drift detected."
+      },
+      {
+        "term": "truth_store (noted as rejected)",
+        "note": "Correctly flagged as rejected in c6 notes. Not introduced as a live term."
+      },
+      {
+        "term": "decision_layer (noted as rejected)",
+        "note": "Correctly flagged as rejected in c6 notes. Not introduced as a live term."
+      }
+    ],
+    "governance_guard_compliance": {
+      "c4_layer3_not_implemented": "PASS \u2014 claim correctly asserts Layer-3 is planned only using constitutional language from CLAUDE.md \u00a73.2, \u00a74, \u00a710. No forbidden strong claims detected.",
+      "c5_execution_not_ready": "PASS \u2014 claim correctly asserts execution is blocked using canonical 'blocked' and 'analysis-only' terms. No execution capability implied.",
+      "c6_terminology_preservation": "PASS \u2014 Layer-2 / Layer-3 canonical terms preserved throughout. No semantic rename or constitutional amendment terminology introduced.",
+      "c7_scope_constraint": "PASS \u2014 request correctly self-classified as documentation synchronization. No architecture changes, no new terminology, no constitutional amendments."
+    }
+  }
+}

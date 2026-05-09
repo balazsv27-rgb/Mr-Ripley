@@ -1,0 +1,152 @@
+{
+  "artifact": "verification_ledger_delta",
+  "produced_by": "update-verification-ledger",
+  "session": "f2b74b26-d1f8-42d1-a4b5-05ea83fe1d49",
+  "timestamp": "2026-05-09T19:37:09.704254Z",
+  "data": {
+    "produced_by": "update-verification-ledger",
+    "ledger_action": "update",
+    "inference_used": true,
+    "source_authority_conflict_detected": false,
+    "affected_claims": [
+      {
+        "claim_id": "C1",
+        "claim": "SP500 history adapter gap-fix is complete",
+        "classification": "current-state",
+        "claim_type": "implementation",
+        "preferred_canonical_source": "SYSTEM_IMPLEMENTATION_RECORD_v1.md",
+        "evidence_source": [
+          "change_impact_report",
+          "verification_matrix_delta"
+        ],
+        "evidence_type": "doc",
+        "proposed_status": "unverified",
+        "reason": "Doc-only assertion surfaced via upstream artifact inference. SYSTEM_IMPLEMENTATION_RECORD_v1.md was not read; no code-level verification available. LU-1 caps doc-only evidence at supported; LU-3 requires code alignment for proven on implementation claims; LU-6 further limits to unverified due to missing canonical source read.",
+        "traceability_notes": [
+          "change_impact_report identifies C1 as unverified implementation-state claim blocked pending SYSTEM_IMPLEMENTATION_RECORD_v1.md citation",
+          "verification_matrix_delta entry s3-sp500-history-adapter-state: change_type=status_review, confidence=medium",
+          "runtime_status_upgrade_blocked=true in verification_matrix_delta",
+          "Required: SYSTEM_IMPLEMENTATION_RECORD_v1.md revision (priority: high) before any status upgrade can proceed"
+        ],
+        "confidence": "low"
+      },
+      {
+        "claim_id": "C2",
+        "claim": "Layer-2 TODO items are fully completed",
+        "classification": "current-state",
+        "claim_type": "implementation",
+        "preferred_canonical_source": "SYSTEM_IMPLEMENTATION_RECORD_v1.md",
+        "evidence_source": [
+          "change_impact_report",
+          "verification_matrix_delta"
+        ],
+        "evidence_type": "doc",
+        "proposed_status": "unverified",
+        "reason": "Doc-only assertion via upstream artifact inference. No code artifact or SYSTEM_IMPLEMENTATION_RECORD_v1.md read available. LU-1, LU-3, and LU-6 all prohibit promotion beyond unverified in this pass.",
+        "traceability_notes": [
+          "change_impact_report identifies C2 as unverified implementation-state claim blocked pending SYSTEM_IMPLEMENTATION_RECORD_v1.md citation",
+          "verification_matrix_delta entry s3-layer2-todo-completion: change_type=status_review, confidence=medium",
+          "Documentation sync scope indeterminate until C2 is verified against SYSTEM_IMPLEMENTATION_RECORD_v1.md and code artifacts"
+        ],
+        "confidence": "low"
+      },
+      {
+        "claim_id": "C3a",
+        "claim": "Layer-2 implemented state warrants canonical documentation alignment across all Tier-1 docs",
+        "classification": "current-state",
+        "claim_type": "implementation",
+        "preferred_canonical_source": "SYSTEM_IMPLEMENTATION_RECORD_v1.md",
+        "evidence_source": [
+          "change_impact_report"
+        ],
+        "evidence_type": "doc",
+        "proposed_status": "unverified",
+        "reason": "Downstream documentation alignment cannot be confirmed until C1 and C2 are resolved. Upstream artifact inference only. LU-1, LU-3, LU-6 apply. If C1/C2 cannot be confirmed, the set of required doc updates may change.",
+        "traceability_notes": [
+          "change_impact_report risk_summary: C3a blocked pending C1, C2 resolution",
+          "Documentation sync scope is indeterminate \u2014 impacted_code_paths=[] in doc_code_sync_status reinforces that no code-level signal is available for this claim"
+        ],
+        "confidence": "low"
+      },
+      {
+        "claim_id": "s4-sp500-history-gap-open-item",
+        "claim": "SP500 history gap is tracked as an open item in DOCUMENTATION_VERIFICATION_MATRIX_v1.md Section 4",
+        "classification": "current-state",
+        "claim_type": "documentation_policy",
+        "preferred_canonical_source": "DOCUMENTATION_VERIFICATION_MATRIX_v1.md",
+        "evidence_source": [
+          "verification_matrix_delta"
+        ],
+        "evidence_type": "doc",
+        "proposed_status": "unverified",
+        "reason": "DOCUMENTATION_VERIFICATION_MATRIX_v1.md could not be read in this invocation. Matrix delta carries low confidence on this entry and explicitly requires direct read to confirm Section 4 open-item presence. LU-1 and LU-6 apply.",
+        "traceability_notes": [
+          "verification_matrix_delta entry s4-sp500-history-gap-open-item: confidence=low, change_type=status_review",
+          "inference_used=true in matrix delta for this entry",
+          "Required follow-up: read DOCUMENTATION_VERIFICATION_MATRIX_v1.md directly to confirm Section 4 entry existence"
+        ],
+        "confidence": "low"
+      },
+      {
+        "claim_id": "s8-verification-ledger-artifact",
+        "claim": "Verification ledger is tracked as a governance artifact in DOCUMENTATION_VERIFICATION_MATRIX_v1.md Section 8",
+        "classification": "current-state",
+        "claim_type": "governance",
+        "preferred_canonical_source": "DOCUMENTATION_VERIFICATION_MATRIX_v1.md",
+        "evidence_source": [
+          "verification_matrix_delta"
+        ],
+        "evidence_type": "doc",
+        "proposed_status": "unverified",
+        "reason": "DOCUMENTATION_VERIFICATION_MATRIX_v1.md not read. Section 8 coverage not confirmed. Matrix delta carries low confidence and explicitly requires direct read. LU-1 and LU-6 apply.",
+        "traceability_notes": [
+          "verification_matrix_delta entry s8-verification-ledger-artifact: confidence=low, change_type=status_review",
+          "inference_used=true in matrix delta for this entry",
+          "If Section 8 entry is absent, MU-5 (add_new_entry) must be raised in next matrix update pass"
+        ],
+        "confidence": "low"
+      },
+      {
+        "claim_id": "s8-governance-workflow-artifact",
+        "claim": "Governance workflow artifact is tracked in DOCUMENTATION_VERIFICATION_MATRIX_v1.md Section 8",
+        "classification": "current-state",
+        "claim_type": "governance",
+        "preferred_canonical_source": "DOCUMENTATION_VERIFICATION_MATRIX_v1.md",
+        "evidence_source": [
+          "verification_matrix_delta"
+        ],
+        "evidence_type": "doc",
+        "proposed_status": "unverified",
+        "reason": "DOCUMENTATION_VERIFICATION_MATRIX_v1.md not read. Section 8 coverage not confirmed. Matrix delta carries low confidence and explicitly requires direct read. LU-1 and LU-6 apply.",
+        "traceability_notes": [
+          "verification_matrix_delta entry s8-governance-workflow-artifact: confidence=low, change_type=status_review",
+          "inference_used=true in matrix delta for this entry",
+          "If Section 8 entry is absent, MU-5 (add_new_entry) must be raised in next matrix update pass"
+        ],
+        "confidence": "low"
+      }
+    ],
+    "summary": {
+      "ledger_update_required": true,
+      "runtime_status_upgrade_attempt_blocked": true,
+      "doc_only_evidence_detected": true,
+      "role_mismatch_detected": false,
+      "conflicts_detected": false,
+      "missing_evidence": [
+        "SYSTEM_IMPLEMENTATION_RECORD_v1.md direct read \u2014 required before C1, C2, C3a can advance beyond unverified",
+        "Code artifact verification for SP500 history adapter and Layer-2 TODO items \u2014 required for proven status on implementation claims",
+        "DOCUMENTATION_VERIFICATION_MATRIX_v1.md direct read \u2014 required to confirm Section 4 open-item and Section 8 governance artifact entries",
+        "verification_ledger.md current state \u2014 could not be read in this invocation; delta is additive/overlay only"
+      ],
+      "unresolved_conflicts": [],
+      "notes": [
+        "inference_used=true: verification_ledger.md and canonical source documents could not be read in this invocation. All affected claims derived from upstream artifact signals only.",
+        "All six affected claims assigned proposed_status=unverified. No claim promoted to supported or proven: doc-only evidence ceiling (LU-1) and inference context (LU-6) both apply throughout.",
+        "runtime_status_upgrade_blocked=true inherited from verification_matrix_delta. LU-5: guard-blocked attempts are not positive evidence.",
+        "audit_summary is clean (pass, zero violations, dag_advancement_blocked=false). Ledger update is driven exclusively by doc_code_sync_status.verification_ledger_update_required=true and change_impact_report.follow_up_required=mandatory.",
+        "Required next step: SYSTEM_IMPLEMENTATION_RECORD_v1.md revision (priority: high) followed by re-run of matrix update step with direct file access. No ledger status upgrades for C1, C2, C3a are possible until that step completes.",
+        "For s8 entries: if DOCUMENTATION_VERIFICATION_MATRIX_v1.md Section 8 does not contain entries for verification_ledger or governance_workflow artifacts upon direct read, MU-5 (add_new_entry) must be raised in the next matrix update pass."
+      ]
+    }
+  }
+}

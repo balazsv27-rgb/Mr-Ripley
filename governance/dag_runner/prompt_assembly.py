@@ -1694,6 +1694,13 @@ def assemble_step_prompt(
     # Apply token budget
     bounding_result = bound_inputs(bounded, token_budget)
 
+    # Extract document contents from bounded results
+    document_contents: dict[str, str] = {}
+    for bi in bounding_result.inputs:
+        if bi.name.startswith("doc:"):
+            doc_path = bi.name[4:]  # strip "doc:" prefix
+            document_contents[doc_path] = bi.content
+
     return {
         "agent": agent,
         "step_name": step.name,
@@ -1709,6 +1716,7 @@ def assemble_step_prompt(
         ),
         "artifact_inputs": artifact_inputs,
         "document_paths": document_paths,
+        "document_contents": document_contents,
         "token_budget": token_budget,
         "token_estimate": bounding_result.total_tokens,
         "truncated": bounding_result.truncated,
@@ -1826,8 +1834,16 @@ def build_prompt_text(context: dict[str, Any]) -> str:
         art_text = json.dumps(artifacts, indent=2)
         sections.append(f"[UPSTREAM ARTIFACTS]{_SECTION_DELIM}{art_text}")
 
+    doc_contents = context.get("document_contents", {})
     doc_paths = context.get("document_paths", [])
-    if doc_paths:
+    if doc_contents:
+        doc_parts = []
+        for path, content in doc_contents.items():
+            doc_parts.append(f"--- {path} ---\n{content}")
+        sections.append(
+            f"[CANONICAL DOCUMENTS]{_SECTION_DELIM}" + "\n\n".join(doc_parts)
+        )
+    elif doc_paths:
         sections.append(f"[DOCUMENT PATHS]{_SECTION_DELIM}" + "\n".join(doc_paths))
 
     # Output format specification — required for backend-dispatched steps

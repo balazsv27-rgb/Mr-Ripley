@@ -111,6 +111,15 @@ def default_governance_policy(repo_root: Path) -> PathPolicy:
             ".claude/skills/*/SKILL.md",
             "*.md",
             "Documentation/*.md",
+            # Layer-2 code (read-only evidence for governance inspection)
+            "layer2/*.py",
+            "layer2/adapters/*.py",
+            "layer2/config/*.json",
+            "layer2/config/*.py",
+            # Runtime metadata
+            "latest_snapshot.json",
+            # Workflow packages (governance self-inspection)
+            ".claude/workflows/packages/*.yaml",
         ],
         denied_patterns=[
             ".env",
