@@ -90,7 +90,9 @@
       "Bash(PYTHONPATH=\".\" python -m governance.dag_runner.cli --dry-run --json)",
       "Bash(PYTHONPATH=\".\" python -m governance.dag_runner.cli --mode agent_execution --backend mock --write-state --json)",
       "Bash(PYTHONPATH=\".\" python -m governance.dag_runner.cli --mode agent_execution --backend mock --write-state --json --request-text \"Test doc sync\")",
-      "Bash(PYTHONPATH=\".\" python -c \":*)"
+      "Bash(PYTHONPATH=\".\" python -c \":*)",
+      "Bash(PYTHONPATH=\".\" pytest tests/governance/test_role_citation.py -v --tb=short)",
+      "Bash(PYTHONPATH=\".\" python -m governance.dag_runner.cli --mode agent_execution --backend mock --write-state --json --request-text \"Evaluate and govern a canonical documentation update after completion of the SP500 history gap fix. Do not claim that Layer-3 is implemented. Do not claim live execution readiness. Treat this as a documentation synchronization and verification request, not a semantic rename or constitutional amendment.\")"
     ]
   }
 }

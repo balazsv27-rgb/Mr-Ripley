@@ -1,0 +1,77 @@
+{
+  "artifact": "doc_code_sync_status",
+  "produced_by": "doc-code-sync-check",
+  "session": "144e06d3-d6b9-4492-99e3-5d105a5441f6",
+  "timestamp": "2026-05-10T17:02:45.822999Z",
+  "data": {
+    "produced_by": "doc-code-sync-check",
+    "overall_status": "review_only",
+    "sync_status": "review_only",
+    "drift_detected": false,
+    "docs_changed_without_code": false,
+    "code_changed_without_docs": false,
+    "doc_code_alignment_status": "review_required",
+    "follow_up_required": "mandatory",
+    "verification_matrix_update_required": true,
+    "verification_ledger_update_required": true,
+    "impacted_docs": [
+      "README_v1.md",
+      "SYSTEM_TECHNICAL_HANDBOOK_v1.md",
+      "SYSTEM_LIMITATIONS_AND_APPROXIMATIONS_v1.md",
+      "DOCUMENTATION_VERIFICATION_MATRIX_v1.md",
+      "SYSTEM_IMPLEMENTATION_RECORD_v1.md",
+      "README_LAYER2.md"
+    ],
+    "impacted_code_paths": [],
+    "required_actions": [
+      {
+        "artifact": "SYSTEM_LIMITATIONS_AND_APPROXIMATIONS_v1.md",
+        "action": "revise",
+        "priority": "high"
+      },
+      {
+        "artifact": "DOCUMENTATION_VERIFICATION_MATRIX_v1.md",
+        "action": "revise",
+        "priority": "high"
+      },
+      {
+        "artifact": "README_v1.md",
+        "action": "revise",
+        "priority": "high"
+      },
+      {
+        "artifact": "SYSTEM_IMPLEMENTATION_RECORD_v1.md",
+        "action": "revise",
+        "priority": "high"
+      },
+      {
+        "artifact": "README_LAYER2.md",
+        "action": "revise",
+        "priority": "high"
+      },
+      {
+        "artifact": "SYSTEM_TECHNICAL_HANDBOOK_v1.md",
+        "action": "review",
+        "priority": "medium"
+      },
+      {
+        "artifact": "SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md",
+        "action": "review",
+        "priority": "medium"
+      },
+      {
+        "artifact": "DOCUMENTATION_VERIFICATION_MATRIX_v1.md",
+        "action": "update"
+      },
+      {
+        "artifact": "verification_ledger.md",
+        "action": "update"
+      }
+    ],
+    "blocking_reasons": [],
+    "inference_used": false,
+    "notes": [
+      "7 required update(s), 2 verification action(s) from doc_update_plan."
+    ]
+  }
+}

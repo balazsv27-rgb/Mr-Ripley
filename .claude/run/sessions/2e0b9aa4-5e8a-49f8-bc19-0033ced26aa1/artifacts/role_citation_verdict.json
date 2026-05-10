@@ -1,0 +1,183 @@
+{
+  "artifact": "role_citation_verdict",
+  "produced_by": "route-claims-by-role",
+  "session": "2e0b9aa4-5e8a-49f8-bc19-0033ced26aa1",
+  "timestamp": "2026-05-10T15:32:32.125222Z",
+  "data": {
+    "produced_by": "route-claims-by-role",
+    "role_matched_citation_status": {
+      "overall_status": "review_only",
+      "inference_used": false,
+      "source_authority_conflict_detected": false,
+      "checked_claims": [
+        {
+          "claim_id": "c1",
+          "claim_text": "SP500 history gap fix has been completed \u2014 SPY proxy adapter implemented via Yahoo with full history from 2005-01-03",
+          "claim_type": "implementation",
+          "required_primary_source": "SYSTEM_IMPLEMENTATION_RECORD_v1.md",
+          "provided_sources": [
+            "code_context: SP500_PROXY in registry",
+            "code_context: spy_adapter.py present",
+            "SYSTEM_LIMITATIONS_AND_APPROXIMATIONS_v1.md (extract)",
+            "DOCUMENTATION_VERIFICATION_MATRIX_v1.md (extract)",
+            "README_LAYER2.md (extract)"
+          ],
+          "role_match": false,
+          "strong_claim": true,
+          "explicit_citation_required": true,
+          "conflict_detected": false,
+          "blocking_condition_if_any": "Implementation claim lacks role-matched canonical citation in SYSTEM_IMPLEMENTATION_RECORD_v1.md.",
+          "verdict": "review_only",
+          "reason": "Implementation claim has code evidence but role-matched canonical source SYSTEM_IMPLEMENTATION_RECORD_v1.md does not have supporting extract sections. Code evidence alone does not substitute for canonical citation.",
+          "notes": "Code context provides corroborating evidence but CLAUDE.md Section 2.2 requires SYSTEM_IMPLEMENTATION_RECORD_v1.md as the authoritative source for implementation state."
+        },
+        {
+          "claim_id": "c2",
+          "claim_text": "Remaining Layer-2 TODO items have been addressed (scope requires verification per item)",
+          "claim_type": "implementation",
+          "required_primary_source": "SYSTEM_IMPLEMENTATION_RECORD_v1.md",
+          "provided_sources": [
+            "SYSTEM_IMPLEMENTATION_RECORD_v1.md (extract)",
+            "keyword_sections(layer-2)",
+            "README_LAYER2.md (extract)",
+            "SYSTEM_LIMITATIONS_AND_APPROXIMATIONS_v1.md (extract)"
+          ],
+          "role_match": true,
+          "strong_claim": false,
+          "explicit_citation_required": false,
+          "conflict_detected": false,
+          "blocking_condition_if_any": null,
+          "verdict": "compliant",
+          "reason": "Claim supported by available evidence."
+        },
+        {
+          "claim_id": "c3",
+          "claim_text": "Canonical documentation requires synchronization to reflect current implemented Layer-2 state",
+          "claim_type": "implementation",
+          "required_primary_source": "DOCUMENTATION_VERIFICATION_MATRIX_v1.md",
+          "provided_sources": [
+            "DOCUMENTATION_VERIFICATION_MATRIX_v1.md (extract)",
+            "keyword_sections(layer-2, layer-3)",
+            "SYSTEM_IMPLEMENTATION_RECORD_v1.md (extract)",
+            "SYSTEM_LIMITATIONS_AND_APPROXIMATIONS_v1.md (extract)",
+            "README_v1.md (extract)",
+            "README_LAYER2.md (extract)"
+          ],
+          "role_match": true,
+          "strong_claim": false,
+          "explicit_citation_required": false,
+          "conflict_detected": false,
+          "blocking_condition_if_any": null,
+          "verdict": "compliant",
+          "reason": "Claim supported by available evidence."
+        },
+        {
+          "claim_id": "c4",
+          "claim_text": "Layer-3 is not implemented \u2014 explicit guard against overclaim",
+          "claim_type": "architecture",
+          "required_primary_source": "SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md",
+          "provided_sources": [
+            "SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md (extract)",
+            "keyword_sections(layer-2, layer-3)",
+            "code_context: layer3_execution_artifacts_absent=true",
+            "runtime_context: layer3_runtime_absent=true",
+            "SYSTEM_TECHNICAL_HANDBOOK_v1.md (extract)",
+            "README_v1.md (extract)",
+            "SYSTEM_IMPLEMENTATION_RECORD_v1.md (extract)"
+          ],
+          "role_match": true,
+          "strong_claim": true,
+          "explicit_citation_required": false,
+          "conflict_detected": false,
+          "blocking_condition_if_any": null,
+          "verdict": "compliant",
+          "reason": "Negative guard claim is supported by canonical doc extract + code/runtime context. Request preserves this constraint."
+        },
+        {
+          "claim_id": "c5",
+          "claim_text": "Live execution is not ready \u2014 explicit guard against overclaim",
+          "claim_type": "readiness",
+          "required_primary_source": "SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md",
+          "provided_sources": [
+            "SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md (extract)",
+            "keyword_sections(layer-2, layer-3)",
+            "runtime_context: no execution runtime present",
+            "SYSTEM_LIMITATIONS_AND_APPROXIMATIONS_v1.md (extract)",
+            "SYSTEM_TECHNICAL_HANDBOOK_v1.md (extract)"
+          ],
+          "role_match": true,
+          "strong_claim": true,
+          "explicit_citation_required": false,
+          "conflict_detected": false,
+          "blocking_condition_if_any": null,
+          "verdict": "compliant",
+          "reason": "Negative guard claim is supported by canonical doc extract + code/runtime context. Request preserves this constraint."
+        },
+        {
+          "claim_id": "c6",
+          "claim_text": "Layer-2 / Layer-3 canonical terminology is preserved \u2014 no semantic rename requested",
+          "claim_type": "architecture",
+          "required_primary_source": "CLAUDE.md",
+          "provided_sources": [
+            "CLAUDE.md (extract)",
+            "keyword_sections(layer-2)",
+            "code_context: layer3_execution_artifacts_absent=true",
+            "runtime_context: layer3_runtime_absent=true",
+            "SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md (extract)"
+          ],
+          "role_match": true,
+          "strong_claim": true,
+          "explicit_citation_required": false,
+          "conflict_detected": false,
+          "blocking_condition_if_any": null,
+          "verdict": "compliant",
+          "reason": "Negative guard claim is supported by canonical doc extract + code/runtime context. Request preserves this constraint."
+        },
+        {
+          "claim_id": "c7",
+          "claim_text": "This request is a documentation synchronization and verification operation, not a constitutional amendment",
+          "claim_type": "governance",
+          "required_primary_source": "CLAUDE.md",
+          "provided_sources": [
+            "CLAUDE.md (extract)",
+            "keyword_sections(layer-2)",
+            "DOCUMENTATION_VERIFICATION_MATRIX_v1.md (extract)"
+          ],
+          "role_match": true,
+          "strong_claim": true,
+          "explicit_citation_required": false,
+          "conflict_detected": false,
+          "blocking_condition_if_any": null,
+          "verdict": "compliant",
+          "reason": "Negative guard claim is supported by canonical doc extract. Request preserves this constraint."
+        }
+      ],
+      "summary": {
+        "role_mismatch_detected": true,
+        "canonical_conflict_unresolved": false,
+        "readme_layer2_used_as_override": false,
+        "requires_conflict_note": false,
+        "requires_doc_sync_escalation": false,
+        "recommended_guard_action": "review",
+        "blocking_claims": [],
+        "compliant_claims": [
+          "c2",
+          "c3",
+          "c4",
+          "c5",
+          "c6",
+          "c7"
+        ],
+        "review_only_claims": [
+          "c1"
+        ],
+        "block_reason": "",
+        "notes": [
+          "Deterministic synthesis from 7 classified claim(s).",
+          "Routing table: default.",
+          "Doc extracts available: 9."
+        ]
+      }
+    }
+  }
+}

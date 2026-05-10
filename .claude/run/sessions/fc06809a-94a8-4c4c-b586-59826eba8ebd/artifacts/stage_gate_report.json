@@ -1,0 +1,10 @@
+{
+  "artifact": "stage_gate_report",
+  "produced_by": "stage-gate-enforcement",
+  "session": "fc06809a-94a8-4c4c-b586-59826eba8ebd",
+  "timestamp": "2026-05-10T16:15:11.635162Z",
+  "data": {
+    "produced_by": "stage-gate-enforcement",
+    "structural": true
+  }
+}

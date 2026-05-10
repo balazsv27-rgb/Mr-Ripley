@@ -1106,6 +1106,8 @@ def _execute_v2_step(
     Routes by component kind:
     - structural kinds → ``backend.execute_structural_step()``
     - skill / subagents → resolve agent, assemble prompt, ``backend.execute_step()``
+    - route-claims-by-role → deterministic synthesis (no LLM)
+    - adapter-schema-check → deterministic synthesis (no LLM)
     - runtime-artifact-hygiene-check → deterministic synthesis (no LLM)
     - doc-code-sync-check → deterministic synthesis (no LLM)
 
@@ -1175,10 +1177,47 @@ def _execute_v2_step(
         detail={"component_kind": kind, "backend": type(backend).__name__},
     )
 
+    # Deterministic synthesis for route-claims-by-role — bypass LLM backend.
+    # This step is a deterministic policy routing gate that maps each classified
+    # claim to its role-matched canonical source and checks available evidence.
+    # It does not require LLM reasoning — the routing table and evidence checks
+    # are fully deterministic.
+    if step.name == "route-claims-by-role" and "role_citation_verdict" in step.outputs:
+        from governance.dag_runner.role_citation import synthesize_role_citation_verdict
+        citation_payload = synthesize_role_citation_verdict(step, run_state)
+        bootstrap_payload = {"role_citation_verdict": citation_payload}
+        result = backend.execute_structural_step(
+            step=step,
+            component_kind="workflow_step",
+            run_state=run_state,
+            spec=spec,
+            bootstrap_payload=bootstrap_payload,
+        )
+        _deterministic_synthesis = True
+        _append_trace(
+            run_state,
+            node_name=step.name,
+            event_type="deterministic_synthesis",
+            detail={
+                "synthesized_artifact": "role_citation_verdict",
+                "overall_status": citation_payload.get(
+                    "role_matched_citation_status", {},
+                ).get("overall_status"),
+                "inference_used": citation_payload.get(
+                    "role_matched_citation_status", {},
+                ).get("inference_used"),
+                "checked_claims_count": len(
+                    citation_payload.get(
+                        "role_matched_citation_status", {},
+                    ).get("checked_claims", []),
+                ),
+            },
+        )
+
     # Deterministic synthesis for runtime-artifact-hygiene-check — bypass LLM backend.
     # This step evaluates run_state artifact metadata and verification ledger signals;
     # it does not need to inspect arbitrary files or invoke Claude.
-    if step.name == "runtime-artifact-hygiene-check" and "artifact_hygiene_verdict" in step.outputs:
+    elif step.name == "runtime-artifact-hygiene-check" and "artifact_hygiene_verdict" in step.outputs:
         hygiene_payload = _synthesize_artifact_hygiene_verdict(step, run_state)
         bootstrap_payload = {"artifact_hygiene_verdict": hygiene_payload}
         result = backend.execute_structural_step(
@@ -1198,6 +1237,34 @@ def _execute_v2_step(
                 "overall_status": hygiene_payload.get("overall_status"),
                 "hygiene_status": hygiene_payload.get("hygiene_status"),
                 "inference_used": hygiene_payload.get("inference_used"),
+            },
+        )
+
+    # Deterministic synthesis for adapter-schema-check — bypass LLM backend.
+    # This step evaluates registry-driven adapter compliance and schema discipline
+    # from runner-observed code_context and runtime_boundary_verdict.
+    elif step.name == "adapter-schema-check" and "adapter_schema_verdict" in step.outputs:
+        from governance.dag_runner.adapter_schema import synthesize_adapter_schema_verdict
+        adapter_payload = synthesize_adapter_schema_verdict(step, run_state)
+        bootstrap_payload = {"adapter_schema_verdict": adapter_payload}
+        result = backend.execute_structural_step(
+            step=step,
+            component_kind="workflow_step",
+            run_state=run_state,
+            spec=spec,
+            bootstrap_payload=bootstrap_payload,
+        )
+        _deterministic_synthesis = True
+        _append_trace(
+            run_state,
+            node_name=step.name,
+            event_type="deterministic_synthesis",
+            detail={
+                "synthesized_artifact": "adapter_schema_verdict",
+                "overall_status": adapter_payload.get(
+                    "adapter_schema_status", {},
+                ).get("overall_status"),
+                "inference_used": adapter_payload.get("inference_used"),
             },
         )
 

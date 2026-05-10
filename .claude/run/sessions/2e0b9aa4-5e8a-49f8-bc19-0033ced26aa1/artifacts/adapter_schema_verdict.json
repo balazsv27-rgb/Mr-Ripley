@@ -1,0 +1,14 @@
+{
+  "artifact": "adapter_schema_verdict",
+  "produced_by": "adapter-schema-check",
+  "session": "",
+  "timestamp": "2026-05-10T16:12:47.257499Z",
+  "data": {
+    "file_path": "C:\\Code\\Mr-Ripley\\tests\\governance\\test_adapter_schema.py",
+    "scanned": false,
+    "registry_driven": true,
+    "hardcoded_series_detected": false,
+    "implicit_interpretation_detected": false,
+    "violations": []
+  }
+}

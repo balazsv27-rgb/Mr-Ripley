@@ -1,0 +1,9 @@
+{
+  "artifact": "contract_compliance_verdict",
+  "produced_by": "snapshot-contract-check",
+  "session": "ef2fd61a-e57d-475f-97f9-9d437932c930",
+  "timestamp": "2026-05-10T16:18:31.636895Z",
+  "data": {
+    "produced_by": "snapshot-contract-check"
+  }
+}

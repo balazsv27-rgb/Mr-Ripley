@@ -1,0 +1,1204 @@
+{
+  "artifact": "governance_context",
+  "produced_by": "load-context",
+  "session": "c48c60e1-3d04-4644-9a83-9435f77b9bb3",
+  "timestamp": "2026-05-10T16:21:37.692582Z",
+  "data": {
+    "produced_by": "load-context",
+    "run_id": "c48c60e1-3d04-4644-9a83-9435f77b9bb3",
+    "request_id": "test-adapter-fix",
+    "request_text": "Test adapter schema fix",
+    "request_source": "manual",
+    "workflow_name": "mr-ripley-governance-orchestration",
+    "execution_mode": "agent_execution",
+    "bootstrap_status": "request_bearing",
+    "code_context": {
+      "series_registry": {
+        "file": "layer2/config/series_registry.json",
+        "status": "present",
+        "inference_used": false,
+        "registry_version": "1.1.0",
+        "series_count": 24,
+        "series_ids": [
+          "gold_price_proxy",
+          "rates_vol_stress_move",
+          "DFII10",
+          "DFII5",
+          "DGS10",
+          "DGS2",
+          "DGS5",
+          "T10YIE",
+          "T5YIE",
+          "T5YIFR",
+          "DFF",
+          "EFFR",
+          "DTWEXBGS",
+          "VIXCLS",
+          "SP500",
+          "SP500_PROXY",
+          "gld_holdings_flow_confirm",
+          "CPILFESL",
+          "FEDFUNDS",
+          "PCEPI",
+          "PCU2122212122210",
+          "DTWEXM",
+          "DTWEXO",
+          "TWEXB"
+        ],
+        "tier1_count": 16,
+        "tier2_count": 8,
+        "include_in_snapshot_count": 21,
+        "snapshot_series_ids": [
+          "gold_price_proxy",
+          "rates_vol_stress_move",
+          "DFII10",
+          "DFII5",
+          "DGS10",
+          "DGS2",
+          "DGS5",
+          "T10YIE",
+          "T5YIE",
+          "T5YIFR",
+          "DFF",
+          "EFFR",
+          "DTWEXBGS",
+          "VIXCLS",
+          "SP500",
+          "SP500_PROXY",
+          "gld_holdings_flow_confirm",
+          "CPILFESL",
+          "FEDFUNDS",
+          "PCEPI",
+          "PCU2122212122210"
+        ],
+        "sp500_detected": true,
+        "sp500_proxy_detected": true,
+        "sp500_source": "fred",
+        "sp500_proxy_source": "yahoo_spy",
+        "sp500_proxy_full_history_start": "2005-01-03",
+        "sp500_proxy_include_in_snapshot": true,
+        "sp500_proxy_tier": 1
+      },
+      "adapter_inventory": {
+        "adapter_dir": "layer2/adapters",
+        "status": "present",
+        "inference_used": false,
+        "adapter_count": 7,
+        "adapter_files": [
+          "fred_loader.py",
+          "gld_holdings_adapter.py",
+          "gold_adapter.py",
+          "move_adapter.py",
+          "quality_gate.py",
+          "snapshot_publisher.py",
+          "spy_adapter.py"
+        ]
+      },
+      "layer2_boundary_checks": {
+        "inference_used": false,
+        "checks": [
+          {
+            "file": "layer2/db.py",
+            "status": "present",
+            "inference_used": false,
+            "insert_or_ignore_count": 2,
+            "insert_or_replace_count": 0,
+            "violation_detected": false
+          },
+          {
+            "file": "layer2/alignment.py",
+            "status": "present",
+            "inference_used": false,
+            "insert_or_ignore_count": 0,
+            "insert_or_replace_count": 0,
+            "violation_detected": false
+          }
+        ],
+        "insert_or_replace_detected": false
+      },
+      "execution_artifact_scan": {
+        "inference_used": false,
+        "layer3_execution_artifacts_absent": true,
+        "detected_layer3_indicators": []
+      }
+    },
+    "runtime_context": {
+      "latest_snapshot": {
+        "file": "latest_snapshot.json",
+        "status": "present",
+        "inference_used": false,
+        "snapshot_id": "952cc83a8f930e27a7c3636cb03cf1c5d9b93a5363fa8d9b1a4891f6af7afaef",
+        "as_of": "2026-05-01T22:00:00+00:00",
+        "engine_version": "gold-v3.3.0",
+        "has_guards_object": true
+      },
+      "layer3_runtime_absent": true
+    },
+    "canonical_doc_extracts": {
+      "CLAUDE.md": {
+        "file": "CLAUDE.md",
+        "status": "present",
+        "inference_used": false,
+        "char_count": 10029,
+        "line_count": 401,
+        "headings": [
+          "# CLAUDE.md \u2014 Project Constitution",
+          "# 1. SYSTEM IDENTITY",
+          "# 2. DOCUMENT AUTHORITY (TRUTH HIERARCHY)",
+          "## 2.1 Canonical Current-State Sources",
+          "## 2.2 Canonical Role Definitions",
+          "## 2.3 Historical Sources",
+          "## 2.4 Conflict Resolution",
+          "# 3. CURRENT vs TARGET ARCHITECTURE",
+          "## 3.1 Current State",
+          "## 3.2 Target Architecture (NOT YET BUILT)",
+          "# 4. STAGE-GATE MODEL",
+          "## Phase A \u2014 Layer 2 Closure",
+          "## Phase B \u2014 Layer 3 Bootstrap",
+          "## Phase C \u2014 Layer 3 Structured Buildout",
+          "## Phase D \u2014 Live Execution Gate",
+          "## Critical Rule",
+          "# 5. EVIDENCE AND PROOF MODEL",
+          "## 5.1 Allowed Evidence Classes",
+          "## 5.2 What Counts as Proof",
+          "## 5.3 What Does NOT Count as Proof",
+          "## Critical Rule",
+          "# 6. SNAPSHOT CONTRACT (NON-NEGOTIABLE)",
+          "## 6.1 Downstream Rule",
+          "## 6.2 Snapshot Requirements",
+          "## 6.3 Forbidden Patterns",
+          "# 7. FAIL-CLOSED PRINCIPLE",
+          "# 8. REGISTRY AS SINGLE SOURCE OF TRUTH",
+          "# 9. EXECUTION BOUNDARY",
+          "## Critical Rule",
+          "# 10. STRONG CLAIM DISCIPLINE",
+          "## Allowed Language",
+          "# 11. DOCUMENT UPDATE OBLIGATIONS",
+          "## Critical Rule",
+          "# 12. VERSION LOCK AND IMMUTABILITY",
+          "# 13. LLM ROLE CONSTRAINT",
+          "# 14. INTERPRETATION PRIORITIES",
+          "# 15. WORKFLOW GOVERNANCE CONSTRAINT",
+          "# 16. FINAL CONSTITUTIONAL RULE",
+          "# 16.1 Constitutional amendment rule:",
+          "# SUMMARY"
+        ],
+        "keyword_section_count": 10,
+        "keyword_sections": [
+          {
+            "keyword": "Layer-2",
+            "line_number": 76,
+            "context": "  Canonical record of what is actually implemented and realized.\n\n- `README_LAYER2.md`  \n  Canonical collaborator guide and living build reference for Layer-2 implementation and operational navigation.\n\n## 2.3 Historical Sources\n"
+          },
+          {
+            "keyword": "Layer-2",
+            "line_number": 104,
+            "context": "- architecture / boundary questions \u2192 prefer `SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md`\n- implementation-state claims \u2192 prefer `SYSTEM_IMPLEMENTATION_RECORD_v1.md`\n- limitations / approximations \u2192 prefer `SYSTEM_LIMITATIONS_AND_APPROXIMATIONS_v1.md`\n- collaborator workflow / Layer-2 navigation \u2192 prefer `README_LAYER2.md`\n\nCritical rule:\n"
+          },
+          {
+            "keyword": "Layer-2",
+            "line_number": 127,
+            "context": "The following are **planned only**:\n\n- Feature Builder\n- Index Suite (Layer-3 snapshot-consuming computation; distinct from the existing Layer-2 `layer2/index_suite.py` provisional pre-publication tool)\n- Regime Gate\n- Supervisor Engine\n- Decision Engine"
+          },
+          {
+            "keyword": "Layer-2",
+            "line_number": 308,
+            "context": "- `DOCUMENTATION_VERIFICATION_MATRIX_v1.md` update\n- `SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md` review\n- `SYSTEM_IMPLEMENTATION_RECORD_v1.md` review when implementation state changes\n- `README_LAYER2.md` review when collaborator workflow or Layer-2 build navigation changes\n\n---\n"
+          },
+          {
+            "keyword": "live execution",
+            "line_number": 153,
+            "context": "## Phase C \u2014 Layer 3 Structured Buildout\n- Status: **future**\n\n## Phase D \u2014 Live Execution Gate\n- Status: **blocked**\n\n---"
+          },
+          {
+            "keyword": "live execution",
+            "line_number": 161,
+            "context": "## Critical Rule\n\n> \u201cHandoff gate satisfied\u201d \u2260 Layer 3 exists  \n> \u201cLayer 3 exists\u201d \u2260 Live execution allowed  \n\n---\n"
+          },
+          {
+            "keyword": "blocked",
+            "line_number": 33,
+            "context": "- immutable snapshot boundary\n- no direct raw-data consumption downstream\n- LLM = **analysis + audit only**, never execution\n- execution remains **blocked by design**\n\n---\n"
+          },
+          {
+            "keyword": "Phase A",
+            "line_number": 144,
+            "context": "\nThe system evolves through strict phases:\n\n## Phase A \u2014 Layer 2 Closure\n- Status: **complete at contract boundary**\n\n## Phase B \u2014 Layer 3 Bootstrap"
+          },
+          {
+            "keyword": "not yet built",
+            "line_number": 122,
+            "context": "- Snapshots = published, immutable, contract-compliant\n- No downstream computation layer exists yet\n\n## 3.2 Target Architecture (NOT YET BUILT)\n\nThe following are **planned only**:\n"
+          },
+          {
+            "keyword": "not yet implemented",
+            "line_number": 293,
+            "context": "\n- \u201cplanned\u201d\n- \u201ctarget architecture\u201d\n- \u201cnot yet implemented\u201d\n- \u201crequires Phase C/D\u201d\n\n---"
+          }
+        ]
+      },
+      "README_v1.md": {
+        "file": "Documentation/README_v1.md",
+        "status": "present",
+        "inference_used": false,
+        "char_count": 7927,
+        "line_count": 236,
+        "headings": [
+          "# Mr. Ripley \u2014 Layer-2 Truth Layer",
+          "## 1. Project Purpose",
+          "## 2. Current Operational Status",
+          "### Verified publication example",
+          "## 3. What Layer-2 Is",
+          "## 4. What Layer-2 Is Not",
+          "## 5. Architecture Position",
+          "## 6. Core Components",
+          "## 7. Snapshot Contract",
+          "## 8. Handoff Gate Status",
+          "## 9. Layer-3 Design Status (updated 2026-03-22)",
+          "## 10. Current Known Risks (Short Form)",
+          "## 11. Recommended Local Run Sequence",
+          "# Gold JSON source currently used successfully:",
+          "# Validate / publish",
+          "## 12. Interpretation Rule"
+        ],
+        "keyword_section_count": 23,
+        "keyword_sections": [
+          {
+            "keyword": "SP500",
+            "line_number": 203,
+            "context": "- scheduler / orchestrator is not built\n- alerting / retry / kill switch are not built\n- Layer-3 components are not built\n- SP500 history gap (FRED from 2016 only \u2014 SPY migration planned)\n- repo hygiene for runtime artifacts should still be treated as an active check\n\nSee `SYSTEM_LIMITATIONS_AND_APPROXIMATIONS_v1.md` for the full list."
+          },
+          {
+            "keyword": "Layer-2",
+            "line_number": 1,
+            "context": "# Mr. Ripley \u2014 Layer-2 Truth Layer\n\n> **Repo:** `github.com/balazsv27-rgb/Mr-Ripley`\n> **Last updated:** 2026-03-22"
+          },
+          {
+            "keyword": "Layer-2",
+            "line_number": 13,
+            "context": "\n## 1. Project Purpose\n\nLayer-2 is the **data ingestion and truth store** for the Mr. Ripley gold-first decision engine.\n\nIts job is to:\n"
+          },
+          {
+            "keyword": "Layer-2",
+            "line_number": 22,
+            "context": "- align data point-in-time against a governed clock boundary\n- publish deterministic snapshots that Layer-3 consumes as a stable API\n\nLayer-2 ends at snapshot publication. It does **not** compute features, regimes, supervisor decisions, or execution actions.\n\n---\n"
+          },
+          {
+            "keyword": "Layer-2",
+            "line_number": 30,
+            "context": "\n**Current status as of 2026-03-22:**\n\n- Layer-2 ingestion adapters are operational\n- quality gate is operational\n- canonical clock path is operational\n- snapshot publisher is operational"
+          },
+          {
+            "keyword": "Layer-2",
+            "line_number": 36,
+            "context": "- snapshot publisher is operational\n- a **successful non-forced snapshot publication** has been executed\n- `latest_snapshot.json` has been generated successfully\n- Layer-2 \u2192 Layer-3 handoff contract is now operational\n- Layer-3 is **not yet built**\n- Layer-3 decision philosophy is now frozen: state-driven / event-driven, not timeframe-driven\n- Layer-3 DecisionPacket schema v0 is now defined as a governed action contract"
+          },
+          {
+            "keyword": "Layer-2",
+            "line_number": 59,
+            "context": "\n---\n\n## 3. What Layer-2 Is\n\nLayer-2 is:\n"
+          },
+          {
+            "keyword": "Layer-2",
+            "line_number": 72,
+            "context": "\n---\n\n## 4. What Layer-2 Is Not\n\nLayer-2 is **not**:\n"
+          },
+          {
+            "keyword": "Layer-2",
+            "line_number": 91,
+            "context": "\n```\nLayer-1  \u2192  Event Tagger / Narrative Risk Modifiers   (optional, disabled by default)\nLayer-2  \u2192  Ingestion + validation + snapshot store    \u2190 YOU ARE HERE\nLayer-3  \u2192  State-driven decision engine               (not yet built \u2014 philosophy frozen)\nLayer-4  \u2192  Execution orchestration                    (not yet built / intentionally unwired)\n```"
+          },
+          {
+            "keyword": "Layer-2",
+            "line_number": 97,
+            "context": "```\n\nLayer-3 note: the decision engine is **state-driven / event-driven**, not timeframe-driven.\nIt consumes three governed inputs: Snapshot Truth (authoritative replayable base from Layer-2), Live Market State (fast intraday triggers), and Event Risk Stream (penalty and override only \u2014 never directional). It decides because state changed materially, not because time passed.\n\n---\n"
+          },
+          {
+            "keyword": "Layer-2",
+            "line_number": 103,
+            "context": "\n## 6. Core Components\n\nCurrent Layer-2 components:\n\n- `layer2/config/series_registry.json` \u2014 registry single source of truth\n- `layer2/config/registry.py` \u2014 registry loader / validator"
+          },
+          {
+            "keyword": "Layer-2",
+            "line_number": 157,
+            "context": "\n## 8. Handoff Gate Status\n\nThe Layer-2 \u2192 Layer-3 handoff gate is now satisfied at the snapshot-contract level.\n\nSpecifically:\n"
+          },
+          {
+            "keyword": "Layer-2",
+            "line_number": 182,
+            "context": "\nThe Layer-3 decision philosophy is now frozen as of 2026-03-22: state-driven / event-driven model, three governed inputs, explicit trigger taxonomy, governed action contract output.\n\nKey points relevant to Layer-2:\n\n- Layer-3 consumes the **Snapshot Truth** from Layer-2 published snapshots \u2014 this is unchanged\n- Layer-3 will also consume **Live Market State** and **Event Risk Stream** as governed inputs"
+          },
+          {
+            "keyword": "Layer-2",
+            "line_number": 186,
+            "context": "\n- Layer-3 consumes the **Snapshot Truth** from Layer-2 published snapshots \u2014 this is unchanged\n- Layer-3 will also consume **Live Market State** and **Event Risk Stream** as governed inputs\n- neither of those additional inputs may rewrite Layer-2 truth history or bypass the snapshot boundary\n- `snapshot_id` anchors every DecisionPacket to a specific Layer-2 publication\n- the fail-closed principle extends into Layer-3: if `data_ok = false` or `freshness_ok = false`, the packet must not recommend aggressive new entry\n"
+          },
+          {
+            "keyword": "Layer-2",
+            "line_number": 190,
+            "context": "- `snapshot_id` anchors every DecisionPacket to a specific Layer-2 publication\n- the fail-closed principle extends into Layer-3: if `data_ok = false` or `freshness_ok = false`, the packet must not recommend aggressive new entry\n\nLayer-2 does not need to change to support the new Layer-3 design. The snapshot contract is sufficient.\n\n---\n"
+          },
+          {
+            "keyword": "Layer-2",
+            "line_number": 231,
+            "context": "Use the current canonical document set for current-state interpretation:\n\n1. `README_v1.md` \u2014 entry point summary\n2. `SYSTEM_TECHNICAL_HANDBOOK_v1.md` \u2014 Layer-2 engineering reference\n3. `SYSTEM_LIMITATIONS_AND_APPROXIMATIONS_v1.md` \u2014 gaps and open items\n4. `SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md` \u2014 target architecture and build sequence\n5. `DOCUMENTATION_VERIFICATION_MATRIX_v1.md` \u2014 claim classification and document role map"
+          },
+          {
+            "keyword": "Layer-2",
+            "line_number": 236,
+            "context": "4. `SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md` \u2014 target architecture and build sequence\n5. `DOCUMENTATION_VERIFICATION_MATRIX_v1.md` \u2014 claim classification and document role map\n6. `SYSTEM_IMPLEMENTATION_RECORD_v1.md` \u2014 canonical implementation record and realized-state reference\n7. `README_LAYER2.md` \u2014 canonical collaborator guide and living Layer-2 reference"
+          },
+          {
+            "keyword": "Layer-3",
+            "line_number": 68,
+            "context": "- **Version-locked** \u2014 every snapshot carries `engine_version`, `config_version`, and deterministic `snapshot_id`\n- **Point-in-time disciplined** \u2014 alignment is governed by `obs_ts <= clock_date` and `as_of_ts <= clock_ts`\n- **Immutable by default** \u2014 rev-0 observations are not silently overwritten\n- **A snapshot boundary** \u2014 Layer-3 may consume snapshots, not raw `observations`\n\n---\n"
+          },
+          {
+            "keyword": "Layer-3",
+            "line_number": 83,
+            "context": "- a DecisionPacket generator\n- a live execution system\n\nLayer-3 must never query `observations` directly.\n\n---\n"
+          },
+          {
+            "keyword": "Layer-3",
+            "line_number": 151,
+            "context": "\nThe published snapshot also exposes `as_of_ts` and `revision_seq` inside grouped / flat value views.\n\nThe `snapshot_id` field is the **primary anchor** for Layer-3 DecisionPackets. Every DecisionPacket must carry the `snapshot_id` of the governing snapshot used as its truth base.\n\n---\n"
+          },
+          {
+            "keyword": "Layer-3",
+            "line_number": 167,
+            "context": "- `reason_code` shared enum exists\n- a successful real snapshot publish has been observed\n\nThis means **Layer-3 bootstrap may begin**.\n\nThis does **not** mean:\n"
+          },
+          {
+            "keyword": "Layer-3",
+            "line_number": 171,
+            "context": "\nThis does **not** mean:\n\n- Layer-3 exists already\n- revision handling is complete\n- scheduler / alerting / retry / kill switch are in place\n- live execution is allowed"
+          },
+          {
+            "keyword": "Layer-3",
+            "line_number": 178,
+            "context": "\n---\n\n## 9. Layer-3 Design Status (updated 2026-03-22)\n\nThe Layer-3 decision philosophy is now frozen as of 2026-03-22: state-driven / event-driven model, three governed inputs, explicit trigger taxonomy, governed action contract output.\n"
+          }
+        ]
+      },
+      "SYSTEM_TECHNICAL_HANDBOOK_v1.md": {
+        "file": "Documentation/SYSTEM_TECHNICAL_HANDBOOK_v1.md",
+        "status": "present",
+        "inference_used": false,
+        "char_count": 10339,
+        "line_count": 294,
+        "headings": [
+          "# Layer-2 Technical Handbook",
+          "## Mr. Ripley \u2014 Gold-First Decision Engine",
+          "## 1. Purpose and System Role",
+          "## 2. Current Architecture Position",
+          "## 3. Core Invariants",
+          "## 4. Current Layer-2 Stack",
+          "## 5. Layer-2 \u2192 Layer-3 Handoff Gate",
+          "### Required handoff items",
+          "### Current gate result",
+          "## 6. Snapshot Publication Boundary",
+          "### Publication preconditions",
+          "### Publication outputs",
+          "### Observed successful publication example",
+          "## 7. Current Snapshot Contract",
+          "### snapshot_id as Layer-3 anchor",
+          "## 8. Quality Gate Semantics",
+          "### Current observed publication boundary result",
+          "### Relationship to Layer-3 guard fields",
+          "## 9. What Is Still Not Built",
+          "## 10. Verification Status",
+          "### Current verification framing",
+          "### Open verification / hygiene items that still matter",
+          "## 11. Interpretation Rule"
+        ],
+        "keyword_section_count": 22,
+        "keyword_sections": [
+          {
+            "keyword": "Layer-2",
+            "line_number": 1,
+            "context": "# Layer-2 Technical Handbook\n## Mr. Ripley \u2014 Gold-First Decision Engine\n\n> **Entry-point summary:** `README_v1.md`"
+          },
+          {
+            "keyword": "Layer-2",
+            "line_number": 14,
+            "context": "\n## 1. Purpose and System Role\n\nLayer-2 is the truth and observation layer of the Mr. Ripley gold-first decision engine.\n\nIts responsibilities are:\n"
+          },
+          {
+            "keyword": "Layer-2",
+            "line_number": 23,
+            "context": "- store observations in an immutable, point-in-time correct store\n- publish versioned, deterministic snapshots as the stable API consumed by Layer-3\n\nLayer-2 responsibility ends at snapshot publication.\n\nIt does **not** compute:\n"
+          },
+          {
+            "keyword": "Layer-2",
+            "line_number": 41,
+            "context": "\n```\nLayer-1  \u2192  Event Tagger / Narrative Risk Modifiers   (optional, disabled by default)\nLayer-2  \u2192  Ingestion + validation + snapshot store    \u2190 THIS DOCUMENT\nLayer-3  \u2192  State-driven decision engine               (not yet built \u2014 philosophy frozen)\nLayer-4  \u2192  Execution orchestration                    (not yet built / intentionally unwired)\n```"
+          },
+          {
+            "keyword": "Layer-2",
+            "line_number": 48,
+            "context": "\nLayer-3 must consume only published snapshots. It must never query `observations` directly.\n\nLayer-3 note: as of 2026-03-22, the Layer-3 decision philosophy is frozen. The engine will be state-driven / event-driven, consuming Snapshot Truth from Layer-2 alongside Live Market State and Event Risk Stream as additional governed inputs. Neither of those additional inputs may touch Layer-2 storage.\n\n---\n"
+          },
+          {
+            "keyword": "Layer-2",
+            "line_number": 65,
+            "context": "\n---\n\n## 4. Current Layer-2 Stack\n\nCurrent documented Layer-2 stack:\n"
+          },
+          {
+            "keyword": "Layer-2",
+            "line_number": 86,
+            "context": "\n---\n\n## 5. Layer-2 \u2192 Layer-3 Handoff Gate\n\n### Required handoff items\n"
+          },
+          {
+            "keyword": "Layer-2",
+            "line_number": 102,
+            "context": "\n### Current gate result\n\nThe contract-side Layer-2 \u2192 Layer-3 handoff gate is now satisfied.\n\nThis means Layer-3 bootstrap may begin.\n"
+          },
+          {
+            "keyword": "Layer-2",
+            "line_number": 198,
+            "context": "\n### snapshot_id as Layer-3 anchor\n\nThe `snapshot_id` is the primary contract anchor between Layer-2 and Layer-3.\n\nEvery DecisionPacket emitted by Layer-3 must carry:\n- `snapshot_id` \u2014 the governing snapshot used as truth base"
+          },
+          {
+            "keyword": "Layer-2",
+            "line_number": 204,
+            "context": "- `snapshot_id` \u2014 the governing snapshot used as truth base\n- `snapshot_clock_ts` \u2014 the clock timestamp of that snapshot\n\nThis ensures every decision is replayable against a specific, immutable Layer-2 publication.\nEvery DecisionPacket must carry `decision_id`, `asset_id`, `engine_version`, `config_version`, `decision_ts`, and `snapshot_id` as identity fields. State timestamps must include `snapshot_clock_ts`, `live_state_ts`, and `event_state_ts`. See the Layer-3 section of `SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md` for the full field reference.\n\n---"
+          },
+          {
+            "keyword": "Layer-2",
+            "line_number": 211,
+            "context": "\n## 8. Quality Gate Semantics\n\nThe quality gate is a Layer-2 truth-discipline gate.\n\nIt exists to answer:\n"
+          },
+          {
+            "keyword": "Layer-2",
+            "line_number": 231,
+            "context": "\n### Relationship to Layer-3 guard fields\n\nThe Layer-2 quality gate result maps directly to Layer-3 DecisionPacket guard fields:\n\n| Layer-2 gate result | Layer-3 guard field | Implication |\n|---|---|---|"
+          },
+          {
+            "keyword": "Layer-2",
+            "line_number": 267,
+            "context": "The current v1 document set now consistently reflects:\n\n- contract-side handoff gate satisfied\n- successful non-forced Layer-2 snapshot publication observed\n- Layer-3 decision philosophy frozen\n- Layer-3 not yet built\n- live execution not ready"
+          },
+          {
+            "keyword": "Layer-3",
+            "line_number": 33,
+            "context": "- supervisor decisions\n- execution actions\n\nAny downstream computation is Layer-3 work.\n\n---\n"
+          },
+          {
+            "keyword": "Layer-3",
+            "line_number": 60,
+            "context": "| 2 | Fail-closed publication | Tier-1 blocking failures prevent snapshot publication |\n| 3 | Version-locked snapshots | `engine_version`, `config_version`, and `snapshot_id` are part of the boundary |\n| 4 | Point-in-time discipline | Alignment respects governed `clock_date` / `clock_ts` boundaries |\n| 5 | Snapshot-only downstream reads | Layer-3 consumes snapshots, never raw `observations` |\n| 6 | snapshot_id as DecisionPacket anchor | Every Layer-3 DecisionPacket must carry the `snapshot_id` of its governing snapshot |\n\n---"
+          },
+          {
+            "keyword": "Layer-3",
+            "line_number": 97,
+            "context": "| `guards` structured object in snapshot JSON | \u2705 Done |\n| `reason_code` enum defined in shared constants | \u2705 Done |\n| Current v1 docs aligned to current contract behavior | \u2705 Done |\n| Layer-3 decision philosophy frozen | \u2705 Done |\n| Layer-3 DecisionPacket schema v0 defined | \u2705 Done |\n\n### Current gate result"
+          },
+          {
+            "keyword": "Layer-3",
+            "line_number": 183,
+            "context": "|---|---|---|\n| `data_ok` | bool | True if gate PASS, not forced, no missing Tier-1 |\n| `freshness_ok` | bool | True if all Tier-1 within staleness threshold |\n| `idempotent_ok` | bool | True if snapshot_id not yet acted on (Layer-3 responsibility) |\n| `revision_risk_present` | bool | True if any payload value carries `revision_risk=True` |\n| `forced` | bool | True if published with `--force` |\n| `missing_tier1` | bool | True if any required Tier-1 series absent |"
+          },
+          {
+            "keyword": "Layer-3",
+            "line_number": 190,
+            "context": "| `snapshot_ok` | bool | Quality gate verdict |\n| `reason_code` | str | ReasonCode enum value \u2014 no free text permitted |\n\nSnapshot JSON is now schema-validated on write via `validate_snapshot_contract()` in `layer2/constants.py`. Every snapshot is required to pass this validation before being considered Layer-3-safe.\n\n`reason_code` is drawn from `ReasonCode` Group 0 (data-layer codes): `DATA_OK`, `DATA_STALE`, `DATA_MISSING`, `DATA_FORCED`. Free-text reason codes at the snapshot boundary are rejected.\n"
+          },
+          {
+            "keyword": "Layer-3",
+            "line_number": 194,
+            "context": "\n`reason_code` is drawn from `ReasonCode` Group 0 (data-layer codes): `DATA_OK`, `DATA_STALE`, `DATA_MISSING`, `DATA_FORCED`. Free-text reason codes at the snapshot boundary are rejected.\n\nLayer-3 is not built. Revision writer remains not implemented.\n\n### snapshot_id as Layer-3 anchor\n"
+          },
+          {
+            "keyword": "Layer-3",
+            "line_number": 237,
+            "context": "|---|---|---|\n| Tier-1 all pass | `data_ok = true`, `freshness_ok = true` | Packet may be actionable if other guards pass |\n| Any Tier-1 fail | `data_ok = false` or `freshness_ok = false` | Packet must not recommend aggressive new entry |\n| VERDICT: FAIL (no snapshot published) | No valid snapshot \u2192 Layer-3 cannot form a packet | `NO_TRADE` is the only valid output |\n\n---\n"
+          },
+          {
+            "keyword": "Layer-3",
+            "line_number": 249,
+            "context": "- complete `revision_risk` tracking\n- scheduler / orchestrator\n- alerting / retry / kill switch\n- Layer-3 Feature Builder\n- Layer-3 Index Suite\n- Layer-3 Regime Gate\n- Layer-3 Supervisor"
+          },
+          {
+            "keyword": "Layer-3",
+            "line_number": 253,
+            "context": "- Layer-3 Index Suite\n- Layer-3 Regime Gate\n- Layer-3 Supervisor\n- Layer-3 DecisionPacket generation\n- Layer-3 Live Market State adapters\n- Layer-3 Event Risk Stream integration\n- live execution wiring"
+          }
+        ]
+      },
+      "SYSTEM_LIMITATIONS_AND_APPROXIMATIONS_v1.md": {
+        "file": "Documentation/SYSTEM_LIMITATIONS_AND_APPROXIMATIONS_v1.md",
+        "status": "present",
+        "inference_used": false,
+        "char_count": 7255,
+        "line_count": 152,
+        "headings": [
+          "# Known Gaps and Approximations",
+          "## Mr. Ripley \u2014 Layer-2 Truth Layer",
+          "## 1. Why This Document Exists",
+          "## 2. What Is No Longer a Bootstrap Blocker",
+          "## 3. Current Real Limitations",
+          "### 3.1 Revision / vintage limitations",
+          "### 3.2 Operational limitations",
+          "### 3.3 Layer boundary limitations",
+          "### 3.4 Data limitations",
+          "### 3.5 Repo / operator ergonomics",
+          "## 4. Accepted Approximations",
+          "## 5. Layer-3 Build Dependencies Still Open",
+          "## 6. What the Current Successful Publish Does Not Prove",
+          "## 7. Summary"
+        ],
+        "keyword_section_count": 18,
+        "keyword_sections": [
+          {
+            "keyword": "SP500",
+            "line_number": 83,
+            "context": "\n| Item | Why it matters | Current status |\n|---|---|---|\n| SP500 history gap | FRED SP500 starts 2016. Intraday/fast-market state for Layer-3 may require SPY via Yahoo instead | \u2b1c High priority |\n\n### 3.5 Repo / operator ergonomics\n"
+          },
+          {
+            "keyword": "SP500",
+            "line_number": 114,
+            "context": "| Item | Why Layer-3 needs it | Current status |\n|---|---|---|\n| Index Suite values in snapshot | Layer-3 UnknownMode evaluation requires Stress, Drift, CorrBreak index values from Layer-2 | \u2b1c Future Layer-2 extension \u2014 after Index Suite is built |\n| SP500 history gap | FRED SP500 starts 2016 only. Intraday / fast-market state may require SPY via Yahoo | \u2b1c High priority for Layer-3 live market inputs |\n\nLayer-3 implementation risks (live state leakage, event noise, trigger conflation, calibration) are tracked in `SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md` section 8, not here. This document tracks Layer-2 gaps only.\n"
+          },
+          {
+            "keyword": "Layer-2",
+            "line_number": 2,
+            "context": "# Known Gaps and Approximations\n## Mr. Ripley \u2014 Layer-2 Truth Layer\n\n> **Last updated:** 2026-05-01\n> **Primary sources:** `README_v1.md`, `SYSTEM_TECHNICAL_HANDBOOK_v1.md`"
+          },
+          {
+            "keyword": "Layer-2",
+            "line_number": 12,
+            "context": "\n## 1. Why This Document Exists\n\nLayer-2 is now operational as a truth-layer foundation and has successfully executed a non-forced snapshot publication.\n\nIt is still **not** a fully hardened or complete system.\n"
+          },
+          {
+            "keyword": "Layer-2",
+            "line_number": 25,
+            "context": "- accepted approximations\n- future work\n- operational gaps\n- remaining Layer-2 hardening items\n- items that still block live execution readiness\n\n---"
+          },
+          {
+            "keyword": "Layer-2",
+            "line_number": 41,
+            "context": "| `layer1_events: []` stub | \u2705 Implemented | Forward-compatible snapshot slot |\n| `engine_version` in snapshot output | \u2705 Implemented | Present in current published snapshot shape |\n| `config_version` in snapshot output | \u2705 Implemented | Present in current published snapshot shape |\n| Operational Layer-2 snapshot publication path | \u2705 Implemented | Successful non-forced publish observed |\n| Layer-3 decision philosophy frozen | \u2705 Implemented | State-driven / event-driven model. Three governed inputs: Snapshot Truth, Live Market State, Event Risk Stream. |\n| Layer-3 DecisionPacket schema v0 defined | \u2705 Implemented | Governed action contract with identity, state, action, guard, reason, and invalidation fields. |\n"
+          },
+          {
+            "keyword": "Layer-2",
+            "line_number": 109,
+            "context": "\n## 5. Layer-3 Build Dependencies Still Open\n\nThese are Layer-2-owned items that Layer-3 will eventually need, but that do not block bootstrap.\n\n| Item | Why Layer-3 needs it | Current status |\n|---|---|---|"
+          },
+          {
+            "keyword": "Layer-2",
+            "line_number": 122,
+            "context": "\n## 6. What the Current Successful Publish Does Not Prove\n\nA successful non-forced Layer-2 publish proves:\n\n- ingestion is currently functioning\n- quality gate is functioning"
+          },
+          {
+            "keyword": "Layer-2",
+            "line_number": 127,
+            "context": "- ingestion is currently functioning\n- quality gate is functioning\n- snapshot publication is functioning\n- the Layer-2 contract boundary is currently operational\n\nIt does **not** prove:\n"
+          },
+          {
+            "keyword": "Layer-2",
+            "line_number": 144,
+            "context": "\nCurrent state:\n\n- Layer-2 operational snapshot boundary: \u2705\n- Layer-3 bootstrap contract blockers: resolved\n- Layer-3 decision philosophy: frozen \u2705\n- Layer-3 DecisionPacket schema v0: defined \u2705"
+          },
+          {
+            "keyword": "Layer-2",
+            "line_number": 152,
+            "context": "- Live Market State adapters: not built \u2b1c\n- Event Risk Stream: not built \u2b1c\n- Live readiness: not ready \u2b1c\n- Remaining operational work: real, downstream of working Layer-2 publish boundary"
+          },
+          {
+            "keyword": "Layer-3",
+            "line_number": 32,
+            "context": "\n## 2. What Is No Longer a Bootstrap Blocker\n\nThe following were previously contract-side blockers for Layer-3 bootstrap and are now resolved:\n\n| Item | Current status | Notes |\n|---|---|---|"
+          },
+          {
+            "keyword": "Layer-3",
+            "line_number": 45,
+            "context": "| Layer-3 decision philosophy frozen | \u2705 Implemented | State-driven / event-driven model. Three governed inputs: Snapshot Truth, Live Market State, Event Risk Stream. |\n| Layer-3 DecisionPacket schema v0 defined | \u2705 Implemented | Governed action contract with identity, state, action, guard, reason, and invalidation fields. |\n\nThese items should no longer be described as open Layer-3 bootstrap blockers.\n\n---\n"
+          },
+          {
+            "keyword": "Layer-3",
+            "line_number": 68,
+            "context": "| No capped retry logic | Transient source failures remain manual recovery events | \u2b1c Open |\n| No kill switch | Required before any live execution path | \u2b1c Open |\n\nNote: the state-driven / event-driven Layer-3 model makes orchestration more important, not less. A multi-speed state model with Snapshot Truth, Live Market State, and Event Risk Stream inputs requires explicit scheduler discipline for each refresh cadence. These gaps should be prioritized before Layer-3 goes beyond bootstrap.\n\n### 3.3 Layer boundary limitations\n"
+          },
+          {
+            "keyword": "Layer-3",
+            "line_number": 74,
+            "context": "\n| Item | Why it matters | Current status |\n|---|---|---|\n| Layer-3 components not built | Feature / regime / supervisor / DecisionPacket stack does not yet exist | \u2b1c Open |\n| Live Market State adapters not built | Fast market state layer required for Layer-3 trigger detection | \u2b1c Open |\n| Event Risk Stream not built | Structured event risk input required for Layer-3 uncertainty escalation | \u2b1c Open |\n| Live execution not wired | System ends at validated snapshot publication | \u2b1c Open |"
+          },
+          {
+            "keyword": "Layer-3",
+            "line_number": 131,
+            "context": "\nIt does **not** prove:\n\n- Layer-3 exists\n- revision handling is complete\n- backtest integrity is fully hardened for all revision-sensitive cases\n- operational readiness is complete"
+          },
+          {
+            "keyword": "Layer-3",
+            "line_number": 148,
+            "context": "- Layer-3 bootstrap contract blockers: resolved\n- Layer-3 decision philosophy: frozen \u2705\n- Layer-3 DecisionPacket schema v0: defined \u2705\n- Layer-3 implementation: not built \u2b1c\n- Live Market State adapters: not built \u2b1c\n- Event Risk Stream: not built \u2b1c\n- Live readiness: not ready \u2b1c"
+          },
+          {
+            "keyword": "live execution",
+            "line_number": 135,
+            "context": "- revision handling is complete\n- backtest integrity is fully hardened for all revision-sensitive cases\n- operational readiness is complete\n- live execution is ready\n- Live Market State or Event Risk Stream adapters are built or validated\n\n---"
+          }
+        ]
+      },
+      "SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md": {
+        "file": "Documentation/SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md",
+        "status": "present",
+        "inference_used": false,
+        "char_count": 15422,
+        "line_count": 403,
+        "headings": [
+          "# Gold Decision Engine \u2014 Architecture v4.1",
+          "## 1. Final conclusion",
+          "## 2. Core philosophy",
+          "## 3. Layer framing",
+          "### Core engine",
+          "### Optional add-on",
+          "## 4. Layer 2 \u2014 Truth Layer",
+          "### Purpose",
+          "### Mandatory discipline",
+          "### Current Layer-2 status",
+          "## 5. Layer-2 \u2192 Layer-3 Contract Handoff Gate",
+          "### Required handoff items",
+          "### Current handoff status",
+          "### Important distinction",
+          "## 6. Current build sequence",
+          "### Phase A \u2014 Layer-2 closure for bootstrap",
+          "### Phase B \u2014 Layer-3 bootstrap (intentionally simple)",
+          "### Phase C \u2014 Layer-3 structured buildout",
+          "### Phase D \u2014 Live execution gate",
+          "## 7. Layer 3 \u2014 Decision Layer",
+          "### Design model (updated 2026-03-22)",
+          "### Three governed inputs",
+          "#### A. Snapshot Truth (from Layer-2)",
+          "#### B. Live Market State",
+          "#### C. Event Risk State",
+          "### State taxonomy",
+          "### Trigger taxonomy",
+          "### Guard taxonomy",
+          "### NO_TRADE semantics",
+          "### DecisionPacket \u2014 governed action contract",
+          "### Current status",
+          "### Bootstrap rule",
+          "## 8. Live Execution Boundary",
+          "## 9. Layer-3 Implementation Risks",
+          "## 10. What Has Not Changed",
+          "## 11. Interpretation Rule"
+        ],
+        "keyword_section_count": 22,
+        "keyword_sections": [
+          {
+            "keyword": "Layer-2",
+            "line_number": 4,
+            "context": "# Gold Decision Engine \u2014 Architecture v4.1\n\n> **Change from v4:** Layer-3 decision philosophy updated to state-driven / event-driven model.\n> Layer-2 truth-layer contract and live-execution gate status are unchanged.\n>\n> `README_LAYER2.md` is part of the canonical set \u2014 collaborator guide and living build reference.\n> Canonical documents are authoritative by role, not interchangeable by convenience."
+          },
+          {
+            "keyword": "Layer-2",
+            "line_number": 41,
+            "context": "\nThis means:\n\n- Layer-2 closes first as a stable snapshot boundary\n- Layer-3 starts as a deliberately simple bootstrap\n- Layer-2 hardening continues in parallel after Layer-3 starts\n- live execution remains a separate later gate"
+          },
+          {
+            "keyword": "Layer-2",
+            "line_number": 81,
+            "context": "- version-locked snapshot boundary\n- point-in-time replayability\n\n### Current Layer-2 status\n\nCurrent Layer-2 components are operational:\n"
+          },
+          {
+            "keyword": "Layer-2",
+            "line_number": 90,
+            "context": "- alignment\n- quality gate\n- snapshot publisher\n- `index_suite.py` \u2014 Layer-2 internal pre-publication computation tool (provisional M1 indices from point-in-time aligned observations; distinct from the planned Layer-3 Index Suite which will consume published snapshots)\n\nA successful **non-forced snapshot publication** has been executed with a valid `snapshot_id`, DB write, and `latest_snapshot.json` handoff file.\n"
+          },
+          {
+            "keyword": "Layer-2",
+            "line_number": 94,
+            "context": "\nA successful **non-forced snapshot publication** has been executed with a valid `snapshot_id`, DB write, and `latest_snapshot.json` handoff file.\n\nThis means the contract-side Layer-2 boundary is now operational.\n\n---\n"
+          },
+          {
+            "keyword": "Layer-2",
+            "line_number": 98,
+            "context": "\n---\n\n## 5. Layer-2 \u2192 Layer-3 Contract Handoff Gate\n\n### Required handoff items\n"
+          },
+          {
+            "keyword": "Layer-2",
+            "line_number": 129,
+            "context": "It does **not** mean:\n\n- any downstream computation layer has been built\n- Layer-2 is fully hardened\n- revision handling is complete\n- operational readiness is complete\n- live execution is allowed"
+          },
+          {
+            "keyword": "Layer-2",
+            "line_number": 138,
+            "context": "\n## 6. Current build sequence\n\n### Phase A \u2014 Layer-2 closure for bootstrap\n\nThis phase is now complete **at the contract boundary level**.\n"
+          },
+          {
+            "keyword": "Layer-2",
+            "line_number": 195,
+            "context": "\n### Three governed inputs\n\n#### A. Snapshot Truth (from Layer-2)\n- authoritative, versioned, point-in-time, replayable base state\n- slow-changing relative to intraday conditions\n- Layer-2-owned \u2014 Layer-3 may not rewrite it"
+          },
+          {
+            "keyword": "Layer-2",
+            "line_number": 216,
+            "context": "\nThe engine must maintain at least three speed classes of governed state:\n\n**Slow state** (refreshes on Layer-2 snapshot publication boundary):\n- macro regime state\n- structural trend state\n- inflation / real-yield context"
+          },
+          {
+            "keyword": "Layer-2",
+            "line_number": 277,
+            "context": "- `asset_id` \u2014 canonical asset identifier\n- `engine_version`, `config_version` \u2014 for audit and replay\n- `decision_ts` \u2014 timestamp of emission\n- `snapshot_id` \u2014 governing Layer-2 snapshot (truth anchor)\n\n**State timestamp fields** (required):\n- `snapshot_clock_ts` \u2014 clock timestamp of the governing snapshot"
+          },
+          {
+            "keyword": "Layer-2",
+            "line_number": 352,
+            "context": "\nLive execution is a separate later gate.\n\nCurrent Layer-2 success must not be misread as live readiness.\n\nLive execution remains blocked until:\n"
+          },
+          {
+            "keyword": "Layer-2",
+            "line_number": 366,
+            "context": "\n## 9. Layer-3 Implementation Risks\n\nThe state-driven / event-driven model introduces implementation risks that must be tracked here, not in the limitations document. These are design-level risks, not Layer-2 data gaps.\n\n| Risk | Description | Mitigation |\n|---|---|---|"
+          },
+          {
+            "keyword": "Layer-2",
+            "line_number": 384,
+            "context": "\n| Element | Status |\n|---|---|\n| Layer-2 truth-layer contract | Unchanged \u2014 operational |\n| Snapshot-only reads for Layer-3 | Unchanged \u2014 mandatory |\n| Fail-closed gate (Tier-1 blocking) | Unchanged \u2014 core constitution |\n| Version-locking (engine + config + snapshot_id) | Unchanged \u2014 required for replay |"
+          },
+          {
+            "keyword": "Layer-2",
+            "line_number": 399,
+            "context": "\nThis architecture document defines the sequencing boundary and target design.\n\nFor current Layer-2 status, interpret together with:\n\n- `README_v1.md`\n- `SYSTEM_TECHNICAL_HANDBOOK_v1.md`"
+          },
+          {
+            "keyword": "Layer-3",
+            "line_number": 45,
+            "context": "- Layer-3 starts as a deliberately simple bootstrap\n- Layer-2 hardening continues in parallel after Layer-3 starts\n- live execution remains a separate later gate\n- **Layer-3 is state-driven / event-driven, not timeframe-driven** \u2190 updated\n\n---\n"
+          },
+          {
+            "keyword": "Layer-3",
+            "line_number": 124,
+            "context": "\nPassing the handoff gate means:\n\n- Layer-3 bootstrap may begin\n\nIt does **not** mean:\n"
+          },
+          {
+            "keyword": "Layer-3",
+            "line_number": 142,
+            "context": "\nThis phase is now complete **at the contract boundary level**.\n\n### Phase B \u2014 Layer-3 bootstrap (intentionally simple)\n\nLayer-3 is **state-driven / event-driven**. Build in this order:\n"
+          },
+          {
+            "keyword": "Layer-3",
+            "line_number": 159,
+            "context": "- inflation-expectation spread (T10YIE vs T5YIFR)\n- stress placeholder (MOVE level classification)\n\n### Phase C \u2014 Layer-3 structured buildout\n\nOnly after bootstrap works:\n"
+          },
+          {
+            "keyword": "Layer-3",
+            "line_number": 189,
+            "context": "\n### Design model (updated 2026-03-22)\n\nLayer-3 is a **state-driven / event-driven decision system**.\n\nThe canonical principle: **the system decides because state changed enough to justify governed action \u2014 not because a fixed amount of time elapsed.**\n"
+          },
+          {
+            "keyword": "Layer-3",
+            "line_number": 270,
+            "context": "\n### DecisionPacket \u2014 governed action contract\n\nEvery Layer-3 output must be a deterministic, machine-readable DecisionPacket. No free text at the execution boundary.\n\n**Identity fields** (required):\n- `decision_id` \u2014 unique identifier for the packet"
+          },
+          {
+            "keyword": "Layer-3",
+            "line_number": 330,
+            "context": "\n### Current status\n\nLayer-3 is **not yet built**.\n\nThe following remain future work:\n"
+          }
+        ]
+      },
+      "DOCUMENTATION_VERIFICATION_MATRIX_v1.md": {
+        "file": "Documentation/DOCUMENTATION_VERIFICATION_MATRIX_v1.md",
+        "status": "present",
+        "inference_used": false,
+        "char_count": 10604,
+        "line_count": 143,
+        "headings": [
+          "# Documentation Verification Matrix v1",
+          "## 1. Purpose",
+          "## 2. Classification Rules",
+          "## 3. Current Layer-2 Contract Items",
+          "## 4. Current Known Open Items",
+          "## 5. Future / Target Architecture Items",
+          "## 6. Publication Event Classification",
+          "## 7. Layer-3 Philosophy and Schema Classification (added 2026-03-22)",
+          "## 8. Document Role Classification",
+          "## 9. Interpretation Rule"
+        ],
+        "keyword_section_count": 15,
+        "keyword_sections": [
+          {
+            "keyword": "SP500",
+            "line_number": 73,
+            "context": "| Repo hygiene for runtime artifacts | Documented current-state claim | Current docs treat this as an open verification / hygiene concern |\n| Adapter usability polish (e.g. gold JSON path handling) | Documented current-state claim | Current docs treat this as non-blocking operational polish |\n| Layer-3 implementation | Verified in current documentation set | Current docs consistently say Layer-3 is not yet built |\n| SP500 history gap | Documented current-state claim | FRED SP500 from 2016 only \u2014 SPY migration planned, relevant for future Layer-3 live market inputs |\n| Live Market State adapters | Verified in current documentation set | Not built \u2014 required for Layer-3 fast trigger detection |\n| Event Risk Stream integration | Verified in current documentation set | Not built \u2014 required for Layer-3 uncertainty escalation and action restriction |\n"
+          },
+          {
+            "keyword": "Layer-2",
+            "line_number": 31,
+            "context": "|---|---|\n| **Verified in current documentation set** | Current v1 documents make a direct, stable claim and no material conflict remains within the current document set |\n| **Documented current-state claim** | Current docs describe the item as current-state, but the claim still depends on project-owned evidence rather than independent certification |\n| **Planned / target architecture** | Future or downstream design; not current Layer-2 implementation |\n| **Cannot verify from current materials** | Current docs do not support a stronger statement without invention |\n\nImportant distinction:"
+          },
+          {
+            "keyword": "Layer-2",
+            "line_number": 40,
+            "context": "\n---\n\n## 3. Current Layer-2 Contract Items\n\n| Item | Classification | Notes |\n|---|---|---|"
+          },
+          {
+            "keyword": "Layer-2",
+            "line_number": 56,
+            "context": "| Deterministic snapshot publication path | Documented current-state claim | Current docs describe this as operational, based on project-owned evidence |\n| Successful non-forced snapshot publication | Verified in current documentation set | Current docs consistently describe one successful non-forced publication event |\n| `latest_snapshot.json` handoff file generated successfully | Verified in current documentation set | Current docs consistently describe this as observed fact |\n| Layer-2 \u2192 Layer-3 snapshot handoff gate satisfied | Verified in current documentation set | Current docs consistently describe contract-side gate as satisfied |\n\n---\n"
+          },
+          {
+            "keyword": "Layer-2",
+            "line_number": 85,
+            "context": "|---|---|---|\n| Layer-3 decision model | Planned / target architecture | State-driven / event-driven model. Three inputs: Snapshot Truth, Live Market State, Event Risk Stream. Frozen 2026-03-22. Full design in `SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md` section 7. |\n| DecisionPacket v0 schema | Planned / target architecture | Governed action contract. Schema frozen 2026-03-22. Full field reference in `SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md` section 7. |\n| Feature Builder | Planned / target architecture | Layer-3 component, not current Layer-2 implementation |\n| `layer2/index_suite.py` (Layer-2 provisional tool) | Verified in canonical current-state documentation set | Layer-2 internal pre-publication computation tool. Reads observations with point-in-time alignment. Distinct from the planned Layer-3 Index Suite. |\n| Index Suite (Layer-3) | Planned / target architecture | Layer-3 component \u2014 will consume published snapshots, not raw observations |\n| Regime Gate | Planned / target architecture | Layer-3 component |"
+          },
+          {
+            "keyword": "Layer-2",
+            "line_number": 101,
+            "context": "\nThe current v1 documentation set supports the following statement:\n\n> A successful non-forced Layer-2 snapshot publication has been executed, producing both a DB snapshot record and `latest_snapshot.json`, with Tier-1 passing 15/15 at the publish boundary.\n\nThis is now treated as **Verified in current documentation set** because the current v1 documents have been normalized to the same status statement.\n"
+          },
+          {
+            "keyword": "Layer-2",
+            "line_number": 130,
+            "context": "| Document | Role | Contains |\n|---|---|---|\n| `README_v1.md` | Entry point summary | Current status, component list, run sequence, short-form known risks |\n| `SYSTEM_TECHNICAL_HANDBOOK_v1.md` | Current engineering reference (Layer-2) | Layer-2 stack, snapshot contract, quality gate semantics, handoff gate |\n| `SYSTEM_LIMITATIONS_AND_APPROXIMATIONS_v1.md` | Current Layer-2 gaps and open items | Known limitations, accepted approximations, Layer-2-owned open items only |\n| `SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md` | Target architecture + build sequence + design risks | Layer framing, build phases, Layer-3 model, implementation risks |\n| `SYSTEM_IMPLEMENTATION_RECORD_v1.md` | Canonical implementation record + realized-state reference | Build history, realized state, audit trail, schema diffs, philosophy change record |"
+          },
+          {
+            "keyword": "Layer-2",
+            "line_number": 135,
+            "context": "| `SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md` | Target architecture + build sequence + design risks | Layer framing, build phases, Layer-3 model, implementation risks |\n| `SYSTEM_IMPLEMENTATION_RECORD_v1.md` | Canonical implementation record + realized-state reference | Build history, realized state, audit trail, schema diffs, philosophy change record |\n| `DOCUMENTATION_VERIFICATION_MATRIX_v1.md` | Classification layer | What is verified, what is claimed, what is planned, document role map |\n| `README_LAYER2.md` | Collaborator guide + living build reference | Layer-2 build detail, adapter usage, DB state, run sequence, resolved/open items \u2014 updated alongside the v1 set |\n\n---\n"
+          },
+          {
+            "keyword": "Layer-3",
+            "line_number": 89,
+            "context": "| `layer2/index_suite.py` (Layer-2 provisional tool) | Verified in canonical current-state documentation set | Layer-2 internal pre-publication computation tool. Reads observations with point-in-time alignment. Distinct from the planned Layer-3 Index Suite. |\n| Index Suite (Layer-3) | Planned / target architecture | Layer-3 component \u2014 will consume published snapshots, not raw observations |\n| Regime Gate | Planned / target architecture | Layer-3 component |\n| Supervisor Engine | Planned / target architecture | Layer-3 component |\n| DecisionPacket generation | Planned / target architecture | Layer-3 component \u2014 v0 schema defined, implementation not yet started |\n| Live Market State adapters | Planned / target architecture | Layer-3 component \u2014 fast-changing input layer |\n| Event Risk Stream | Planned / target architecture | Layer-3 component \u2014 penalty / override / uncertainty escalation only |"
+          },
+          {
+            "keyword": "Layer-3",
+            "line_number": 109,
+            "context": "\n---\n\n## 7. Layer-3 Philosophy and Schema Classification (added 2026-03-22)\n\nThe current v1 documentation set supports the following statements:\n"
+          },
+          {
+            "keyword": "Layer-3",
+            "line_number": 113,
+            "context": "\nThe current v1 documentation set supports the following statements:\n\n> The Layer-3 decision philosophy has been frozen: the engine is state-driven / event-driven, deciding because state changed \u2014 not because time passed.\n\n> The Layer-3 DecisionPacket v0 schema has been defined: a governed action contract carrying snapshot_id, guard fields, reason codes, allowed actions, preferred action, confidence, uncertainty, cooldown, and invalidation semantics.\n"
+          },
+          {
+            "keyword": "Layer-3",
+            "line_number": 117,
+            "context": "\n> The Layer-3 DecisionPacket v0 schema has been defined: a governed action contract carrying snapshot_id, guard fields, reason codes, allowed actions, preferred action, confidence, uncertainty, cooldown, and invalidation semantics.\n\nBoth are classified as **Planned / target architecture** \u2014 the philosophy and schema are defined and frozen, but Layer-3 is not yet implemented.\n\nThe previous implicit timeframe-centered DecisionPacket framing (`action: \"BUY | SELL | NOTHING\"`, `timeframe: \"5m\"`) is superseded. Any document still containing the old framing should be treated as historical.\n"
+          },
+          {
+            "keyword": "Layer-3",
+            "line_number": 143,
+            "context": "\nIf any document contradicts the current canonical set, the conflict must be resolved \u2014 not silently preferred away. All seven documents must remain consistent with each other.\n\nFor Layer-3 design decisions and DecisionPacket field reference, `SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md` section 7 is the canonical source."
+          },
+          {
+            "keyword": "live execution",
+            "line_number": 93,
+            "context": "| DecisionPacket generation | Planned / target architecture | Layer-3 component \u2014 v0 schema defined, implementation not yet started |\n| Live Market State adapters | Planned / target architecture | Layer-3 component \u2014 fast-changing input layer |\n| Event Risk Stream | Planned / target architecture | Layer-3 component \u2014 penalty / override / uncertainty escalation only |\n| Live execution wiring | Planned / target architecture | Later gate only |\n\n---\n"
+          },
+          {
+            "keyword": "not yet built",
+            "line_number": 67,
+            "context": "| `revision_risk` flag in snapshot JSON | Verified in current documentation set | `revision_risk` bool added to registry, alignment payload, and snapshot JSON. Monthly macro series (CPILFESL, PCEPI, FEDFUNDS, PCU2122212122210) are `true`; daily market/yield series are `false`. Flag is interpretive metadata \u2014 does not block publication. Implemented 2026-05-01. |\n| Snapshot contract schema-validated | Documented current-state claim | `validate_snapshot_contract()` in `layer2/constants.py` enforces all required top-level fields, guards completeness, per-series fields, and series_id equivalence between `values` and `values_by_group`. Implemented 2026-05-01. |\n| `guards` object fully structured and enum-backed | Documented current-state claim | Guards now include `freshness_ok`, `revision_risk_present`, `forced`, `missing_tier1`, `snapshot_ok`, and `reason_code` (enum-validated). `build_guards()` and `validate_guards()` enforce this structure. Implemented 2026-05-01. |\n| Revision writer | Documented current-state claim | Current docs consistently say it is not yet built (`revision_seq=1` write path absent) |\n| Scheduler / orchestrator | Documented current-state claim | Current docs consistently say it is not yet built |\n| Alerting / retry / kill switch | Documented current-state claim | Current docs consistently say these are not yet built |\n| Repo hygiene for runtime artifacts | Documented current-state claim | Current docs treat this as an open verification / hygiene concern |"
+          }
+        ]
+      },
+      "SYSTEM_IMPLEMENTATION_RECORD_v1.md": {
+        "file": "Documentation/SYSTEM_IMPLEMENTATION_RECORD_v1.md",
+        "status": "present",
+        "inference_used": false,
+        "char_count": 10658,
+        "line_count": 169,
+        "headings": [
+          "# SYSTEM_IMPLEMENTATION_RECORD_v1",
+          "## Mr. Ripley \u2014 Build Record and Implementation Notes",
+          "## 1. Document Position in the Documentation Set",
+          "## 2. Current-State Addendum (2026-05-01)",
+          "### 2.0-B Snapshot contract completeness \u2014 Phase 2 (2026-05-01)",
+          "### 2.0-A revision_risk contract completion \u2014 Phase 1 (2026-05-01)",
+          "## 3. Current-State Addendum (2026-04-18)",
+          "### 2.0 Layer-2 refactor (2026-04-18)",
+          "### 2.1 Layer-2 status (unchanged from 2026-03-15 / 2026-03-16)",
+          "### 2.2 Layer-3 philosophy frozen (new as of 2026-03-22)",
+          "### 2.3 DecisionPacket schema v0 defined (new as of 2026-03-22)",
+          "## 3. Interpretation Rule",
+          "## 4. Preserved Historical Body"
+        ],
+        "keyword_section_count": 14,
+        "keyword_sections": [
+          {
+            "keyword": "Layer-2",
+            "line_number": 12,
+            "context": "> **Current architecture / sequencing doc:** `SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md`\n> **Last updated:** 2026-03-22\n\nThis document preserves long-form Layer-2 build history, implementation detail, realized-state evidence, and audit context.\n\nIt is part of the canonical current-state set, but its authority is role-specific.\nUse this document for implementation-state and realized-build questions, not as a blanket override for architecture, limitations, or collaborator workflow."
+          },
+          {
+            "keyword": "Layer-2",
+            "line_number": 40,
+            "context": "\n### 2.0-B Snapshot contract completeness \u2014 Phase 2 (2026-05-01)\n\nImplemented formal schema validation and fully structured guards for the Layer-2 snapshot JSON contract:\n\n- `layer2/constants.py`: Added `SNAPSHOT_REQUIRED_FIELDS`, `VALUE_REQUIRED_FIELDS`, updated `GUARDS_SCHEMA` to include all required guard fields. Added `validate_guards()` and `validate_snapshot_contract()` functions. Updated `build_guards()` to accept `freshness_ok` and `revision_risk_present` params and return eight Layer-2 fields: `data_ok`, `freshness_ok`, `idempotent_ok`, `revision_risk_present`, `forced`, `missing_tier1`, `snapshot_ok`, `reason_code` (enum-backed, no free text). `reason_code` is determined from `ReasonCode` Group 0 data-layer codes only.\n- `layer2/adapters/snapshot_publisher.py`: Updated `write_snapshot_json()` to compute `freshness_ok` from `quality[\"summary\"][\"tier1_fail\"]` and `revision_risk_present` from the aligned payload, and pass both to `build_guards()`."
+          },
+          {
+            "keyword": "Layer-2",
+            "line_number": 56,
+            "context": "\n### 2.0-A revision_risk contract completion \u2014 Phase 1 (2026-05-01)\n\nImplemented the minimal contract-complete `revision_risk` patch for Layer-2 snapshot JSON handoff:\n\n- `series_registry.json`: `revision_risk` added as a required `bool` field on all 23 series. Monthly macro series (`CPILFESL`, `PCEPI`, `FEDFUNDS`, `PCU2122212122210`) set `true`; all daily market/yield/price series and discontinued series set `false`.\n- `layer2/config/registry.py`: `revision_risk: bool` added to `_REQUIRED_FIELDS` (validation enforced at load time). `revision_risk(series_id)` lookup method added."
+          },
+          {
+            "keyword": "Layer-2",
+            "line_number": 79,
+            "context": "\nThis addendum supersedes earlier addenda where they conflict.\n\n### 2.0 Layer-2 refactor (2026-04-18)\n\n- All four ingestion adapters (`gold_adapter.py`, `move_adapter.py`, `fred_loader.py`, `gld_holdings_adapter.py`) migrated from `layer2.adapters.v0.db` / `layer2.adapters.v0.clock` to canonical `layer2.db` / `layer2.clock`\n- `layer2/adapters/v0/` directory removed (zero external dependencies confirmed)"
+          },
+          {
+            "keyword": "Layer-2",
+            "line_number": 83,
+            "context": "\n- All four ingestion adapters (`gold_adapter.py`, `move_adapter.py`, `fred_loader.py`, `gld_holdings_adapter.py`) migrated from `layer2.adapters.v0.db` / `layer2.adapters.v0.clock` to canonical `layer2.db` / `layer2.clock`\n- `layer2/adapters/v0/` directory removed (zero external dependencies confirmed)\n- `layer2/index_suite.py` canonically classified as a Layer-2 internal pre-publication computation tool (distinct from the planned Layer-3 Index Suite)\n\n### 2.1 Layer-2 status (unchanged from 2026-03-15 / 2026-03-16)\n"
+          },
+          {
+            "keyword": "Layer-2",
+            "line_number": 96,
+            "context": "- snapshot publisher uses the aligned quality-gate payload path\n- a successful **non-forced snapshot publication** has been executed\n- snapshot publication wrote both a DB snapshot record and `latest_snapshot.json`\n- `layer2/index_suite.py` computes provisional M1 indices (stress, drift, correlation-break, data-freshness) from point-in-time aligned observations \u2014 classified as a **Layer-2 internal pre-publication computation tool**, distinct from the planned Layer-3 Index Suite (which will consume published snapshots, not raw observations)\n\nObserved successful publication:\n"
+          },
+          {
+            "keyword": "Layer-3",
+            "line_number": 27,
+            "context": "| `README_v1.md` | Short entry-point summary for engineers onboarding into the repo |\n| `SYSTEM_TECHNICAL_HANDBOOK_v1.md` | Structured engineering reference for the current system state |\n| `SYSTEM_LIMITATIONS_AND_APPROXIMATIONS_v1.md` | Explicit record of known gaps, approximations, and interpretation risks |\n| `SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md` | Architecture framing, handoff sequencing, Layer-3 bootstrap boundary, and later live-execution gate |\n| Layer-3 decision philosophy | State-driven / event-driven model \u2014 frozen 2026-03-22. Full detail in `SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md` section 7. |\n| Layer-3 DecisionPacket schema v0 | Governed action contract \u2014 frozen 2026-03-22. Full field reference in `SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md` section 7. |\n| Architecture change rationale | Timeframe-centered model replaced by state-driven model. Change recorded in 2026-03-22 addendum below. |"
+          },
+          {
+            "keyword": "Layer-3",
+            "line_number": 50,
+            "context": "- `snapshot_id` hash unchanged.\n- Tier-1 fail-closed publication behavior unchanged.\n- No DB schema changes.\n- Layer-3 not built.\n- Revision writer not implemented.\n- CLI behavior unchanged.\n"
+          },
+          {
+            "keyword": "Layer-3",
+            "line_number": 70,
+            "context": "- `snapshot_id` hash unchanged (revision_risk is not a hash input \u2014 it is registry metadata, not observation data).\n- Tier-1 fail-closed behavior unchanged.\n- No DB schema changes.\n- Layer-3 not built.\n- Revision writer (`revision_seq=1` write path) not implemented.\n\n---"
+          },
+          {
+            "keyword": "Layer-3",
+            "line_number": 106,
+            "context": "- `clock_ts`: `2026-03-15T22:00:00+00:00`\n- Tier-1 gate result: `15 / 15 PASS`\n\n### 2.2 Layer-3 philosophy frozen (new as of 2026-03-22)\n\nThe Layer-3 decision philosophy has been frozen as of 2026-03-22.\n"
+          },
+          {
+            "keyword": "Layer-3",
+            "line_number": 112,
+            "context": "\nKey decision recorded here for historical reference:\n\n**Previous implicit direction:** Layer-3 framing still contained timeframe-centered execution language (e.g. explicit `timeframe: \"5m\"` field in example DecisionPacket).\n\n**New frozen direction:** Layer-3 is a **state-driven / event-driven decision system**. The canonical principle: *the system decides because state changed enough to justify governed action \u2014 not because a fixed amount of time elapsed.*\n"
+          },
+          {
+            "keyword": "Layer-3",
+            "line_number": 120,
+            "context": "\n### 2.3 DecisionPacket schema v0 defined (new as of 2026-03-22)\n\nThe Layer-3 DecisionPacket schema v0 defines the governed action contract. Full field reference is in `SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md` section 7.\n\nKey changes from the earlier example packet preserved in `README_LAYER2.md` section 16:\n"
+          },
+          {
+            "keyword": "Layer-3",
+            "line_number": 150,
+            "context": "- current bootstrap readiness\n- current handoff-gate truth\n- live execution readiness\n- Layer-3 design decisions\n\nUse the current v1 document set first.\n"
+          },
+          {
+            "keyword": "Layer-3",
+            "line_number": 169,
+            "context": "\nWhere the preserved historical body still describes now-resolved contract blockers as open, the current v1 documents and the addenda above override it.\n\nWhere the preserved historical body describes Layer-3 in timeframe-centered terms (e.g. `timeframe: \"5m\"` in the DecisionPacket example in section 16), those descriptions are superseded. The current Layer-3 design is documented in `SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md` section 7."
+          }
+        ]
+      },
+      "README_LAYER2.md": {
+        "file": "Documentation/README_LAYER2.md",
+        "status": "present",
+        "inference_used": false,
+        "char_count": 45335,
+        "line_count": 934,
+        "headings": [
+          "# Mr. Ripley \u2014 Layer-2 Truth Layer",
+          "## What We Built & How to Use It",
+          "## Document Revision Summary (v5 \u2192 v6)",
+          "## 1. What Is Layer-2?",
+          "## 2. Folder Structure",
+          "## 3. Current DB State (as of March 2026)",
+          "## 4. Series Registry",
+          "### Tier-1 Series (block snapshot if stale)",
+          "### Tier-2 Series (warn only \u2014 never block snapshot)",
+          "## 5. Known Gaps & Issues",
+          "## 6. Database Schema",
+          "## 7. The Six Adapters",
+          "### A. Gold Adapter (`gold_adapter.py`) \u2014 Tier-1, M0",
+          "# First-time setup",
+          "# Daily EOD job",
+          "# Staleness check",
+          "### B. MOVE Adapter (`move_adapter.py`) \u2014 Tier-1, M1",
+          "# Daily EOD job",
+          "# Backfill 5 years (run once after setup)",
+          "# Staleness check",
+          "### C. GLD Holdings Adapter (`gld_holdings_adapter.py`) \u2014 Tier-2, M2",
+          "# Daily EOD job",
+          "# Backfill 5 years (run once after setup)",
+          "# Staleness check",
+          "### D. FRED Loader (`fred_loader.py`) \u2014 Tier-1 + Tier-2",
+          "# Full history load (first time \u2014 ~20 seconds, 80,000+ rows)",
+          "# Daily EOD top-up",
+          "# Single series refresh",
+          "# Status report",
+          "# Dry-run",
+          "### E. Quality Gate (`quality_gate.py`) \u2014 Snapshot gatekeeper",
+          "# Run quality gate (standard)",
+          "# Override clock date (replay / testing)",
+          "# Quiet mode (verdict only)",
+          "# Custom report path",
+          "# Custom DB path",
+          "### F. Snapshot Publisher (`snapshot_publisher.py`) \u2014 Layer-3 contract boundary",
+          "# Preview without writing anything",
+          "# Publish snapshot for today",
+          "# Publish for a specific past date (replay)",
+          "# List recent snapshots (now shows engine_version + config_version)",
+          "# Skip quality gate block (TESTING ONLY \u2014 snapshot flagged forced=True)",
+          "### G. Other CLI Entry Points",
+          "## 8. Engine Clock & Alignment Rules",
+          "## 9. Quality Gate Rules",
+          "## 10. What Still Needs to Be Built",
+          "## 11. \"Layer-3 Ready\" Checklist",
+          "## 12. How to Set Up Locally",
+          "### Prerequisites",
+          "### Step-by-step"
+        ],
+        "keyword_section_count": 22,
+        "keyword_sections": [
+          {
+            "keyword": "SP500",
+            "line_number": 124,
+            "context": "EFFR                        5,315   2005-01-03 -> 2026-03-04     T1    PASS\nDTWEXBGS                    5,052   2006-01-02 -> 2026-02-27     T1    PASS*\nVIXCLS                      5,354   2005-01-03 -> 2026-03-04     T1    PASS\nSP500                       2,513   2016-02-22 -> 2026-03-04     T1    PASS**\ngld_holdings_flow_confirm   1,254   2021-03-08 -> 2026-03-04     T2    PASS\nCPILFESL                      252   2005-01-01 -> 2026-01-01     T2    WARN***\nFEDFUNDS                      254   2005-01-01 -> 2026-02-01     T2    PASS"
+          },
+          {
+            "keyword": "SP500",
+            "line_number": 135,
+            "context": "TWEXB                         783   2005-01-03 -> 2020-01-01     --    discontinued\n\n*    DTWEXBGS: FRED publishes with ~1 week structural lag. Threshold = 10 days.\n**   SP500: FRED only has data from 2016. Known gap \u2014 fix via SPY (Yahoo) planned. [HIGH PRIORITY]\n***  CPILFESL/PCEPI: BLS/BEA monthly release lag. Warnings expected and correct.\n**** PCU2122212122210: Discontinued 2017. Staleness check disabled (threshold=9999d).\n```"
+          },
+          {
+            "keyword": "SP500",
+            "line_number": 168,
+            "context": "| `EFFR` | NY Fed EFFR | FRED API | 3 days | 2005-present |\n| `DTWEXBGS` | Broad USD index (goods) | FRED API | **10 days** | 2006-present |\n| `VIXCLS` | VIX equity implied vol | FRED API | 3 days | 2005-present |\n| `SP500` | S&P 500 index | FRED API | 3 days | 2016-present |\n\n### Tier-2 Series (warn only \u2014 never block snapshot)\n"
+          },
+          {
+            "keyword": "SP500",
+            "line_number": 192,
+            "context": "\n| Series / Area | Issue | Priority | Fix needed |\n|---|---|---|---|\n| SP500 | Only goes back to 2016; backtest needs 2014 | **HIGH** | Use SPY via Yahoo (goes to 1993) |\n| Gold history | Starts 2014, target is 2005 | Medium | Extend backfill via Stooq |\n| DTWEXM / DTWEXO / TWEXB | Discontinued series in DB | Low | Bridge with DTWEXBGS or drop |\n| GLD history | Approximation only \u2014 uniform shares across dates | Low | Accept or find paid source |"
+          },
+          {
+            "keyword": "SP500",
+            "line_number": 202,
+            "context": "| `--full-reload` help text | Describes deprecated `INSERT OR REPLACE` behavior | Low | Update help text across all 4 adapters |\n\n**Backtest start date:** `2014-01-02` \u2014 limited by gold JSON.\n**SP500 gap is HIGH priority** \u2014 2015 China shock and early 2016 selloff fall in the missing window,\naffecting calibration validity.\n\n---"
+          },
+          {
+            "keyword": "SP500",
+            "line_number": 555,
+            "context": "\n| Tier | Series | Staleness threshold | Effect if stale |\n|---|---|---|---|\n| Tier-1 | gold, MOVE, yields, USD, VIX, SP500 | 3 days (DTWEXBGS: 10 days) | Blocks snapshot |\n| Tier-2 | GLD, CPI, PCE, FEDFUNDS | 5\u201345 days | Warning only |\n\n**Fail-closed:** any Tier-1 FAIL \u2192 publish NOTHING \u2192 Layer-3 outputs nothing."
+          },
+          {
+            "keyword": "SP500",
+            "line_number": 592,
+            "context": "| `guards` fully structured + enum-backed (Phase 2) | \u2705 DONE | \u2014 | `freshness_ok`, `revision_risk_present`, `forced`, `missing_tier1`, `snapshot_ok`, `reason_code` added 2026-05-01 |\n| Snapshot contract schema-validated (Phase 2) | \u2705 DONE | \u2014 | `validate_snapshot_contract()` in `layer2/constants.py` \u2014 2026-05-01 |\n| `reason_code` enum in shared constants file | \u2705 DONE | \u2014 | Resolved \u2014 see \u00a716 previously-blocked items |\n| SP500 history fix (use SPY via Yahoo) | \u2b1c TODO | **High** | Affects calibration validity \u2014 2014\u20132016 gap |\n| `revision_risk` column in `observations` | \u2b1c TODO | Medium | Architecture4 vintage discipline requirement |\n| Revision writer (`revision_seq=1` path) | \u2b1c TODO | Medium | FRED corrections currently silently dropped |\n| `--full-reload` CLI help text update | \u2b1c TODO | Low | Now uses `INSERT OR IGNORE`, not `INSERT OR REPLACE` |"
+          },
+          {
+            "keyword": "SP500",
+            "line_number": 814,
+            "context": "**Known remaining items from Audit 5:**\n- `guards` structured object in snapshot output \u2705 (resolved \u2014 see \u00a716)\n- `reason_code` enum defined \u2705 (resolved \u2014 see \u00a716)\n- SP500 history gap 2014\u20132016 (HIGH priority for calibration) \u2b1c\n- `revision_risk` column not in `observations` table \u2b1c\n- `layer1_events: []` stub not in snapshot JSON \u2b1c\n- Operational readiness (scheduler, alerting, retry, kill switch) not built \u2b1c"
+          },
+          {
+            "keyword": "SP500",
+            "line_number": 850,
+            "context": "\n| Item | Domain affected | Score impact if fixed |\n|---|---|---|\n| SP500 history gap | Data Ingestion | +0.5 |\n| `guards` object in snapshot | Snapshot Publisher | +0.25 |\n| `revision_risk` tracking | Truth-Layer + Quality Gate | +0.25 each |\n| Daily scheduler + orchestrator | Operational Readiness | +1.5 |"
+          },
+          {
+            "keyword": "TODO",
+            "line_number": 596,
+            "context": "| `revision_risk` column in `observations` | \u2b1c TODO | Medium | Architecture4 vintage discipline requirement |\n| Revision writer (`revision_seq=1` path) | \u2b1c TODO | Medium | FRED corrections currently silently dropped |\n| `--full-reload` CLI help text update | \u2b1c TODO | Low | Now uses `INSERT OR IGNORE`, not `INSERT OR REPLACE` |\n| `layer1_events: []` stub in snapshot JSON | \u2b1c TODO | Low | Pre-Layer-1 interface placeholder |\n| Daily scheduler (Windows Task Scheduler) | \u2b1c TODO | Medium | Required before any live operation |\n| Alerting / notification on adapter failure | \u2b1c TODO | Medium | Architecture4 requires alert within 60s |\n| Retry logic with cap | \u2b1c TODO | Medium | Architecture4 requires capped idempotent retries |"
+          },
+          {
+            "keyword": "TODO",
+            "line_number": 600,
+            "context": "| Daily scheduler (Windows Task Scheduler) | \u2b1c TODO | Medium | Required before any live operation |\n| Alerting / notification on adapter failure | \u2b1c TODO | Medium | Architecture4 requires alert within 60s |\n| Retry logic with cap | \u2b1c TODO | Medium | Architecture4 requires capped idempotent retries |\n| Kill switch | \u2b1c TODO | Medium | Architecture4 requires fail-closed kill switch |\n| Orchestrator / end-to-end pipeline runner | \u2b1c TODO | Medium | No script currently runs the full pipeline |\n| Fix/replace discontinued USD series | \u2b1c TODO | Low | DTWEXM, DTWEXO, TWEXB bridge or drop |\n| Extend gold history to 2005 | \u2b1c TODO | Low | Target: 2008 crisis + 2011 peak coverage |"
+          },
+          {
+            "keyword": "TODO",
+            "line_number": 613,
+            "context": "\n| Component | Status | Notes |\n|---|---|---|\n| Feature Builder | \u2b1c TODO | Depends on Layer-2 snapshot contract being frozen |\n| Index Suite (Stress, Drift, CorrBreak) | \u2b1c TODO | Depends on Feature Builder |\n| Decision Engine | \u2b1c TODO | Depends on Index Suite + calibration |\n| `UnknownMode` inputs exposed in snapshot | \u2b1c TODO | Layer-2 must expose index values once Index Suite is built |"
+          },
+          {
+            "keyword": "Layer-2",
+            "line_number": 1,
+            "context": "# Mr. Ripley \u2014 Layer-2 Truth Layer\n## What We Built & How to Use It\n\n> **For:** Friend / collaborator reading this on GitHub"
+          },
+          {
+            "keyword": "Layer-2",
+            "line_number": 31,
+            "context": "\n---\n\n## 1. What Is Layer-2?\n\nLayer-2 is the **data ingestion and truth store** for the Gold-First Market State Engine (Mr. Ripley).\n"
+          },
+          {
+            "keyword": "Layer-2",
+            "line_number": 37,
+            "context": "\n```\nLayer-1  ->  Event Tagger / Narrative Risk Modifiers (optional, disabled by default)\nLayer-2  ->  Ingestion + validation + immutable snapshots  <- YOU ARE HERE\nLayer-3  ->  State-driven / event-driven decision engine   (not yet built \u2014 philosophy frozen)\nLayer-4  ->  Execution orchestration                       (not yet built / intentionally unwired)\n```"
+          },
+          {
+            "keyword": "Layer-2",
+            "line_number": 42,
+            "context": "Layer-4  ->  Execution orchestration                       (not yet built / intentionally unwired)\n```\n\n**The golden rule of Layer-2:**\nLayer-3 is NEVER allowed to read \"latest\" data directly. It can ONLY consume a published\n`snapshot_id`. If data is missing or stale \u2192 no snapshot is published \u2192 Layer-3 outputs\nnothing. This is called **fail-closed** behavior."
+          },
+          {
+            "keyword": "Layer-2",
+            "line_number": 515,
+            "context": "\n**Index suite** (`index_suite.py`) \u2014 clock-aligned index computation:\n\n> Layer-2 internal pre-publication computation tool. Reads from observations with point-in-time alignment (same data access pattern as snapshot publisher). The planned Layer-3 Index Suite (which will consume published snapshots) is not yet built \u2014 see \u00a716.\n\n```bash\npython layer2\\index_suite.py --clock-date 2026-03-06 --json"
+          },
+          {
+            "keyword": "Layer-2",
+            "line_number": 569,
+            "context": "\n```\n\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\n  LAYER-2 REMAINING ITEMS\n\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\n```\n"
+          },
+          {
+            "keyword": "Layer-2",
+            "line_number": 607,
+            "context": "\n```\n\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\n  LAYER-3 ITEMS (not Layer-2 work \u2014 see \u00a716)\n\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\n```\n"
+          },
+          {
+            "keyword": "Layer-2",
+            "line_number": 821,
+            "context": "\n---\n\n## 15. Layer-2 Readiness Scorecard\n\n*Last scored: 2026-03-07. Methodology: 0\u201310 per domain, weighted total.*\n"
+          },
+          {
+            "keyword": "Layer-2",
+            "line_number": 841,
+            "context": "\n| Gate | Score | Ready? |\n|---|---|---|\n| Continue Layer-2 daily operations | 8.86 | \u2705 Yes |\n| Publish production snapshots | 9.1 (domains 1\u20136) | \u2705 Yes |\n| Begin Layer-3 development | 9.0 (domain 7) | \u2705 Yes \u2014 C1 resolved in Audit 5 |\n| Connect any live execution path | 5.5 (domain 8) | \u274c No \u2014 scheduler, alerting, retry, kill switch absent |"
+          },
+          {
+            "keyword": "Layer-2",
+            "line_number": 871,
+            "context": "\n### Current Layer-3 status (as of 2026-03-22)\n\nThe Layer-2 \u2192 Layer-3 handoff gate is satisfied. Layer-3 bootstrap may begin.\n\n- Layer-3 decision philosophy: frozen in the current architecture definition\n- DecisionPacket field reference: `SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md` section 7"
+          }
+        ]
+      },
+      "verification_ledger.md": {
+        "file": "verification_ledger.md",
+        "status": "present",
+        "inference_used": false,
+        "char_count": 575,
+        "line_count": 18,
+        "headings": [
+          "# Verification Ledger",
+          "## Purpose",
+          "## Status",
+          "## Entries"
+        ],
+        "keyword_section_count": 4,
+        "keyword_sections": [
+          {
+            "keyword": "verification ledger",
+            "line_number": 1,
+            "context": "# Verification Ledger\n\n## Purpose\n"
+          },
+          {
+            "keyword": "verification ledger",
+            "line_number": 5,
+            "context": "\n## Purpose\n\nThis file is the living verification ledger for the Mr. Ripley governance workflow.\nIt tracks claim-to-evidence-to-status mappings produced by the `verification-ledger-update` skill.\n\n## Status"
+          },
+          {
+            "keyword": "governance workflow",
+            "line_number": 10,
+            "context": "\n## Status\n\nThis ledger is populated by governance workflow runs. Each entry records:\n\n- **Claim**: a specific documentation or implementation assertion\n- **Evidence**: the source or proof supporting the claim"
+          },
+          {
+            "keyword": "governance workflow",
+            "line_number": 18,
+            "context": "\n## Entries\n\n_No entries yet. This ledger will be populated by governance workflow execution._"
+          }
+        ]
+      }
+    }
+  }
+}

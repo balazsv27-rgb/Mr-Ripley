@@ -1,0 +1,187 @@
+{
+  "artifact": "role_citation_verdict",
+  "produced_by": "route-claims-by-role",
+  "session": "144e06d3-d6b9-4492-99e3-5d105a5441f6",
+  "timestamp": "2026-05-10T16:57:16.114888Z",
+  "data": {
+    "produced_by": "route-claims-by-role",
+    "role_matched_citation_status": {
+      "overall_status": "review_only",
+      "inference_used": false,
+      "source_authority_conflict_detected": false,
+      "checked_claims": [
+        {
+          "claim_id": "c1",
+          "claim_text": "SP500 history gap fix is complete \u2014 SP500_PROXY series via Yahoo SPY adapter now provides full history from 2005-01-03, resolving the FRED-only-from-2016 gap",
+          "claim_type": "implementation",
+          "required_primary_source": "SYSTEM_LIMITATIONS_AND_APPROXIMATIONS_v1.md",
+          "provided_sources": [
+            "SYSTEM_LIMITATIONS_AND_APPROXIMATIONS_v1.md (extract)",
+            "keyword_sections(sp500)",
+            "code_context: SP500_PROXY in registry",
+            "code_context: spy_adapter.py present",
+            "DOCUMENTATION_VERIFICATION_MATRIX_v1.md (extract)",
+            "README_v1.md (extract)",
+            "README_LAYER2.md (extract)"
+          ],
+          "role_match": true,
+          "strong_claim": true,
+          "explicit_citation_required": true,
+          "conflict_detected": false,
+          "blocking_condition_if_any": null,
+          "verdict": "review_only",
+          "reason": "Implementation claim has supporting extract from SYSTEM_LIMITATIONS_AND_APPROXIMATIONS_v1.md and corroborating code evidence. Review: confirm extract sections explicitly confirm completion."
+        },
+        {
+          "claim_id": "c2",
+          "claim_text": "Remaining Layer-2 TODO items have been completed",
+          "claim_type": "implementation",
+          "required_primary_source": "SYSTEM_IMPLEMENTATION_RECORD_v1.md",
+          "provided_sources": [
+            "SYSTEM_IMPLEMENTATION_RECORD_v1.md (extract)",
+            "keyword_sections(layer-2)",
+            "README_LAYER2.md (extract)",
+            "SYSTEM_LIMITATIONS_AND_APPROXIMATIONS_v1.md (extract)"
+          ],
+          "role_match": true,
+          "strong_claim": false,
+          "explicit_citation_required": false,
+          "conflict_detected": false,
+          "blocking_condition_if_any": null,
+          "verdict": "compliant",
+          "reason": "Claim supported by available evidence."
+        },
+        {
+          "claim_id": "c3",
+          "claim_text": "Canonical documentation needs updating to align with the current implemented Layer-2 state",
+          "claim_type": "documentation_consistency",
+          "required_primary_source": "SYSTEM_LIMITATIONS_AND_APPROXIMATIONS_v1.md",
+          "provided_sources": [
+            "SYSTEM_LIMITATIONS_AND_APPROXIMATIONS_v1.md (extract)",
+            "keyword_sections(layer-2, sp500)",
+            "DOCUMENTATION_VERIFICATION_MATRIX_v1.md (extract)",
+            "README_v1.md (extract)",
+            "SYSTEM_TECHNICAL_HANDBOOK_v1.md (extract)",
+            "README_LAYER2.md (extract)",
+            "SYSTEM_IMPLEMENTATION_RECORD_v1.md (extract)"
+          ],
+          "role_match": true,
+          "strong_claim": false,
+          "explicit_citation_required": false,
+          "conflict_detected": false,
+          "blocking_condition_if_any": null,
+          "verdict": "compliant",
+          "reason": "Claim supported by available evidence."
+        },
+        {
+          "claim_id": "c4",
+          "claim_text": "Layer-3 is not implemented \u2014 this guard must be preserved in all documentation updates",
+          "claim_type": "architecture",
+          "required_primary_source": "SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md",
+          "provided_sources": [
+            "SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md (extract)",
+            "keyword_sections(layer-2, layer-3)",
+            "code_context: layer3_execution_artifacts_absent=true",
+            "runtime_context: layer3_runtime_absent=true",
+            "SYSTEM_TECHNICAL_HANDBOOK_v1.md (extract)",
+            "README_v1.md (extract)",
+            "SYSTEM_IMPLEMENTATION_RECORD_v1.md (extract)"
+          ],
+          "role_match": true,
+          "strong_claim": true,
+          "explicit_citation_required": false,
+          "conflict_detected": false,
+          "blocking_condition_if_any": null,
+          "verdict": "compliant",
+          "reason": "Negative guard claim is supported by canonical doc extract + code/runtime context. Request preserves this constraint."
+        },
+        {
+          "claim_id": "c5",
+          "claim_text": "Live execution is not ready \u2014 this guard must be preserved in all documentation updates",
+          "claim_type": "readiness",
+          "required_primary_source": "SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md",
+          "provided_sources": [
+            "SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md (extract)",
+            "keyword_sections(layer-2, layer-3)",
+            "runtime_context: no execution runtime present",
+            "SYSTEM_LIMITATIONS_AND_APPROXIMATIONS_v1.md (extract)",
+            "README_v1.md (extract)"
+          ],
+          "role_match": true,
+          "strong_claim": true,
+          "explicit_citation_required": false,
+          "conflict_detected": false,
+          "blocking_condition_if_any": null,
+          "verdict": "compliant",
+          "reason": "Negative guard claim is supported by canonical doc extract + code/runtime context. Request preserves this constraint."
+        },
+        {
+          "claim_id": "c6",
+          "claim_text": "Layer-2 / Layer-3 canonical terminology must be preserved \u2014 this is not a semantic rename or constitutional amendment",
+          "claim_type": "architecture",
+          "required_primary_source": "CLAUDE.md",
+          "provided_sources": [
+            "CLAUDE.md (extract)",
+            "keyword_sections(layer-2)",
+            "code_context: layer3_execution_artifacts_absent=true",
+            "runtime_context: layer3_runtime_absent=true"
+          ],
+          "role_match": true,
+          "strong_claim": true,
+          "explicit_citation_required": false,
+          "conflict_detected": false,
+          "blocking_condition_if_any": null,
+          "verdict": "compliant",
+          "reason": "Negative guard claim is supported by canonical doc extract + code/runtime context. Request preserves this constraint."
+        },
+        {
+          "claim_id": "c7",
+          "claim_text": "A new SPY adapter (spy_adapter.py) has been added to the Layer-2 adapter inventory",
+          "claim_type": "implementation",
+          "required_primary_source": "SYSTEM_IMPLEMENTATION_RECORD_v1.md",
+          "provided_sources": [
+            "SYSTEM_IMPLEMENTATION_RECORD_v1.md (extract)",
+            "keyword_sections(layer-2)",
+            "code_context: SP500_PROXY in registry",
+            "code_context: spy_adapter.py present",
+            "SYSTEM_TECHNICAL_HANDBOOK_v1.md (extract)",
+            "README_LAYER2.md (extract)"
+          ],
+          "role_match": true,
+          "strong_claim": false,
+          "explicit_citation_required": false,
+          "conflict_detected": false,
+          "blocking_condition_if_any": null,
+          "verdict": "compliant",
+          "reason": "Claim supported by available evidence."
+        }
+      ],
+      "summary": {
+        "role_mismatch_detected": false,
+        "canonical_conflict_unresolved": false,
+        "readme_layer2_used_as_override": false,
+        "requires_conflict_note": false,
+        "requires_doc_sync_escalation": false,
+        "recommended_guard_action": "review",
+        "blocking_claims": [],
+        "compliant_claims": [
+          "c2",
+          "c3",
+          "c4",
+          "c5",
+          "c6",
+          "c7"
+        ],
+        "review_only_claims": [
+          "c1"
+        ],
+        "block_reason": "",
+        "notes": [
+          "Deterministic synthesis from 7 classified claim(s).",
+          "Routing table: default.",
+          "Doc extracts available: 9."
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,154 @@
+{
+  "artifact": "claim_classification_map",
+  "produced_by": "classify-claims",
+  "session": "2e0b9aa4-5e8a-49f8-bc19-0033ced26aa1",
+  "timestamp": "2026-05-10T15:26:45.586958Z",
+  "data": {
+    "produced_by": "classify-claims",
+    "run_id": "2e0b9aa4-5e8a-49f8-bc19-0033ced26aa1",
+    "request_id": "layer2-doc-sync-after-sp500-and-todo-closure-2026-05-09",
+    "status": "complete",
+    "request_classification": {
+      "request_type": "documentation_synchronization_and_verification",
+      "claims": [
+        {
+          "claim_id": "c1",
+          "claim_text": "SP500 history gap fix has been completed \u2014 SPY proxy adapter implemented via Yahoo with full history from 2005-01-03",
+          "claim_scope": "current-state",
+          "evidence_class": "documented_current_state_claim",
+          "source_priority": [
+            "SYSTEM_IMPLEMENTATION_RECORD_v1.md",
+            "SYSTEM_LIMITATIONS_AND_APPROXIMATIONS_v1.md",
+            "DOCUMENTATION_VERIFICATION_MATRIX_v1.md",
+            "README_LAYER2.md"
+          ],
+          "confidence_level": "high",
+          "classification_rationale": "Code context confirms spy_adapter.py exists in adapter inventory, SP500_PROXY is registered in series_registry.json with source=yahoo_spy, full_history_start=2005-01-03, tier=1, include_in_snapshot=true. The series appears in snapshot_series_ids. This is concrete implementation evidence. However, all canonical documents still list SP500 gap as open/TODO/High priority \u2014 which is precisely why documentation synchronization is requested. The implementation is real; the docs are stale.",
+          "notes": [
+            "Current docs all still mark SP500 gap as open \u2014 SYSTEM_LIMITATIONS line 83, README_LAYER2 line 592, README_v1 line 203, DOCUMENTATION_VERIFICATION_MATRIX line 73",
+            "Code evidence is strong: spy_adapter.py + registry entry + snapshot inclusion",
+            "Documentation update required to close this item across all canonical docs"
+          ]
+        },
+        {
+          "claim_id": "c2",
+          "claim_text": "Remaining Layer-2 TODO items have been addressed (scope requires verification per item)",
+          "claim_scope": "current-state",
+          "evidence_class": "documented_current_state_claim",
+          "source_priority": [
+            "SYSTEM_IMPLEMENTATION_RECORD_v1.md",
+            "README_LAYER2.md",
+            "SYSTEM_LIMITATIONS_AND_APPROXIMATIONS_v1.md"
+          ],
+          "confidence_level": "medium",
+          "classification_rationale": "The request references 'remaining Layer-2 TODO items' without enumerating which specific items are now complete beyond the SP500 fix. The code context does not provide explicit evidence for closure of revision_writer, scheduler, alerting, retry, kill switch, or other TODO items listed in README_LAYER2.md section 10. Without per-item implementation evidence, blanket completion cannot be verified. Classification is medium confidence \u2014 the SP500 fix is confirmed, but the scope of 'remaining' items needs explicit verification before each can be individually reclassified.",
+          "notes": [
+            "Per-item verification needed before docs can mark each as DONE",
+            "Items without code evidence must remain classified as open/TODO",
+            "The request may intend 'document what is done and update status of remaining items' rather than asserting all are complete"
+          ]
+        },
+        {
+          "claim_id": "c3",
+          "claim_text": "Canonical documentation requires synchronization to reflect current implemented Layer-2 state",
+          "claim_scope": "current-state",
+          "evidence_class": "verified_in_current_documentation_set",
+          "source_priority": [
+            "DOCUMENTATION_VERIFICATION_MATRIX_v1.md",
+            "SYSTEM_IMPLEMENTATION_RECORD_v1.md",
+            "SYSTEM_LIMITATIONS_AND_APPROXIMATIONS_v1.md",
+            "README_v1.md",
+            "README_LAYER2.md"
+          ],
+          "confidence_level": "high",
+          "classification_rationale": "The gap between documented state and implemented state is objectively verifiable. SP500_PROXY is implemented in code but all 7 canonical documents still describe the SP500 history gap as an open item. CLAUDE.md Section 11 mandates documentation alignment after contract-affecting changes. The need for synchronization is a current-state fact supported by both the code context and the canonical documentation set.",
+          "notes": [
+            "CLAUDE.md Section 11 triggers: implementation state has changed, requiring review of all affected canonical documents",
+            "This is a documentation update obligation, not a discretionary improvement"
+          ]
+        },
+        {
+          "claim_id": "c4",
+          "claim_text": "Layer-3 is not implemented \u2014 explicit guard against overclaim",
+          "claim_scope": "current-state",
+          "evidence_class": "verified_in_current_documentation_set",
+          "source_priority": [
+            "SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md",
+            "SYSTEM_TECHNICAL_HANDBOOK_v1.md",
+            "README_v1.md",
+            "SYSTEM_IMPLEMENTATION_RECORD_v1.md"
+          ],
+          "confidence_level": "high",
+          "classification_rationale": "All canonical documents consistently state Layer-3 is not yet built. Code context confirms layer3_runtime_absent=true and layer3_execution_artifacts_absent=true with zero detected Layer-3 indicators. The request explicitly instructs not to claim Layer-3 is implemented. This aligns perfectly with CLAUDE.md Section 3.2, Section 4 (Phase B status: allowed, not completed), and Section 10 (strong claim discipline).",
+          "notes": [
+            "Constitutional enforcement: CLAUDE.md Section 10 forbids 'Layer 3 is implemented' without proof",
+            "Code scan confirms zero Layer-3 artifacts",
+            "This claim serves as a downstream routing guard for the documentation update plan"
+          ]
+        },
+        {
+          "claim_id": "c5",
+          "claim_text": "Live execution is not ready \u2014 explicit guard against overclaim",
+          "claim_scope": "current-state",
+          "evidence_class": "verified_in_current_documentation_set",
+          "source_priority": [
+            "SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md",
+            "SYSTEM_LIMITATIONS_AND_APPROXIMATIONS_v1.md",
+            "SYSTEM_TECHNICAL_HANDBOOK_v1.md"
+          ],
+          "confidence_level": "high",
+          "classification_rationale": "All canonical documents confirm live execution remains blocked (Phase D status: blocked). CLAUDE.md Section 9 explicitly forbids execution capability. The request explicitly instructs not to claim live execution readiness. Multiple operational prerequisites (scheduler, alerting, retry, kill switch) remain unbuilt per both code context and documentation.",
+          "notes": [
+            "Constitutional enforcement: CLAUDE.md Section 9 (execution boundary) and Section 10 (forbidden claims)",
+            "Phase D gate conditions not met per SYSTEM_ARCHITECTURE Section 8"
+          ]
+        },
+        {
+          "claim_id": "c6",
+          "claim_text": "Layer-2 / Layer-3 canonical terminology is preserved \u2014 no semantic rename requested",
+          "claim_scope": "current-state",
+          "evidence_class": "verified_in_current_documentation_set",
+          "source_priority": [
+            "CLAUDE.md",
+            "SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md"
+          ],
+          "confidence_level": "high",
+          "classification_rationale": "The request explicitly preserves existing constitutional vocabulary. No terminology changes are proposed. CLAUDE.md Section 16.1 (constitutional amendment rule) is not triggered. This is a documentation synchronization within existing terminology, not a rename or amendment.",
+          "notes": [
+            "No constitutional amendment process required",
+            "Memory file confirms prior rejection of alternative terms (truth_store, decision_layer)"
+          ]
+        },
+        {
+          "claim_id": "c7",
+          "claim_text": "This request is a documentation synchronization and verification operation, not a constitutional amendment",
+          "claim_scope": "current-state",
+          "evidence_class": "documented_current_state_claim",
+          "source_priority": [
+            "CLAUDE.md",
+            "DOCUMENTATION_VERIFICATION_MATRIX_v1.md"
+          ],
+          "confidence_level": "high",
+          "classification_rationale": "The request explicitly self-classifies as documentation synchronization. The operation aligns implementation evidence with canonical documentation status. No constitutional sections, architectural boundaries, snapshot contracts, or phase-gate definitions are being modified. CLAUDE.md Section 11 (document update obligations) governs this type of operation \u2014 it is a mandatory response to implementation-state change, not a discretionary architectural modification.",
+          "notes": [
+            "Section 11 obligation triggered by implementation change",
+            "Verification matrix entries will need reclassification for completed items",
+            "No phase-gate advancement claimed"
+          ]
+        }
+      ],
+      "summary": {
+        "dominant_scope": "current-state",
+        "needs_phase_check": false,
+        "touches_current_truth": true,
+        "touches_target_architecture": false,
+        "touches_historical_reconciliation": false,
+        "touches_verification_matrix": true,
+        "touches_snapshot_contract": false,
+        "possible_blocking_conditions": [
+          "c2_remaining_todo_items_require_per_item_verification"
+        ]
+      }
+    }
+  }
+}

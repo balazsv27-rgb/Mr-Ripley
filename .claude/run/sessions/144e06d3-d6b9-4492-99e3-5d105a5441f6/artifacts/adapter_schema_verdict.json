@@ -1,0 +1,146 @@
+{
+  "artifact": "adapter_schema_verdict",
+  "produced_by": "adapter-schema-check",
+  "session": "144e06d3-d6b9-4492-99e3-5d105a5441f6",
+  "timestamp": "2026-05-10T17:01:07.272683Z",
+  "data": {
+    "produced_by": "adapter-schema-check",
+    "adapter_schema_status": {
+      "overall_status": "review_only",
+      "inference_used": false,
+      "registry_driven_status": "compliant",
+      "schema_write_status": "compliant",
+      "adapter_boundary_status": "review_only",
+      "sp500_proxy_status": "compliant",
+      "checked_items": [
+        {
+          "item_id": "AS-01",
+          "target": "series_registry.json",
+          "assessment": "compliant",
+          "evidence_source": "code_context.series_registry",
+          "reason": "Registry present, parseable, version=1.1.0",
+          "missing_inputs": [],
+          "notes": []
+        },
+        {
+          "item_id": "AS-02",
+          "target": "series_registry metadata",
+          "assessment": "compliant",
+          "evidence_source": "code_context.series_registry",
+          "reason": "series_count=24, tier1=16, tier2=8, include_in_snapshot=21",
+          "missing_inputs": [],
+          "notes": []
+        },
+        {
+          "item_id": "AS-03",
+          "target": "SP500 / SP500_PROXY coexistence",
+          "assessment": "compliant",
+          "evidence_source": "code_context.series_registry",
+          "reason": "SP500 (source=fred) and SP500_PROXY (source=yahoo_spy, full_history_start=2005-01-03, include_in_snapshot=true, tier=1) both present with correct provenance",
+          "missing_inputs": [],
+          "notes": []
+        },
+        {
+          "item_id": "AS-04",
+          "target": "adapter_inventory",
+          "assessment": "compliant",
+          "evidence_source": "code_context.adapter_inventory",
+          "reason": "Adapter directory present, 7 adapter(s): fred_loader.py, gld_holdings_adapter.py, gold_adapter.py, move_adapter.py, quality_gate.py, snapshot_publisher.py, spy_adapter.py",
+          "missing_inputs": [],
+          "notes": []
+        },
+        {
+          "item_id": "AS-05",
+          "target": "spy_adapter.py",
+          "assessment": "compliant",
+          "evidence_source": "code_context.adapter_inventory",
+          "reason": "spy_adapter.py present \u2014 required for SP500_PROXY",
+          "missing_inputs": [],
+          "notes": []
+        },
+        {
+          "item_id": "AS-06",
+          "target": "schema write discipline",
+          "assessment": "compliant",
+          "evidence_source": "code_context.layer2_boundary_checks",
+          "reason": "INSERT OR REPLACE absent. INSERT OR IGNORE detected",
+          "missing_inputs": [],
+          "notes": []
+        },
+        {
+          "item_id": "AS-07",
+          "target": "Layer-3 execution artifacts",
+          "assessment": "compliant",
+          "evidence_source": "code_context.execution_artifact_scan",
+          "reason": "Layer-3 execution artifacts absent",
+          "missing_inputs": [],
+          "notes": []
+        },
+        {
+          "item_id": "AS-08",
+          "target": "runtime_boundary_verdict",
+          "assessment": "review_only",
+          "evidence_source": "runtime_boundary_verdict",
+          "reason": "runtime_boundary_verdict not available",
+          "missing_inputs": [
+            "runtime_boundary_verdict"
+          ],
+          "notes": []
+        },
+        {
+          "item_id": "AS-09",
+          "target": "adapter content scan",
+          "assessment": "review_only",
+          "evidence_source": "code_context.adapter_inventory",
+          "reason": "Adapter inventory is structural (file listing only). Full content-level pattern scan of adapter source files not performed by runner.",
+          "missing_inputs": [],
+          "notes": [
+            "Content scan requires direct file read access, which the structural runner does not perform."
+          ]
+        }
+      ],
+      "summary": {
+        "registry_present": true,
+        "registry_version": "1.1.0",
+        "series_count": 24,
+        "tier1_count": 16,
+        "tier2_count": 8,
+        "include_in_snapshot_count": 21,
+        "sp500_detected": true,
+        "sp500_proxy_detected": true,
+        "sp500_proxy_source": "yahoo_spy",
+        "sp500_proxy_full_history_start": "2005-01-03",
+        "sp500_proxy_include_in_snapshot": true,
+        "sp500_proxy_tier": 1,
+        "adapter_count": 7,
+        "adapter_files": [
+          "fred_loader.py",
+          "gld_holdings_adapter.py",
+          "gold_adapter.py",
+          "move_adapter.py",
+          "quality_gate.py",
+          "snapshot_publisher.py",
+          "spy_adapter.py"
+        ],
+        "insert_or_replace_detected": false,
+        "insert_or_ignore_detected": true,
+        "layer3_execution_artifacts_absent": true,
+        "runtime_boundary_compliant": false,
+        "unresolved_content_scan_caveat": true,
+        "blocking_reasons": [],
+        "review_reasons": [
+          "runtime_boundary_verdict not available",
+          "Adapter content scan unavailable \u2014 structural inventory only"
+        ],
+        "notes": []
+      }
+    },
+    "registry_driven_compliance": true,
+    "schema_violation_detected": false,
+    "adapter_boundary_violation_detected": false,
+    "source_authority_conflict_detected": false,
+    "requires_adapter_schema_guardian": false,
+    "requires_doc_code_sync_review": true,
+    "inference_used": false
+  }
+}
