@@ -122,6 +122,7 @@ def _build_governance_context_payload(
     """
     if config.request_text:
         from governance.dag_runner.governance_context import (
+            build_canonical_doc_extracts,
             build_code_context,
             build_runtime_context,
         )
@@ -137,6 +138,7 @@ def _build_governance_context_payload(
             "bootstrap_status": "request_bearing",
             "code_context": build_code_context(repo_root),
             "runtime_context": build_runtime_context(repo_root),
+            "canonical_doc_extracts": build_canonical_doc_extracts(repo_root),
         }
     return {
         "produced_by": "load-context",

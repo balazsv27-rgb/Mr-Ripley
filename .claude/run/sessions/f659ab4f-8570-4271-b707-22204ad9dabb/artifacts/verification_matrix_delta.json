@@ -1,0 +1,163 @@
+{
+  "artifact": "verification_matrix_delta",
+  "produced_by": "update-verification-matrix",
+  "session": "f659ab4f-8570-4271-b707-22204ad9dabb",
+  "timestamp": "2026-05-09T22:15:40.437709Z",
+  "data": {
+    "produced_by": "update-verification-matrix",
+    "matrix_action": "review_only",
+    "classification_dispute_detected": true,
+    "runtime_status_upgrade_blocked": true,
+    "source_authority_conflict_detected": true,
+    "inference_used": true,
+    "affected_entries": [
+      {
+        "entry_id": "s3-sp500-history-gap-fix",
+        "section": "Section 3 \u2014 Current Layer-2 Contract Items",
+        "claim_or_topic": "SP500 adapter history gap fix \u2014 completion status",
+        "change_type": "status_review",
+        "reason": "Blocking condition C-001 (RP-1): no citation from SYSTEM_IMPLEMENTATION_RECORD_v1.md confirming completion. Implementation-state claim lacks role-matched canonical source per CLAUDE.md \u00a72.2. DR-1 blocks runtime status upgrade from doc-only evidence. Current classification cannot be confirmed or upgraded until RP-1 is resolved.",
+        "source_documents": [
+          "SYSTEM_IMPLEMENTATION_RECORD_v1.md",
+          "audit_summary",
+          "doc_code_sync_status"
+        ],
+        "proposed_old_state": null,
+        "proposed_new_state": null,
+        "confidence": "high"
+      },
+      {
+        "entry_id": "s3-layer2-todo-completion",
+        "section": "Section 3 \u2014 Current Layer-2 Contract Items",
+        "claim_or_topic": "Layer-2 TODO inventory \u2014 per-item closure status",
+        "change_type": "status_review",
+        "reason": "Blocking condition C-002 (RP-2): specific TODO items not enumerated and no per-item citations from SYSTEM_IMPLEMENTATION_RECORD_v1.md confirming closure. Implementation-state claim lacks role-matched canonical source per CLAUDE.md \u00a72.2. DR-1 blocks upgrade. Current classification cannot be settled until RP-2 is resolved.",
+        "source_documents": [
+          "SYSTEM_IMPLEMENTATION_RECORD_v1.md",
+          "audit_summary",
+          "change_impact_report"
+        ],
+        "proposed_old_state": null,
+        "proposed_new_state": null,
+        "confidence": "high"
+      },
+      {
+        "entry_id": "s3-layer2-implementation-record-alignment",
+        "section": "Section 3 \u2014 Current Layer-2 Contract Items",
+        "claim_or_topic": "Layer-2 implementation state alignment with canonical record",
+        "change_type": "status_review",
+        "reason": "Blocking condition C-003b (RP-3): no citation from SYSTEM_IMPLEMENTATION_RECORD_v1.md confirming that Layer-2 implementation state matches canonical record. This is the role-matched canonical source per CLAUDE.md \u00a72.2 for implementation-state claims. Without it, any classification of this claim is unsettled. Constitutes a source-authority conflict \u2014 role-matched source was not cited.",
+        "source_documents": [
+          "SYSTEM_IMPLEMENTATION_RECORD_v1.md",
+          "audit_summary",
+          "doc_code_sync_status"
+        ],
+        "proposed_old_state": null,
+        "proposed_new_state": null,
+        "confidence": "high"
+      },
+      {
+        "entry_id": "s3-runtime-boundary-compliance",
+        "section": "Section 3 \u2014 Current Layer-2 Contract Items",
+        "claim_or_topic": "Execution boundary integrity \u2014 no runtime boundary violations",
+        "change_type": "contradiction_note",
+        "reason": "audit_summary finding: boundary_violation_suspected signal detected in runtime_boundary_verdict. This creates a direct contradiction with any matrix entry classifying execution boundary compliance as verified or current-state documented. Per DR-2, blocked guard attempts flow into contradiction check only \u2014 not classification updates. Contradiction must be surfaced unresolved; investigation required per RP-5 before this entry can be settled. Applies also to any Section 6 publication-event entry that assumes boundary compliance.",
+        "source_documents": [
+          "audit_summary",
+          "change_impact_report",
+          "SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md"
+        ],
+        "proposed_old_state": null,
+        "proposed_new_state": null,
+        "confidence": "high"
+      },
+      {
+        "entry_id": "s3-phase-alignment-gate",
+        "section": "Section 3 \u2014 Current Layer-2 Contract Items",
+        "claim_or_topic": "Phase alignment \u2014 DAG gate allowed status",
+        "change_type": "status_review",
+        "reason": "phase_alignment_status reports allowed=false with alignment_status=ambiguous_requires_block. Claim ID namespace mismatch (c1-c8 vs C-001-C-007) per RP-4 prevents phase confirmation of the full claim set. Any matrix entry asserting phase alignment is confirmed must be flagged for review. Cannot reclassify until RP-4 namespace reconciliation is complete.",
+        "source_documents": [
+          "audit_summary",
+          "SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md"
+        ],
+        "proposed_old_state": null,
+        "proposed_new_state": null,
+        "confidence": "high"
+      },
+      {
+        "entry_id": "s6-publication-event-boundary",
+        "section": "Section 6 \u2014 Publication Event Classification",
+        "claim_or_topic": "Snapshot publication event \u2014 execution boundary compliance classification",
+        "change_type": "status_review",
+        "reason": "boundary_violation_suspected signal (audit_summary) and contract_compliance_verdict=ambiguous_requires_block mean publication-event classifications that assume boundary compliance cannot be confirmed. Downstream from s3-runtime-boundary-compliance contradiction. Must be held at status_review pending RP-5 resolution.",
+        "source_documents": [
+          "audit_summary",
+          "change_impact_report"
+        ],
+        "proposed_old_state": null,
+        "proposed_new_state": null,
+        "confidence": "medium"
+      },
+      {
+        "entry_id": "s8-governance-workflow-artifacts",
+        "section": "Section 8 \u2014 Document Role Classification",
+        "claim_or_topic": "Governance workflow artifacts \u2014 verification_ledger and governance_workflow tracking in matrix",
+        "change_type": "status_review",
+        "reason": "change_impact_report lists verification_ledger and governance_workflow as impacted components. If these artifacts are not currently tracked as entries in Section 8, a gap exists in the document role classification. Cannot confirm add_new_entry without reading current matrix state (inference_used). Requires manual review to determine if entries are missing.",
+        "source_documents": [
+          "change_impact_report",
+          "doc_code_sync_status"
+        ],
+        "proposed_old_state": null,
+        "proposed_new_state": null,
+        "confidence": "medium"
+      }
+    ],
+    "required_follow_up": [
+      "RP-1: Provide explicit citations from SYSTEM_IMPLEMENTATION_RECORD_v1.md confirming SP500 history gap fix completion. Prerequisite for s3-sp500-history-gap-fix status_review resolution.",
+      "RP-2: Enumerate specific Layer-2 TODO items and provide per-item citations from SYSTEM_IMPLEMENTATION_RECORD_v1.md confirming closure. Prerequisite for s3-layer2-todo-completion status_review resolution.",
+      "RP-3: Provide citation from SYSTEM_IMPLEMENTATION_RECORD_v1.md confirming Layer-2 implementation state matches canonical record. Prerequisite for s3-layer2-implementation-record-alignment status_review resolution.",
+      "RP-4: Reconcile claim ID namespace mismatch (c1-c8 vs C-001-C-007). Establish explicit mapping to unblock phase alignment gate. Prerequisite for s3-phase-alignment-gate status_review resolution.",
+      "RP-5: Investigate and resolve boundary_violation_suspected signal. Prerequisite for s3-runtime-boundary-compliance contradiction_note and s6-publication-event-boundary status_review resolution.",
+      "Section 8 audit: Read current DOCUMENTATION_VERIFICATION_MATRIX_v1.md Section 8 to confirm whether verification_ledger and governance_workflow entries exist; add if missing (DR-7)."
+    ],
+    "unresolved_conflicts": [
+      {
+        "conflict_id": "UC-1",
+        "description": "boundary_violation_suspected (runtime_boundary_verdict) vs any entry asserting execution boundary compliance as verified or documented current-state. Cannot be resolved without RP-5 investigation.",
+        "affected_entries": [
+          "s3-runtime-boundary-compliance",
+          "s6-publication-event-boundary"
+        ],
+        "resolution_path": "RP-5"
+      },
+      {
+        "conflict_id": "UC-2",
+        "description": "Claim ID namespace mismatch (classify-claims: c1-c8 vs route-claims-by-role: C-001-C-007) prevents traceable phase alignment confirmation. Affects phase gate classification posture.",
+        "affected_entries": [
+          "s3-phase-alignment-gate"
+        ],
+        "resolution_path": "RP-4"
+      },
+      {
+        "conflict_id": "UC-3",
+        "description": "Three implementation-state claims (C-001 SP500 fix, C-002 TODO completion, C-003b record alignment) were evaluated without citation to SYSTEM_IMPLEMENTATION_RECORD_v1.md \u2014 the role-matched canonical source per CLAUDE.md \u00a72.2. Source authority conflict per DR-5 prevents settled classification updates.",
+        "affected_entries": [
+          "s3-sp500-history-gap-fix",
+          "s3-layer2-todo-completion",
+          "s3-layer2-implementation-record-alignment"
+        ],
+        "resolution_path": "RP-1, RP-2, RP-3"
+      }
+    ],
+    "notes": [
+      "matrix_action=review_only: DAG is blocked (dag_advancement_blocked=true, 5 unresolved blocking violations). All 5 resolution prerequisites (RP-1 through RP-5) must be resolved before any settled classification update (matrix_action=update) can be issued. Fail-closed per DR-8 and CLAUDE.md \u00a77.",
+      "runtime_status_upgrade_blocked=true: Applies to entries s3-sp500-history-gap-fix, s3-layer2-todo-completion, s3-layer2-implementation-record-alignment. All three involve implementation-state claims supported by doc-level assertions only. DR-1 blocks runtime status upgrades without code-level verification.",
+      "source_authority_conflict_detected=true: Role-matched canonical source (SYSTEM_IMPLEMENTATION_RECORD_v1.md) was not cited for three implementation-state claims. Per DR-5, source authority conflict prevents settled updates. Per DR-3, upgrading to 'Verified in current documentation set' requires all Tier 1 docs consistent.",
+      "classification_dispute_detected=true: boundary_violation_suspected creates a direct dispute with any entry asserting boundary compliance. Claim namespace mismatch creates a dispute about phase alignment classification. Both must be resolved through their respective RP paths.",
+      "inference_used=true: DOCUMENTATION_VERIFICATION_MATRIX_v1.md could not be read (tool unavailable). Specific entry IDs (s3-*, s6-*, s8-*) are inferred from upstream signals and canonical section structure. Manual review required to confirm exact entry names, current classifications, and whether Section 8 entries for governance workflow artifacts already exist.",
+      "README_LAYER2.md is listed as impacted but no README_LAYER2-specific authority conflict was identified from upstream signals beyond general drift. DR-6 not triggered."
+    ]
+  }
+}

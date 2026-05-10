@@ -1,0 +1,85 @@
+{
+  "artifact": "contract_compliance_verdict",
+  "produced_by": "snapshot-contract-check",
+  "session": "f659ab4f-8570-4271-b707-22204ad9dabb",
+  "timestamp": "2026-05-09T22:09:15.352862Z",
+  "data": {
+    "produced_by": "snapshot-contract-check",
+    "allowed": false,
+    "contract_status": "ambiguous_requires_block",
+    "valid_interface": "none",
+    "forbidden_access_detected": false,
+    "snapshot_anchor_required": null,
+    "blocking_reason_if_any": "Upstream phase_alignment_status is ambiguous_requires_block and role_citation_verdict is conflict_requires_block. Claim texts for C-001, C-002, C-003b are absent from upstream artifacts; snapshot contract relevance of those claims cannot be assessed. In strict mode, ambiguity requires block per B8 (SCC-1). Fail-closed principle (CLAUDE.md \u00a77) applies: no claim set can be confirmed contract-safe when blocking upstream conditions are unresolved and claim content is unavailable for direct invariant mapping.",
+    "checked_claims": [
+      {
+        "claim_id": "scc-eval-1",
+        "claim_text": "Phase alignment returned ambiguous_requires_block: role_mismatch_detected=true upstream, c2 completeness unverified against SYSTEM_IMPLEMENTATION_RECORD_v1.md, and claim ID namespace mismatch (c1\u2013c8 vs C-004\u2013C-007) prevents definitive phase-to-claim mapping.",
+        "assessment": "ambiguous",
+        "violated_invariants": [
+          "SCC-6"
+        ],
+        "triggered_forbidden_patterns": [],
+        "valid_interface_if_compliant": "none",
+        "reason": "SCC-6 states handoff gate satisfaction does not relax any invariant. With phase alignment itself ambiguous and blocked, contract invariants cannot be confirmed satisfied for the underlying request. Strict mode promotes ambiguous to blocked.",
+        "contract_reference": [
+          "SCC-6",
+          "B8"
+        ]
+      },
+      {
+        "claim_id": "scc-eval-2",
+        "claim_text": "Role citation verdict blocks C-001, C-002, C-003b. Claim texts for these three blocked claims are not present in upstream artifacts; whether they assert Layer-3 observation access, snapshot bypass, or DecisionPacket construction is unknown.",
+        "assessment": "ambiguous",
+        "violated_invariants": [],
+        "triggered_forbidden_patterns": [],
+        "valid_interface_if_compliant": "none",
+        "reason": "Without claim texts it is impossible to determine whether C-001, C-002, or C-003b make contract-relevant assertions (e.g., Layer-3 read paths, observation access, snapshot identity anchoring). Conservative inference is mandatory under strict mode. Promotes to blocked per B8.",
+        "contract_reference": [
+          "SCC-1",
+          "B8"
+        ]
+      },
+      {
+        "claim_id": "scc-eval-3",
+        "claim_text": "Claim ID namespace mismatch between upstream artifacts (c1\u2013c8 in phase_alignment_status vs C-004\u2013C-007 in role_citation_verdict) prevents deterministic cross-artifact claim mapping; roles governing individual claims cannot be reliably resolved.",
+        "assessment": "ambiguous",
+        "violated_invariants": [],
+        "triggered_forbidden_patterns": [],
+        "valid_interface_if_compliant": "none",
+        "reason": "Deterministic contract mapping requires unambiguous claim identity across artifact chain. Namespace mismatch introduces unresolvable ambiguity in which canonical role governs which contract-relevant claim. Strict mode promotes to blocked per B8.",
+        "contract_reference": [
+          "SCC-1",
+          "B8"
+        ]
+      },
+      {
+        "claim_id": "scc-eval-4",
+        "claim_text": "phase_alignment_status.snapshot_boundary_risk = false and scope_exceeds_current_allowance = false as assessed by the phase-check agent.",
+        "assessment": "compliant",
+        "violated_invariants": [],
+        "triggered_forbidden_patterns": [],
+        "valid_interface_if_compliant": "none",
+        "reason": "Phase check explicitly flagged no snapshot boundary risk and no scope excess. This is a positive signal: no active SCC-1 through SCC-5 violation was positively detected at the phase-check level. However, this alone is insufficient to clear the overall verdict given the ambiguity in claim content and upstream blocks.",
+        "contract_reference": []
+      }
+    ],
+    "summary": {
+      "raw_observations_access_risk": false,
+      "snapshot_bypass_risk": false,
+      "layer2_storage_touch_risk": false,
+      "decisionpacket_anchor_risk": false,
+      "followup_guard_recommended": true
+    },
+    "upstream_block_inherited": true,
+    "inherited_from": [
+      "phase_alignment_status",
+      "role_citation_verdict"
+    ],
+    "escalation_required": true,
+    "escalation_target": "snapshot-boundary-auditor",
+    "notes": "No active SCC-1\u2013SCC-5 violations were positively detected: phase_alignment_status.snapshot_boundary_risk=false reduces likelihood of a live raw-observations access or snapshot bypass in the underlying request. However, claim texts for C-001/C-002/C-003b are absent and cannot be mapped to contract invariants. The overall contract verdict cannot be cleared to compliant until: (1) blocked claims C-001, C-002, C-003b are resolved per CLAUDE.md \u00a72.4 and their content verified against the invariant table; (2) claim ID namespace mismatch is reconciled so cross-artifact mapping is deterministic; (3) c2 completeness is independently verified against SYSTEM_IMPLEMENTATION_RECORD_v1.md. Escalation to snapshot-boundary-auditor is procedurally required under ambiguous_requires_block propagation in strict mode and fail-closed principle (CLAUDE.md \u00a77).",
+    "mode_applied": "strict",
+    "scope_applied": "request-and-contract"
+  }
+}

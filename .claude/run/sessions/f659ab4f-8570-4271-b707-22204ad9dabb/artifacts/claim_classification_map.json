@@ -1,0 +1,173 @@
+{
+  "artifact": "claim_classification_map",
+  "produced_by": "classify-claims",
+  "session": "f659ab4f-8570-4271-b707-22204ad9dabb",
+  "timestamp": "2026-05-09T22:02:37.726466Z",
+  "data": {
+    "produced_by": "classify-claims",
+    "run_id": "f659ab4f-8570-4271-b707-22204ad9dabb",
+    "request_id": "layer2-doc-sync-after-sp500-and-todo-closure-2026-05-09",
+    "request_classification": {
+      "request_type": "documentation_synchronization_and_verification",
+      "claims": [
+        {
+          "claim_id": "c1",
+          "claim_text": "SP500 history gap fix has been completed",
+          "claim_scope": "current-state",
+          "evidence_class": "documented_current_state_claim",
+          "source_priority": [
+            "SYSTEM_IMPLEMENTATION_RECORD_v1.md",
+            "SYSTEM_TECHNICAL_HANDBOOK_v1.md",
+            "DOCUMENTATION_VERIFICATION_MATRIX_v1.md"
+          ],
+          "confidence_level": "medium",
+          "classification_rationale": "Code-level evidence supports this claim: spy_adapter.py is present in the adapter inventory, sp500_proxy_detected is false in the series registry scan (indicating no proxy workaround), and recent git commits reference 'SP500 correction plan'. However, canonical document verification could not be performed directly in this classification pass \u2014 the implementation record and verification matrix must be consulted to confirm this claim is documented as complete. Classified as documented_current_state_claim rather than verified_in_current_documentation_set because cross-document alignment has not been confirmed.",
+          "notes": [
+            "Code evidence: spy_adapter.py present, sp500_proxy_detected=false",
+            "Git evidence: recent commits reference SP500 correction plan",
+            "Canonical doc alignment not yet independently verified"
+          ]
+        },
+        {
+          "claim_id": "c2",
+          "claim_text": "Remaining Layer-2 TODO items have been completed",
+          "claim_scope": "current-state",
+          "evidence_class": "documented_current_state_claim",
+          "source_priority": [
+            "SYSTEM_IMPLEMENTATION_RECORD_v1.md",
+            "README_LAYER2.md",
+            "DOCUMENTATION_VERIFICATION_MATRIX_v1.md"
+          ],
+          "confidence_level": "low",
+          "classification_rationale": "The governance context shows a complete adapter inventory (7 adapters including quality_gate.py and snapshot_publisher.py), no INSERT OR REPLACE violations, a published latest snapshot with guards, and no Layer-3 artifacts present. This is consistent with a completed Layer-2 build. However, the specific list of 'remaining TODO items' was not enumerated in the upstream context, so the completeness claim cannot be fully verified from available evidence. The implementation record must be consulted to determine what TODOs existed and whether each has been addressed. Confidence is low because the claim is broad and the specific TODO inventory is not available in classification inputs.",
+          "notes": [
+            "Adapter inventory: 7 adapters present, no violations",
+            "Snapshot: published with guards, engine gold-v3.3.0",
+            "Specific TODO list not available in classification inputs",
+            "Downstream verification must enumerate and confirm each TODO"
+          ]
+        },
+        {
+          "claim_id": "c3",
+          "claim_text": "Canonical documentation requires alignment update to match implemented Layer-2 state",
+          "claim_scope": "current-state",
+          "evidence_class": "documented_current_state_claim",
+          "source_priority": [
+            "SYSTEM_IMPLEMENTATION_RECORD_v1.md",
+            "DOCUMENTATION_VERIFICATION_MATRIX_v1.md",
+            "SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md",
+            "README_LAYER2.md"
+          ],
+          "confidence_level": "high",
+          "classification_rationale": "If c1 and c2 are confirmed, then documentation alignment is a required governance obligation under CLAUDE.md \u00a711: 'Any contract-affecting change MUST trigger' review of all canonical documents. The request to produce a documentation update plan and verification deltas is a standard governance operation. The claim that docs need alignment is inherently current-state \u2014 it describes the present relationship between implementation and documentation.",
+          "notes": [
+            "Governed by CLAUDE.md \u00a711 (document update obligations)",
+            "Standard governance operation, not a structural change"
+          ]
+        },
+        {
+          "claim_id": "c4",
+          "claim_text": "Verification deltas are needed to reflect the implemented changes",
+          "claim_scope": "current-state",
+          "evidence_class": "documented_current_state_claim",
+          "source_priority": [
+            "DOCUMENTATION_VERIFICATION_MATRIX_v1.md",
+            "SYSTEM_IMPLEMENTATION_RECORD_v1.md"
+          ],
+          "confidence_level": "high",
+          "classification_rationale": "Verification deltas are a direct consequence of documentation synchronization. The verification matrix exists as the canonical cross-document consistency map (CLAUDE.md \u00a72.2). Any documentation update affecting implementation state must update the matrix. This is a procedural requirement, not a substantive claim.",
+          "notes": [
+            "Procedural governance requirement, not a truth claim",
+            "DOCUMENTATION_VERIFICATION_MATRIX_v1.md is the role-matched source"
+          ]
+        },
+        {
+          "claim_id": "c5",
+          "claim_text": "Layer-3 is NOT implemented (explicit guard in request)",
+          "claim_scope": "current-state",
+          "evidence_class": "verified_in_current_documentation_set",
+          "source_priority": [
+            "SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md",
+            "SYSTEM_IMPLEMENTATION_RECORD_v1.md"
+          ],
+          "confidence_level": "high",
+          "classification_rationale": "CLAUDE.md \u00a73.2 explicitly lists Layer-3 components (Feature Builder, Index Suite, Regime Gate, Supervisor Engine, Decision Engine, Execution Layer) as 'planned only'. \u00a74 confirms Phase B is 'allowed, not completed' and Phase C/D are future/blocked. The governance context code scan confirms layer3_execution_artifacts_absent=true and layer3_runtime_absent=true. The request explicitly reinforces this guard. Strong cross-source alignment with no contradictions.",
+          "notes": [
+            "CLAUDE.md \u00a73.2, \u00a74, \u00a710 all align",
+            "Code scan: layer3_execution_artifacts_absent=true, layer3_runtime_absent=true",
+            "Request explicitly reinforces this constraint"
+          ]
+        },
+        {
+          "claim_id": "c6",
+          "claim_text": "Live execution is NOT ready (explicit guard in request)",
+          "claim_scope": "current-state",
+          "evidence_class": "verified_in_current_documentation_set",
+          "source_priority": [
+            "SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md",
+            "SYSTEM_TECHNICAL_HANDBOOK_v1.md"
+          ],
+          "confidence_level": "high",
+          "classification_rationale": "CLAUDE.md \u00a79 declares the system is 'analysis-only' and explicitly forbids automated trading, signal execution, decision triggering, and order generation. \u00a74 confirms Phase D (Live Execution Gate) is 'blocked'. \u00a710 lists 'Execution is available' as a forbidden claim. The request explicitly reinforces this guard. No contradicting evidence exists.",
+          "notes": [
+            "CLAUDE.md \u00a79 (execution boundary), \u00a74 (Phase D blocked), \u00a710 (forbidden claims)",
+            "Request explicitly reinforces this constraint"
+          ]
+        },
+        {
+          "claim_id": "c7",
+          "claim_text": "Layer-2 / Layer-3 canonical terminology must be preserved",
+          "claim_scope": "current-state",
+          "evidence_class": "verified_in_current_documentation_set",
+          "source_priority": [
+            "SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md",
+            "SYSTEM_IMPLEMENTATION_RECORD_v1.md"
+          ],
+          "confidence_level": "high",
+          "classification_rationale": "CLAUDE.md \u00a716.1 requires that terminology changes follow the constitutional amendment rule. The request explicitly states this is NOT a semantic rename or constitutional amendment, which means existing terminology must be preserved as-is. Layer-2 and Layer-3 are constitutional vocabulary embedded throughout CLAUDE.md and all canonical documents. No amendment is triggered.",
+          "notes": [
+            "CLAUDE.md \u00a716.1 constitutional amendment rule not triggered",
+            "Request explicitly scopes this as documentation sync, not rename"
+          ]
+        },
+        {
+          "claim_id": "c8",
+          "claim_text": "This request is a documentation synchronization and verification operation, not a constitutional amendment",
+          "claim_scope": "current-state",
+          "evidence_class": "verified_in_current_documentation_set",
+          "source_priority": [
+            "SYSTEM_IMPLEMENTATION_RECORD_v1.md",
+            "DOCUMENTATION_VERIFICATION_MATRIX_v1.md"
+          ],
+          "confidence_level": "high",
+          "classification_rationale": "The request explicitly frames itself as documentation synchronization governed by CLAUDE.md \u00a711 (document update obligations). It does not propose changes to CLAUDE.md itself, does not alter architectural terminology, and does not modify snapshot contracts or phase gates. The constitutional amendment rule (\u00a716.1) is not triggered. This classification is self-consistent with the request's own framing and the governance rules.",
+          "notes": [
+            "CLAUDE.md \u00a711 governs documentation update obligations",
+            "\u00a716.1 amendment rule not triggered by documentation sync",
+            "Request framing is consistent with governance rules"
+          ]
+        }
+      ],
+      "summary": {
+        "dominant_scope": "current-state",
+        "needs_phase_check": true,
+        "touches_current_truth": true,
+        "touches_target_architecture": false,
+        "touches_historical_reconciliation": false,
+        "touches_verification_matrix": true,
+        "touches_snapshot_contract": false,
+        "possible_blocking_conditions": [
+          "c2_todo_completeness_not_independently_verified"
+        ]
+      }
+    },
+    "classification_notes": [
+      "All claims are current-state scoped. No target-state or historical claims detected.",
+      "Claims c5-c8 are explicit guards and framing constraints with high confidence \u2014 these constrain downstream work.",
+      "Claims c1-c2 are the substantive implementation-completion claims that require downstream verification against SYSTEM_IMPLEMENTATION_RECORD_v1.md.",
+      "c2 has low confidence because the specific TODO inventory was not enumerated in the upstream governance context. Downstream steps must enumerate and verify each TODO item before treating completeness as confirmed.",
+      "No Layer-3 promotion, live execution readiness, or terminology changes detected. No blocking conditions from hard project heuristics.",
+      "One soft blocking condition flagged: c2 TODO completeness requires enumeration and per-item verification."
+    ]
+  }
+}

@@ -80,7 +80,17 @@
       "Bash(find /c/Code/Mr-Ripley/.claude/run -type f -name *.py)",
       "Bash(find /c/Code/Mr-Ripley/governance/steps -type f -name *.py)",
       "Bash(find /c/Code/Mr-Ripley/.claude/run -type f -name *.json)",
-      "Bash(sort -t: -k2 -nr)"
+      "Bash(sort -t: -k2 -nr)",
+      "Bash(pip list:*)",
+      "Bash(pip install:*)",
+      "Bash(pytest tests/governance/test_governance_context.py -v --tb=short)",
+      "Bash(PYTHONPATH=\".\" pytest tests/governance/test_governance_context.py -v --tb=short)",
+      "Bash(PYTHONPATH=\".\" pytest tests/governance/test_prompt_assembly.py -v --tb=short)",
+      "Bash(PYTHONPATH=\".\" pytest tests/ -v --tb=short)",
+      "Bash(PYTHONPATH=\".\" python -m governance.dag_runner.cli --dry-run --json)",
+      "Bash(PYTHONPATH=\".\" python -m governance.dag_runner.cli --mode agent_execution --backend mock --write-state --json)",
+      "Bash(PYTHONPATH=\".\" python -m governance.dag_runner.cli --mode agent_execution --backend mock --write-state --json --request-text \"Test doc sync\")",
+      "Bash(PYTHONPATH=\".\" python -c \":*)"
     ]
   }
 }

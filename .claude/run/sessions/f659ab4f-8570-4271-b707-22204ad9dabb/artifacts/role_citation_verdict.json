@@ -1,0 +1,202 @@
+{
+  "artifact": "role_citation_verdict",
+  "produced_by": "route-claims-by-role",
+  "session": "f659ab4f-8570-4271-b707-22204ad9dabb",
+  "timestamp": "2026-05-09T22:06:53.980194Z",
+  "data": {
+    "produced_by": "route-claims-by-role",
+    "role_matched_citation_status": {
+      "overall_status": "conflict_requires_block",
+      "inference_used": true,
+      "inference_reason": "claim_classification_map contains only produced_by metadata; no classified claims were provided by upstream classify-claims step. Claims inferred directly from request_text in governance_context.",
+      "source_authority_conflict_detected": false,
+      "checked_claims": [
+        {
+          "claim_id": "C-001",
+          "claim_text": "The SP500 history gap fix has been completed (implied by 'after completion of the SP500 history gap fix').",
+          "claim_type": "implementation",
+          "required_primary_source": "SYSTEM_IMPLEMENTATION_RECORD_v1.md",
+          "provided_sources": [],
+          "role_match": false,
+          "strong_claim": true,
+          "explicit_citation_required": true,
+          "conflict_detected": false,
+          "blocking_condition_if_any": "Strong implementation-state claim asserted with no citation to SYSTEM_IMPLEMENTATION_RECORD_v1.md. Rule D2 applies: strong claims without role-matched citation must be blocked.",
+          "verdict": "conflict_requires_block",
+          "reason": "Completion of the SP500 history gap fix is an implementation-state claim. Its truth must be traceable to SYSTEM_IMPLEMENTATION_RECORD_v1.md. No citation or reference to that document is present in the upstream input. CLAUDE.md \u00a716 forbids treating this as non-binding without canonical traceability.",
+          "notes": "Before any documentation update plan is produced on the basis of this claim, the completing entry for SP500 history gap fix must be located in SYSTEM_IMPLEMENTATION_RECORD_v1.md and cited explicitly. CLAUDE.md \u00a710 prohibits assuming implementation is realized without proof."
+        },
+        {
+          "claim_id": "C-002",
+          "claim_text": "Remaining Layer-2 TODO items have been completed (implied by 'after completion of... the remaining Layer-2 TODO items').",
+          "claim_type": "implementation",
+          "required_primary_source": "SYSTEM_IMPLEMENTATION_RECORD_v1.md",
+          "provided_sources": [],
+          "role_match": false,
+          "strong_claim": true,
+          "explicit_citation_required": true,
+          "conflict_detected": false,
+          "blocking_condition_if_any": "Strong implementation-state claim asserted with no citation to SYSTEM_IMPLEMENTATION_RECORD_v1.md. Rule D2 applies.",
+          "verdict": "conflict_requires_block",
+          "reason": "Completion of 'remaining Layer-2 TODO items' is an implementation-state claim. SYSTEM_IMPLEMENTATION_RECORD_v1.md is the role-matched canonical source for what is actually implemented and realized. No such source is cited. Without traceability, this claim cannot serve as a valid basis for producing a documentation update.",
+          "notes": "README_LAYER2.md may reference TODO items and their status, but may not override SYSTEM_IMPLEMENTATION_RECORD_v1.md on implementation-state claims (CLAUDE.md \u00a72.4 critical rule). Any TODO closure evidence in README_LAYER2.md is supporting evidence only \u2014 not primary citation."
+        },
+        {
+          "claim_id": "C-003",
+          "claim_text": "Layer-2 is in an implemented, operational state aligned with current canonical documentation.",
+          "claim_type": "mixed",
+          "subclaims": [
+            {
+              "subclaim_id": "C-003a",
+              "claim_text": "Layer-2 is operational at snapshot boundary.",
+              "claim_type": "architecture",
+              "required_primary_source": "SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md",
+              "provided_sources": [
+                "CLAUDE.md \u00a73.1 (Phase A complete), \u00a74 (Phase A \u2014 Layer 2 Closure: complete at contract boundary)"
+              ],
+              "role_match": true,
+              "strong_claim": true,
+              "explicit_citation_required": true,
+              "conflict_detected": false,
+              "blocking_condition_if_any": null,
+              "verdict": "review_only",
+              "reason": "CLAUDE.md \u00a73.1 and \u00a74 confirm Phase A closure at the constitutional level, which is a sufficient corroborating source for the architectural state. However, SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md remains the role-matched primary for strong architecture claims. Constitutional confirmation provides sufficient basis for review but the primary source should still be explicitly cited in any produced documentation.",
+              "notes": "Constitutional-level confirmation is acceptable as corroboration; SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md must appear as the primary citation in any documentation update claims about Layer-2 operational state."
+            },
+            {
+              "subclaim_id": "C-003b",
+              "claim_text": "Layer-2 implementation is realized as described in the canonical record.",
+              "claim_type": "implementation",
+              "required_primary_source": "SYSTEM_IMPLEMENTATION_RECORD_v1.md",
+              "provided_sources": [],
+              "role_match": false,
+              "strong_claim": true,
+              "explicit_citation_required": true,
+              "conflict_detected": false,
+              "blocking_condition_if_any": "No citation to SYSTEM_IMPLEMENTATION_RECORD_v1.md provided for implementation-state assertion. Rule D2 applies.",
+              "verdict": "conflict_requires_block",
+              "reason": "The claim that Layer-2 implementation matches the canonical record requires traceability to SYSTEM_IMPLEMENTATION_RECORD_v1.md, which records what is actually implemented and realized.",
+              "notes": "Phase A architectural closure (CLAUDE.md \u00a74) does not substitute for SYSTEM_IMPLEMENTATION_RECORD_v1.md as the implementation-state citation. Architecture boundary closure \u2260 implementation record verification."
+            }
+          ],
+          "verdict": "conflict_requires_block",
+          "reason": "Mixed claim decomposed into C-003a (review_only) and C-003b (conflict_requires_block). Overall verdict is most severe subclaim verdict.",
+          "notes": "Rule D6: mixed claims must be decomposed before verdict. Applied."
+        },
+        {
+          "claim_id": "C-004",
+          "claim_text": "Layer-3 is NOT implemented. (Explicit negative constraint in request: 'Do not claim that Layer-3 is implemented.')",
+          "claim_type": "implementation",
+          "required_primary_source": "SYSTEM_IMPLEMENTATION_RECORD_v1.md",
+          "provided_sources": [
+            "CLAUDE.md \u00a73.2 (Target Architecture, NOT YET BUILT)",
+            "CLAUDE.md \u00a74 (Phase B allowed, not completed; Phase C future)",
+            "CLAUDE.md \u00a710 (forbidden claims list)"
+          ],
+          "role_match": true,
+          "strong_claim": true,
+          "explicit_citation_required": true,
+          "conflict_detected": false,
+          "blocking_condition_if_any": null,
+          "verdict": "compliant",
+          "reason": "The negative claim (Layer-3 is not implemented) is explicitly supported by CLAUDE.md \u00a73.2, \u00a74, and \u00a710 at the constitutional level. This aligns with the role-matched interpretation: SYSTEM_IMPLEMENTATION_RECORD_v1.md would confirm absence of Layer-3 realization, and constitutional sources confirm Layer-3 as planned-only. The request respects this constraint rather than violating it.",
+          "notes": "No conflict detected. This claim is constitutionally anchored and the request correctly preserves this boundary. Any documentation update produced must not introduce contrary assertions."
+        },
+        {
+          "claim_id": "C-005",
+          "claim_text": "Live execution readiness is NOT claimed. (Explicit negative constraint in request: 'Do not claim live execution readiness.')",
+          "claim_type": "mixed",
+          "subclaims": [
+            {
+              "subclaim_id": "C-005a",
+              "claim_type": "readiness",
+              "required_primary_source": "SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md",
+              "provided_sources": [
+                "CLAUDE.md \u00a74 (Phase D blocked)",
+                "CLAUDE.md \u00a79 (execution boundary)"
+              ],
+              "verdict": "compliant",
+              "reason": "Phase D (Live Execution Gate) is constitutionally blocked. The request's constraint aligns with CLAUDE.md \u00a74."
+            },
+            {
+              "subclaim_id": "C-005b",
+              "claim_type": "limitation",
+              "required_primary_source": "SYSTEM_LIMITATIONS_AND_APPROXIMATIONS_v1.md",
+              "provided_sources": [
+                "CLAUDE.md \u00a79 (execution boundary), \u00a710 (forbidden claims)"
+              ],
+              "verdict": "compliant",
+              "reason": "Execution boundary and execution readiness are addressed in \u00a79/\u00a710. SYSTEM_LIMITATIONS_AND_APPROXIMATIONS_v1.md remains the role-matched primary for limitation claims and should be cited in the produced documentation update."
+            }
+          ],
+          "verdict": "compliant",
+          "reason": "Both subclaims are constitutionally anchored. The request correctly respects execution boundary constraints.",
+          "notes": "Any documentation update plan produced must cite SYSTEM_LIMITATIONS_AND_APPROXIMATIONS_v1.md for limitation-type claims about execution readiness."
+        },
+        {
+          "claim_id": "C-006",
+          "claim_text": "Layer-2 and Layer-3 are canonical terminology that must be preserved.",
+          "claim_type": "governance",
+          "required_primary_source": "CLAUDE.md + system-orchestration.yaml",
+          "provided_sources": [
+            "CLAUDE.md \u00a71 (Layer 2/Layer 3 terminology used throughout)",
+            "CLAUDE.md \u00a73.1\u20133.2 (Layer 2 current, Layer 3 target)",
+            "CLAUDE.md \u00a716.1 (alias rules \u2014 canonical terms must be preserved as primary identifiers)"
+          ],
+          "role_match": true,
+          "strong_claim": true,
+          "explicit_citation_required": true,
+          "conflict_detected": false,
+          "blocking_condition_if_any": null,
+          "verdict": "compliant",
+          "reason": "Layer-2 and Layer-3 are constitutional vocabulary embedded in CLAUDE.md \u00a71, \u00a73, \u00a74, and \u00a716.1. The request to preserve these terms is constitutionally grounded.",
+          "notes": "CLAUDE.md \u00a716.1 requires canonical terms to be the primary identifiers in all constitutional and canonical documents. Any non-canonical aliases introduced in the documentation update must be registered per \u00a716.1(b)-(d) and must not replace the canonical terms."
+        },
+        {
+          "claim_id": "C-007",
+          "claim_text": "This request constitutes a documentation synchronization and verification exercise, not a semantic rename or constitutional amendment.",
+          "claim_type": "governance",
+          "required_primary_source": "CLAUDE.md \u00a716.1",
+          "provided_sources": [
+            "Request text (self-classification)",
+            "CLAUDE.md \u00a716.1 (constitutional amendment rule)"
+          ],
+          "role_match": true,
+          "strong_claim": true,
+          "explicit_citation_required": true,
+          "conflict_detected": false,
+          "blocking_condition_if_any": null,
+          "verdict": "review_only",
+          "reason": "The self-classification of the request as 'documentation synchronization and verification' rather than a constitutional amendment is plausible given the stated scope (aligning canonical docs with implemented Layer-2 state). However, whether any produced documentation update plan triggers \u00a716.1 amendment obligations cannot be confirmed without reviewing the actual proposed changes. If any change modifies a term, removes a canonical section, or alters a defined constraint, \u00a716.1 applies regardless of this classification.",
+          "notes": "The DOCUMENTATION_VERIFICATION_MATRIX_v1.md is the role-matched source for documentation consistency claims. CLAUDE.md \u00a711 defines document update obligations for contract-affecting changes. If the documentation update plan touches any contract-affecting items, all \u00a711 obligations apply. This verdict defers to post-plan review."
+        }
+      ],
+      "summary": {
+        "role_mismatch_detected": true,
+        "canonical_conflict_unresolved": false,
+        "readme_layer2_used_as_override": false,
+        "requires_conflict_note": false,
+        "requires_doc_sync_escalation": false,
+        "recommended_guard_action": "block",
+        "blocking_claims": [
+          "C-001",
+          "C-002",
+          "C-003b"
+        ],
+        "block_reason": "Three strong implementation-state claims (SP500 fix completion, Layer-2 TODO completion, Layer-2 implementation record alignment) are asserted without citation to SYSTEM_IMPLEMENTATION_RECORD_v1.md. Rule D2 mandates block for strong claims without role-matched citation. Per CLAUDE.md \u00a716, claims not traceable to canonical sources or proven from implementation must be treated as unverified and non-binding. A documentation update plan produced on the basis of unverified implementation claims would itself be non-compliant.",
+        "resolution_path": "Before this workflow step can produce a passing verdict, the following must be provided: (1) citations from SYSTEM_IMPLEMENTATION_RECORD_v1.md confirming SP500 history gap fix completion; (2) citations from SYSTEM_IMPLEMENTATION_RECORD_v1.md confirming Layer-2 TODO item closure; (3) a reference to the specific record entries that establish current Layer-2 implementation state. README_LAYER2.md may be used as supporting evidence for collaborator-workflow context but cannot substitute as the primary citation for implementation-state claims.",
+        "compliant_claims": [
+          "C-004",
+          "C-005",
+          "C-006"
+        ],
+        "review_only_claims": [
+          "C-003a",
+          "C-007"
+        ],
+        "notes": "No README_LAYER2 override misuse detected. No canonical source authority conflict detected between canonical documents. The blocking conditions are strictly citation-gap issues \u2014 the claims may well be true, but they are unverified from role-matched sources in the current upstream artifact set. The overall governance intent of the request (preserve terminology, avoid forbidden claims, treat as doc-sync not amendment) is constitutionally sound. Escalation to canonical-role-auditor is not required at this time; the path to resolution is verification against SYSTEM_IMPLEMENTATION_RECORD_v1.md."
+      },
+      "upstream_artifact_note": "claim_classification_map was received with only produced_by metadata and no classified claims. inference_used is true. All claim types were inferred from request_text in governance_context. If classify-claims step output is available and was omitted, this verdict should be re-run with the full classified claim set."
+    }
+  }
+}

@@ -212,6 +212,8 @@ def test_input_projection_filters_fields(pipeline) -> None:
         "bootstrap_status": "request_bearing",
         "workflow_name": "governance",
         "execution_mode": "agent_execution",
+        "code_context": {"series_registry": {"status": "present"}},
+        "runtime_context": {"layer3_runtime_absent": True},
         "extra_field_1": "should be stripped",
         "extra_field_2": {"nested": "data"},
     }
@@ -220,10 +222,12 @@ def test_input_projection_filters_fields(pipeline) -> None:
         "route-claims-by-role", "governance_context", full_payload,
     )
 
-    # Projected payload should retain only the declared fields
+    # Projected payload should retain declared fields including code/runtime context
     assert "produced_by" in projected
     assert "request_text" in projected
     assert "run_id" in projected
+    assert "code_context" in projected
+    assert "runtime_context" in projected
     assert "extra_field_1" not in projected
     assert "extra_field_2" not in projected
 
@@ -4507,3 +4511,212 @@ def test_assemble_step_prompt_populates_document_contents(pipeline) -> None:
     # document_contents should be a dict (possibly empty if no docs found)
     assert "document_contents" in result
     assert isinstance(result["document_contents"], dict)
+
+
+# ── Claim ID propagation regression tests ──
+
+
+def test_route_claims_by_role_receives_full_claims() -> None:
+    """route-claims-by-role must receive all claim IDs from claim_classification_map.
+
+    Regression: previously the field-list projection stripped the nested
+    request_classification.claims structure, leaving only produced_by metadata.
+    """
+    from governance.dag_runner.prompt_assembly import _project_artifact_payload
+
+    # Simulate the real artifact payload shape
+    full_payload = {
+        "produced_by": "classify-claims",
+        "request_classification": {
+            "request_type": "documentation_synchronization",
+            "claims": [
+                {
+                    "claim_id": "c1",
+                    "claim_text": "SP500 history gap fix completed",
+                    "claim_scope": "current-state",
+                    "evidence_class": "documented_current_state_claim",
+                    "source_priority": ["SYSTEM_IMPLEMENTATION_RECORD_v1.md"],
+                    "classification_rationale": "Long rationale " * 20,
+                    "notes": ["note 1"],
+                },
+                {
+                    "claim_id": "c2",
+                    "claim_text": "Layer-2 TODO items completed",
+                    "claim_scope": "current-state",
+                    "evidence_class": "documented_current_state_claim",
+                    "source_priority": ["SYSTEM_IMPLEMENTATION_RECORD_v1.md"],
+                    "classification_rationale": "Another long rationale " * 20,
+                    "notes": ["note 2"],
+                },
+                {
+                    "claim_id": "c3",
+                    "claim_text": "Documentation requires alignment",
+                    "claim_scope": "current-state",
+                    "evidence_class": "documented_current_state_claim",
+                    "source_priority": ["DOCUMENTATION_VERIFICATION_MATRIX_v1.md"],
+                    "classification_rationale": "Rationale " * 10,
+                },
+            ],
+            "summary": {
+                "dominant_scope": "current-state",
+                "touches_current_truth": True,
+                "touches_target_architecture": False,
+            },
+        },
+        "classification_notes": ["note"],
+    }
+
+    projected = _project_artifact_payload(
+        "route-claims-by-role", "claim_classification_map", full_payload,
+    )
+
+    # Must have request_classification with claims
+    assert "request_classification" in projected, (
+        "request_classification stripped — claim IDs will be lost downstream"
+    )
+    rc = projected["request_classification"]
+    assert "claims" in rc
+    claims = rc["claims"]
+    assert len(claims) == 3
+
+    # All claim IDs must be present
+    claim_ids = [c["claim_id"] for c in claims]
+    assert claim_ids == ["c1", "c2", "c3"]
+
+    # claim_text and source_priority must be preserved
+    assert claims[0]["claim_text"] == "SP500 history gap fix completed"
+    assert "SYSTEM_IMPLEMENTATION_RECORD_v1.md" in claims[0]["source_priority"]
+
+    # classification_rationale should be stripped (verbose)
+    for c in claims:
+        assert "classification_rationale" not in c
+
+    # Summary must be preserved
+    assert rc["summary"]["dominant_scope"] == "current-state"
+
+
+def test_claim_id_contract_section_in_prompt() -> None:
+    """Prompt text includes [CLAIM ID CONTRACT] when upstream claim IDs exist."""
+    from governance.dag_runner.prompt_assembly import build_prompt_text
+
+    context = {
+        "skill_content": "",
+        "agent_instructions": "",
+        "artifact_inputs": {
+            "claim_classification_map": {
+                "produced_by": "classify-claims",
+                "request_classification": {
+                    "claims": [
+                        {"claim_id": "c1", "claim_text": "test"},
+                        {"claim_id": "c2", "claim_text": "test2"},
+                    ],
+                },
+            },
+        },
+        "document_contents": {},
+        "document_paths": [],
+        "expected_outputs": ["role_citation_verdict"],
+        "step_name": "route-claims-by-role",
+    }
+
+    text = build_prompt_text(context)
+    assert "[CLAIM ID CONTRACT]" in text
+    assert "c1, c2" in text
+    assert "Do NOT invent new claim ID schemes" in text
+
+
+def test_no_claim_id_contract_when_no_claims() -> None:
+    """Prompt text does NOT include [CLAIM ID CONTRACT] when no claims upstream."""
+    from governance.dag_runner.prompt_assembly import build_prompt_text
+
+    context = {
+        "skill_content": "",
+        "agent_instructions": "",
+        "artifact_inputs": {
+            "governance_context": {"produced_by": "load-context"},
+        },
+        "document_contents": {},
+        "document_paths": [],
+        "expected_outputs": ["claim_classification_map"],
+        "step_name": "classify-claims",
+    }
+
+    text = build_prompt_text(context)
+    assert "[CLAIM ID CONTRACT]" not in text
+
+
+# ── code_context/runtime_context propagation regression tests ──
+
+
+def test_runtime_boundary_check_receives_code_context(pipeline) -> None:
+    """runtime-boundary-check must receive code_context from governance_context."""
+    spec, _plan, run_state = pipeline
+
+    step = spec.workflow_steps.get("runtime-boundary-check")
+    if step is None:
+        pytest.skip("runtime-boundary-check step not found")
+
+    # Inject a governance_context with code_context into run_state
+    from governance.dag_runner.models import ArtifactRecord
+    run_state.artifacts["governance_context"] = ArtifactRecord(
+        name="governance_context",
+        producer_step="load-context",
+        status="present",
+        payload={
+            "produced_by": "load-context",
+            "code_context": {
+                "series_registry": {"status": "present"},
+                "adapter_inventory": {"status": "present", "adapter_count": 7},
+                "layer2_boundary_checks": {"insert_or_replace_detected": False},
+            },
+            "runtime_context": {
+                "latest_snapshot": {"status": "present", "snapshot_id": "test"},
+                "layer3_runtime_absent": True,
+            },
+        },
+    )
+
+    result = assemble_step_prompt(step, spec, run_state, repo_root=_REPO_ROOT)
+
+    # code_context and runtime_context should be in artifact_inputs
+    assert "code_context" in result["artifact_inputs"], (
+        "code_context not propagated to runtime-boundary-check"
+    )
+    assert "runtime_context" in result["artifact_inputs"], (
+        "runtime_context not propagated to runtime-boundary-check"
+    )
+
+    cc = result["artifact_inputs"]["code_context"]
+    assert cc["adapter_inventory"]["adapter_count"] == 7
+
+    rc = result["artifact_inputs"]["runtime_context"]
+    assert rc["layer3_runtime_absent"] is True
+
+
+def test_adapter_schema_check_receives_code_context(pipeline) -> None:
+    """adapter-schema-check must receive code_context from governance_context."""
+    spec, _plan, run_state = pipeline
+
+    step = spec.workflow_steps.get("adapter-schema-check")
+    if step is None:
+        pytest.skip("adapter-schema-check step not found")
+
+    from governance.dag_runner.models import ArtifactRecord
+    run_state.artifacts["governance_context"] = ArtifactRecord(
+        name="governance_context",
+        producer_step="load-context",
+        status="present",
+        payload={
+            "produced_by": "load-context",
+            "code_context": {
+                "series_registry": {"status": "present", "series_count": 24},
+                "adapter_inventory": {"status": "present"},
+            },
+        },
+    )
+
+    result = assemble_step_prompt(step, spec, run_state, repo_root=_REPO_ROOT)
+
+    assert "code_context" in result["artifact_inputs"], (
+        "code_context not propagated to adapter-schema-check"
+    )

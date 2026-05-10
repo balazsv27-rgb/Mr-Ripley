@@ -1,0 +1,60 @@
+{
+  "artifact": "audit_summary",
+  "produced_by": "deep-audit",
+  "session": "f659ab4f-8570-4271-b707-22204ad9dabb",
+  "timestamp": "2026-05-09T22:11:51.567855Z",
+  "data": {
+    "produced_by": "deep-audit",
+    "audit_action": "blocked",
+    "overall_audit_status": "blocked",
+    "fail_closed_applied": true,
+    "dag_advancement_blocked": true,
+    "dispatched_subagents": [],
+    "blocking_violations_count": 5,
+    "review_required_violations_count": 0,
+    "unresolved_violations_count": 5,
+    "findings": [
+      {
+        "source_artifact": "phase_alignment_status",
+        "signal": "allowed=false",
+        "severity": "blocking",
+        "summary": "phase_alignment_status reports allowed=false (blocked)"
+      },
+      {
+        "source_artifact": "phase_alignment_status",
+        "signal": "alignment_status=ambiguous_requires_block",
+        "severity": "blocking",
+        "summary": "phase_alignment_status reports alignment_status=ambiguous_requires_block"
+      },
+      {
+        "source_artifact": "contract_compliance_verdict",
+        "signal": "allowed=false",
+        "severity": "blocking",
+        "summary": "contract_compliance_verdict reports allowed=false (blocked)"
+      },
+      {
+        "source_artifact": "contract_compliance_verdict",
+        "signal": "contract_status=ambiguous_requires_block",
+        "severity": "blocking",
+        "summary": "contract_compliance_verdict reports contract_status=ambiguous_requires_block"
+      },
+      {
+        "source_artifact": "runtime_boundary_verdict",
+        "signal": "boundary_violation_suspected",
+        "severity": "blocking",
+        "summary": "boundary_violation_suspected detected in runtime_boundary_verdict"
+      }
+    ],
+    "audit_resolution_required": [
+      "phase_alignment_status reports allowed=false (blocked)",
+      "phase_alignment_status reports alignment_status=ambiguous_requires_block",
+      "contract_compliance_verdict reports allowed=false (blocked)",
+      "contract_compliance_verdict reports contract_status=ambiguous_requires_block",
+      "boundary_violation_suspected detected in runtime_boundary_verdict"
+    ],
+    "notes": [
+      "Deterministic synthesis from 8 upstream artifacts.",
+      "Detected 5 escalation signal(s)."
+    ]
+  }
+}

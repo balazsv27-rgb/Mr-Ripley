@@ -88,46 +88,113 @@ def _file_evidence(
 # ---------------------------------------------------------------------------
 
 def _synthesize_series_registry(repo_root: Path) -> dict[str, Any]:
-    """Extract structured evidence from series_registry.json."""
+    """Extract structured evidence from series_registry.json.
+
+    Parses the registry's ``series`` array to extract per-series metadata,
+    tier counts, snapshot inclusion, and SP500/SP500_PROXY status.
+    """
     path = repo_root / "layer2" / "config" / "series_registry.json"
     data = _safe_json(path)
     if data is None:
         return {
             **_file_evidence(path, repo_root, status="missing"),
+            "registry_version": None,
             "series_count": 0,
-            "series_names": [],
+            "series_ids": [],
+            "validation_errors": ["file missing or unparseable"],
         }
 
-    if isinstance(data, dict):
-        series_names = sorted(data.keys())
-        sp500_proxy_exists = any(
-            "sp500" in k.lower() or "spy" in k.lower()
-            for k in series_names
-        )
+    # Handle dict with top-level "series" array (canonical format)
+    if isinstance(data, dict) and "series" in data and isinstance(data["series"], list):
+        series_list = data["series"]
+        registry_version = data.get("registry_version")
     elif isinstance(data, list):
-        series_names = [
-            entry.get("series_id", entry.get("name", ""))
-            for entry in data
-            if isinstance(entry, dict)
-        ]
-        sp500_proxy_exists = any(
-            "sp500" in str(n).lower() or "spy" in str(n).lower()
-            for n in series_names
-        )
+        # Legacy: bare array of series dicts
+        series_list = data
+        registry_version = None
+    elif isinstance(data, dict):
+        # Dict but missing "series" key — malformed
+        return {
+            **_file_evidence(path, repo_root),
+            "registry_version": data.get("registry_version"),
+            "series_count": 0,
+            "series_ids": [],
+            "validation_errors": [
+                "dict payload missing 'series' array key",
+                f"top_level_keys={sorted(data.keys())}",
+            ],
+        }
     else:
         return {
             **_file_evidence(path, repo_root),
+            "registry_version": None,
             "series_count": 0,
-            "series_names": [],
-            "parse_note": "unexpected_type",
+            "series_ids": [],
+            "validation_errors": ["unexpected_type"],
         }
 
-    return {
+    # Extract per-series metadata
+    series_ids: list[str] = []
+    tier1_count = 0
+    tier2_count = 0
+    include_in_snapshot_count = 0
+    snapshot_series_ids: list[str] = []
+    sp500_entry: dict[str, Any] | None = None
+    sp500_proxy_entry: dict[str, Any] | None = None
+    validation_errors: list[str] = []
+
+    for i, entry in enumerate(series_list):
+        if not isinstance(entry, dict):
+            validation_errors.append(f"series[{i}] is not a dict")
+            continue
+        sid = entry.get("series_id", "")
+        if not sid:
+            validation_errors.append(f"series[{i}] missing series_id")
+            continue
+        series_ids.append(sid)
+        tier = entry.get("tier")
+        if tier == 1:
+            tier1_count += 1
+        elif tier == 2:
+            tier2_count += 1
+        if entry.get("include_in_snapshot"):
+            include_in_snapshot_count += 1
+            snapshot_series_ids.append(sid)
+        if sid == "SP500":
+            sp500_entry = entry
+        elif sid == "SP500_PROXY":
+            sp500_proxy_entry = entry
+
+    result: dict[str, Any] = {
         **_file_evidence(path, repo_root),
-        "series_count": len(series_names),
-        "series_names": series_names[:50],  # cap for prompt size
-        "sp500_proxy_detected": sp500_proxy_exists,
+        "registry_version": registry_version,
+        "series_count": len(series_ids),
+        "series_ids": series_ids[:50],  # cap for prompt size
+        "tier1_count": tier1_count,
+        "tier2_count": tier2_count,
+        "include_in_snapshot_count": include_in_snapshot_count,
+        "snapshot_series_ids": snapshot_series_ids[:50],
+        "sp500_detected": sp500_entry is not None,
+        "sp500_proxy_detected": sp500_proxy_entry is not None,
     }
+
+    # SP500 detail
+    if sp500_entry is not None:
+        result["sp500_source"] = sp500_entry.get("source")
+    if sp500_proxy_entry is not None:
+        result["sp500_proxy_source"] = sp500_proxy_entry.get("source")
+        result["sp500_proxy_full_history_start"] = sp500_proxy_entry.get(
+            "full_history_start",
+        )
+        result["sp500_proxy_include_in_snapshot"] = sp500_proxy_entry.get(
+            "include_in_snapshot",
+        )
+        result["sp500_proxy_tier"] = sp500_proxy_entry.get("tier")
+
+    if validation_errors:
+        result["validation_errors"] = validation_errors
+
+    return result
 
 
 # ---------------------------------------------------------------------------
@@ -240,6 +307,124 @@ def _synthesize_execution_scan(repo_root: Path) -> dict[str, Any]:
         "layer3_execution_artifacts_absent": len(detected) == 0,
         "detected_layer3_indicators": detected,
     }
+
+
+# ---------------------------------------------------------------------------
+# Canonical document extraction
+# ---------------------------------------------------------------------------
+
+# Keywords for bounded extraction from canonical documents
+_EXTRACTION_KEYWORDS: tuple[str, ...] = (
+    "SP500", "SP500_PROXY", "TODO", "Layer-2", "Layer-3",
+    "remaining", "revision log", "implementation addendum",
+    "live execution", "blocked", "verification ledger",
+    "governance workflow", "Phase A", "Phase B",
+    "include_in_snapshot", "not yet built", "not yet implemented",
+)
+
+# Maximum lines to extract per document
+_MAX_EXTRACT_LINES = 150
+# Maximum characters per extract section
+_MAX_SECTION_CHARS = 3000
+
+
+def _extract_headings(content: str) -> list[str]:
+    """Extract markdown headings from content."""
+    headings: list[str] = []
+    for line in content.splitlines():
+        stripped = line.strip()
+        if stripped.startswith("#"):
+            headings.append(stripped)
+    return headings[:50]  # cap
+
+
+def _extract_keyword_sections(
+    content: str,
+    keywords: tuple[str, ...] = _EXTRACTION_KEYWORDS,
+    context_lines: int = 3,
+) -> list[dict[str, Any]]:
+    """Extract compact sections around keyword matches.
+
+    Returns a list of {keyword, line_number, context} dicts.
+    Caps total extracted lines to ``_MAX_EXTRACT_LINES``.
+    """
+    lines = content.splitlines()
+    sections: list[dict[str, Any]] = []
+    seen_ranges: set[int] = set()
+    total_lines = 0
+
+    for kw in keywords:
+        kw_lower = kw.lower()
+        for i, line in enumerate(lines):
+            if kw_lower in line.lower() and i not in seen_ranges:
+                start = max(0, i - context_lines)
+                end = min(len(lines), i + context_lines + 1)
+                context_block = "\n".join(lines[start:end])
+                if len(context_block) > _MAX_SECTION_CHARS:
+                    context_block = context_block[:_MAX_SECTION_CHARS] + "..."
+                sections.append({
+                    "keyword": kw,
+                    "line_number": i + 1,
+                    "context": context_block,
+                })
+                for j in range(start, end):
+                    seen_ranges.add(j)
+                total_lines += end - start
+                if total_lines >= _MAX_EXTRACT_LINES:
+                    return sections
+
+    return sections
+
+
+def _synthesize_doc_extract(
+    path: Path,
+    repo_root: Path,
+) -> dict[str, Any]:
+    """Extract bounded structured information from a single canonical doc."""
+    content = _safe_read(path)
+    if content is None:
+        return {
+            **_file_evidence(path, repo_root, status="missing"),
+            "headings": [],
+            "keyword_sections": [],
+        }
+
+    headings = _extract_headings(content)
+    keyword_sections = _extract_keyword_sections(content)
+
+    result: dict[str, Any] = {
+        **_file_evidence(path, repo_root),
+        "char_count": len(content),
+        "line_count": len(content.splitlines()),
+        "headings": headings,
+        "keyword_section_count": len(keyword_sections),
+    }
+
+    # Only include keyword sections if they exist — keeps small docs compact
+    if keyword_sections:
+        result["keyword_sections"] = keyword_sections
+
+    return result
+
+
+def build_canonical_doc_extracts(repo_root: Path) -> dict[str, Any]:
+    """Extract bounded structured information from all canonical documents.
+
+    Returns a dict keyed by document name with headings, keyword sections,
+    and presence/absence status for each canonical document.
+
+    Never raises — all file-read errors are captured as missing status.
+    """
+    docs = GOVERNANCE_EVIDENCE_ALLOWLIST["canonical_docs"]
+    extracts: dict[str, Any] = {}
+
+    for doc_path_str in docs:
+        path = repo_root / doc_path_str
+        # Use the filename (without directory) as the key for readability
+        key = Path(doc_path_str).name
+        extracts[key] = _synthesize_doc_extract(path, repo_root)
+
+    return extracts
 
 
 # ---------------------------------------------------------------------------

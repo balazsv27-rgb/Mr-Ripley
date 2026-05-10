@@ -1,0 +1,43 @@
+{
+  "artifact": "normalized_terminology_map",
+  "produced_by": "normalize-terminology",
+  "session": "f659ab4f-8570-4271-b707-22204ad9dabb",
+  "timestamp": "2026-05-09T22:04:55.390870Z",
+  "data": {
+    "produced_by": "normalize-terminology",
+    "overall_status": "normalization_required",
+    "inference_used": false,
+    "canonical_term_mappings": [
+      {
+        "from": "latest snapshot",
+        "to": "latest_snapshot.json",
+        "concept_id": "LATEST_SNAPSHOT",
+        "reason": "Claim c2 rationale uses 'a published latest snapshot with guards' in prose \u2014 'latest snapshot' (without .json extension) is explicitly listed as a discouraged variant. The runtime_context correctly uses the canonical filename 'latest_snapshot.json' in its structured fields; the prose rationale should reference 'latest_snapshot.json' or use 'published snapshot' (allowed variant of SNAPSHOT) when not referring to the specific file."
+      }
+    ],
+    "scope_constraints": [
+      "claim_classification_map: all 8 classified claims (c1\u2013c8), classification rationales, notes, and summary block",
+      "governance_context: request_text prose",
+      "governance_context: code_context prose labels (field names excluded)",
+      "governance_context: runtime_context prose labels (field names excluded)",
+      "claim_classification_map: classification_notes array"
+    ],
+    "excluded_reference_types": [
+      "canonical documents not read directly at this normalization step",
+      "machine-readable JSON field names excluded from prose normalization (e.g., layer3_runtime_absent, insert_or_ignore_count, sp500_proxy_detected, layer3_execution_artifacts_absent)",
+      "code implementation files not evaluated",
+      "evidence class identifiers (documented_current_state_claim, verified_in_current_documentation_set) treated as machine-readable CLAUDE.md \u00a75.1 adaptations, not prose term variants"
+    ],
+    "filename_rename_candidates": [],
+    "ambiguity_flags": [
+      {
+        "term": "Decision Engine",
+        "concepts": [
+          "LAYER_3"
+        ],
+        "governance_sensitive": false,
+        "note": "Appears in c5 rationale as a quoted planned component name, sourced directly from CLAUDE.md \u00a73.2 ('Feature Builder, Index Suite, Regime Gate, Supervisor Engine, Decision Engine, Execution Layer'). The canonical table lists 'decision engine' as a discouraged variant of LAYER_3 when used as a layer alias. In c5 the usage is component-naming within Layer-3, not a layer alias \u2014 no active terminology conflict. Flagged for consistency tracking only; downstream governance consumers should preserve the component-naming context when citing c5."
+      }
+    ]
+  }
+}

@@ -54,17 +54,13 @@ class PromptAssemblyError(RuntimeError):
 
 _STEP_INPUT_PROJECTIONS: dict[str, dict[str, list[str]]] = {
     "route-claims-by-role": {
-        # governance_context: only need request text and run metadata
+        # governance_context: request text, run metadata, and code/runtime evidence
         "governance_context": [
             "produced_by", "run_id", "request_text", "request_source",
             "bootstrap_status", "workflow_name", "execution_mode",
+            "code_context", "runtime_context",
         ],
-        # claim_classification_map: keep classified claims and top-level status;
-        # drop verbose evidence chains, source excerpts, and internal notes
-        "claim_classification_map": [
-            "produced_by", "claims", "classifications", "status",
-            "overall_classification", "claim_count", "inference_used",
-        ],
+        # claim_classification_map: handled by transform, NOT field-list
         # normalized_terminology_map: keep normalized terms and status;
         # drop per-term analysis detail and variant lists
         "normalized_terminology_map": [
@@ -82,6 +78,60 @@ _STEP_INPUT_PROJECTIONS: dict[str, dict[str, list[str]]] = {
 # Deep structural transforms for steps that need more than top-level field
 # filtering.  Each function receives the full artifact payload and returns
 # a compact projection retaining only governance-relevant fields.
+
+
+def _full_claim_classification_for_role_citation(
+    payload: dict[str, Any],
+) -> dict[str, Any]:
+    """Pass through the full claim classification payload for role-citation.
+
+    Preserves the nested ``request_classification.claims`` structure so
+    downstream route-claims-by-role sees all claim IDs, claim_text,
+    source_priority, and evidence_class fields.  Drops only verbose
+    ``classification_rationale`` text to save tokens.
+
+    Supports two schema shapes:
+    - nested: ``payload["request_classification"]["claims"]`` / ``["summary"]``
+    - flat (legacy): ``payload["claims"]`` / ``payload["summary"]``
+
+    CRITICAL: This transform must NOT strip the claims array.  The previous
+    field-list projection caused route-claims-by-role to see only
+    ``produced_by`` metadata, forcing it to infer claims from request_text
+    and invent new claim IDs (C-001 etc.) instead of using upstream c1-c8.
+    """
+    rc = payload.get("request_classification", {})
+    claims = rc.get("claims") or payload.get("claims")
+    summary = rc.get("summary") or payload.get("summary")
+
+    if claims is None and summary is None:
+        return payload  # structural/minimal payload — pass through
+
+    if summary is None:
+        summary = {}
+    if claims is None:
+        claims = []
+
+    # Keep full claim details except verbose rationale
+    compact_claims = []
+    for c in claims:
+        if not isinstance(c, dict):
+            continue
+        compact_claim = {
+            k: v for k, v in c.items()
+            if k != "classification_rationale"
+        }
+        compact_claims.append(compact_claim)
+
+    compact: dict[str, Any] = {
+        "produced_by": payload.get("produced_by"),
+        "request_classification": {
+            "request_type": rc.get("request_type") or payload.get("request_type"),
+            "claims": compact_claims,
+            "summary": summary,
+        },
+        "classification_notes": payload.get("classification_notes"),
+    }
+    return compact
 
 
 def _compact_claim_classification_for_phase_check(
@@ -1364,6 +1414,9 @@ def _compact_audit_summary_for_ledger(
 # Transform-based projections — step_name → {artifact_name → transform_fn}.
 # Applied before field-list projections in _project_artifact_payload.
 _STEP_INPUT_TRANSFORMS: dict[str, dict[str, Any]] = {
+    "route-claims-by-role": {
+        "claim_classification_map": _full_claim_classification_for_role_citation,
+    },
     "phase-check": {
         "claim_classification_map": _compact_claim_classification_for_phase_check,
         "role_citation_verdict": _compact_role_citation_for_phase_check,
@@ -1508,6 +1561,16 @@ def _resolve_spec_path(
     return {"value": value}
 
 
+# Sub-keys of governance_context that can be resolved as virtual inputs.
+# When a step declares e.g. "code_context" as an input and no standalone
+# artifact with that name exists, we extract it from governance_context.
+_GOVERNANCE_CONTEXT_SUB_KEYS: frozenset[str] = frozenset({
+    "code_context",
+    "runtime_context",
+    "canonical_doc_extracts",
+})
+
+
 def _gather_artifact_inputs(
     step: WorkflowStep,
     agent: AgentSpec | None,
@@ -1516,9 +1579,10 @@ def _gather_artifact_inputs(
 ) -> dict[str, dict[str, Any]]:
     """Gather upstream artifact payloads for this step's inputs.
 
-    When *spec* is provided, dotted input names (e.g.
-    ``interpretation_policy.claim_routing``) that are absent from
-    ``run_state.artifacts`` are resolved against the assembled spec.
+    Resolution order for each declared input name:
+    1. Direct artifact lookup in ``run_state.artifacts``
+    2. Governance context sub-key extraction (code_context, runtime_context)
+    3. Spec-level dotted path resolution (e.g. interpretation_policy.claim_routing)
     """
     result: dict[str, dict[str, Any]] = {}
 
@@ -1533,10 +1597,23 @@ def _gather_artifact_inputs(
             if c not in input_names:
                 input_names.append(c)
 
+    # Pre-fetch governance_context for sub-key resolution
+    gc_record = run_state.artifacts.get("governance_context")
+    gc_payload: dict[str, Any] | None = (
+        gc_record.payload
+        if gc_record is not None and gc_record.status == "present"
+        else None
+    )
+
     for name in input_names:
         artifact = run_state.artifacts.get(name)
         if artifact is not None and artifact.status == "present":
             result[name] = artifact.payload
+        elif name in _GOVERNANCE_CONTEXT_SUB_KEYS and gc_payload is not None:
+            # Extract sub-key from governance_context as a virtual input
+            sub_value = gc_payload.get(name)
+            if isinstance(sub_value, dict):
+                result[name] = sub_value
         elif spec is not None and "." in name:
             resolved = _resolve_spec_path(spec, name)
             if resolved is not None:
@@ -1548,16 +1625,33 @@ def _gather_artifact_inputs(
 def _gather_document_paths(
     agent: AgentSpec | None,
     repo_root: Path,
+    step: WorkflowStep | None = None,
 ) -> list[str]:
-    """Gather canonical document paths from agent.consumes.
+    """Gather canonical document paths from agent.consumes and step inputs.
 
     Only includes paths that resolve to existing files.
+    Checks both agent.consumes and step.raw["inputs"] for document paths.
     """
-    if agent is None:
+    # Collect candidate names from agent.consumes and step inputs
+    candidate_names: list[str] = []
+
+    if agent is not None:
+        candidate_names.extend(agent.consumes)
+
+    if step is not None:
+        raw_inputs = step.raw.get("inputs", []) or []
+        if isinstance(raw_inputs, list):
+            for inp in raw_inputs:
+                inp_str = str(inp)
+                if inp_str not in candidate_names:
+                    candidate_names.append(inp_str)
+
+    if not candidate_names:
         return []
 
     paths: list[str] = []
-    for consume_name in agent.consumes:
+    seen: set[str] = set()
+    for consume_name in candidate_names:
         # Skip artifact references (artifacts are handled separately)
         if consume_name.startswith("canonical_docs"):
             continue
@@ -1568,7 +1662,10 @@ def _gather_document_paths(
             repo_root / "Documentation" / consume_name,
         ]:
             if candidate.is_file():
-                paths.append(str(candidate))
+                resolved = str(candidate)
+                if resolved not in seen:
+                    paths.append(resolved)
+                    seen.add(resolved)
                 break
 
     return paths
@@ -1651,7 +1748,7 @@ def assemble_step_prompt(
     )
 
     # Gather document paths
-    document_paths = _gather_document_paths(agent, repo_root)
+    document_paths = _gather_document_paths(agent, repo_root, step=step)
 
     # Build bounded inputs
     bounded = []
@@ -1806,6 +1903,30 @@ def build_prompt_composition_metadata(context: dict[str, Any]) -> dict[str, Any]
     }
 
 
+def _extract_upstream_claim_ids(
+    artifacts: dict[str, dict[str, Any]],
+) -> list[str]:
+    """Extract claim IDs from upstream claim_classification_map if present.
+
+    Supports nested (``request_classification.claims``) and flat (``claims``)
+    schema shapes.  Returns an empty list when no claims are found.
+    """
+    ccm = artifacts.get("claim_classification_map")
+    if not isinstance(ccm, dict):
+        return []
+
+    rc = ccm.get("request_classification", {})
+    claims = rc.get("claims") or ccm.get("claims")
+    if not isinstance(claims, list):
+        return []
+
+    return [
+        c["claim_id"]
+        for c in claims
+        if isinstance(c, dict) and "claim_id" in c
+    ]
+
+
 def build_prompt_text(context: dict[str, Any]) -> str:
     """Build the assembled prompt text from a prompt assembly context dict.
 
@@ -1834,6 +1955,24 @@ def build_prompt_text(context: dict[str, Any]) -> str:
         art_text = json.dumps(artifacts, indent=2)
         sections.append(f"[UPSTREAM ARTIFACTS]{_SECTION_DELIM}{art_text}")
 
+    # Claim ID preservation contract — inject when upstream claim IDs exist
+    step_name = context.get("step_name", "")
+    upstream_claim_ids = _extract_upstream_claim_ids(artifacts)
+    if upstream_claim_ids and step_name:
+        claim_id_section = (
+            f"[CLAIM ID CONTRACT]{_SECTION_DELIM}"
+            f"CRITICAL: The upstream claim_classification_map defines these claim IDs: "
+            f"{', '.join(upstream_claim_ids)}\n\n"
+            f"Rules:\n"
+            f"- You MUST use these exact claim IDs in your output.\n"
+            f"- Do NOT invent new claim ID schemes (e.g. C-001, C-002).\n"
+            f"- If you decompose a claim, use suffixes: c3.a, c3.b (not C-003a).\n"
+            f"- Include original_claim_id on any decomposed sub-claims.\n"
+            f"- All checked_claims entries must reference the upstream claim IDs.\n"
+            f"- claim_text must come from the upstream claims, not re-inferred from request_text."
+        )
+        sections.append(claim_id_section)
+
     doc_contents = context.get("document_contents", {})
     doc_paths = context.get("document_paths", [])
     if doc_contents:
@@ -1848,7 +1987,6 @@ def build_prompt_text(context: dict[str, Any]) -> str:
 
     # Output format specification — required for backend-dispatched steps
     expected_outputs = context.get("expected_outputs", [])
-    step_name = context.get("step_name", "")
     if expected_outputs and step_name:
         artifact_examples = ", ".join(
             f'"{o}": {{"produced_by": "{step_name}", ...your analysis fields...}}'

@@ -1,0 +1,22 @@
+{
+  "artifact": "audit_summary",
+  "produced_by": "deep-audit",
+  "session": "34e4fd02-a800-4cc7-b622-37b0cc898d20",
+  "timestamp": "2026-05-10T14:34:00.493674Z",
+  "data": {
+    "produced_by": "deep-audit",
+    "audit_action": "no_audit_required",
+    "overall_audit_status": "pass",
+    "fail_closed_applied": false,
+    "dag_advancement_blocked": false,
+    "dispatched_subagents": [],
+    "blocking_violations_count": 0,
+    "review_required_violations_count": 0,
+    "unresolved_violations_count": 0,
+    "findings": [],
+    "audit_resolution_required": [],
+    "notes": [
+      "No escalation signals detected in upstream artifacts."
+    ]
+  }
+}

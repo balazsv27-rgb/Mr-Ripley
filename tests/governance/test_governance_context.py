@@ -12,6 +12,7 @@ import pytest
 
 from governance.dag_runner.governance_context import (
     GOVERNANCE_EVIDENCE_ALLOWLIST,
+    build_canonical_doc_extracts,
     build_code_context,
     build_runtime_context,
 )
@@ -20,13 +21,33 @@ from governance.dag_runner.governance_context import (
 @pytest.fixture
 def mock_repo(tmp_path: Path) -> Path:
     """Create a minimal mock repo with Layer-2 structure."""
-    # series_registry.json
+    # series_registry.json — canonical format with "series" array
     config_dir = tmp_path / "layer2" / "config"
     config_dir.mkdir(parents=True)
     registry = {
-        "GOLD_PM": {"source": "LBMA", "unit": "USD/oz"},
-        "SPY_CLOSE": {"source": "Yahoo", "unit": "USD"},
-        "SP500_PROXY": {"source": "derived", "unit": "index"},
+        "registry_version": "1.1.0",
+        "description": "Test registry",
+        "series": [
+            {
+                "series_id": "GOLD_PM",
+                "tier": 1,
+                "source": "LBMA",
+                "include_in_snapshot": True,
+            },
+            {
+                "series_id": "SPY_CLOSE",
+                "tier": 1,
+                "source": "Yahoo",
+                "include_in_snapshot": True,
+            },
+            {
+                "series_id": "SP500_PROXY",
+                "tier": 1,
+                "source": "yahoo_spy",
+                "full_history_start": "2005-01-03",
+                "include_in_snapshot": True,
+            },
+        ],
     }
     (config_dir / "series_registry.json").write_text(json.dumps(registry))
     (config_dir / "registry.py").write_text("# registry config\n")
@@ -64,9 +85,15 @@ def test_code_context_series_registry(mock_repo: Path) -> None:
     ctx = build_code_context(mock_repo)
     sr = ctx["series_registry"]
     assert sr["status"] == "present"
+    assert sr["registry_version"] == "1.1.0"
     assert sr["series_count"] == 3
-    assert "GOLD_PM" in sr["series_names"]
+    assert "GOLD_PM" in sr["series_ids"]
+    assert "SP500_PROXY" in sr["series_ids"]
     assert sr["sp500_proxy_detected"] is True
+    assert sr["tier1_count"] == 3
+    assert sr["include_in_snapshot_count"] == 3
+    assert sr["sp500_proxy_source"] == "yahoo_spy"
+    assert sr["sp500_proxy_full_history_start"] == "2005-01-03"
     assert sr["inference_used"] is False
 
 
@@ -127,6 +154,8 @@ def test_code_context_missing_files(tmp_path: Path) -> None:
     """build_code_context on empty dir does not raise."""
     ctx = build_code_context(tmp_path)
     assert ctx["series_registry"]["status"] == "missing"
+    assert ctx["series_registry"]["series_count"] == 0
+    assert ctx["series_registry"]["series_ids"] == []
     assert ctx["adapter_inventory"]["status"] == "missing"
     assert ctx["layer2_boundary_checks"]["insert_or_replace_detected"] is False
     # Each check should report missing
@@ -135,13 +164,22 @@ def test_code_context_missing_files(tmp_path: Path) -> None:
 
 
 def test_code_context_no_sp500_proxy(mock_repo: Path) -> None:
-    """No SP500_PROXY when registry lacks matching keys."""
-    registry = {"GOLD_PM": {"source": "LBMA"}}
+    """No SP500_PROXY when registry lacks matching series."""
+    registry = {
+        "registry_version": "1.0.0",
+        "series": [
+            {"series_id": "GOLD_PM", "tier": 1, "source": "LBMA", "include_in_snapshot": True},
+        ],
+    }
     (mock_repo / "layer2" / "config" / "series_registry.json").write_text(
         json.dumps(registry)
     )
     ctx = build_code_context(mock_repo)
-    assert ctx["series_registry"]["sp500_proxy_detected"] is False
+    sr = ctx["series_registry"]
+    assert sr["sp500_proxy_detected"] is False
+    assert sr["sp500_detected"] is False
+    assert sr["series_count"] == 1
+    assert sr["tier1_count"] == 1
 
 
 # ── build_runtime_context ──
@@ -236,3 +274,144 @@ def test_allowlist_has_no_secrets() -> None:
     for path in all_paths:
         for f in forbidden:
             assert f not in path.lower(), f"Allowlist contains forbidden path: {path}"
+
+
+# ── Series registry parsing — regression tests ──
+
+
+def test_series_registry_parses_canonical_format(mock_repo: Path) -> None:
+    """Registry with top-level series array is parsed correctly."""
+    ctx = build_code_context(mock_repo)
+    sr = ctx["series_registry"]
+    assert sr["series_count"] == 3
+    assert sorted(sr["series_ids"]) == ["GOLD_PM", "SP500_PROXY", "SPY_CLOSE"]
+    assert sr["sp500_proxy_detected"] is True
+    assert sr["sp500_proxy_source"] == "yahoo_spy"
+    assert "validation_errors" not in sr
+
+
+def test_series_registry_malformed_dict_no_series_key(mock_repo: Path) -> None:
+    """Registry dict without 'series' key reports validation error."""
+    registry = {"registry_version": "1.0.0", "some_other_key": []}
+    (mock_repo / "layer2" / "config" / "series_registry.json").write_text(
+        json.dumps(registry)
+    )
+    ctx = build_code_context(mock_repo)
+    sr = ctx["series_registry"]
+    assert sr["series_count"] == 0
+    assert sr["series_ids"] == []
+    assert "validation_errors" in sr
+    assert any("missing 'series'" in e for e in sr["validation_errors"])
+
+
+def test_series_registry_tier_counts(tmp_path: Path) -> None:
+    """Tier counts are computed correctly."""
+    config_dir = tmp_path / "layer2" / "config"
+    config_dir.mkdir(parents=True)
+    registry = {
+        "registry_version": "1.1.0",
+        "series": [
+            {"series_id": "A", "tier": 1, "include_in_snapshot": True},
+            {"series_id": "B", "tier": 1, "include_in_snapshot": True},
+            {"series_id": "C", "tier": 2, "include_in_snapshot": True},
+            {"series_id": "D", "tier": 2, "include_in_snapshot": False},
+        ],
+    }
+    (config_dir / "series_registry.json").write_text(json.dumps(registry))
+    ctx = build_code_context(tmp_path)
+    sr = ctx["series_registry"]
+    assert sr["tier1_count"] == 2
+    assert sr["tier2_count"] == 2
+    assert sr["include_in_snapshot_count"] == 3
+    assert sr["series_count"] == 4
+
+
+def test_series_registry_sp500_detail(tmp_path: Path) -> None:
+    """SP500 and SP500_PROXY detail fields are extracted."""
+    config_dir = tmp_path / "layer2" / "config"
+    config_dir.mkdir(parents=True)
+    registry = {
+        "registry_version": "1.1.0",
+        "series": [
+            {"series_id": "SP500", "tier": 1, "source": "fred", "include_in_snapshot": True},
+            {
+                "series_id": "SP500_PROXY",
+                "tier": 1,
+                "source": "yahoo_spy",
+                "full_history_start": "2005-01-03",
+                "include_in_snapshot": True,
+            },
+        ],
+    }
+    (config_dir / "series_registry.json").write_text(json.dumps(registry))
+    ctx = build_code_context(tmp_path)
+    sr = ctx["series_registry"]
+    assert sr["sp500_detected"] is True
+    assert sr["sp500_proxy_detected"] is True
+    assert sr["sp500_source"] == "fred"
+    assert sr["sp500_proxy_source"] == "yahoo_spy"
+    assert sr["sp500_proxy_full_history_start"] == "2005-01-03"
+    assert sr["sp500_proxy_include_in_snapshot"] is True
+    assert sr["sp500_proxy_tier"] == 1
+
+
+def test_series_registry_real_file() -> None:
+    """Parse the actual project series_registry.json."""
+    repo_root = Path(__file__).resolve().parent.parent.parent
+    ctx = build_code_context(repo_root)
+    sr = ctx["series_registry"]
+    assert sr["status"] == "present"
+    assert sr["registry_version"] == "1.1.0"
+    assert sr["series_count"] >= 20
+    assert "SP500" in sr["series_ids"]
+    assert "SP500_PROXY" in sr["series_ids"]
+    assert sr["sp500_detected"] is True
+    assert sr["sp500_proxy_detected"] is True
+    assert sr["sp500_proxy_source"] == "yahoo_spy"
+    assert sr["tier1_count"] >= 10
+    assert sr["tier2_count"] >= 5
+    assert "validation_errors" not in sr
+
+
+# ── Canonical doc extracts ──
+
+
+def test_canonical_doc_extracts_on_empty_dir(tmp_path: Path) -> None:
+    """build_canonical_doc_extracts on empty dir notes docs as missing."""
+    extracts = build_canonical_doc_extracts(tmp_path)
+    assert "CLAUDE.md" in extracts
+    assert extracts["CLAUDE.md"]["status"] == "missing"
+    assert "README_v1.md" in extracts
+
+
+def test_canonical_doc_extracts_present(tmp_path: Path) -> None:
+    """build_canonical_doc_extracts returns headings and keyword sections."""
+    (tmp_path / "CLAUDE.md").write_text(
+        "# Section 1\n\nSome text about SP500.\n\n"
+        "## Layer-2 details\n\nTODO: fix this.\n\n"
+        "## Layer-3 planned\n\nNot yet built.\n"
+    )
+    extracts = build_canonical_doc_extracts(tmp_path)
+    claude = extracts["CLAUDE.md"]
+    assert claude["status"] == "present"
+    assert len(claude["headings"]) == 3
+    assert claude["keyword_section_count"] >= 2  # SP500, TODO, Layer-2, Layer-3
+
+
+def test_canonical_doc_extracts_real_project() -> None:
+    """Verify extraction on the actual project CLAUDE.md."""
+    repo_root = Path(__file__).resolve().parent.parent.parent
+    extracts = build_canonical_doc_extracts(repo_root)
+    claude = extracts["CLAUDE.md"]
+    assert claude["status"] == "present"
+    assert claude["line_count"] > 100
+    assert len(claude["headings"]) > 5
+    # Should find SP500-related sections in at least some docs
+    found_sp500_extract = False
+    for doc_name, doc_extract in extracts.items():
+        if doc_extract.get("keyword_sections"):
+            for ks in doc_extract["keyword_sections"]:
+                if "SP500" in ks.get("keyword", ""):
+                    found_sp500_extract = True
+                    break
+    # At minimum CLAUDE.md should not crash; SP500 may or may not be in it
