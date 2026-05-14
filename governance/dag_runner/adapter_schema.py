@@ -92,14 +92,31 @@ def synthesize_adapter_schema_verdict(
     bc = code_context.get("layer2_boundary_checks") or {}
     es = code_context.get("execution_artifact_scan") or {}
 
-    # Unwrap runtime_boundary_verdict — may be nested
-    rbv = rbv_payload.get("runtime_boundary_verdict") or rbv_payload
+    # Unwrap runtime_boundary_verdict — handles multiple shapes:
+    # 1. envelope: {"artifact": ..., "data": {...}} → unwrap data
+    # 2. nested key: {"runtime_boundary_verdict": {...}} → inner dict
+    # 3. nested status: {"snapshot_boundary_status": {"overall_status": ...}}
+    # 4. flat: {"overall_status": ..., "summary": {...}}
+    rbv_unwrapped = rbv_payload
+    if isinstance(rbv_unwrapped.get("data"), dict) and "artifact" in rbv_unwrapped:
+        rbv_unwrapped = rbv_unwrapped["data"]
+    rbv = rbv_unwrapped.get("runtime_boundary_verdict") or rbv_unwrapped
+
+    # Check for nested snapshot_boundary_status shape (real LLM output variant)
+    sbs = rbv.get("snapshot_boundary_status") or {}
 
     # --- Evidence availability ---
     has_code_context = bool(code_context)
     has_sr = sr.get("status") == "present" or sr.get("series_count", 0) > 0
     has_ai = ai.get("status") == "present" or ai.get("adapter_count", 0) > 0
-    has_rbv = bool(rbv) and rbv.get("overall_assessment") is not None
+
+    # Accept overall_status OR overall_assessment for presence detection
+    rbv_overall_status = (
+        rbv.get("overall_status")
+        or rbv.get("overall_assessment")
+        or sbs.get("overall_status")
+    )
+    has_rbv = bool(rbv) and rbv_overall_status is not None
 
     inference_used = not (has_code_context and has_sr and has_ai)
 
@@ -130,11 +147,35 @@ def synthesize_adapter_schema_verdict(
 
     layer3_absent = es.get("layer3_execution_artifacts_absent")
 
-    rbv_boundary_violation = rbv.get("boundary_violation_suspected", False)
-    rbv_raw_access = rbv.get("raw_observation_access_detected", False)
+    # Extract violation flags — check both top-level and summary sub-dict
+    rbv_summary = rbv.get("summary") or {}
+    rbv_boundary_violation = (
+        rbv.get("boundary_violation_suspected", False)
+        or rbv_summary.get("boundary_violation_suspected", False)
+    )
+    rbv_raw_access = (
+        rbv.get("raw_observation_access_detected", False)
+        or rbv.get("raw_observations_violation_detected", False)
+        or rbv_summary.get("raw_observations_violation_detected", False)
+    )
     rbv_forbidden = rbv.get("forbidden_access_detected", False)
-    rbv_latest_misuse = rbv.get("latest_snapshot_misuse_detected", False)
-    rbv_overall = rbv.get("overall_assessment", "")
+    rbv_latest_misuse = (
+        rbv.get("latest_snapshot_misuse_detected", False)
+        or rbv_summary.get("latest_snapshot_misuse_detected", False)
+    )
+    rbv_snapshot_truth_rewrite = (
+        rbv.get("snapshot_truth_rewrite_risk_detected", False)
+        or rbv_summary.get("snapshot_truth_rewrite_risk_detected", False)
+    )
+    rbv_layer2_storage_touch = (
+        rbv.get("layer2_storage_touch_detected", False)
+        or rbv_summary.get("layer2_storage_touch_detected", False)
+    )
+    rbv_exec_boundary_violation = (
+        rbv.get("execution_boundary_violation_detected", False)
+        or rbv_summary.get("execution_boundary_violation_detected", False)
+    )
+    rbv_overall = rbv_overall_status or ""
 
     runtime_boundary_compliant = (
         has_rbv
@@ -142,6 +183,9 @@ def synthesize_adapter_schema_verdict(
         and not rbv_raw_access
         and not rbv_forbidden
         and not rbv_latest_misuse
+        and not rbv_snapshot_truth_rewrite
+        and not rbv_layer2_storage_touch
+        and not rbv_exec_boundary_violation
     )
 
     # --- Checked items ---
@@ -382,6 +426,12 @@ def synthesize_adapter_schema_verdict(
                 violation_signals.append("forbidden_access_detected=true")
             if rbv_latest_misuse:
                 violation_signals.append("latest_snapshot_misuse_detected=true")
+            if rbv_snapshot_truth_rewrite:
+                violation_signals.append("snapshot_truth_rewrite_risk_detected=true")
+            if rbv_layer2_storage_touch:
+                violation_signals.append("layer2_storage_touch_detected=true")
+            if rbv_exec_boundary_violation:
+                violation_signals.append("execution_boundary_violation_detected=true")
             checked_items.append(_checked_item(
                 _AS08, "runtime_boundary_verdict", "blocked",
                 "runtime_boundary_verdict",

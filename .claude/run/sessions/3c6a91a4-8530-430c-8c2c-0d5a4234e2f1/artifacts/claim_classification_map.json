@@ -1,0 +1,117 @@
+{
+  "artifact": "claim_classification_map",
+  "produced_by": "classify-claims",
+  "session": "3c6a91a4-8530-430c-8c2c-0d5a4234e2f1",
+  "timestamp": "2026-05-10T18:46:45.102377Z",
+  "data": {
+    "produced_by": "classify-claims",
+    "run_id": "3c6a91a4-8530-430c-8c2c-0d5a4234e2f1",
+    "request_id": "layer2-doc-sync-after-sp500-and-todo-closure-2026-05-09",
+    "status": "resolved",
+    "request_classification": {
+      "request_type": "documentation_update_scoped_to_verified_changes",
+      "claims": [
+        {
+          "claim_id": "c1",
+          "claim_text": "SP500_PROXY series has been added to series_registry.json with source yahoo_spy, tier 1, full_history_start 2005-01-03, include_in_snapshot true \u2014 addressing the documented SP500 history gap",
+          "claim_scope": "current-state",
+          "evidence_class": "documented_current_state_claim",
+          "source_priority": [
+            "SYSTEM_LIMITATIONS_AND_APPROXIMATIONS_v1.md",
+            "DOCUMENTATION_VERIFICATION_MATRIX_v1.md",
+            "README_LAYER2.md",
+            "README_v1.md"
+          ],
+          "confidence_level": "high",
+          "classification_rationale": "The governance context code scan confirms SP500_PROXY is present in series_registry.json with yahoo_spy source, tier 1, full_history_start 2005-01-03. This is concrete code-level implementation evidence. The canonical docs currently list 'SP500 history gap' as a HIGH priority open item (FRED SP500 from 2016 only \u2014 SPY migration planned). The implementation resolves this documented gap. Classification is 'documented_current_state_claim' because the implementation is verified from code but the canonical documentation set has not yet been updated to reflect it.",
+          "notes": [
+            "series_registry shows 24 series (docs reference 23)",
+            "SP500_PROXY include_in_snapshot=true, tier=1",
+            "This directly addresses the HIGH priority item in SYSTEM_LIMITATIONS Section 3.4 and README_LAYER2 Section 5"
+          ]
+        },
+        {
+          "claim_id": "c2",
+          "claim_text": "spy_adapter.py exists as a new Layer-2 ingestion adapter in layer2/adapters/",
+          "claim_scope": "current-state",
+          "evidence_class": "documented_current_state_claim",
+          "source_priority": [
+            "SYSTEM_IMPLEMENTATION_RECORD_v1.md",
+            "README_LAYER2.md",
+            "SYSTEM_TECHNICAL_HANDBOOK_v1.md"
+          ],
+          "confidence_level": "high",
+          "classification_rationale": "The adapter_inventory scan confirms spy_adapter.py is present in layer2/adapters/ (7 adapters total). This is a new adapter not currently documented in the canonical set (which describes 6 adapters in README_LAYER2.md Section 7 and the technical handbook). Concrete file-system evidence supports current-state classification.",
+          "notes": [
+            "adapter_count is now 7 (docs describe 6 adapters)",
+            "Adapter naming convention (spy_adapter.py) follows existing pattern",
+            "README_LAYER2 Section 7 header says 'The Six Adapters' \u2014 needs update"
+          ]
+        },
+        {
+          "claim_id": "c3",
+          "claim_text": "Series registry now contains 24 series (previously 23 documented) with 21 included in snapshots",
+          "claim_scope": "current-state",
+          "evidence_class": "documented_current_state_claim",
+          "source_priority": [
+            "SYSTEM_IMPLEMENTATION_RECORD_v1.md",
+            "README_LAYER2.md",
+            "DOCUMENTATION_VERIFICATION_MATRIX_v1.md"
+          ],
+          "confidence_level": "high",
+          "classification_rationale": "The series_registry scan shows series_count=24 with tier1_count=16, tier2_count=8, include_in_snapshot_count=21. Previous documentation references 23 series (SYSTEM_IMPLEMENTATION_RECORD Section 2.0-A). The addition of SP500_PROXY accounts for the increment from 23 to 24. This is verifiable from code context.",
+          "notes": [
+            "tier1_count=16 (SP500_PROXY added as tier 1)",
+            "snapshot_series_ids list includes SP500_PROXY"
+          ]
+        },
+        {
+          "claim_id": "c4",
+          "claim_text": "Not all remaining TODO items are complete \u2014 documentation must not assert blanket completion",
+          "claim_scope": "current-state",
+          "evidence_class": "verified_in_current_documentation_set",
+          "source_priority": [
+            "SYSTEM_LIMITATIONS_AND_APPROXIMATIONS_v1.md",
+            "README_LAYER2.md",
+            "SYSTEM_TECHNICAL_HANDBOOK_v1.md"
+          ],
+          "confidence_level": "high",
+          "classification_rationale": "Multiple canonical documents consistently list open items that remain unaddressed: revision writer, scheduler/orchestrator, alerting/retry/kill switch, revision_risk column in observations, layer1_events stub, --full-reload help text, and others. The code context confirms no evidence of these being resolved (execution_artifact_scan shows layer3_execution_artifacts_absent=true, no scheduler detected). The request constraint aligns with documented current-state.",
+          "notes": [
+            "SYSTEM_LIMITATIONS Section 3 lists multiple open items",
+            "README_LAYER2 Section 10 lists remaining TODO items",
+            "Only SP500-related items appear addressed by the new implementation"
+          ]
+        },
+        {
+          "claim_id": "c5",
+          "claim_text": "Canonical documentation should be updated to reflect individually verified Layer-2 changes",
+          "claim_scope": "current-state",
+          "evidence_class": "documented_current_state_claim",
+          "source_priority": [
+            "CLAUDE.md",
+            "DOCUMENTATION_VERIFICATION_MATRIX_v1.md",
+            "SYSTEM_IMPLEMENTATION_RECORD_v1.md"
+          ],
+          "confidence_level": "high",
+          "classification_rationale": "CLAUDE.md Section 11 requires documentation alignment when implementation state changes. The verified implementation changes (SP500_PROXY addition, spy_adapter.py, series count change) are contract-adjacent changes that affect the documented Layer-2 component inventory, series registry state, known gaps, and verification matrix entries. This triggers the document update obligation.",
+          "notes": [
+            "CLAUDE.md Section 11: 'Code changes without documentation alignment are invalid'",
+            "Affects: README_v1.md (known risks), SYSTEM_LIMITATIONS (SP500 gap status), README_LAYER2 (adapter list, series table, TODO table), DOCUMENTATION_VERIFICATION_MATRIX (SP500 gap classification)",
+            "SYSTEM_IMPLEMENTATION_RECORD should record the SP500_PROXY implementation"
+          ]
+        }
+      ],
+      "summary": {
+        "dominant_scope": "current-state",
+        "needs_phase_check": false,
+        "touches_current_truth": true,
+        "touches_target_architecture": false,
+        "touches_historical_reconciliation": false,
+        "touches_verification_matrix": true,
+        "touches_snapshot_contract": false,
+        "possible_blocking_conditions": []
+      }
+    }
+  }
+}

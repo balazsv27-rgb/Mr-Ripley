@@ -1,0 +1,140 @@
+{
+  "artifact": "verification_ledger_delta",
+  "produced_by": "update-verification-ledger",
+  "session": "2229996d-df1c-438b-b14a-8388eefe4e59",
+  "timestamp": "2026-05-10T19:23:50.004642Z",
+  "data": {
+    "produced_by": "update-verification-ledger",
+    "ledger_action": "update",
+    "inference_used": false,
+    "source_authority_conflict_detected": false,
+    "affected_claims": [
+      {
+        "claim_id": "lc-spy-adapter-implementation",
+        "claim": "spy_adapter.py is implemented as a Layer-2 adapter providing SP500 proxy data ingestion",
+        "classification": "current-state",
+        "claim_type": "implementation",
+        "preferred_canonical_source": "SYSTEM_IMPLEMENTATION_RECORD_v1.md",
+        "evidence_source": [
+          "change_impact_report (impacted_components: spy_adapter)",
+          "verification_matrix_delta (entry: s4-spy-adapter-sp500-proxy, change_type: add_new_entry, confidence: high)"
+        ],
+        "evidence_type": "code",
+        "proposed_status": "supported",
+        "reason": "Code-level implementation confirmed by change_impact_report and verification_matrix_delta. All canonical documents remain unupdated. LU-3: implementation claims require code alignment for proven \u2014 code is aligned but canonical doc alignment is absent. Cannot promote beyond supported until cross-doc Tier-1 consistency is confirmed.",
+        "traceability_notes": [
+          "spy_adapter.py and SP500_PROXY exist in code and registry but are absent from all canonical documents per change_impact_report.risk_summary",
+          "verification_matrix_delta entry s4-spy-adapter-sp500-proxy: add_new_entry, confidence high",
+          "Required action: SYSTEM_IMPLEMENTATION_RECORD_v1.md revise (priority: high) per doc_code_sync_status.required_actions"
+        ],
+        "confidence": "high"
+      },
+      {
+        "claim_id": "lc-sp500-proxy-series-registry",
+        "claim": "SP500_PROXY is registered in series_registry.json as a Tier-1 series with include_in_snapshot=true, making its staleness a snapshot publication blocker under the fail-closed contract",
+        "classification": "current-state",
+        "claim_type": "implementation",
+        "preferred_canonical_source": "SYSTEM_IMPLEMENTATION_RECORD_v1.md",
+        "evidence_source": [
+          "change_impact_report (risk_summary: SP500_PROXY is Tier-1 with include_in_snapshot=true)",
+          "doc_code_sync_status (verification_ledger_update_required: true)",
+          "verification_matrix_delta (entry: s4-spy-adapter-sp500-proxy)"
+        ],
+        "evidence_type": "code",
+        "proposed_status": "supported",
+        "reason": "Registry-level implementation confirmed via change_impact_report risk signal. Canonical documents do not yet reflect this registration or its snapshot publication contract implications. LU-1 and LU-3: canonical doc alignment required for proven. Status capped at supported pending documentation updates.",
+        "traceability_notes": [
+          "CLAUDE.md \u00a78: series_registry.json is the single source of truth for all series definitions",
+          "CLAUDE.md \u00a77: SP500_PROXY Tier-1 status with include_in_snapshot=true means staleness blocks snapshot publication under fail-closed contract",
+          "change_impact_report: canonical docs must accurately reflect this contract implication"
+        ],
+        "confidence": "high"
+      },
+      {
+        "claim_id": "lc-sp500-history-gap-status",
+        "claim": "The SP500 history gap open item (Section 4 of DOCUMENTATION_VERIFICATION_MATRIX_v1.md) has been resolved or partially resolved via spy_adapter.py adoption",
+        "classification": "current-state",
+        "claim_type": "implementation",
+        "preferred_canonical_source": "SYSTEM_IMPLEMENTATION_RECORD_v1.md",
+        "evidence_source": [
+          "verification_matrix_delta (entry: s4-sp500-history-gap, change_type: status_review, confidence: medium)",
+          "change_impact_report (risk_summary: only SP500 history gap TODO item changes status; overclaiming risk if scope not precisely bounded)"
+        ],
+        "evidence_type": "mixed",
+        "proposed_status": "unverified",
+        "reason": "Runtime status upgrade explicitly blocked per verification_matrix_delta.runtime_status_upgrade_blocked=true. Resolution scope (full vs. partial) undetermined. Canonical documents not updated to confirm any reclassification. LU-2: no runtime evidence present; LU-3: code alignment without canonical doc cross-reference is insufficient for proven.",
+        "traceability_notes": [
+          "verification_matrix_delta.runtime_status_upgrade_blocked=true applies to this entry",
+          "change_impact_report: overclaiming risk if SP500 history gap resolution scope is not precisely bounded",
+          "Required follow-up per verification_matrix_delta: re-run verification-matrix-update after canonical doc updates to determine full vs. partial resolution"
+        ],
+        "confidence": "medium"
+      },
+      {
+        "claim_id": "lc-canonical-doc-sync-state",
+        "claim": "Canonical documents accurately reflect current implementation state including spy_adapter.py and SP500_PROXY",
+        "classification": "current-state",
+        "claim_type": "documentation_policy",
+        "preferred_canonical_source": "DOCUMENTATION_VERIFICATION_MATRIX_v1.md",
+        "evidence_source": [
+          "doc_code_sync_status (doc_code_alignment_status: review_required, verification_ledger_update_required: true)",
+          "change_impact_report (risk_summary: documentation desynchronized from implementation)",
+          "audit_summary (finding: requires_doc_code_sync_review from adapter_schema_verdict)"
+        ],
+        "evidence_type": "mixed",
+        "proposed_status": "contradicted",
+        "reason": "Multiple upstream artifacts confirm spy_adapter.py and SP500_PROXY exist in code and registry but are absent from all 7 canonical documents. CLAUDE.md \u00a711 requires documentation alignment for any contract-affecting change. Current state is explicitly contradicted by the gap between code implementation and canonical document coverage.",
+        "traceability_notes": [
+          "CLAUDE.md \u00a711: code changes without documentation alignment are invalid",
+          "doc_code_sync_status: all 7 canonical documents listed as impacted; revise or review actions required for each",
+          "audit_summary: requires_doc_code_sync_review flagged at adapter_schema_verdict level (severity: review)",
+          "change_impact_report: adapter_schema_verdict confirms doc-code gap at governance artifact level"
+        ],
+        "confidence": "high"
+      },
+      {
+        "claim_id": "lc-adapter-schema-doc-code-compliance",
+        "claim": "The adapter schema satisfies doc-code sync requirements with no unresolved requires_doc_code_sync_review condition",
+        "classification": "current-state",
+        "claim_type": "implementation",
+        "preferred_canonical_source": "SYSTEM_TECHNICAL_HANDBOOK_v1.md",
+        "evidence_source": [
+          "audit_summary (finding: requires_doc_code_sync_review from adapter_schema_verdict, severity: review, unresolved_violations_count: 1)",
+          "verification_matrix_delta (notes: adapter_schema_verdict flagged requires_doc_code_sync_review)"
+        ],
+        "evidence_type": "mixed",
+        "proposed_status": "unverified",
+        "reason": "audit_summary carries an unresolved review-level finding (requires_doc_code_sync_review) originating from adapter_schema_verdict, confirmed in verification_matrix_delta notes. Condition remains open pending canonical documentation updates. LU-5: the flagged condition is not positive evidence. LU-8: upstream verdicts are not recomputed.",
+        "traceability_notes": [
+          "audit_summary.unresolved_violations_count=1; review_required_violations_count=1; blocking_violations_count=0",
+          "audit_summary.dag_advancement_blocked=false \u2014 non-blocking but resolution required before status can be cleared"
+        ],
+        "confidence": "medium"
+      }
+    ],
+    "summary": {
+      "ledger_update_required": true,
+      "runtime_status_upgrade_attempt_blocked": true,
+      "doc_only_evidence_detected": false,
+      "role_mismatch_detected": false,
+      "conflicts_detected": true,
+      "missing_evidence": [
+        "Canonical document updates reflecting spy_adapter.py and SP500_PROXY (all 7 canonical docs impacted per doc_code_sync_status)",
+        "Runtime evidence for SP500_PROXY data ingestion (would enable proven status for lc-sp500-proxy-series-registry)",
+        "Confirmation of SP500 history gap resolution scope (full vs. partial) required for lc-sp500-history-gap-status reclassification"
+      ],
+      "unresolved_conflicts": [
+        "spy_adapter.py exists in code but is absent from all canonical documents \u2014 contradicts CLAUDE.md \u00a711 alignment requirement",
+        "SP500_PROXY registered in series_registry.json as Tier-1 with include_in_snapshot=true but absent from all canonical documents",
+        "adapter_schema_verdict requires_doc_code_sync_review flag remains unresolved at audit level"
+      ],
+      "notes": [
+        "Ledger update triggered by: verification_matrix_delta.matrix_action=review_only (not no_change), doc_code_sync_status.verification_ledger_update_required=true, change_impact_report.follow_up_required=mandatory",
+        "No-change shortcut not applicable: matrix_action is review_only and ledger-relevant signals present in doc_code_sync_status and change_impact_report",
+        "dag_advancement_blocked=false: DAG may advance; verification_matrix_delta.required_follow_up must be completed before the next governance re-run",
+        "All affected claims remain below proven status pending canonical documentation updates \u2014 consistent with LU-1, LU-3, and CLAUDE.md \u00a75.3",
+        "After high-priority canonical doc updates (SYSTEM_IMPLEMENTATION_RECORD_v1.md, SYSTEM_LIMITATIONS_AND_APPROXIMATIONS_v1.md, README_v1.md, DOCUMENTATION_VERIFICATION_MATRIX_v1.md), re-run verification-matrix-update to enable status promotion for lc-spy-adapter-implementation and lc-sp500-proxy-series-registry"
+      ]
+    }
+  }
+}

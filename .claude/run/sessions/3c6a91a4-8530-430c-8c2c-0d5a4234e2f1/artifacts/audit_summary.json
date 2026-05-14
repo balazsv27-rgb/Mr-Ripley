@@ -1,0 +1,30 @@
+{
+  "artifact": "audit_summary",
+  "produced_by": "deep-audit",
+  "session": "3c6a91a4-8530-430c-8c2c-0d5a4234e2f1",
+  "timestamp": "2026-05-10T18:54:27.682152Z",
+  "data": {
+    "produced_by": "deep-audit",
+    "audit_action": "synthesize_from_signals",
+    "overall_audit_status": "review_only",
+    "fail_closed_applied": false,
+    "dag_advancement_blocked": false,
+    "dispatched_subagents": [],
+    "blocking_violations_count": 0,
+    "review_required_violations_count": 1,
+    "unresolved_violations_count": 1,
+    "findings": [
+      {
+        "source_artifact": "adapter_schema_verdict",
+        "signal": "requires_doc_code_sync_review",
+        "severity": "review",
+        "summary": "requires_doc_code_sync_review flagged in adapter_schema_verdict"
+      }
+    ],
+    "audit_resolution_required": [],
+    "notes": [
+      "Deterministic synthesis from 8 upstream artifacts.",
+      "Detected 1 escalation signal(s)."
+    ]
+  }
+}

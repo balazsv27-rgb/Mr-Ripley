@@ -1,0 +1,123 @@
+{
+  "artifact": "contract_compliance_verdict",
+  "produced_by": "snapshot-contract-check",
+  "session": "2229996d-df1c-438b-b14a-8388eefe4e59",
+  "timestamp": "2026-05-10T19:16:29.737790Z",
+  "data": {
+    "produced_by": "snapshot-contract-check",
+    "snapshot_contract_status": {
+      "allowed": true,
+      "contract_status": "compliant",
+      "valid_interface": "none",
+      "forbidden_access_detected": false,
+      "snapshot_anchor_required": false,
+      "blocking_reason_if_any": null,
+      "checked_claims": [
+        {
+          "claim_id": "c1",
+          "claim_text": "Changes to governance/dag_runner/adapter_schema.py modify the DAG runner's adapter schema validation logic.",
+          "assessment": "compliant",
+          "violated_invariants": [],
+          "triggered_forbidden_patterns": [],
+          "valid_interface_if_compliant": "none",
+          "reason": "The DAG runner is governance/orchestration infrastructure. It does not constitute a Layer-3 downstream computation component and does not consume Layer-2 data. No snapshot reads, no observations access, no Layer-2 storage touch detected.",
+          "contract_reference": [
+            "SCC-1"
+          ]
+        },
+        {
+          "claim_id": "c2",
+          "claim_text": "Changes to request.json define the current workflow request being processed by the DAG runner.",
+          "assessment": "compliant",
+          "violated_invariants": [],
+          "triggered_forbidden_patterns": [],
+          "valid_interface_if_compliant": "none",
+          "reason": "request.json is a DAG runner session input. It is governance routing metadata, not a Layer-3 data access path. No evidence of downstream observation queries or snapshot bypass.",
+          "contract_reference": [
+            "SCC-1"
+          ]
+        },
+        {
+          "claim_id": "c3",
+          "claim_text": "Changes to tests/governance/test_adapter_schema.py add or modify tests for the adapter schema validator.",
+          "assessment": "compliant",
+          "violated_invariants": [],
+          "triggered_forbidden_patterns": [],
+          "valid_interface_if_compliant": "none",
+          "reason": "Tests target governance-layer schema validation, not Layer-3 downstream data consumption. No snapshot access pattern, no observations query, no Layer-2 storage interaction.",
+          "contract_reference": [
+            "SCC-1"
+          ]
+        },
+        {
+          "claim_id": "c4",
+          "claim_text": "The verification ledger restoration work (restore-verification-ledger branch) affects session artifacts in .claude/run/sessions/.",
+          "assessment": "compliant",
+          "violated_invariants": [],
+          "triggered_forbidden_patterns": [],
+          "valid_interface_if_compliant": "none",
+          "reason": "Session artifacts are DAG audit/governance outputs. They are not Layer-2 or Layer-3 data interfaces. Deletion of stale session artifact files does not affect snapshot boundary or observation access rules.",
+          "contract_reference": [
+            "SCC-1",
+            "SCC-4"
+          ]
+        },
+        {
+          "claim_id": "c5",
+          "claim_text": "No Layer-3 components are modified or introduced in this changeset that would require snapshot_id or snapshot_clock_ts anchoring.",
+          "assessment": "compliant",
+          "violated_invariants": [],
+          "triggered_forbidden_patterns": [],
+          "valid_interface_if_compliant": "none",
+          "reason": "All modified files are governance infrastructure. No DecisionPacket generators, Feature Builder, Index Suite, Regime Gate, Supervisor Engine, or any other Layer-3 computation component is present in the diff. snapshot_anchor_required is therefore false for this changeset.",
+          "contract_reference": [
+            "SCC-2"
+          ]
+        },
+        {
+          "claim_id": "c8",
+          "claim_text": "Claim c8 flagged review_only in role_citation_verdict \u2014 citation traceability concern noted by upstream.",
+          "assessment": "compliant",
+          "violated_invariants": [],
+          "triggered_forbidden_patterns": [],
+          "valid_interface_if_compliant": "none",
+          "reason": "role_citation_verdict marks c8 as review_only, not blocking. From a snapshot contract perspective, citation quality concerns do not constitute a snapshot boundary violation. No forbidden access pattern is implied. Defer to role_citation resolution workflow.",
+          "contract_reference": []
+        },
+        {
+          "claim_id": "c11",
+          "claim_text": "Claim c11 flagged review_only in role_citation_verdict \u2014 citation traceability concern noted by upstream.",
+          "assessment": "compliant",
+          "violated_invariants": [],
+          "triggered_forbidden_patterns": [],
+          "valid_interface_if_compliant": "none",
+          "reason": "role_citation_verdict marks c11 as review_only, not blocking. Same reasoning as c8: citation quality is not a snapshot contract dimension. No forbidden observation access or snapshot bypass implied.",
+          "contract_reference": []
+        }
+      ],
+      "summary": {
+        "raw_observations_access_risk": false,
+        "snapshot_bypass_risk": false,
+        "layer2_storage_touch_risk": false,
+        "decisionpacket_anchor_risk": false,
+        "followup_guard_recommended": false
+      }
+    },
+    "upstream_inheritance": {
+      "phase_alignment_status_inherited": "within_current_phase",
+      "upstream_snapshot_boundary_risk": false,
+      "upstream_blocking_inherited": false,
+      "role_citation_overall_status": "review_only",
+      "role_citation_escalation_required": false,
+      "c8_c11_contract_impact": "none \u2014 citation review items only, no snapshot contract dimension"
+    },
+    "mode_applied": "strict",
+    "scope_applied": "request-and-contract",
+    "canonical_authority_used": [
+      "SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md \u00a7 7 (bootstrap rule, governed inputs, storage isolation)",
+      "SYSTEM_TECHNICAL_HANDBOOK_v1.md \u00a7 3 Invariants 5\u20136 (snapshot-only downstream reads, snapshot_id anchor)",
+      "CLAUDE.md \u00a7 6 (snapshot contract non-negotiable)",
+      "CLAUDE.md \u00a7 7 (fail-closed principle)"
+    ]
+  }
+}

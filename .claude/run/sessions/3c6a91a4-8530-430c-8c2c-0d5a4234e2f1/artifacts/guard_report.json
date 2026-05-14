@@ -1,0 +1,10 @@
+{
+  "artifact": "guard_report",
+  "produced_by": "runtime-guards-summary",
+  "session": "3c6a91a4-8530-430c-8c2c-0d5a4234e2f1",
+  "timestamp": "2026-05-10T18:54:27.679147Z",
+  "data": {
+    "produced_by": "runtime-guards-summary",
+    "structural": true
+  }
+}

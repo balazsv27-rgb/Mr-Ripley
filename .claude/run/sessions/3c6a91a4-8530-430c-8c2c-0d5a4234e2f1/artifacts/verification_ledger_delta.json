@@ -1,0 +1,187 @@
+{
+  "artifact": "verification_ledger_delta",
+  "produced_by": "update-verification-ledger",
+  "session": "3c6a91a4-8530-430c-8c2c-0d5a4234e2f1",
+  "timestamp": "2026-05-10T19:00:55.480414Z",
+  "data": {
+    "produced_by": "update-verification-ledger",
+    "ledger_action": "update",
+    "inference_used": false,
+    "source_authority_conflict_detected": false,
+    "affected_claims": [
+      {
+        "claim_id": "CL-SP500-GAP-OPEN-001",
+        "claim": "SP500 history gap is an open, HIGH-priority limitation (SYSTEM_LIMITATIONS_AND_APPROXIMATIONS_v1.md Section 3.4)",
+        "classification": "current-state",
+        "claim_type": "limitation",
+        "preferred_canonical_source": "SYSTEM_LIMITATIONS_AND_APPROXIMATIONS_v1.md",
+        "evidence_source": [
+          "SYSTEM_LIMITATIONS_AND_APPROXIMATIONS_v1.md Section 3.4 (doc)"
+        ],
+        "evidence_type": "doc",
+        "proposed_status": "supported",
+        "reason": "Doc-only evidence per LU-1: cannot be promoted beyond 'supported'. SYSTEM_LIMITATIONS_AND_APPROXIMATIONS_v1.md Section 3.4 is the role-matched canonical source for limitation status and currently classifies this gap as open/HIGH priority. Code evidence (spy_adapter.py, SP500_PROXY) contradicts this classification, but the canonical doc has not been revised \u2014 conflict is live and unresolved.",
+        "traceability_notes": [
+          "SYSTEM_LIMITATIONS_AND_APPROXIMATIONS_v1.md Section 3.4 is role-matched canonical source for limitation status per CLAUDE.md Section 2.4.",
+          "Code evidence (spy_adapter.py) contradicts 'open' status \u2014 reclassification is pending mandatory Tier 1 doc revision.",
+          "matrix_delta s4-sp500-history-gap: status_review pending canonical doc revision (DR-3 blocks upgrade).",
+          "After SYSTEM_LIMITATIONS revision reclassifying gap from open to resolved, reassess this entry for reclassification or removal."
+        ],
+        "confidence": "high"
+      },
+      {
+        "claim_id": "CL-SP500-PROXY-IMPL-001",
+        "claim": "SP500_PROXY series is implemented in Layer-2 via spy_adapter.py as a proxy solution for the SP500 history gap",
+        "classification": "current-state",
+        "claim_type": "implementation",
+        "preferred_canonical_source": "SYSTEM_IMPLEMENTATION_RECORD_v1.md",
+        "evidence_source": [
+          "spy_adapter.py (code)",
+          "series_registry.json (code)",
+          "adapter_schema_verdict (governance artifact)",
+          "change_impact_report (governance artifact)"
+        ],
+        "evidence_type": "code",
+        "proposed_status": "supported",
+        "reason": "Code-level evidence supports SP500_PROXY implementation via spy_adapter.py. Per LU-3, implementation claims require code alignment for 'proven'. Code evidence exists; however, SYSTEM_IMPLEMENTATION_RECORD_v1.md has not been revised to include spy_adapter.py as 7th adapter or SP500_PROXY as 24th series. Canonical doc alignment is pending, and runtime confirmation is not available in supplied artifacts. Fail-closed posture consistent with matrix_delta runtime_status_upgrade_blocked: true. Status capped at 'supported' pending Tier 1 doc revision.",
+        "traceability_notes": [
+          "spy_adapter.py confirmed by adapter_schema_verdict and change_impact_report risk summary.",
+          "SYSTEM_IMPLEMENTATION_RECORD_v1.md is role-matched canonical source for implementation state \u2014 not yet revised to reflect 7th adapter or 24th series.",
+          "matrix_delta notes: runtime_status_upgrade_blocked: true \u2014 Tier 1 doc consistency prerequisite not satisfied.",
+          "After SYSTEM_IMPLEMENTATION_RECORD and SYSTEM_LIMITATIONS revisions complete, reassess for potential upgrade to 'proven' if runtime evidence is also available."
+        ],
+        "confidence": "high"
+      },
+      {
+        "claim_id": "CL-LAYER2-ADAPTER-COUNT-001",
+        "claim": "Layer-2 ingestion layer has 7 adapters, with spy_adapter.py as the 7th adapter",
+        "classification": "current-state",
+        "claim_type": "implementation",
+        "preferred_canonical_source": "SYSTEM_IMPLEMENTATION_RECORD_v1.md",
+        "evidence_source": [
+          "spy_adapter.py (code)",
+          "change_impact_report (governance artifact)",
+          "adapter_schema_verdict (governance artifact)"
+        ],
+        "evidence_type": "code",
+        "proposed_status": "supported",
+        "reason": "Code-level evidence confirms spy_adapter.py as 7th adapter. Canonical documentation (SYSTEM_IMPLEMENTATION_RECORD_v1.md, README_LAYER2.md, SYSTEM_TECHNICAL_HANDBOOK_v1.md) currently states 6 adapters. Doc-code divergence is confirmed by doc_code_sync_status. Cannot be 'proven' until Tier 1 canonical doc inventories are updated to reflect 7 adapters.",
+        "traceability_notes": [
+          "change_impact_report risk_summary: 'canonical documentation describes 23 series and 6 adapters; implementation now has 24 series and 7 adapters \u2014 live documentation-implementation divergence.'",
+          "doc_code_sync_status: follow_up_required: mandatory; verification_ledger_update_required: true.",
+          "matrix_delta s3-layer2-adapter-series-inventory: add_new_entry, confidence: high \u2014 canonical doc revision required before definitive classification.",
+          "README_LAYER2.md, SYSTEM_TECHNICAL_HANDBOOK_v1.md, SYSTEM_IMPLEMENTATION_RECORD_v1.md all require revision per doc_code_sync_status required_actions."
+        ],
+        "confidence": "high"
+      },
+      {
+        "claim_id": "CL-LAYER2-SERIES-COUNT-001",
+        "claim": "Layer-2 ingestion layer has 24 series, with SP500_PROXY as the 24th series",
+        "classification": "current-state",
+        "claim_type": "implementation",
+        "preferred_canonical_source": "SYSTEM_IMPLEMENTATION_RECORD_v1.md",
+        "evidence_source": [
+          "series_registry.json (code)",
+          "spy_adapter.py (code)",
+          "change_impact_report (governance artifact)"
+        ],
+        "evidence_type": "code",
+        "proposed_status": "supported",
+        "reason": "Code-level evidence supports 24-series count via SP500_PROXY addition to series_registry.json. Canonical documentation currently describes 23 series. Doc-code divergence confirmed. Per CLAUDE.md \u00a78, series_registry.json is authoritative for series definitions, but canonical doc-side consistency is not yet satisfied \u2014 cannot be 'proven' until SYSTEM_IMPLEMENTATION_RECORD and canonical adapter inventories are updated.",
+        "traceability_notes": [
+          "change_impact_report risk_summary explicitly states 24 series and 7 adapters in implementation vs. 23 series and 6 adapters in canonical docs.",
+          "SYSTEM_IMPLEMENTATION_RECORD_v1.md is role-matched canonical source; requires revision.",
+          "series_registry.json is authoritative per CLAUDE.md \u00a78 \u2014 but doc-side consistency is a prerequisite for 'proven' status on implementation count claims."
+        ],
+        "confidence": "high"
+      },
+      {
+        "claim_id": "CL-DOC-CODE-SYNC-REQUIRED-001",
+        "claim": "Canonical documentation is out of sync with Layer-2 implementation state \u2014 adapter and series inventory mismatch confirmed (6\u21927 adapters, 23\u219224 series)",
+        "classification": "current-state",
+        "claim_type": "documentation_policy",
+        "preferred_canonical_source": "DOCUMENTATION_VERIFICATION_MATRIX_v1.md",
+        "evidence_source": [
+          "doc_code_sync_status (governance artifact)",
+          "change_impact_report (governance artifact)",
+          "verification_matrix_delta (governance artifact)"
+        ],
+        "evidence_type": "mixed",
+        "proposed_status": "proven",
+        "reason": "Multiple converging upstream governance artifacts consistently confirm doc-code divergence: doc_code_sync_status (follow_up_required: mandatory, verification_ledger_update_required: true), change_impact_report (live documentation-implementation divergence confirmed in risk_summary), matrix_delta (review_only posture due to pending Tier 1 revisions). The meta-claim that sync is required is proven by convergence of governance-level evidence. This is distinct from the remediation, which is still pending.",
+        "traceability_notes": [
+          "doc_code_sync_status.overall_status: review_only; doc_code_sync_status.doc_code_alignment_status: review_required.",
+          "change_impact_report.impact_type: mixed; contributing_categories: code, documentation, verification.",
+          "matrix_delta notes confirm Tier 1 canonical doc revisions are pending before matrix classifications can be definitively updated.",
+          "Governance artifact convergence (three independent upstream signals) justifies 'proven' for the divergence claim itself under evidence weight rules."
+        ],
+        "confidence": "high"
+      },
+      {
+        "claim_id": "CL-ADAPTER-SCHEMA-REVIEW-001",
+        "claim": "spy_adapter.py requires doc-code sync review per adapter schema verdict \u2014 new adapter not reflected in canonical documentation adapter inventories",
+        "classification": "current-state",
+        "claim_type": "governance",
+        "preferred_canonical_source": "DOCUMENTATION_VERIFICATION_MATRIX_v1.md",
+        "evidence_source": [
+          "adapter_schema_verdict (governance artifact)",
+          "audit_summary (governance artifact)"
+        ],
+        "evidence_type": "mixed",
+        "proposed_status": "supported",
+        "reason": "audit_summary finding confirms requires_doc_code_sync_review flagged in adapter_schema_verdict with severity 'review'. Governance artifact evidence supports the review requirement. No blocking violation confirmed; DAG advancement is not blocked (dag_advancement_blocked: false, blocking_violations_count: 0). Review-only severity does not constitute a blocking condition.",
+        "traceability_notes": [
+          "audit_summary finding: source_artifact: adapter_schema_verdict, signal: requires_doc_code_sync_review, severity: review.",
+          "audit_summary: blocking_violations_count: 0, dag_advancement_blocked: false \u2014 overall governance allows continuation.",
+          "LU-5 does not apply here as the review signal is not a guard-blocked attempt but an open governance action item."
+        ],
+        "confidence": "high"
+      },
+      {
+        "claim_id": "CL-CITATION-STATUS-C3-C4-001",
+        "claim": "Claims c3 and c4 carry unresolved review_only citation status from role-citation validation \u2014 current-state assertions are phase-aligned but citation basis is not fully confirmed",
+        "classification": "current-state",
+        "claim_type": "governance",
+        "preferred_canonical_source": "DOCUMENTATION_VERIFICATION_MATRIX_v1.md",
+        "evidence_source": [
+          "change_impact_report risk_summary (governance artifact)"
+        ],
+        "evidence_type": "doc",
+        "proposed_status": "unverified",
+        "reason": "change_impact_report identifies c3 and c4 as having review_only citation status from role-citation validation. Citation basis is not fully confirmed in supplied artifacts. Per LU-1 (doc-only evidence) and the unresolved nature of the citation gap, status is 'unverified' until citation basis is independently confirmed. No further detail on c3/c4 is available in supplied inputs; inference would be required for deeper analysis, which is blocked per LU-6.",
+        "traceability_notes": [
+          "change_impact_report risk_summary: 'Claims c3 and c4 carry unresolved review_only citation status from role-citation validation. Their current-state assertions are phase-aligned but citation basis is not fully confirmed.'",
+          "matrix_delta required_follow_up: 'Resolve claims c3 and c4 review_only citation status before finalizing any matrix entry that depends on those claims.'",
+          "LU-6 applies: insufficient supplied inputs to resolve citation basis \u2014 inference blocked; status held at 'unverified'."
+        ],
+        "confidence": "medium"
+      }
+    ],
+    "summary": {
+      "ledger_update_required": true,
+      "runtime_status_upgrade_attempt_blocked": true,
+      "doc_only_evidence_detected": true,
+      "role_mismatch_detected": false,
+      "conflicts_detected": true,
+      "missing_evidence": [
+        "Runtime confirmation of SP500_PROXY ingestion and snapshot publication via spy_adapter.py",
+        "Revised SYSTEM_IMPLEMENTATION_RECORD_v1.md reflecting 7 adapters and 24 series (required for 'proven' on CL-SP500-PROXY-IMPL-001, CL-LAYER2-ADAPTER-COUNT-001, CL-LAYER2-SERIES-COUNT-001)",
+        "Revised SYSTEM_LIMITATIONS_AND_APPROXIMATIONS_v1.md reclassifying SP500 gap from open to resolved (required for CL-SP500-GAP-OPEN-001 reclassification)",
+        "Confirmed citation basis for claims c3 and c4 (required for CL-CITATION-STATUS-C3-C4-001 upgrade from 'unverified')"
+      ],
+      "unresolved_conflicts": [
+        "SP500 history gap status: SYSTEM_LIMITATIONS_AND_APPROXIMATIONS_v1.md Section 3.4 classifies as open; code evidence (spy_adapter.py, SP500_PROXY) supports resolved \u2014 conflict pending mandatory Tier 1 doc revision",
+        "Adapter count: canonical docs (SYSTEM_IMPLEMENTATION_RECORD, README_LAYER2, SYSTEM_TECHNICAL_HANDBOOK) state 6 adapters; code evidence shows 7 \u2014 doc-code divergence confirmed, remediation pending",
+        "Series count: canonical docs state 23 series; code evidence shows 24 \u2014 doc-code divergence confirmed, remediation pending"
+      ],
+      "notes": [
+        "Ledger populated for first time \u2014 all 7 entries are new (prior ledger had no entries).",
+        "No implementation-state claims promoted to 'proven' \u2014 doc alignment prerequisites not satisfied for SP500_PROXY, adapter count, or series count claims; fail-closed posture applied consistently with matrix_delta runtime_status_upgrade_blocked: true.",
+        "CL-DOC-CODE-SYNC-REQUIRED-001 assigned 'proven' \u2014 the divergence itself is confirmed by convergence of three independent governance artifacts; this is distinct from the remediation which remains pending.",
+        "doc_only_evidence_detected: true \u2014 CL-SP500-GAP-OPEN-001 is doc-only (LU-1 caps at 'supported'); CL-CITATION-STATUS-C3-C4-001 is doc-only from single artifact (LU-6 caps at 'unverified').",
+        "dag_advancement_blocked: false per audit_summary \u2014 overall governance posture allows continuation; no blocking violations.",
+        "After Tier 1 canonical doc revisions (SYSTEM_LIMITATIONS_AND_APPROXIMATIONS_v1.md, SYSTEM_IMPLEMENTATION_RECORD_v1.md, README_LAYER2.md, SYSTEM_TECHNICAL_HANDBOOK_v1.md) are complete, reassess CL-SP500-PROXY-IMPL-001, CL-LAYER2-ADAPTER-COUNT-001, and CL-LAYER2-SERIES-COUNT-001 for potential upgrade to 'proven' if runtime evidence also becomes available."
+      ]
+    }
+  }
+}

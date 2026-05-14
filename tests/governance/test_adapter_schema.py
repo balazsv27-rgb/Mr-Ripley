@@ -150,6 +150,50 @@ _COMPLIANT_RBV = {
     },
 }
 
+# Real LLM output shape — flat with overall_status and summary
+_COMPLIANT_RBV_FLAT = {
+    "produced_by": "runtime-boundary-check",
+    "overall_status": "compliant",
+    "inference_used": False,
+    "checked_items": [],
+    "summary": {
+        "raw_observations_violation_detected": False,
+        "latest_snapshot_misuse_detected": False,
+        "snapshot_truth_rewrite_risk_detected": False,
+        "layer2_storage_touch_detected": False,
+        "insert_or_replace_violation_detected": False,
+        "execution_boundary_violation_detected": False,
+        "boundary_violation_suspected": False,
+        "requires_snapshot_boundary_auditor": False,
+        "requires_doc_code_sync_review": False,
+    },
+}
+
+# Envelope shape — as written to disk by artifact_writer
+_COMPLIANT_RBV_ENVELOPE = {
+    "artifact": "runtime_boundary_verdict",
+    "produced_by": "runtime-boundary-check",
+    "session": "test-session",
+    "timestamp": "2026-05-10T00:00:00Z",
+    "data": _COMPLIANT_RBV_FLAT,
+}
+
+# Nested snapshot_boundary_status shape
+_COMPLIANT_RBV_SBS = {
+    "produced_by": "runtime-boundary-check",
+    "snapshot_boundary_status": {
+        "overall_status": "compliant",
+        "summary": {
+            "boundary_violation_suspected": False,
+        },
+    },
+    "runtime_fields": {
+        "raw_observation_access_detected": False,
+        "latest_snapshot_misuse_detected": False,
+        "boundary_violation_suspected": False,
+    },
+}
+
 
 # ---------------------------------------------------------------------------
 # AS-01 through AS-09 checks with full evidence
@@ -428,6 +472,184 @@ class TestEdgeCases:
         rs = _make_run_state(code_context=cc, runtime_boundary_verdict=_COMPLIANT_RBV)
         verdict = synthesize_adapter_schema_verdict(_make_step(), rs)
         assert verdict["adapter_schema_status"]["sp500_proxy_status"] == "not_applicable"
+
+
+# ---------------------------------------------------------------------------
+# RBV shape handling — envelope, flat, snapshot_boundary_status
+# ---------------------------------------------------------------------------
+
+
+class TestRbvEnvelopeShape:
+    """Adapter-schema synthesizer receives enveloped runtime_boundary_verdict."""
+
+    def test_envelope_rbv_marks_as08_compliant(self) -> None:
+        rs = _make_run_state(
+            code_context=_FULL_CODE_CONTEXT,
+            runtime_boundary_verdict=_COMPLIANT_RBV_ENVELOPE,
+        )
+        verdict = synthesize_adapter_schema_verdict(_make_step(), rs)
+        as08 = [
+            c for c in verdict["adapter_schema_status"]["checked_items"]
+            if c["item_id"] == "AS-08"
+        ]
+        assert as08[0]["assessment"] == "compliant"
+        assert verdict["adapter_schema_status"]["summary"]["runtime_boundary_compliant"] is True
+
+    def test_envelope_no_review_reason_for_rbv(self) -> None:
+        rs = _make_run_state(
+            code_context=_FULL_CODE_CONTEXT,
+            runtime_boundary_verdict=_COMPLIANT_RBV_ENVELOPE,
+        )
+        verdict = synthesize_adapter_schema_verdict(_make_step(), rs)
+        review_reasons = verdict["adapter_schema_status"]["summary"]["review_reasons"]
+        assert "runtime_boundary_verdict not available" not in review_reasons
+
+
+class TestRbvFlatShape:
+    """Adapter-schema synthesizer receives direct payload runtime_boundary_verdict."""
+
+    def test_flat_rbv_marks_as08_compliant(self) -> None:
+        rs = _make_run_state(
+            code_context=_FULL_CODE_CONTEXT,
+            runtime_boundary_verdict=_COMPLIANT_RBV_FLAT,
+        )
+        verdict = synthesize_adapter_schema_verdict(_make_step(), rs)
+        as08 = [
+            c for c in verdict["adapter_schema_status"]["checked_items"]
+            if c["item_id"] == "AS-08"
+        ]
+        assert as08[0]["assessment"] == "compliant"
+
+    def test_flat_rbv_runtime_boundary_compliant_true(self) -> None:
+        rs = _make_run_state(
+            code_context=_FULL_CODE_CONTEXT,
+            runtime_boundary_verdict=_COMPLIANT_RBV_FLAT,
+        )
+        verdict = synthesize_adapter_schema_verdict(_make_step(), rs)
+        assert verdict["adapter_schema_status"]["summary"]["runtime_boundary_compliant"] is True
+
+
+class TestRbvSnapshotBoundaryStatusShape:
+    """snapshot_boundary_status.overall_status=compliant is accepted."""
+
+    def test_sbs_rbv_marks_as08_compliant(self) -> None:
+        rs = _make_run_state(
+            code_context=_FULL_CODE_CONTEXT,
+            runtime_boundary_verdict=_COMPLIANT_RBV_SBS,
+        )
+        verdict = synthesize_adapter_schema_verdict(_make_step(), rs)
+        as08 = [
+            c for c in verdict["adapter_schema_status"]["checked_items"]
+            if c["item_id"] == "AS-08"
+        ]
+        assert as08[0]["assessment"] == "compliant"
+
+
+class TestRbvViolationFlags:
+    """Any positive boundary violation flag causes blocked/review, not compliant."""
+
+    @pytest.mark.parametrize("flag,value", [
+        ("boundary_violation_suspected", True),
+        ("raw_observations_violation_detected", True),
+        ("latest_snapshot_misuse_detected", True),
+        ("snapshot_truth_rewrite_risk_detected", True),
+        ("layer2_storage_touch_detected", True),
+        ("execution_boundary_violation_detected", True),
+    ])
+    def test_summary_violation_flag_blocks(self, flag: str, value: bool) -> None:
+        rbv = {
+            "produced_by": "runtime-boundary-check",
+            "overall_status": "blocked",
+            "summary": {
+                "boundary_violation_suspected": False,
+                "raw_observations_violation_detected": False,
+                "latest_snapshot_misuse_detected": False,
+                "snapshot_truth_rewrite_risk_detected": False,
+                "layer2_storage_touch_detected": False,
+                "execution_boundary_violation_detected": False,
+                flag: value,
+            },
+        }
+        rs = _make_run_state(code_context=_FULL_CODE_CONTEXT, runtime_boundary_verdict=rbv)
+        verdict = synthesize_adapter_schema_verdict(_make_step(), rs)
+        as08 = [
+            c for c in verdict["adapter_schema_status"]["checked_items"]
+            if c["item_id"] == "AS-08"
+        ]
+        assert as08[0]["assessment"] == "blocked"
+        assert verdict["adapter_schema_status"]["summary"]["runtime_boundary_compliant"] is False
+
+
+class TestRbvMissing:
+    """Missing runtime_boundary_verdict yields review_only with missing input."""
+
+    def test_missing_rbv_review_only(self) -> None:
+        rs = _make_run_state(code_context=_FULL_CODE_CONTEXT)
+        verdict = synthesize_adapter_schema_verdict(_make_step(), rs)
+        as08 = [
+            c for c in verdict["adapter_schema_status"]["checked_items"]
+            if c["item_id"] == "AS-08"
+        ]
+        assert as08[0]["assessment"] == "review_only"
+        assert "runtime_boundary_verdict" in as08[0]["missing_inputs"]
+        assert verdict["adapter_schema_status"]["summary"]["runtime_boundary_compliant"] is False
+        review_reasons = verdict["adapter_schema_status"]["summary"]["review_reasons"]
+        assert "runtime_boundary_verdict not available" in review_reasons
+
+
+class TestSessionFixtureRegression:
+    """Regression: adapter_schema_verdict should not say runtime_boundary_verdict
+    unavailable when an artifact with that shape exists in the session."""
+
+    def test_real_session_rbv_shape_recognized(self) -> None:
+        """Uses the exact shape from session 144e06d3 runtime_boundary_verdict."""
+        rbv = {
+            "produced_by": "runtime-boundary-check",
+            "overall_status": "compliant",
+            "inference_used": False,
+            "checked_items": [
+                {
+                    "item_id": "RB-D1-RAW-OBS",
+                    "assessment": "compliant",
+                    "raw_observations_access_detected": False,
+                    "latest_snapshot_misuse_detected": False,
+                    "snapshot_truth_rewrite_risk": False,
+                    "layer2_storage_touch_detected": False,
+                },
+            ],
+            "summary": {
+                "raw_observations_violation_detected": False,
+                "latest_snapshot_misuse_detected": False,
+                "snapshot_truth_rewrite_risk_detected": False,
+                "layer2_storage_touch_detected": False,
+                "insert_or_replace_violation_detected": False,
+                "execution_boundary_violation_detected": False,
+                "registry_authority_intact": True,
+                "requires_snapshot_boundary_guard": False,
+                "requires_snapshot_boundary_auditor": False,
+                "requires_doc_code_sync_review": False,
+                "source_authority_conflict_detected": False,
+                "boundary_violation_suspected": False,
+            },
+        }
+        rs = _make_run_state(
+            code_context=_FULL_CODE_CONTEXT,
+            runtime_boundary_verdict=rbv,
+        )
+        verdict = synthesize_adapter_schema_verdict(_make_step(), rs)
+
+        as08 = [
+            c for c in verdict["adapter_schema_status"]["checked_items"]
+            if c["item_id"] == "AS-08"
+        ]
+        assert as08[0]["assessment"] == "compliant", (
+            f"AS-08 should be compliant but got: {as08[0]}"
+        )
+        assert "compliant" in as08[0]["reason"].lower()
+
+        summary = verdict["adapter_schema_status"]["summary"]
+        assert summary["runtime_boundary_compliant"] is True
+        assert "runtime_boundary_verdict not available" not in summary["review_reasons"]
 
 
 # ---------------------------------------------------------------------------

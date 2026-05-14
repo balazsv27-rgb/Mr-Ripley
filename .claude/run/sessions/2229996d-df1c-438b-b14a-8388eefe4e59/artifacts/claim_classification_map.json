@@ -1,0 +1,224 @@
+{
+  "artifact": "claim_classification_map",
+  "produced_by": "classify-claims",
+  "session": "2229996d-df1c-438b-b14a-8388eefe4e59",
+  "timestamp": "2026-05-10T19:11:27.583752Z",
+  "data": {
+    "produced_by": "classify-claims",
+    "run_id": "2229996d-df1c-438b-b14a-8388eefe4e59",
+    "request_id": "layer2-canonical-doc-sync-sp500-proxy-2026-05-10",
+    "request_classification": {
+      "request_type": "documentation_synchronization_with_verified_implementation_state",
+      "claims": [
+        {
+          "claim_id": "c1",
+          "claim_text": "spy_adapter.py exists as the 7th adapter in layer2/adapters/",
+          "claim_scope": "current-state",
+          "evidence_class": "documented_current_state_claim",
+          "source_priority": [
+            "layer2/adapters/ (adapter_inventory)",
+            "series_registry.json (SP500_PROXY source=yahoo_spy)",
+            "SYSTEM_IMPLEMENTATION_RECORD_v1.md"
+          ],
+          "confidence_level": "high",
+          "classification_rationale": "The governance_context adapter_inventory confirms 7 adapter files including spy_adapter.py. This is code-level evidence. However, no canonical document currently mentions spy_adapter.py \u2014 SYSTEM_IMPLEMENTATION_RECORD_v1.md lists only four adapters in the 2026-04-18 refactor addendum. The claim is supported by concrete implementation evidence but not yet reflected in canonical documentation, hence documented_current_state_claim rather than verified_in_current_documentation_set.",
+          "notes": [
+            "Canonical docs currently list 4-6 adapters depending on document; spy_adapter.py is absent from all",
+            "Documentation gap confirmed \u2014 implementation ahead of documentation"
+          ]
+        },
+        {
+          "claim_id": "c2",
+          "claim_text": "SP500_PROXY exists as the 24th series in series_registry.json",
+          "claim_scope": "current-state",
+          "evidence_class": "documented_current_state_claim",
+          "source_priority": [
+            "layer2/config/series_registry.json (registry authority per CLAUDE.md \u00a78)",
+            "SYSTEM_IMPLEMENTATION_RECORD_v1.md",
+            "DOCUMENTATION_VERIFICATION_MATRIX_v1.md"
+          ],
+          "confidence_level": "high",
+          "classification_rationale": "The governance_context series_registry synthesis confirms 24 series with SP500_PROXY present, source yahoo_spy, registry_version 1.1.0. Per CLAUDE.md \u00a78, series_registry.json is the single source of truth for series definitions. The registry itself is authoritative evidence. However, no canonical document currently references SP500_PROXY \u2014 all docs reference 23 series or omit a count. The SP500 history gap is still listed as HIGH priority TODO in multiple canonical docs.",
+          "notes": [
+            "Registry is authoritative per \u00a78 \u2014 SP500_PROXY presence is implementation fact",
+            "All canonical docs still describe SP500 gap as open TODO",
+            "Previous registry version was likely 1.0.x with 23 series"
+          ]
+        },
+        {
+          "claim_id": "c3",
+          "claim_text": "SP500_PROXY is Tier-1 and included in snapshots",
+          "claim_scope": "current-state",
+          "evidence_class": "documented_current_state_claim",
+          "source_priority": [
+            "layer2/config/series_registry.json",
+            "SYSTEM_TECHNICAL_HANDBOOK_v1.md",
+            "DOCUMENTATION_VERIFICATION_MATRIX_v1.md"
+          ],
+          "confidence_level": "high",
+          "classification_rationale": "The governance_context series_registry confirms sp500_proxy_tier=1 and sp500_proxy_include_in_snapshot=true. Tier-1 status has contract implications: SP500_PROXY staleness would block snapshot publication (fail-closed). The snapshot_series_ids list shows 21 series including SP500_PROXY. This is consistent with the snapshot contract but not yet documented in canonical sources.",
+          "notes": [
+            "Tier-1 classification means SP500_PROXY staleness blocks snapshot publication",
+            "Snapshot contract implications exist \u2014 documentation must accurately reflect this",
+            "include_in_snapshot count rose from 20 to 21 with SP500_PROXY addition"
+          ]
+        },
+        {
+          "claim_id": "c4",
+          "claim_text": "SP500 history gap is at least partially addressed by SP500_PROXY (SPY via Yahoo, history from 2005-01-03)",
+          "claim_scope": "current-state",
+          "evidence_class": "documented_current_state_claim",
+          "source_priority": [
+            "layer2/config/series_registry.json",
+            "SYSTEM_LIMITATIONS_AND_APPROXIMATIONS_v1.md",
+            "DOCUMENTATION_VERIFICATION_MATRIX_v1.md",
+            "README_LAYER2.md",
+            "README_v1.md"
+          ],
+          "confidence_level": "high",
+          "classification_rationale": "Multiple canonical docs describe the SP500 history gap (FRED from 2016 only) as HIGH priority open TODO with planned fix via SPY/Yahoo. The governance_context now shows SP500_PROXY with source=yahoo_spy and full_history_start=2005-01-03, which directly addresses the documented gap. The planned fix has been implemented but documentation has not been updated. This is the central documentation-implementation desynchronization this request aims to reconcile.",
+          "notes": [
+            "README_v1.md line 203: still lists SP500 history gap as known risk",
+            "SYSTEM_LIMITATIONS line 83: still lists as \u2b1c High priority",
+            "README_LAYER2.md line 192 and 593: still lists as \u2b1c TODO HIGH",
+            "DOCUMENTATION_VERIFICATION_MATRIX line 73: still lists as documented_current_state_claim with planned migration",
+            "The original SP500 series (FRED, from 2016) remains \u2014 SP500_PROXY supplements it"
+          ]
+        },
+        {
+          "claim_id": "c5",
+          "claim_text": "Layer-3 remains unimplemented",
+          "claim_scope": "current-state",
+          "evidence_class": "verified_in_current_documentation_set",
+          "source_priority": [
+            "SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md",
+            "SYSTEM_IMPLEMENTATION_RECORD_v1.md",
+            "README_v1.md",
+            "SYSTEM_TECHNICAL_HANDBOOK_v1.md"
+          ],
+          "confidence_level": "high",
+          "classification_rationale": "All canonical documents consistently state Layer-3 is not yet built. The governance_context confirms layer3_execution_artifacts_absent=true and layer3_runtime_absent=true. Cross-document support is unanimous with no conflict. This is verified_in_current_documentation_set because all v1 docs make this claim stably.",
+          "notes": [
+            "CLAUDE.md \u00a73.2 and \u00a74 Phase B: allowed but not completed",
+            "execution_artifact_scan: detected_layer3_indicators=[]"
+          ]
+        },
+        {
+          "claim_id": "c6",
+          "claim_text": "Live execution remains blocked",
+          "claim_scope": "current-state",
+          "evidence_class": "verified_in_current_documentation_set",
+          "source_priority": [
+            "SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md",
+            "CLAUDE.md \u00a79",
+            "README_v1.md",
+            "SYSTEM_TECHNICAL_HANDBOOK_v1.md"
+          ],
+          "confidence_level": "high",
+          "classification_rationale": "All canonical documents and the constitution (CLAUDE.md \u00a79, \u00a710) consistently enforce that live execution is blocked. Phase D status is blocked. The governance_context confirms layer3_runtime_absent=true. No contradictory evidence.",
+          "notes": [
+            "Constitutional constraint \u2014 not merely a documentation claim"
+          ]
+        },
+        {
+          "claim_id": "c7",
+          "claim_text": "Canonical documentation requires update to synchronize with SP500_PROXY/spy_adapter implementation state",
+          "claim_scope": "current-state",
+          "evidence_class": "documented_current_state_claim",
+          "source_priority": [
+            "CLAUDE.md \u00a711",
+            "SYSTEM_IMPLEMENTATION_RECORD_v1.md",
+            "SYSTEM_LIMITATIONS_AND_APPROXIMATIONS_v1.md",
+            "DOCUMENTATION_VERIFICATION_MATRIX_v1.md",
+            "README_v1.md",
+            "README_LAYER2.md",
+            "SYSTEM_TECHNICAL_HANDBOOK_v1.md"
+          ],
+          "confidence_level": "high",
+          "classification_rationale": "CLAUDE.md \u00a711 requires that contract-affecting changes trigger documentation review and update across all canonical documents. The implementation of spy_adapter.py and SP500_PROXY is a contract-affecting change (new Tier-1 series in snapshots, new adapter, registry version change). The documentation currently does not reflect this implementation, creating a doc-code desynchronization that \u00a711 requires to be resolved.",
+          "notes": [
+            "Per \u00a711: code changes without documentation alignment are invalid",
+            "Affected documents: at minimum README_v1.md, SYSTEM_LIMITATIONS, VERIFICATION_MATRIX, README_LAYER2.md, SYSTEM_IMPLEMENTATION_RECORD, SYSTEM_TECHNICAL_HANDBOOK",
+            "This is a documentation reconciliation, not an architecture reinterpretation"
+          ]
+        },
+        {
+          "claim_id": "c8",
+          "claim_text": "Fail-closed governance posture must be preserved during documentation update",
+          "claim_scope": "current-state",
+          "evidence_class": "verified_in_current_documentation_set",
+          "source_priority": [
+            "CLAUDE.md \u00a77",
+            "SYSTEM_TECHNICAL_HANDBOOK_v1.md",
+            "SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md"
+          ],
+          "confidence_level": "high",
+          "classification_rationale": "CLAUDE.md \u00a77 establishes fail-closed as a constitutional principle. All canonical docs consistently enforce it. The request explicitly requires preserving this posture \u2014 this is a constraint on the documentation update, not a new claim.",
+          "notes": [
+            "Constitutional constraint \u2014 cannot be weakened by documentation update"
+          ]
+        },
+        {
+          "claim_id": "c9",
+          "claim_text": "Not all Layer-2 TODO items are complete \u2014 documentation must not overclaim",
+          "claim_scope": "current-state",
+          "evidence_class": "verified_in_current_documentation_set",
+          "source_priority": [
+            "SYSTEM_LIMITATIONS_AND_APPROXIMATIONS_v1.md",
+            "README_LAYER2.md",
+            "SYSTEM_TECHNICAL_HANDBOOK_v1.md"
+          ],
+          "confidence_level": "high",
+          "classification_rationale": "Multiple canonical docs list remaining TODO items: revision writer, scheduler/orchestrator, alerting/retry/kill switch, revision_risk column in observations, layer1_events stub, discontinued series cleanup, etc. The request explicitly guards against overclaiming completion. Only the SP500 history gap item changes status.",
+          "notes": [
+            "Remaining TODO items are explicitly enumerated in canonical docs",
+            "Only SP500-related items change classification in this update",
+            "CLAUDE.md \u00a710 strong claim discipline applies"
+          ]
+        },
+        {
+          "claim_id": "c10",
+          "claim_text": "Layer-2 and Layer-3 canonical terminology must be preserved",
+          "claim_scope": "current-state",
+          "evidence_class": "verified_in_current_documentation_set",
+          "source_priority": [
+            "CLAUDE.md \u00a716.1",
+            "CLAUDE.md \u00a73"
+          ],
+          "confidence_level": "high",
+          "classification_rationale": "CLAUDE.md \u00a716.1 constitutional amendment rule requires that terminology changes identify affected sections, cite role-matched sources, prove semantic equivalence, and update cross-references atomically. The request explicitly requires preserving existing terminology. No terminology change is proposed.",
+          "notes": [
+            "Guard constraint \u2014 no new terms or aliases proposed"
+          ]
+        },
+        {
+          "claim_id": "c11",
+          "claim_text": "Execution boundary restrictions must be preserved",
+          "claim_scope": "current-state",
+          "evidence_class": "verified_in_current_documentation_set",
+          "source_priority": [
+            "CLAUDE.md \u00a79",
+            "CLAUDE.md \u00a710",
+            "SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md"
+          ],
+          "confidence_level": "high",
+          "classification_rationale": "CLAUDE.md \u00a79 and \u00a710 establish constitutional execution boundary restrictions. The request explicitly requires preserving these. No execution capability is being added or implied by the SP500_PROXY documentation update.",
+          "notes": [
+            "Constitutional constraint \u2014 documentation update must not imply execution capability"
+          ]
+        }
+      ],
+      "summary": {
+        "dominant_scope": "current-state",
+        "needs_phase_check": false,
+        "touches_current_truth": true,
+        "touches_target_architecture": false,
+        "touches_historical_reconciliation": false,
+        "touches_verification_matrix": true,
+        "touches_snapshot_contract": true,
+        "possible_blocking_conditions": [],
+        "routing_notes": "All claims are current-state. The request is a documentation synchronization \u2014 reconciling canonical docs with already-implemented code changes (spy_adapter.py, SP500_PROXY). No phase gate advancement is proposed. No architecture reinterpretation is proposed. The snapshot contract is touched because SP500_PROXY is Tier-1 and included in snapshots, changing the effective series count. The verification matrix is touched because the SP500 history gap item classification changes from open TODO to resolved. Multiple canonical documents require coordinated updates per CLAUDE.md \u00a711."
+      }
+    }
+  }
+}

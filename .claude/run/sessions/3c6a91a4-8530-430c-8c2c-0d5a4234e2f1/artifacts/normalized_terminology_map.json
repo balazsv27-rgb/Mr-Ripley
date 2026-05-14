@@ -1,0 +1,47 @@
+{
+  "artifact": "normalized_terminology_map",
+  "produced_by": "normalize-terminology",
+  "session": "3c6a91a4-8530-430c-8c2c-0d5a4234e2f1",
+  "timestamp": "2026-05-10T18:49:55.454175Z",
+  "data": {
+    "produced_by": "normalize-terminology",
+    "overall_status": "governance_sensitive_term_conflict",
+    "inference_used": false,
+    "canonical_term_mappings": [
+      {
+        "from": "tier 1",
+        "to": "Tier-1",
+        "concept_id": "TIER1_PASS",
+        "reason": "Claim c1 uses lowercase unhyphenated 'tier 1' to describe the tier classification of SP500_PROXY. Canonical documents consistently use 'Tier-1' with hyphen in prose. The canonical term table lists 'tier 1 pass count' as explicitly discouraged for TIER1_PASS/TIER1_FAIL field naming, establishing 'Tier-1' as the expected prose form for the tier classification label."
+      },
+      {
+        "from": "Gold-First Market State Engine",
+        "to": "gold-first, fail-closed, snapshot-based decision support system",
+        "concept_id": "SYSTEM_IDENTITY",
+        "reason": "Non-canonical system identity variant observed in README_LAYER2 canonical_doc_extract (line 31: 'data ingestion and truth store for the Gold-First Market State Engine'). Allowed variants for SYSTEM_IDENTITY are 'gold-first engine' and 'Mr. Ripley system' only. 'Gold-First Market State Engine' is not listed among allowed variants and omits the fail-closed and snapshot-based characterizations that are constitutionally required identity properties."
+      }
+    ],
+    "scope_constraints": [
+      "claim_classification_map claims c1, c2, c3, c4, c5",
+      "request_text from governance_context: 'Evaluate and update canonical documentation for individually verified Layer-2 changes only. Do not assert that all remaining TODO items are complete.'",
+      "canonical_doc_extracts in governance_context: README_v1.md, SYSTEM_TECHNICAL_HANDBOOK_v1.md, SYSTEM_LIMITATIONS_AND_APPROXIMATIONS_v1.md, SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md, DOCUMENTATION_VERIFICATION_MATRIX_v1.md, SYSTEM_IMPLEMENTATION_RECORD_v1.md, README_LAYER2.md, verification_ledger.md"
+    ],
+    "excluded_reference_types": [
+      "canonical source documents not read directly \u2014 only keyword-scoped extracts provided in governance_context",
+      "implementation code files not evaluated (layer2/ Python source not in scope for this step)",
+      "series_registry.json content not evaluated beyond structural metadata provided in code_context"
+    ],
+    "filename_rename_candidates": [],
+    "ambiguity_flags": [
+      {
+        "term": "truth store",
+        "concepts": [
+          "LAYER_2",
+          "SNAPSHOT_TRUTH"
+        ],
+        "governance_sensitive": true,
+        "note": "Observed in two canonical_doc_extracts: README_v1.md line 13 ('Layer-2 is the data ingestion and truth store') and README_LAYER2.md line 31 (same phrase). 'truth store' conflates Layer-2 component identity with Snapshot Truth semantics and the observations persistence layer. Term was previously rejected per project governance record (MEMORY.md: 'Rejected terminology: truth_store (conflates LAYER_2/SNAPSHOT_TRUTH/OBSERVATIONS)'). Not present in the canonical term table, but conflicts with Category A (Snapshot boundary) governance-sensitive rules \u2014 weakening the semantic boundary between what Layer-2 is as a component and what Snapshot Truth is as a governed concept. This is pre-existing drift in canonical documents, not introduced by claims c1\u2013c5. Downstream documentation update steps working on these documents should normalize the phrase."
+      }
+    ]
+  }
+}

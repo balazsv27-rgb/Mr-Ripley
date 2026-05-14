@@ -1,0 +1,57 @@
+{
+  "artifact": "verification_matrix_delta",
+  "produced_by": "update-verification-matrix",
+  "session": "2229996d-df1c-438b-b14a-8388eefe4e59",
+  "timestamp": "2026-05-10T19:21:12.850518Z",
+  "data": {
+    "produced_by": "update-verification-matrix",
+    "matrix_action": "review_only",
+    "classification_dispute_detected": false,
+    "runtime_status_upgrade_blocked": true,
+    "source_authority_conflict_detected": false,
+    "affected_entries": [
+      {
+        "entry_id": "s4-sp500-history-gap",
+        "section": "Section 4 \u2014 Current Known Open Items",
+        "claim_or_topic": "SP500 history gap",
+        "change_type": "status_review",
+        "reason": "change_impact_report identifies SP500 history gap as the one open item that 'changes status'. spy_adapter.py and SP500_PROXY (Tier-1, include_in_snapshot=true) exist in code and registry but are absent from all canonical documents. Classification cannot be upgraded until canonical docs are aligned with code reality. DR-1 and DR-3 block runtime status upgrade from code-only evidence without cross-doc Tier-1 consistency.",
+        "source_documents": [
+          "change_impact_report",
+          "audit_summary"
+        ],
+        "proposed_old_state": "Documented current-state claim",
+        "proposed_new_state": null,
+        "confidence": "medium"
+      },
+      {
+        "entry_id": "s4-spy-adapter-sp500-proxy",
+        "section": "Section 4 \u2014 Current Known Open Items",
+        "claim_or_topic": "spy_adapter.py and SP500_PROXY series implementation",
+        "change_type": "add_new_entry",
+        "reason": "spy_adapter.py and SP500_PROXY exist in code and series_registry as Tier-1 with include_in_snapshot=true, but are absent from all canonical documents. CLAUDE.md \u00a711 states code changes without documentation alignment are invalid. SP500_PROXY staleness now blocks snapshot publication under the fail-closed contract \u2014 a contract-scope expansion that must be tracked in the matrix. MU-5 applies: new governance-critical topic not currently tracked.",
+        "source_documents": [
+          "change_impact_report",
+          "audit_summary"
+        ],
+        "proposed_old_state": null,
+        "proposed_new_state": "Cannot verify from current materials",
+        "confidence": "high"
+      }
+    ],
+    "required_follow_up": [
+      "Update SYSTEM_IMPLEMENTATION_RECORD_v1.md, README_v1.md, SYSTEM_LIMITATIONS_AND_APPROXIMATIONS_v1.md, and README_LAYER2.md to reflect spy_adapter.py and SP500_PROXY (high priority per doc_code_sync_status.required_actions)",
+      "After canonical doc updates: re-run verification-matrix-update to confirm s4-sp500-history-gap reclassification and promote s4-spy-adapter-sp500-proxy from 'Cannot verify from current materials'",
+      "Review Section 4 SP500 history gap entry to determine whether the item is fully resolved, partially resolved, or remains open following spy_adapter adoption \u2014 scope the update precisely to avoid overclaiming risk per change_impact_report"
+    ],
+    "inference_used": false,
+    "notes": [
+      "adapter_schema_verdict flagged requires_doc_code_sync_review (audit_summary finding) \u2014 confirms doc-code gap at governance artifact level, consistent with change_impact_report risk signals",
+      "No blocking violations (audit_summary.blocking_violations_count=0, dag_advancement_blocked=false); matrix_action is review_only, not blocking",
+      "DR-1 and DR-3 applied: spy_adapter.py and SP500_PROXY exist in code but not in canonical docs; runtime status upgrade for SP500 history gap is blocked until cross-doc Tier-1 consistency is confirmed",
+      "DR-7 assessed: no new canonical governance documents introduced; session artifacts do not require Section 8 entries",
+      "c8 and c11 constitutional guard claims (fail-closed \u00a77, execution boundary \u00a79) are review_only per upstream role_citation_verdict \u2014 no matrix reclassification warranted for those entries",
+      "Source authority conflict not detected: README_LAYER2.md not cited outside its declared collaborator-guide role in any upstream artifact"
+    ]
+  }
+}

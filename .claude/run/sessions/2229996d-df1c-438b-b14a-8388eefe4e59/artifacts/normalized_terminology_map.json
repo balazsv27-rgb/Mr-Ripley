@@ -1,0 +1,51 @@
+{
+  "artifact": "normalized_terminology_map",
+  "produced_by": "normalize-terminology",
+  "session": "2229996d-df1c-438b-b14a-8388eefe4e59",
+  "timestamp": "2026-05-10T19:13:41.969646Z",
+  "data": {
+    "produced_by": "normalize-terminology",
+    "overall_status": "normalization_required",
+    "inference_used": false,
+    "canonical_term_mappings": [
+      {
+        "from": "unimplemented",
+        "to": "not yet built",
+        "concept_id": "IMPL_NOT_BUILT",
+        "reason": "Claim c5 text ('Layer-3 remains unimplemented') and request_text use 'unimplemented' for Layer-3 status. Canonical form is 'not yet built'; allowed variants are 'not built' and 'open item'. 'Unimplemented' does not appear in the allowed variant list and should be replaced in any documentation authored from these claims."
+      },
+      {
+        "from": "truth layer",
+        "to": "Layer-2",
+        "concept_id": "LAYER_2",
+        "reason": "Canonical document extracts show 'truth layer' used as a descriptor for Layer-2 in document headings (README_v1.md heading '# Mr. Ripley \u2014 Layer-2 Truth Layer'; SYSTEM_LIMITATIONS_AND_APPROXIMATIONS_v1.md heading '## Mr. Ripley \u2014 Layer-2 Truth Layer'; SYSTEM_TECHNICAL_HANDBOOK_v1.md line 14 'truth and observation layer'). Per the canonical term table, 'truth layer' is a discouraged variant of 'Layer-2'. These headings appear in documents targeted for update in this run and carry the discouraged form forward."
+      },
+      {
+        "from": "truth store",
+        "to": "Layer-2",
+        "concept_id": "LAYER_2",
+        "reason": "README_v1.md line 13 and README_LAYER2.md line 31 both describe Layer-2 as 'the data ingestion and truth store'. 'Truth store' is not listed as an allowed variant for LAYER_2 and conflates the layer identity (LAYER_2) with the snapshot publication concept (SNAPSHOT_TRUTH) and the raw observation store (OBSERVATIONS). This descriptor appears in documents targeted for update in this run."
+      },
+      {
+        "from": "fast-market state",
+        "to": "Live Market State",
+        "concept_id": "LIVE_MARKET_STATE",
+        "reason": "governance_context canonical_doc_extracts reference 'intraday/fast-market state' in SYSTEM_LIMITATIONS_AND_APPROXIMATIONS_v1.md line 83 context passage (quoted as describing SP500/SPY dependency for Layer-3). The canonical term is 'Live Market State' with no allowed variants listed. 'fast-market state' is a non-canonical descriptor that would drift governance-routing if carried into updated documentation."
+      }
+    ],
+    "scope_constraints": [
+      "request_text from governance_context.request_text",
+      "claim_classification_map claim texts c1 through c11",
+      "claim_classification_map classification_rationale and notes fields",
+      "canonical_doc_extracts headings and keyword_sections scanned for terminology drift in documents targeted for update in this run"
+    ],
+    "excluded_reference_types": [
+      "canonical documents not read in full \u2014 only extracted headings and keyword_sections available in governance_context",
+      "series_registry.json series identifiers (e.g. SP500_PROXY, gold_price_proxy) treated as registry keys, not governed terminology",
+      "adapter filenames (spy_adapter.py, fred_loader.py, etc.) treated as implementation identifiers, not governed terminology",
+      "snapshot runtime values (snapshot_id hash, clock_ts values) treated as data, not terminology"
+    ],
+    "filename_rename_candidates": [],
+    "ambiguity_flags": []
+  }
+}

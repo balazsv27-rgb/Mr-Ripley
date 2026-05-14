@@ -1,0 +1,64 @@
+{
+  "artifact": "verification_matrix_delta",
+  "produced_by": "update-verification-matrix",
+  "session": "3c6a91a4-8530-430c-8c2c-0d5a4234e2f1",
+  "timestamp": "2026-05-10T18:58:22.622892Z",
+  "data": {
+    "produced_by": "update-verification-matrix",
+    "matrix_action": "review_only",
+    "classification_dispute_detected": false,
+    "runtime_status_upgrade_blocked": true,
+    "source_authority_conflict_detected": false,
+    "affected_entries": [
+      {
+        "entry_id": "s4-sp500-history-gap",
+        "section": "Section 4 \u2014 Current Known Open Items",
+        "claim_or_topic": "SP500 history gap",
+        "change_type": "status_review",
+        "reason": "change_impact_report signals SP500_PROXY is implemented with code-level evidence and must be reclassified from open to resolved; however, SYSTEM_LIMITATIONS_AND_APPROXIMATIONS_v1.md Section 3.4 still lists this as a HIGH priority open item and is flagged as requiring revision (priority: high) in doc_code_sync_status. DR-3 prevents upgrade: Tier 1 doc consistency not yet achieved \u2014 SYSTEM_LIMITATIONS and SYSTEM_IMPLEMENTATION_RECORD revisions are pending. Matrix reclassification held at status_review until canonical docs are aligned.",
+        "source_documents": [
+          "change_impact_report (change-impact-audit)",
+          "doc_code_sync_status (doc-code-sync-check)",
+          "DOCUMENTATION_VERIFICATION_MATRIX_v1.md",
+          "SYSTEM_LIMITATIONS_AND_APPROXIMATIONS_v1.md"
+        ],
+        "proposed_old_state": "Documented current-state claim",
+        "proposed_new_state": null,
+        "confidence": "high"
+      },
+      {
+        "entry_id": "s3-layer2-adapter-series-inventory",
+        "section": "Section 3 \u2014 Current Layer-2 Contract Items",
+        "claim_or_topic": "Layer-2 adapter and series inventory (spy_adapter.py as 7th adapter; SP500_PROXY as 24th series)",
+        "change_type": "add_new_entry",
+        "reason": "spy_adapter.py added as 7th adapter with SP500_PROXY as 24th series; neither is reflected in canonical documentation adapter inventories. Doc-code mismatch confirmed by change_impact_report: canonical docs describe 23 series and 6 adapters while implementation has 24 series and 7 adapters. adapter_schema_verdict flagged requires_doc_code_sync_review. The matrix has no existing entry tracking adapter/series inventory; this gap is governance-critical given the live doc-code divergence. Proposed classification is held pending canonical doc alignment \u2014 cannot finalize to 'Verified in current documentation set' without Tier 1 consistency.",
+        "source_documents": [
+          "audit_summary (deep-audit)",
+          "change_impact_report (change-impact-audit)",
+          "doc_code_sync_status (doc-code-sync-check)",
+          "DOCUMENTATION_VERIFICATION_MATRIX_v1.md"
+        ],
+        "proposed_old_state": null,
+        "proposed_new_state": "Documented current-state claim",
+        "confidence": "high"
+      }
+    ],
+    "required_follow_up": [
+      "Revise SYSTEM_LIMITATIONS_AND_APPROXIMATIONS_v1.md Section 3.4: reclassify SP500 history gap from open to resolved \u2014 SP500_PROXY implemented with code-level evidence",
+      "Revise SYSTEM_IMPLEMENTATION_RECORD_v1.md: add spy_adapter.py (7th adapter) and SP500_PROXY (24th series) to the realized-state record",
+      "Update canonical adapter inventories in README_LAYER2.md and SYSTEM_TECHNICAL_HANDBOOK_v1.md to reflect 7 adapters and 24 series",
+      "After Tier 1 canonical doc updates achieve cross-doc consistency, reassess s4-sp500-history-gap for reclassification \u2014 candidate for removal from open items or reclassification to 'Verified in current documentation set'",
+      "After SYSTEM_IMPLEMENTATION_RECORD and SYSTEM_LIMITATIONS revisions are complete, assign definitive classification to s3-layer2-adapter-series-inventory",
+      "Resolve claims c3 and c4 review_only citation status flagged in change_impact_report risk summary before finalizing any matrix entry that depends on those claims"
+    ],
+    "inference_used": false,
+    "notes": [
+      "matrix_action set to review_only per DR-8 (fail closed on ambiguous direction): canonical docs require revision before matrix classifications can be definitively updated.",
+      "runtime_status_upgrade_blocked: true \u2014 SP500 history gap reclassification is blocked by DR-3; Tier 1 doc consistency is not yet satisfied; SYSTEM_LIMITATIONS and SYSTEM_IMPLEMENTATION_RECORD revisions are pending before the matrix can reflect a resolved state.",
+      "source_authority_conflict_detected: false \u2014 no README_LAYER2 role-override or inter-Tier-1 document contradiction detected in upstream artifacts.",
+      "Existing Section 3 classifications (registry-driven ingestion, snapshot contract items, handoff gate) are not affected by these signals and remain stable \u2014 the doc-code mismatch concerns a new adapter not yet in docs, not a failure of the registry-driven mechanism itself.",
+      "doc_code_sync_status confirmed verification_matrix_update_required: true \u2014 this delta satisfies that flag at review_only posture pending canonical doc alignment.",
+      "No blocking violations in audit_summary (blocking_violations_count: 0); dag_advancement_blocked: false \u2014 matrix review_only posture is consistent with overall governance status."
+    ]
+  }
+}

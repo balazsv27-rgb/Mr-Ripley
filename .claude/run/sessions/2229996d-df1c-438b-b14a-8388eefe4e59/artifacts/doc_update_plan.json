@@ -1,0 +1,71 @@
+{
+  "artifact": "doc_update_plan",
+  "produced_by": "change-impact-audit",
+  "session": "2229996d-df1c-438b-b14a-8388eefe4e59",
+  "timestamp": "2026-05-10T19:19:01.089250Z",
+  "data": {
+    "produced_by": "change-impact-audit",
+    "required_updates": [
+      {
+        "artifact": "SYSTEM_IMPLEMENTATION_RECORD_v1.md",
+        "reason": "Must add spy_adapter.py to the adapter inventory (currently lists 4 adapters per 2026-04-18 refactor addendum; actual count is 7). Must record SP500_PROXY as 24th series. Must document registry_version change to 1.1.0. This is the role-matched canonical source for implementation state per CLAUDE.md \u00a72.2.",
+        "priority": "high",
+        "update_type": "revise"
+      },
+      {
+        "artifact": "SYSTEM_LIMITATIONS_AND_APPROXIMATIONS_v1.md",
+        "reason": "SP500 history gap is currently listed as \u2b1c HIGH priority TODO (line ~83). Must be reclassified to reflect that SP500_PROXY partially addresses this gap (SPY via Yahoo, history from 2005-01-03). Must not remove the limitation entirely \u2014 the original FRED-sourced SP500 series still has the 2016 start constraint. Remaining TODO items must stay listed as open. This is the role-matched canonical source for limitations per CLAUDE.md \u00a72.2.",
+        "priority": "high",
+        "update_type": "revise"
+      },
+      {
+        "artifact": "README_v1.md",
+        "reason": "SP500 history gap is listed as known risk (line ~203). Must be updated to reflect partial resolution via SP500_PROXY. Adapter count and series count references must be reviewed for accuracy. System property statements (fail-closed, snapshot-driven) must remain unchanged.",
+        "priority": "high",
+        "update_type": "revise"
+      },
+      {
+        "artifact": "DOCUMENTATION_VERIFICATION_MATRIX_v1.md",
+        "reason": "SP500 history gap claim (line ~73) currently classified as documented_current_state_claim with planned migration. Must be reclassified to reflect that SP500_PROXY is now implemented. Evidence status for SP500_PROXY must be added as a new verification entry. Series count and adapter count cross-references must be updated.",
+        "priority": "high",
+        "update_type": "revise"
+      },
+      {
+        "artifact": "SYSTEM_TECHNICAL_HANDBOOK_v1.md",
+        "reason": "Review adapter count references, series count references, and snapshot series list for consistency with the new SP500_PROXY addition. Confirm Tier-1 staleness/fail-closed contract language accurately covers SP500_PROXY. Core invariant table may need series count update.",
+        "priority": "medium",
+        "update_type": "review"
+      },
+      {
+        "artifact": "README_LAYER2.md",
+        "reason": "SP500 history gap is listed as \u2b1c TODO HIGH in multiple locations (lines ~192, ~593). Must be updated to reflect partial resolution. Adapter inventory and series count references must be reviewed. This is canonical within its collaborator-workflow role; updates are scoped to Layer-2 navigation and TODO status only.",
+        "priority": "medium",
+        "update_type": "revise"
+      },
+      {
+        "artifact": "SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md",
+        "reason": "Review to confirm phase status language, build sequence, and Layer-2 closure scope are consistent with the addition of a new Tier-1 series. No revision expected unless this document contains explicit series counts or SP500-specific references.",
+        "priority": "low",
+        "update_type": "review"
+      }
+    ],
+    "verification_actions": [
+      {
+        "artifact": "DOCUMENTATION_VERIFICATION_MATRIX_v1.md",
+        "reason": "SP500 history gap claim must be reclassified from 'planned migration' to 'partially addressed by implementation'. New verification entry required for SP500_PROXY (evidence class: code-level implementation in series_registry.json and spy_adapter.py). Series count cross-reference (23\u219224) and adapter count cross-reference must be updated.",
+        "action": "update"
+      },
+      {
+        "artifact": "verification_ledger.md",
+        "reason": "New ledger entry required for SP500_PROXY/spy_adapter implementation. Evidence status: code-level (adapter file exists, registry entry present, Tier-1 with include_in_snapshot=true). SP500 history gap ledger entry must be updated from 'open TODO' to 'partially addressed'. Classify as implementation evidence, not runtime-proven until snapshot publication with SP500_PROXY data is independently confirmed.",
+        "action": "update"
+      }
+    ],
+    "rename_controls": {
+      "alias_map_required": false,
+      "identity_continuity_required": false,
+      "reference_update_required": false,
+      "invariance_check_required": false
+    }
+  }
+}

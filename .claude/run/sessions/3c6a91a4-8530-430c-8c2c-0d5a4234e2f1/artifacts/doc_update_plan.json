@@ -1,0 +1,65 @@
+{
+  "artifact": "doc_update_plan",
+  "produced_by": "change-impact-audit",
+  "session": "3c6a91a4-8530-430c-8c2c-0d5a4234e2f1",
+  "timestamp": "2026-05-10T18:55:53.009109Z",
+  "data": {
+    "produced_by": "change-impact-audit",
+    "required_updates": [
+      {
+        "artifact": "SYSTEM_LIMITATIONS_AND_APPROXIMATIONS_v1.md",
+        "reason": "SP500 history gap is listed as HIGH priority open item in Section 3.4. SP500_PROXY implementation with yahoo_spy source (full_history_start 2005-01-03) resolves this gap. The limitation entry must be reclassified from open/unresolved to resolved, with the resolution method documented. Other open items in this document remain unaffected and must not be marked as resolved.",
+        "priority": "high",
+        "update_type": "revise"
+      },
+      {
+        "artifact": "SYSTEM_IMPLEMENTATION_RECORD_v1.md",
+        "reason": "Implementation state has changed: SP500_PROXY series added to series_registry.json, spy_adapter.py added to layer2/adapters/. The record must be updated to reflect the new series count (24), new adapter count (7), and the SP500_PROXY implementation details (source: yahoo_spy, tier: 1, full_history_start: 2005-01-03, include_in_snapshot: true).",
+        "priority": "high",
+        "update_type": "revise"
+      },
+      {
+        "artifact": "README_LAYER2.md",
+        "reason": "Section 7 header says 'The Six Adapters' \u2014 must be updated to reflect 7 adapters with spy_adapter.py added. Series table must reflect 24 series with SP500_PROXY entry. TODO table in Section 10 must update SP500-related items as resolved while preserving remaining open items. This document is canonical within its collaborator-workflow and Layer-2 navigation role.",
+        "priority": "high",
+        "update_type": "revise"
+      },
+      {
+        "artifact": "README_v1.md",
+        "reason": "Known risks/gaps section references the SP500 history limitation. Review to determine whether current language must be revised to reflect the resolved gap, or whether it references the limitation indirectly. Series count and adapter count references, if present, must be checked for consistency.",
+        "priority": "high",
+        "update_type": "review"
+      },
+      {
+        "artifact": "SYSTEM_TECHNICAL_HANDBOOK_v1.md",
+        "reason": "Review adapter inventory references and series count references for consistency with the new 7-adapter, 24-series state. Core invariant table should be checked to confirm no contract language is affected by the SP500_PROXY addition.",
+        "priority": "medium",
+        "update_type": "review"
+      },
+      {
+        "artifact": "SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md",
+        "reason": "Review to confirm that Layer-2 component inventory language and build-sequence scope remain consistent with the addition of a new adapter within Phase A closure scope. No revision expected but confirmation required per CLAUDE.md Section 11.",
+        "priority": "medium",
+        "update_type": "review"
+      }
+    ],
+    "verification_actions": [
+      {
+        "artifact": "DOCUMENTATION_VERIFICATION_MATRIX_v1.md",
+        "reason": "SP500 history gap classification must be updated from open/unverified to resolved/supported based on code-level evidence (SP500_PROXY in series_registry.json, spy_adapter.py present). Series count and adapter count verification entries must be reviewed for consistency with 24-series, 7-adapter state. Claims c3 and c4 review_only citation status should be resolved during this update.",
+        "action": "update"
+      },
+      {
+        "artifact": "verification_ledger.md",
+        "reason": "New ledger entries required for: (1) SP500_PROXY series addition \u2014 evidence class: code-level implementation, not yet runtime-snapshot-proven; (2) spy_adapter.py addition \u2014 evidence class: code-level implementation; (3) series count change 23\u219224 \u2014 evidence class: code-level, verifiable from series_registry.json. Existing SP500 gap ledger entries, if present, must be updated to reflect resolved status.",
+        "action": "update"
+      }
+    ],
+    "rename_controls": {
+      "alias_map_required": false,
+      "identity_continuity_required": false,
+      "reference_update_required": false,
+      "invariance_check_required": false
+    }
+  }
+}

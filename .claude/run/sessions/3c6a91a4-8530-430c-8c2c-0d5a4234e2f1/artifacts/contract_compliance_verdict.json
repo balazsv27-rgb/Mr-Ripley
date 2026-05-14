@@ -1,0 +1,100 @@
+{
+  "artifact": "contract_compliance_verdict",
+  "produced_by": "snapshot-contract-check",
+  "session": "3c6a91a4-8530-430c-8c2c-0d5a4234e2f1",
+  "timestamp": "2026-05-10T18:52:43.634990Z",
+  "data": {
+    "produced_by": "snapshot-contract-check",
+    "snapshot_contract_status": {
+      "allowed": true,
+      "contract_status": "compliant",
+      "valid_interface": "none",
+      "forbidden_access_detected": false,
+      "snapshot_anchor_required": false,
+      "blocking_reason_if_any": null,
+      "checked_claims": [
+        {
+          "claim_id": "c1",
+          "claim_text": "Modify governance/dag_runner/adapter_schema.py \u2014 Layer-2-internal DAG orchestration governance schema changes",
+          "assessment": "compliant",
+          "violated_invariants": [],
+          "triggered_forbidden_patterns": [],
+          "valid_interface_if_compliant": "none",
+          "reason": "Changes are confined to the governance/orchestration layer (DAG runner adapter schema). This is Layer-2-internal orchestration infrastructure. No downstream Layer-3 component is consuming data. No query against observations is implicated. No snapshot boundary access pattern is present. C1 \u2014 compliant per SCC-1 (no Layer-3 read of observations) and SCC-4 (no snapshot mutation). Governance orchestration code is not a downstream consumer of Layer-2 observation data.",
+          "contract_reference": [
+            "SCC-1",
+            "SCC-4"
+          ]
+        },
+        {
+          "claim_id": "c2",
+          "claim_text": "Modify tests/governance/test_adapter_schema.py \u2014 test validation code for adapter schema governance",
+          "assessment": "compliant",
+          "violated_invariants": [],
+          "triggered_forbidden_patterns": [],
+          "valid_interface_if_compliant": "none",
+          "reason": "Test code validating governance adapter schema. No runtime Layer-3 data consumption. Test assertions about schema structure do not constitute access to observations or snapshot bypass. No DecisionPacket generation is implicated. Compliant under SCC-1 and SCC-2 \u2014 no raw observations access, no missing snapshot anchor (no packet generated).",
+          "contract_reference": [
+            "SCC-1",
+            "SCC-2"
+          ]
+        },
+        {
+          "claim_id": "c3",
+          "claim_text": "Current-state assertion with unresolved citation status (per upstream phase_alignment_status \u2014 Layer A citation unresolved)",
+          "assessment": "compliant",
+          "violated_invariants": [],
+          "triggered_forbidden_patterns": [],
+          "valid_interface_if_compliant": "none",
+          "reason": "The unresolved citation status from the role-citation upstream step is a documentation provenance question \u2014 it concerns whether the claim is traceable to the correct role-matched canonical source. It does not describe a snapshot access pattern, an observations query, a DecisionPacket field, or any Layer-3 data consumption. No contract-relevant snapshot boundary claim is detectable in this claim as scoped by the upstream artifacts. SCC-1 through SCC-6 are not implicated by documentation citation unresolvedness alone. Note: the unresolved citation should be resolved at the doc-truth-classification / role-citation layer, not treated as a snapshot contract violation.",
+          "contract_reference": [
+            "SCC-1",
+            "SCC-6"
+          ]
+        },
+        {
+          "claim_id": "c4",
+          "claim_text": "Current-state assertion with unresolved citation status (per upstream phase_alignment_status \u2014 Layer A citation unresolved)",
+          "assessment": "compliant",
+          "violated_invariants": [],
+          "triggered_forbidden_patterns": [],
+          "valid_interface_if_compliant": "none",
+          "reason": "Same structural analysis as c3. Unresolved citation is a documentation authority concern, not a snapshot access pattern. No Layer-3 reading of observations is described or implied. No DecisionPacket anchor field is involved. SCC-1 through SCC-6 are not triggered. The citation gap should be resolved upstream (doc-truth-classification / role-citation guards), not here. Compliant at the snapshot contract boundary.",
+          "contract_reference": [
+            "SCC-1",
+            "SCC-6"
+          ]
+        },
+        {
+          "claim_id": "c5",
+          "claim_text": "Restore verification ledger \u2014 governance metadata artifact restoration for DAG run sessions",
+          "assessment": "compliant",
+          "violated_invariants": [],
+          "triggered_forbidden_patterns": [],
+          "valid_interface_if_compliant": "none",
+          "reason": "Verification ledger restoration is a governance audit metadata operation. Session artifacts (.claude/run/sessions/) record DAG run verdicts and orchestration outputs. These are not Layer-3 data consumers, do not query observations, do not mutate snapshots, do not generate DecisionPackets, and do not interact with Live Market State or Event Risk Stream inputs. Compliant under SCC-1, SCC-3, and SCC-4.",
+          "contract_reference": [
+            "SCC-1",
+            "SCC-3",
+            "SCC-4"
+          ]
+        }
+      ],
+      "summary": {
+        "raw_observations_access_risk": false,
+        "snapshot_bypass_risk": false,
+        "layer2_storage_touch_risk": false,
+        "decisionpacket_anchor_risk": false,
+        "followup_guard_recommended": false,
+        "notes": [
+          "All five claims are confined to Layer-2-internal governance/orchestration or governance metadata. No claim touches the Layer-2 \u2192 Layer-3 snapshot consumption boundary.",
+          "c3 and c4 carry unresolved citation status from the upstream role-citation step. This is a documentation provenance gap, not a snapshot contract gap. It should be resolved at the doc-truth-classification / role-citation layer. No snapshot boundary escalation is warranted from this check.",
+          "No Layer-3 component is being built or modified. The snapshot-only downstream read rule (SCC-1, Handbook Inv-5) is not in scope for any of the five claims.",
+          "snapshot_anchor_required is false: no DecisionPacket generation is implicated by any claim in this request.",
+          "Handoff gate status is unchanged \u2014 satisfied at the contract boundary. SCC-6 confirms that handoff gate satisfaction does not relax any invariant; no invariant relaxation is attempted here.",
+          "Mode: strict. All ambiguous claims would be promoted to blocked. No ambiguous claims were detected \u2014 the governance/orchestration scope of all five claims is clear of snapshot access patterns."
+        ]
+      }
+    }
+  }
+}

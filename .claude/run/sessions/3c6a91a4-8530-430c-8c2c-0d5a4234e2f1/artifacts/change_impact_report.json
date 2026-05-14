@@ -1,0 +1,49 @@
+{
+  "artifact": "change_impact_report",
+  "produced_by": "change-impact-audit",
+  "session": "3c6a91a4-8530-430c-8c2c-0d5a4234e2f1",
+  "timestamp": "2026-05-10T18:55:53.008113Z",
+  "data": {
+    "produced_by": "change-impact-audit",
+    "change_impact_summary": {
+      "change_mode": "content_change",
+      "impact_type": "mixed",
+      "contributing_categories": [
+        "code",
+        "documentation",
+        "verification"
+      ],
+      "impacted_components": [
+        "series_registry",
+        "Layer-2_adapters",
+        "snapshot_publisher",
+        "verification_ledger",
+        "governance_workflow"
+      ],
+      "impacted_docs": [
+        "README_v1.md",
+        "SYSTEM_TECHNICAL_HANDBOOK_v1.md",
+        "SYSTEM_LIMITATIONS_AND_APPROXIMATIONS_v1.md",
+        "SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md",
+        "DOCUMENTATION_VERIFICATION_MATRIX_v1.md",
+        "SYSTEM_IMPLEMENTATION_RECORD_v1.md",
+        "README_LAYER2.md"
+      ],
+      "follow_up_required": "mandatory",
+      "inference_used": false,
+      "risk_summary": [
+        "Doc-code mismatch: canonical documentation describes 23 series and 6 adapters; implementation now has 24 series and 7 adapters. This is a live documentation-implementation divergence that must be resolved before PR readiness.",
+        "adapter_schema_verdict flagged requires_doc_code_sync_review: the new spy_adapter.py is not yet reflected in canonical documentation adapter inventories.",
+        "Claims c3 and c4 carry unresolved review_only citation status from role-citation validation. Their current-state assertions are phase-aligned but citation basis is not fully confirmed \u2014 downstream verification must resolve before these assertions are finalized in documentation.",
+        "SP500 history gap is listed as HIGH priority open item in SYSTEM_LIMITATIONS Section 3.4; gap status must be reclassified from open to resolved now that SP500_PROXY is implemented with code-level evidence."
+      ],
+      "notes": [
+        "All changes are current-state within Phase A (Layer-2 closure) scope. No target-state work is implicated.",
+        "SP500_PROXY addition is supported by concrete code-level evidence (series_registry.json entry, spy_adapter.py file presence). This constitutes implementation-level evidence, not merely documentation.",
+        "The series count change (23\u219224) and adapter count change (6\u21927) are verifiable from code context and trigger CLAUDE.md Section 11 document update obligations.",
+        "Open TODO items (revision writer, scheduler/orchestrator, alerting, etc.) remain unaddressed per c4. Documentation updates must not assert blanket completion \u2014 only SP500-related items are resolved.",
+        "No phase jump, no live-readiness implication, no snapshot boundary violation, no execution boundary risk detected across any claim."
+      ]
+    }
+  }
+}

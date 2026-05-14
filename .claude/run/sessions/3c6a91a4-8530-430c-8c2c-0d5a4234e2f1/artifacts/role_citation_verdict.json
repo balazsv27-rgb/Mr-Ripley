@@ -1,0 +1,132 @@
+{
+  "artifact": "role_citation_verdict",
+  "produced_by": "route-claims-by-role",
+  "session": "3c6a91a4-8530-430c-8c2c-0d5a4234e2f1",
+  "timestamp": "2026-05-10T18:49:55.476159Z",
+  "data": {
+    "produced_by": "route-claims-by-role",
+    "role_matched_citation_status": {
+      "overall_status": "review_only",
+      "inference_used": false,
+      "source_authority_conflict_detected": false,
+      "checked_claims": [
+        {
+          "claim_id": "c1",
+          "claim_text": "SP500_PROXY series has been added to series_registry.json with source yahoo_spy, tier 1, full_history_start 2005-01-03, include_in_snapshot true \u2014 addressing the documented SP500 history gap",
+          "claim_type": "implementation",
+          "required_primary_source": "SYSTEM_LIMITATIONS_AND_APPROXIMATIONS_v1.md",
+          "provided_sources": [
+            "SYSTEM_LIMITATIONS_AND_APPROXIMATIONS_v1.md (extract)",
+            "keyword_sections(sp500)",
+            "code_context: SP500_PROXY in registry",
+            "code_context: spy_adapter.py present",
+            "DOCUMENTATION_VERIFICATION_MATRIX_v1.md (extract)",
+            "README_LAYER2.md (extract)",
+            "README_v1.md (extract)"
+          ],
+          "role_match": true,
+          "strong_claim": false,
+          "explicit_citation_required": false,
+          "conflict_detected": false,
+          "blocking_condition_if_any": null,
+          "verdict": "compliant",
+          "reason": "Claim supported by available evidence."
+        },
+        {
+          "claim_id": "c2",
+          "claim_text": "spy_adapter.py exists as a new Layer-2 ingestion adapter in layer2/adapters/",
+          "claim_type": "implementation",
+          "required_primary_source": "SYSTEM_IMPLEMENTATION_RECORD_v1.md",
+          "provided_sources": [
+            "SYSTEM_IMPLEMENTATION_RECORD_v1.md (extract)",
+            "keyword_sections(layer-2)",
+            "code_context: SP500_PROXY in registry",
+            "code_context: spy_adapter.py present",
+            "README_LAYER2.md (extract)",
+            "SYSTEM_TECHNICAL_HANDBOOK_v1.md (extract)"
+          ],
+          "role_match": true,
+          "strong_claim": false,
+          "explicit_citation_required": false,
+          "conflict_detected": false,
+          "blocking_condition_if_any": null,
+          "verdict": "compliant",
+          "reason": "Claim supported by available evidence."
+        },
+        {
+          "claim_id": "c3",
+          "claim_text": "Series registry now contains 24 series (previously 23 documented) with 21 included in snapshots",
+          "claim_type": "implementation",
+          "required_primary_source": "SYSTEM_IMPLEMENTATION_RECORD_v1.md",
+          "provided_sources": [],
+          "role_match": false,
+          "strong_claim": false,
+          "explicit_citation_required": false,
+          "conflict_detected": false,
+          "blocking_condition_if_any": null,
+          "verdict": "review_only",
+          "reason": "Primary source SYSTEM_IMPLEMENTATION_RECORD_v1.md is present but no directly relevant extract sections found. Review required."
+        },
+        {
+          "claim_id": "c4",
+          "claim_text": "Not all remaining TODO items are complete \u2014 documentation must not assert blanket completion",
+          "claim_type": "implementation",
+          "required_primary_source": "SYSTEM_LIMITATIONS_AND_APPROXIMATIONS_v1.md",
+          "provided_sources": [
+            "README_LAYER2.md (extract)"
+          ],
+          "role_match": false,
+          "strong_claim": false,
+          "explicit_citation_required": false,
+          "conflict_detected": false,
+          "blocking_condition_if_any": null,
+          "verdict": "review_only",
+          "reason": "Primary source SYSTEM_LIMITATIONS_AND_APPROXIMATIONS_v1.md is present but no directly relevant extract sections found. Review required."
+        },
+        {
+          "claim_id": "c5",
+          "claim_text": "Canonical documentation should be updated to reflect individually verified Layer-2 changes",
+          "claim_type": "documentation_consistency",
+          "required_primary_source": "CLAUDE.md",
+          "provided_sources": [
+            "CLAUDE.md (extract)",
+            "keyword_sections(layer-2)",
+            "DOCUMENTATION_VERIFICATION_MATRIX_v1.md (extract)",
+            "SYSTEM_IMPLEMENTATION_RECORD_v1.md (extract)"
+          ],
+          "role_match": true,
+          "strong_claim": false,
+          "explicit_citation_required": false,
+          "conflict_detected": false,
+          "blocking_condition_if_any": null,
+          "verdict": "compliant",
+          "reason": "Claim supported by available evidence."
+        }
+      ],
+      "summary": {
+        "role_mismatch_detected": false,
+        "canonical_conflict_unresolved": false,
+        "readme_layer2_used_as_override": false,
+        "requires_conflict_note": false,
+        "requires_doc_sync_escalation": false,
+        "recommended_guard_action": "review",
+        "blocking_claims": [],
+        "compliant_claims": [
+          "c1",
+          "c2",
+          "c5"
+        ],
+        "review_only_claims": [
+          "c3",
+          "c4"
+        ],
+        "block_reason": "",
+        "notes": [
+          "Deterministic synthesis from 5 classified claim(s).",
+          "Routing table: default.",
+          "Doc extracts available: 9."
+        ]
+      }
+    }
+  }
+}

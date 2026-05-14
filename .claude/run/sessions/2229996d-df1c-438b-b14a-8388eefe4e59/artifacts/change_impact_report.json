@@ -1,0 +1,50 @@
+{
+  "artifact": "change_impact_report",
+  "produced_by": "change-impact-audit",
+  "session": "2229996d-df1c-438b-b14a-8388eefe4e59",
+  "timestamp": "2026-05-10T19:19:01.070346Z",
+  "data": {
+    "produced_by": "change-impact-audit",
+    "change_impact_summary": {
+      "change_mode": "content_change",
+      "impact_type": "mixed",
+      "contributing_categories": [
+        "documentation",
+        "verification"
+      ],
+      "impacted_components": [
+        "series_registry",
+        "spy_adapter",
+        "snapshot_publisher",
+        "verification_ledger",
+        "governance_workflow"
+      ],
+      "impacted_docs": [
+        "README_v1.md",
+        "SYSTEM_TECHNICAL_HANDBOOK_v1.md",
+        "SYSTEM_LIMITATIONS_AND_APPROXIMATIONS_v1.md",
+        "SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md",
+        "DOCUMENTATION_VERIFICATION_MATRIX_v1.md",
+        "SYSTEM_IMPLEMENTATION_RECORD_v1.md",
+        "README_LAYER2.md"
+      ],
+      "follow_up_required": "mandatory",
+      "inference_used": false,
+      "risk_summary": [
+        "Documentation is currently desynchronized from implementation: spy_adapter.py and SP500_PROXY exist in code and registry but are absent from all canonical documents. Per CLAUDE.md \u00a711, code changes without documentation alignment are invalid \u2014 this desynchronization must be resolved.",
+        "adapter_schema_verdict flagged requires_doc_code_sync_review \u2014 confirming the doc-code gap at the governance artifact level.",
+        "SP500_PROXY is Tier-1 with include_in_snapshot=true, meaning its staleness now blocks snapshot publication under the fail-closed contract. Canonical docs must accurately reflect this contract implication.",
+        "Only the SP500 history gap TODO item changes status. All other Layer-2 TODO items (revision writer, scheduler/orchestrator, alerting/retry/kill switch, revision_risk column, layer1_events stub, discontinued series cleanup) must remain listed as open. Overclaiming risk exists if updates are not scoped precisely.",
+        "c8 and c11 are review_only per role_citation_verdict \u2014 these are constitutional guard claims (fail-closed posture \u00a77, execution boundary \u00a79) that must be preserved during the documentation update. No blocking risk but citation traceability should be confirmed."
+      ],
+      "notes": [
+        "This is a documentation synchronization, not an architecture reinterpretation. The code changes (spy_adapter.py, SP500_PROXY in series_registry.json v1.1.0) are already implemented. The request brings canonical docs into alignment with existing implementation state.",
+        "No target-state work is being described as current-state implementation. Layer-3 remains unimplemented. Live execution remains blocked. The execution boundary is unaffected.",
+        "The snapshot contract is affected because SP500_PROXY is Tier-1 and included in snapshots \u2014 effective include_in_snapshot series count rose from 20 to 21, and total registry series from 23 to 24. This is a contract-affecting change per CLAUDE.md \u00a711.",
+        "The SP500 history gap claim changes from 'open HIGH priority TODO' to 'partially addressed by SP500_PROXY (SPY via Yahoo, history from 2005-01-03)'. The original SP500 series (FRED, from 2016) remains \u2014 SP500_PROXY supplements rather than replaces it.",
+        "No prior guards blocked this change. No phase jump detected. All claims are within_current_phase (Phase A).",
+        "README_LAYER2.md is canonical within its collaborator-workflow role; it requires update for the SP500 TODO status change but was not used as a primary authority for implementation-state, architecture, or limitations claims."
+      ]
+    }
+  }
+}

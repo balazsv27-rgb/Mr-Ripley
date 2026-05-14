@@ -1,0 +1,10 @@
+{
+  "artifact": "pr_readiness_verdict",
+  "produced_by": "pre-pr-governance-readiness",
+  "session": "3c6a91a4-8530-430c-8c2c-0d5a4234e2f1",
+  "timestamp": "2026-05-10T19:00:55.501494Z",
+  "data": {
+    "produced_by": "pre-pr-governance-readiness",
+    "structural": true
+  }
+}

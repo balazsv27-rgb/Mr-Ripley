@@ -1,0 +1,137 @@
+{
+  "artifact": "phase_alignment_status",
+  "produced_by": "phase-check",
+  "session": "2229996d-df1c-438b-b14a-8388eefe4e59",
+  "timestamp": "2026-05-10T19:15:08.381174Z",
+  "data": {
+    "produced_by": "phase-check",
+    "current_phase": "Phase A",
+    "requested_phase": "inferred:Phase A",
+    "allowed": true,
+    "alignment_status": "within_current_phase",
+    "gate_reference": [
+      "phase_a_layer2_closure"
+    ],
+    "blocking_reason_if_any": null,
+    "checked_claims": [
+      {
+        "claim_id": "c1",
+        "claim_text": "current-state claim (claim text not propagated in upstream artifacts)",
+        "effective_capability": "current-state verification or documentation maintenance",
+        "phase_assessment": "allowed_now",
+        "gate_reference": [
+          "phase_a_layer2_closure"
+        ],
+        "reason": "Current-state scope; compliant per role_citation_verdict; no phase gate conflict detected."
+      },
+      {
+        "claim_id": "c2",
+        "claim_text": "current-state claim (claim text not propagated in upstream artifacts)",
+        "effective_capability": "current-state verification or documentation maintenance",
+        "phase_assessment": "allowed_now",
+        "gate_reference": [
+          "phase_a_layer2_closure"
+        ],
+        "reason": "Current-state scope; compliant per role_citation_verdict; no phase gate conflict detected."
+      },
+      {
+        "claim_id": "c3",
+        "claim_text": "current-state claim (claim text not propagated in upstream artifacts)",
+        "effective_capability": "current-state verification or documentation maintenance",
+        "phase_assessment": "allowed_now",
+        "gate_reference": [
+          "phase_a_layer2_closure"
+        ],
+        "reason": "Current-state scope; compliant per role_citation_verdict; no phase gate conflict detected."
+      },
+      {
+        "claim_id": "c4",
+        "claim_text": "current-state claim (claim text not propagated in upstream artifacts)",
+        "effective_capability": "current-state verification or documentation maintenance",
+        "phase_assessment": "allowed_now",
+        "gate_reference": [
+          "phase_a_layer2_closure"
+        ],
+        "reason": "Current-state scope; compliant per role_citation_verdict; no phase gate conflict detected."
+      },
+      {
+        "claim_id": "c5",
+        "claim_text": "current-state claim (claim text not propagated in upstream artifacts)",
+        "effective_capability": "current-state verification or documentation maintenance",
+        "phase_assessment": "allowed_now",
+        "gate_reference": [
+          "phase_a_layer2_closure"
+        ],
+        "reason": "Current-state scope; compliant per role_citation_verdict; no phase gate conflict detected."
+      },
+      {
+        "claim_id": "c6",
+        "claim_text": "current-state claim (claim text not propagated in upstream artifacts)",
+        "effective_capability": "current-state verification or documentation maintenance",
+        "phase_assessment": "allowed_now",
+        "gate_reference": [
+          "phase_a_layer2_closure"
+        ],
+        "reason": "Current-state scope; compliant per role_citation_verdict; no phase gate conflict detected."
+      },
+      {
+        "claim_id": "c7",
+        "claim_text": "current-state claim (claim text not propagated in upstream artifacts)",
+        "effective_capability": "current-state verification or documentation maintenance",
+        "phase_assessment": "allowed_now",
+        "gate_reference": [
+          "phase_a_layer2_closure"
+        ],
+        "reason": "Current-state scope; compliant per role_citation_verdict; no phase gate conflict detected."
+      },
+      {
+        "claim_id": "c8",
+        "claim_text": "current-state claim \u2014 flagged review_only by role_citation_verdict (claim text not propagated)",
+        "effective_capability": "current-state claim requiring citation verification",
+        "phase_assessment": "allowed_now",
+        "gate_reference": [
+          "phase_a_layer2_closure"
+        ],
+        "reason": "Current-state scope; no phase gate violation detected. However, role_citation_verdict flags this claim review_only \u2014 citation must be verified against the role-matched canonical source before final approval. This is a citation discipline issue, not a phase sequencing issue."
+      },
+      {
+        "claim_id": "c9",
+        "claim_text": "current-state claim (claim text not propagated in upstream artifacts)",
+        "effective_capability": "current-state verification or documentation maintenance",
+        "phase_assessment": "allowed_now",
+        "gate_reference": [
+          "phase_a_layer2_closure"
+        ],
+        "reason": "Current-state scope; compliant per role_citation_verdict; no phase gate conflict detected."
+      },
+      {
+        "claim_id": "c10",
+        "claim_text": "current-state claim (claim text not propagated in upstream artifacts)",
+        "effective_capability": "current-state verification or documentation maintenance",
+        "phase_assessment": "allowed_now",
+        "gate_reference": [
+          "phase_a_layer2_closure"
+        ],
+        "reason": "Current-state scope; compliant per role_citation_verdict; no phase gate conflict detected."
+      },
+      {
+        "claim_id": "c11",
+        "claim_text": "current-state claim \u2014 flagged review_only by role_citation_verdict (claim text not propagated)",
+        "effective_capability": "current-state claim requiring citation verification",
+        "phase_assessment": "allowed_now",
+        "gate_reference": [
+          "phase_a_layer2_closure"
+        ],
+        "reason": "Current-state scope; no phase gate violation detected. However, role_citation_verdict flags this claim review_only \u2014 citation must be verified against the role-matched canonical source before final approval. This is a citation discipline issue, not a phase sequencing issue."
+      }
+    ],
+    "summary": {
+      "phase_jump_detected": false,
+      "live_readiness_implication_detected": false,
+      "scope_exceeds_current_allowance": false,
+      "snapshot_boundary_risk": false,
+      "followup_audit_recommended": true,
+      "recommended_next_step": "Proceed to deterministic guards. Route c8 and c11 for citation resolution \u2014 role_citation_verdict marks both review_only; confirm they are traceable to the role-matched canonical source before final approval. No phase sequencing blocks are present."
+    }
+  }
+}
