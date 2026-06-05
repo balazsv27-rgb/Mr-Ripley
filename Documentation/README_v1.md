@@ -1,7 +1,7 @@
 # Mr. Ripley — Layer-2 Truth Layer
 
 > **Repo:** `github.com/balazsv27-rgb/Mr-Ripley`
-> **Last updated:** 2026-03-22
+> **Last updated:** 2026-05-10
 > **Architecture reference:** `SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md`
 > **Engineering reference:** `SYSTEM_TECHNICAL_HANDBOOK_v1.md`
 > **Limitations / approximations:** `SYSTEM_LIMITATIONS_AND_APPROXIMATIONS_v1.md`
@@ -116,6 +116,7 @@ Current adapters in active use:
 - `move_adapter.py`
 - `gld_holdings_adapter.py`
 - `fred_loader.py`
+- `spy_adapter.py`
 
 ---
 
@@ -168,7 +169,7 @@ This means **Layer-3 bootstrap may begin**.
 
 This does **not** mean:
 
-- Layer-3 exists already
+- any downstream computation layer is available
 - revision handling is complete
 - scheduler / alerting / retry / kill switch are in place
 - live execution is allowed
@@ -200,7 +201,7 @@ These remain real, open items:
 - scheduler / orchestrator is not built
 - alerting / retry / kill switch are not built
 - Layer-3 components are not built
-- SP500 history gap (FRED from 2016 only — SPY migration planned)
+- SP500 history gap partially addressed — `SP500_PROXY` (SPY via Yahoo, from 2005) supplements the FRED series (from 2016); original `SP500` series unchanged
 - repo hygiene for runtime artifacts should still be treated as an active check
 
 See `SYSTEM_LIMITATIONS_AND_APPROXIMATIONS_v1.md` for the full list.

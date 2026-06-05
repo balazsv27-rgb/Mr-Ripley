@@ -7,7 +7,7 @@
 > **Current engineering reference:** `SYSTEM_TECHNICAL_HANDBOOK_v1.md`
 > **Current limitations / approximations doc:** `SYSTEM_LIMITATIONS_AND_APPROXIMATIONS_v1.md`
 > **Current architecture / sequencing doc:** `SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md`
-> **Last updated:** 2026-03-22
+> **Last updated:** 2026-05-10
 
 This document preserves long-form Layer-2 build history, implementation detail, realized-state evidence, and audit context.
 
@@ -33,7 +33,30 @@ If this document conflicts with a more role-matched canonical document on those 
 
 ---
 
-## 2. Current-State Addendum (2026-05-01)
+## 2. Current-State Addendum (2026-05-10)
+
+### 2.0-C SP500_PROXY adapter and series addition (2026-05-10)
+
+Added `spy_adapter.py` as the 7th Layer-2 ingestion adapter and `SP500_PROXY` as the 24th series in the registry:
+
+- `layer2/adapters/spy_adapter.py`: New adapter ingesting S&P 500 proxy data via Yahoo Finance (SPY ETF). Source: `yahoo_spy`.
+- `layer2/config/series_registry.json`: `SP500_PROXY` added as the 24th series. Tier-1, `include_in_snapshot=true`, `full_history_start=2005-01-03`. Registry version updated to `1.1.0`.
+- Total series count: 23 → 24. Include-in-snapshot count: 20 → 21. Tier-1 count: 15 → 16.
+
+This partially addresses the documented SP500 history gap. The original FRED-sourced `SP500` series (from 2016) remains unchanged. `SP500_PROXY` supplements it with SPY-based history back to 2005-01-03, covering the previously missing 2005–2016 window relevant to calibration (2015 China shock, early 2016 selloff).
+
+SP500_PROXY is Tier-1 with `include_in_snapshot=true`, meaning its staleness now blocks snapshot publication under the fail-closed contract.
+
+Constraints honored:
+- Fail-closed publication behavior unchanged — extended to cover SP500_PROXY.
+- Snapshot contract structure unchanged.
+- No DB schema changes.
+- Layer-3 not built.
+- All other open TODO items remain open.
+
+---
+
+## 2-B. Current-State Addendum (2026-05-01)
 
 ### 2.0-B Snapshot contract completeness — Phase 2 (2026-05-01)
 
@@ -55,7 +78,7 @@ Constraints honored:
 
 Implemented the minimal contract-complete `revision_risk` patch for Layer-2 snapshot JSON handoff:
 
-- `series_registry.json`: `revision_risk` added as a required `bool` field on all 23 series. Monthly macro series (`CPILFESL`, `PCEPI`, `FEDFUNDS`, `PCU2122212122210`) set `true`; all daily market/yield/price series and discontinued series set `false`.
+- `series_registry.json`: `revision_risk` added as a required `bool` field on all series (23 at time of implementation). Monthly macro series (`CPILFESL`, `PCEPI`, `FEDFUNDS`, `PCU2122212122210`) set `true`; all daily market/yield/price series and discontinued series set `false`.
 - `layer2/config/registry.py`: `revision_risk: bool` added to `_REQUIRED_FIELDS` (validation enforced at load time). `revision_risk(series_id)` lookup method added.
 - `layer2/alignment.py`: `AlignedSeriesValue` extended with `revision_risk: bool`. `to_dict()` and `build_snapshot_values_payload()` include it. `align_snapshot_state()` looks up `revision_risk` from registry at alignment time — no DB column added.
 - `layer2/adapters/quality_gate.py`: `run_quality_gate()` returns `revision_risk_series_count` and `revision_risk_series` in `summary`.
@@ -78,7 +101,7 @@ This addendum supersedes earlier addenda where they conflict.
 
 ### 2.0 Layer-2 refactor (2026-04-18)
 
-- All four ingestion adapters (`gold_adapter.py`, `move_adapter.py`, `fred_loader.py`, `gld_holdings_adapter.py`) migrated from `layer2.adapters.v0.db` / `layer2.adapters.v0.clock` to canonical `layer2.db` / `layer2.clock`
+- Four ingestion adapters (`gold_adapter.py`, `move_adapter.py`, `fred_loader.py`, `gld_holdings_adapter.py`) migrated from `layer2.adapters.v0.db` / `layer2.adapters.v0.clock` to canonical `layer2.db` / `layer2.clock`
 - `layer2/adapters/v0/` directory removed (zero external dependencies confirmed)
 - `layer2/index_suite.py` canonically classified as a Layer-2 internal pre-publication computation tool (distinct from the planned Layer-3 Index Suite)
 

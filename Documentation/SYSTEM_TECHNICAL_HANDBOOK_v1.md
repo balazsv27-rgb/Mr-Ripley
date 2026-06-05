@@ -5,7 +5,7 @@
 > **Architecture reference:** `SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md`
 > **Limitations / approximations:** `SYSTEM_LIMITATIONS_AND_APPROXIMATIONS_v1.md`
 > **Implementation record:** `SYSTEM_IMPLEMENTATION_RECORD_v1.md`
-> **Last updated:** 2026-03-22
+> **Last updated:** 2026-05-10
 
 ---
 
@@ -80,6 +80,7 @@ Current adapter set in documented use:
 - `move_adapter.py`
 - `gld_holdings_adapter.py`
 - `fred_loader.py`
+- `spy_adapter.py`
 
 ---
 
@@ -131,7 +132,7 @@ A successful publication writes:
 - `engine_version`: `gold-v3.3.0`
 - `config_version`: `1.0.0`
 - `clock_ts`: `2026-03-15T22:00:00+00:00`
-- Tier-1 gate result: `15 / 15 PASS`
+- Tier-1 gate result: `15 / 15 PASS` (pre-SP500_PROXY; current Tier-1 count is 16)
 
 ---
 
@@ -218,8 +219,8 @@ It exists to answer:
 
 ### Current observed publication boundary result
 
-- Tier-1 total: 15
-- Tier-1 pass: 15
+- Tier-1 total: 16 (15 pre-SP500_PROXY + SP500_PROXY added 2026-05-10)
+- Tier-1 pass: 16
 - Tier-1 fail: 0
 - Tier-2 total: 5
 - Tier-2 warnings: 2

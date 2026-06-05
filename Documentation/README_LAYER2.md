@@ -3,28 +3,29 @@
 
 > **For:** Friend / collaborator reading this on GitHub
 > **Repo:** https://github.com/balazsv27-rgb/Mr-Ripley
-> **Last updated:** 2026-03-22
-> **Document version:** v6 — see Section 17 (Revision Log) for change summary
+> **Last updated:** 2026-05-10
+> **Document version:** v9 — see Section 17 (Revision Log) for change summary
 > **Canonical role:** collaborator guide and living build reference within the canonical current-state set
 
 ---
 
-## Document Revision Summary (v5 → v6)
+## Document Revision Summary (v8 → v9)
 
-The following changes were made in this revision. Current-state interpretation must remain aligned with the canonical v1 set, especially `SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md`, `SYSTEM_TECHNICAL_HANDBOOK_v1.md`, and `SYSTEM_IMPLEMENTATION_RECORD_v1.md`.
+The following changes were made in this revision. Current-state interpretation must remain aligned with the canonical v1 set, especially `SYSTEM_IMPLEMENTATION_RECORD_v1.md` and `SYSTEM_TECHNICAL_HANDBOOK_v1.md`.
 
 | # | Section | Change | Reason |
 |---|---|---|---|
-| 1 | Header | Updated last-updated date and version to v6 | 2026-03-22 philosophy freeze |
-| 2 | §1 | Updated Layer-3 diagram line to reflect state-driven / event-driven model | `SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md` |
-| 3 | §16 | Updated Layer-3 prerequisites — `guards` and `reason_code` now resolved | v1 docs confirmed |
-| 4 | §16 | Updated Layer-3 build order — bootstrap-first path now leads with DecisionPacket skeleton and `NO_TRADE` default | `SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md` |
-| 5 | §16 | Updated DecisionPacket example — removed `timeframe` field and aligned description with current Layer-3 design | `SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md` |
-| 6 | §16 | Added Live Market State and Event Risk Stream as governed Layer-3 inputs | `SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md` |
-| 7 | §16 | Added note that earlier DecisionPacket example (`action: BUY/SELL/NOTHING`, `timeframe: 5m`) is superseded | `SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md` |
-| 8 | §17 | Added v6 revision log entry | 2026-03-22 |
+| 1 | Header | Updated last-updated date and version to v9 | 2026-05-10 SP500_PROXY addition |
+| 2 | §2 | Added `spy_adapter.py` to folder structure | New adapter |
+| 3 | §3 | Added `SP500_PROXY` row to DB state table; updated series count 23→24 | New series |
+| 4 | §4 | Added `SP500_PROXY` to Tier-1 series table | Tier-1 classification |
+| 5 | §5 | Updated SP500 known gap from HIGH to partially addressed | `SP500_PROXY` supplements FRED SP500 |
+| 6 | §7 | Renamed "Six Adapters" → "Seven Adapters"; added SPY adapter section | New adapter |
+| 7 | §9 | Updated quality gate series count 23→24; added SP500_PROXY to Tier-1 list | New Tier-1 series |
+| 8 | §10 | Updated SP500 history fix TODO to partially addressed | Implementation complete |
+| 9 | §17 | Added v9 revision log entry | 2026-05-10 |
 
-Previous revision (v5 → v4) changes are preserved below for traceability.
+Previous revision summaries are preserved in the revision log for traceability.
 
 ---
 
@@ -75,6 +76,7 @@ Mr-Ripley/
 │   │   ├── move_adapter.py                # MOVE index ingestion (Tier-1)
 │   │   ├── gld_holdings_adapter.py        # GLD ounces held (Tier-2)
 │   │   ├── fred_loader.py                 # FRED 20-series loader (Tier-1 + Tier-2)
+│   │   ├── spy_adapter.py                 # SP500 proxy via Yahoo SPY (Tier-1)
 │   │   ├── quality_gate.py                # Staleness checker + snapshot verdict
 │   │   └── snapshot_publisher.py          # Publishes point-in-time snapshots for Layer-3
 │   ├── config/
@@ -103,7 +105,7 @@ Mr-Ripley/
 ## 3. Current DB State (as of March 2026)
 
 ```
-observations table — ~85,703 rows across 23 series
+observations table — rows across 24 series
 
 series_id                   rows    date range                    tier  status
 ────────────────────────────────────────────────────────────────────────────────
@@ -122,6 +124,7 @@ EFFR                        5,315   2005-01-03 -> 2026-03-04     T1    PASS
 DTWEXBGS                    5,052   2006-01-02 -> 2026-02-27     T1    PASS*
 VIXCLS                      5,354   2005-01-03 -> 2026-03-04     T1    PASS
 SP500                       2,513   2016-02-22 -> 2026-03-04     T1    PASS**
+SP500_PROXY                         2005-01-03 ->                T1    PASS
 gld_holdings_flow_confirm   1,254   2021-03-08 -> 2026-03-04     T2    PASS
 CPILFESL                      252   2005-01-01 -> 2026-01-01     T2    WARN***
 FEDFUNDS                      254   2005-01-01 -> 2026-02-01     T2    PASS
@@ -132,7 +135,7 @@ DTWEXO                      3,775   2005-01-03 -> 2019-12-31     --    discontin
 TWEXB                         783   2005-01-03 -> 2020-01-01     --    discontinued
 
 *    DTWEXBGS: FRED publishes with ~1 week structural lag. Threshold = 10 days.
-**   SP500: FRED only has data from 2016. Known gap — fix via SPY (Yahoo) planned. [HIGH PRIORITY]
+**   SP500: FRED only has data from 2016. SP500_PROXY (SPY via Yahoo, from 2005) partially addresses this gap.
 ***  CPILFESL/PCEPI: BLS/BEA monthly release lag. Warnings expected and correct.
 **** PCU2122212122210: Discontinued 2017. Staleness check disabled (threshold=9999d).
 ```
@@ -166,6 +169,7 @@ on next `get_connection(with_snapshot_tables=True)` call (handled by `_ensure_sn
 | `DTWEXBGS` | Broad USD index (goods) | FRED API | **10 days** | 2006-present |
 | `VIXCLS` | VIX equity implied vol | FRED API | 3 days | 2005-present |
 | `SP500` | S&P 500 index | FRED API | 3 days | 2016-present |
+| `SP500_PROXY` | S&P 500 proxy (SPY ETF) | Yahoo Finance (SPY) | 3 days | 2005-present |
 
 ### Tier-2 Series (warn only — never block snapshot)
 
@@ -189,7 +193,7 @@ on next `get_connection(with_snapshot_tables=True)` call (handled by `_ensure_sn
 
 | Series / Area | Issue | Priority | Fix needed |
 |---|---|---|---|
-| SP500 | Only goes back to 2016; backtest needs 2014 | **HIGH** | Use SPY via Yahoo (goes to 1993) |
+| SP500 | FRED only goes back to 2016; backtest needs 2014 | ✅ Partially addressed | `SP500_PROXY` (SPY via Yahoo, from 2005) added as Tier-1 supplement |
 | Gold history | Starts 2014, target is 2005 | Medium | Extend backfill via Stooq |
 | DTWEXM / DTWEXO / TWEXB | Discontinued series in DB | Low | Bridge with DTWEXBGS or drop |
 | GLD history | Approximation only — uniform shares across dates | Low | Accept or find paid source |
@@ -199,8 +203,7 @@ on next `get_connection(with_snapshot_tables=True)` call (handled by `_ensure_sn
 | `--full-reload` help text | Describes deprecated `INSERT OR REPLACE` behavior | Low | Update help text across all 4 adapters |
 
 **Backtest start date:** `2014-01-02` — limited by gold JSON.
-**SP500 gap is HIGH priority** — 2015 China shock and early 2016 selloff fall in the missing window,
-affecting calibration validity.
+**SP500 gap partially addressed** — `SP500_PROXY` (SPY via Yahoo, from 2005) now covers the 2005–2016 window including the 2015 China shock and early 2016 selloff. The original FRED `SP500` series (from 2016) remains unchanged.
 
 ---
 
@@ -280,7 +283,7 @@ CREATE TABLE snapshot_values (
 
 ---
 
-## 7. The Six Adapters
+## 7. The Seven Adapters
 
 ### A. Gold Adapter (`gold_adapter.py`) — Tier-1, M0
 
@@ -368,9 +371,25 @@ python layer2\adapters\fred_loader.py --backfill-days 5 --dry-run
 
 ---
 
+### D-2. SPY Adapter (`spy_adapter.py`) — Tier-1
+
+**S&P 500 proxy via Yahoo Finance (SPY ETF). Supplements FRED SP500 with history back to 2005.**
+
+Source: Yahoo Finance (`SPY`). `source="yahoo_spy"`.
+
+```bash
+# Daily EOD job
+python layer2\adapters\spy_adapter.py
+
+# Backfill full history
+python layer2\adapters\spy_adapter.py --full-history
+```
+
+---
+
 ### E. Quality Gate (`quality_gate.py`) — Snapshot gatekeeper
 
-**Checks all 23 series, computes verdict, saves JSON report.**
+**Checks all 24 series, computes verdict, saves JSON report.**
 Run before any snapshot is published. Exit code: 0 = PASS, 1 = FAIL.
 
 ```bash
@@ -552,7 +571,7 @@ Flags: `--workflow PATH`, `--show-steps`, `--write-state`, `--state-path PATH`.
 
 | Tier | Series | Staleness threshold | Effect if stale |
 |---|---|---|---|
-| Tier-1 | gold, MOVE, yields, USD, VIX, SP500 | 3 days (DTWEXBGS: 10 days) | Blocks snapshot |
+| Tier-1 | gold, MOVE, yields, USD, VIX, SP500, SP500_PROXY | 3 days (DTWEXBGS: 10 days) | Blocks snapshot |
 | Tier-2 | GLD, CPI, PCE, FEDFUNDS | 5–45 days | Warning only |
 
 **Fail-closed:** any Tier-1 FAIL → publish NOTHING → Layer-3 outputs nothing.
@@ -580,7 +599,7 @@ Forced snapshots should be filtered out of backtests.
 | Snapshot publisher | ✅ DONE | — | |
 | Series registry JSON | ✅ DONE | — | Must contain `registry_version` key |
 | Registry loader + validator | ✅ DONE | — | |
-| Registry wiring — all 6 adapters | ✅ DONE | — | Confirmed in code audit 2026-03-07 |
+| Registry wiring — all 7 adapters | ✅ DONE | — | Confirmed in code audit 2026-03-07; spy_adapter.py added 2026-05-10 |
 | `engine_version` in snapshot schema + JSON | ✅ DONE | — | `db.py` v2, `snapshot_publisher.py` v2 |
 | `config_version` in snapshot schema + JSON | ✅ DONE | — | Resolved from `registry_version` |
 | Auto-migration for existing DBs | ✅ DONE | — | `_ensure_snapshot_schema_migrations()` |
@@ -589,7 +608,7 @@ Forced snapshots should be filtered out of backtests.
 | `guards` fully structured + enum-backed (Phase 2) | ✅ DONE | — | `freshness_ok`, `revision_risk_present`, `forced`, `missing_tier1`, `snapshot_ok`, `reason_code` added 2026-05-01 |
 | Snapshot contract schema-validated (Phase 2) | ✅ DONE | — | `validate_snapshot_contract()` in `layer2/constants.py` — 2026-05-01 |
 | `reason_code` enum in shared constants file | ✅ DONE | — | Resolved — see §16 previously-blocked items |
-| SP500 history fix (use SPY via Yahoo) | ⬜ TODO | **High** | Affects calibration validity — 2014–2016 gap |
+| SP500 history fix (use SPY via Yahoo) | ✅ Partially addressed | — | `SP500_PROXY` added (SPY via Yahoo, Tier-1, from 2005). Original FRED `SP500` unchanged. |
 | `revision_risk` column in `observations` | ⬜ TODO | Medium | Architecture4 vintage discipline requirement |
 | Revision writer (`revision_seq=1` path) | ⬜ TODO | Medium | FRED corrections currently silently dropped |
 | `--full-reload` CLI help text update | ⬜ TODO | Low | Now uses `INSERT OR IGNORE`, not `INSERT OR REPLACE` |
@@ -811,7 +830,7 @@ snapshot_id: <64-char hash>
 **Known remaining items from Audit 5:**
 - `guards` structured object in snapshot output ✅ (resolved — see §16)
 - `reason_code` enum defined ✅ (resolved — see §16)
-- SP500 history gap 2014–2016 (HIGH priority for calibration) ⬜
+- SP500 history gap 2014–2016 ✅ partially addressed (SP500_PROXY added)
 - `revision_risk` column not in `observations` table ⬜
 - `layer1_events: []` stub not in snapshot JSON ⬜
 - Operational readiness (scheduler, alerting, retry, kill switch) not built ⬜
@@ -847,7 +866,7 @@ snapshot_id: <64-char hash>
 
 | Item | Domain affected | Score impact if fixed |
 |---|---|---|
-| SP500 history gap | Data Ingestion | +0.5 |
+| SP500 history gap | Data Ingestion | partially addressed (SP500_PROXY added) |
 | `guards` object in snapshot | Snapshot Publisher | +0.25 |
 | `revision_risk` tracking | Truth-Layer + Quality Gate | +0.25 each |
 | Daily scheduler + orchestrator | Operational Readiness | +1.5 |
@@ -913,6 +932,7 @@ Use `SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md` section 7 as the authoritativ
 | v6 | 2026-03-22 | Architecture audit | Layer-3 decision philosophy frozen (state-driven / event-driven). DecisionPacket schema v0 defined. Layer-3 build order updated. Old timeframe-centric DecisionPacket example superseded. |
 | v7 | 2026-04-18 | Layer-2 refactor | All adapters migrated from `layer2.adapters.v0.*` to canonical `layer2.db` / `layer2.clock`. `layer2/adapters/v0/` removed. `index_suite.py` classified as Layer-2 internal pre-publication tool. |
 | v8 | 2026-05-01 | Phase 2 snapshot contract | Guards fully structured and enum-backed. `validate_snapshot_contract()` added. `revision_risk` contract complete. 63 new tests. |
+| v9 | 2026-05-10 | SP500_PROXY / spy_adapter | `spy_adapter.py` added as 7th adapter. `SP500_PROXY` added as 24th series (Tier-1, Yahoo SPY, from 2005). SP500 history gap partially addressed. Registry v1.1.0. |
 
 ---
 

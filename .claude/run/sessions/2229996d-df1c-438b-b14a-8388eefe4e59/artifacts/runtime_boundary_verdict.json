@@ -1,89 +1,15 @@
 {
   "artifact": "runtime_boundary_verdict",
   "produced_by": "runtime-boundary-check",
-  "session": "2229996d-df1c-438b-b14a-8388eefe4e59",
-  "timestamp": "2026-05-10T19:17:12.251056Z",
+  "session": "",
+  "timestamp": "2026-06-05T19:15:49.053608Z",
   "data": {
-    "produced_by": "runtime-boundary-check",
-    "overall_status": "compliant",
-    "inference_used": false,
+    "file_path": "C:\\Code\\Mr-Ripley\\verification_ledger.md",
+    "scanned": false,
+    "layer2_file": false,
     "raw_observation_access_detected": false,
     "latest_snapshot_misuse_detected": false,
     "layer2_storage_coupling_detected": false,
-    "boundary_violation_suspected": false,
-    "requires_snapshot_boundary_guard": false,
-    "requires_snapshot_boundary_auditor": false,
-    "upstream_block_inherited": false,
-    "checked_dimensions": [
-      {
-        "dimension": "D1",
-        "label": "Raw observation access",
-        "assessment": "compliant",
-        "raw_observations_access_detected": false,
-        "affected_files": [],
-        "reason": "No Layer-3 code exists. All adapter files (fred_loader.py, gld_holdings_adapter.py, gold_adapter.py, move_adapter.py, quality_gate.py, snapshot_publisher.py, spy_adapter.py) are Layer-2 owned. execution_artifact_scan confirms layer3_execution_artifacts_absent: true. No downstream SELECT FROM observations possible.",
-        "canonical_source": "SYSTEM_TECHNICAL_HANDBOOK_v1.md"
-      },
-      {
-        "dimension": "D2",
-        "label": "Snapshot interface discipline",
-        "assessment": "compliant",
-        "raw_observations_access_detected": false,
-        "affected_files": [],
-        "reason": "layer3_runtime_absent: true. No ungoverned snapshot queries possible. latest_snapshot.json carries snapshot_id and as_of anchors, satisfying interface discipline requirements for future consumption.",
-        "canonical_source": "SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md"
-      },
-      {
-        "dimension": "D3",
-        "label": "latest_snapshot.json misuse",
-        "assessment": "compliant",
-        "latest_snapshot_misuse_detected": false,
-        "affected_files": [
-          "latest_snapshot.json"
-        ],
-        "reason": "latest_snapshot.json is present as governed artifact with snapshot_id='952cc83a8f930e27a7c3636cb03cf1c5d9b93a5363fa8d9b1a4891f6af7afaef', as_of='2026-05-01T22:00:00+00:00', has_guards_object: true. No downstream runtime exists to misuse it as mutable scratch or live feed.",
-        "canonical_source": "SYSTEM_TECHNICAL_HANDBOOK_v1.md"
-      },
-      {
-        "dimension": "D4",
-        "label": "Snapshot truth ownership",
-        "assessment": "compliant",
-        "snapshot_truth_rewrite_risk": false,
-        "affected_files": [],
-        "reason": "layer3_runtime_absent: true. No downstream component exists that could overwrite or annotate snapshot values. Layer-2 ownership of snapshot truth is unchallenged.",
-        "canonical_source": "SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md"
-      },
-      {
-        "dimension": "D5",
-        "label": "Layer-2 storage-touch",
-        "assessment": "compliant",
-        "layer2_storage_touch_detected": false,
-        "affected_files": [
-          "layer2/db.py",
-          "layer2/alignment.py"
-        ],
-        "reason": "insert_or_replace_detected: false across all checked files. layer2/db.py uses INSERT OR IGNORE (count: 2) \u2014 compliant with database discipline. layer2/alignment.py has no write operations. No Layer-3 code present to touch Layer-2 tables.",
-        "canonical_source": "SYSTEM_TECHNICAL_HANDBOOK_v1.md"
-      }
-    ],
-    "summary": {
-      "raw_observations_violation_detected": false,
-      "latest_snapshot_misuse_detected": false,
-      "snapshot_truth_rewrite_risk_detected": false,
-      "layer2_storage_touch_detected": false,
-      "insert_or_replace_violation_detected": false,
-      "layer3_runtime_absent": true,
-      "execution_boundary_preserved": true,
-      "requires_snapshot_boundary_guard": false,
-      "requires_snapshot_boundary_auditor": false,
-      "contract_compliance_inherited": true,
-      "notes": [
-        "Layer-3 runtime absent \u2014 boundary integrity validated by absence of downstream code. All five dimensions pass.",
-        "latest_snapshot.json is properly anchored with snapshot_id and as_of; has_guards_object: true confirms governed publication.",
-        "Database discipline confirmed: INSERT OR IGNORE only, no INSERT OR REPLACE in Layer-2 code.",
-        "Execution boundary (CLAUDE.md \u00a79) preserved: no signal execution, trading, or decision-triggering artifacts detected.",
-        "Boundary verdict inherits compliant status from contract_compliance_verdict. No escalation to snapshot-boundary-auditor required."
-      ]
-    }
+    "violations": []
   }
 }

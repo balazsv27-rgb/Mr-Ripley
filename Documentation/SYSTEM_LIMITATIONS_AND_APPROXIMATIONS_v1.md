@@ -80,7 +80,7 @@ Note: the state-driven / event-driven Layer-3 model makes orchestration more imp
 
 | Item | Why it matters | Current status |
 |---|---|---|
-| SP500 history gap | FRED SP500 starts 2016. Intraday/fast-market state for Layer-3 may require SPY via Yahoo instead | ⬜ High priority |
+| SP500 history gap | FRED SP500 starts 2016. `SP500_PROXY` (SPY via Yahoo, Tier-1, history from 2005-01-03) now supplements the FRED series. The original `SP500` series remains unchanged. Intraday/fast-market state for Layer-3 may still require further work. | ✅ Partially addressed (2026-05-10) |
 
 ### 3.5 Repo / operator ergonomics
 
@@ -111,7 +111,7 @@ These are Layer-2-owned items that Layer-3 will eventually need, but that do not
 | Item | Why Layer-3 needs it | Current status |
 |---|---|---|
 | Index Suite values in snapshot | Layer-3 UnknownMode evaluation requires Stress, Drift, CorrBreak index values from Layer-2 | ⬜ Future Layer-2 extension — after Index Suite is built |
-| SP500 history gap | FRED SP500 starts 2016 only. Intraday / fast-market state may require SPY via Yahoo | ⬜ High priority for Layer-3 live market inputs |
+| SP500 history gap | FRED SP500 starts 2016 only. `SP500_PROXY` (SPY via Yahoo, from 2005-01-03) now provides supplementary history. Intraday / fast-market state for Layer-3 may still require further work. | ✅ Partially addressed (2026-05-10) |
 
 Layer-3 implementation risks (live state leakage, event noise, trigger conflation, calibration) are tracked in `SYSTEM_ARCHITECTURE_AND_BUILD_SEQUENCE_v1.md` section 8, not here. This document tracks Layer-2 gaps only.
 
@@ -128,7 +128,7 @@ A successful non-forced Layer-2 publish proves:
 
 It does **not** prove:
 
-- Layer-3 exists
+- any downstream computation layer is available
 - revision handling is complete
 - backtest integrity is fully hardened for all revision-sensitive cases
 - operational readiness is complete

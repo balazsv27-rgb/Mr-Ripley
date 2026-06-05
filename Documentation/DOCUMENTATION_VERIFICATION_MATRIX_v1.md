@@ -70,7 +70,8 @@ Important distinction:
 | Repo hygiene for runtime artifacts | Documented current-state claim | Current docs treat this as an open verification / hygiene concern |
 | Adapter usability polish (e.g. gold JSON path handling) | Documented current-state claim | Current docs treat this as non-blocking operational polish |
 | Layer-3 implementation | Verified in current documentation set | Current docs consistently say Layer-3 is not yet built |
-| SP500 history gap | Documented current-state claim | FRED SP500 from 2016 only — SPY migration planned, relevant for future Layer-3 live market inputs |
+| SP500 history gap | Documented current-state claim | FRED SP500 from 2016 only. `SP500_PROXY` (SPY via Yahoo, Tier-1, history from 2005-01-03) now supplements the FRED series. Original `SP500` series unchanged. Partially addressed as of 2026-05-10. Intraday / fast-market state for Layer-3 may still require further work. |
+| `spy_adapter.py` and `SP500_PROXY` | Documented current-state claim | `spy_adapter.py` is the 7th Layer-2 adapter. `SP500_PROXY` is the 24th series in `series_registry.json` (v1.1.0). Tier-1, `include_in_snapshot=true`. Staleness blocks snapshot publication under fail-closed contract. Code-level evidence: adapter file, registry entry. Added 2026-05-10. |
 | Live Market State adapters | Verified in current documentation set | Not built — required for Layer-3 fast trigger detection |
 | Event Risk Stream integration | Verified in current documentation set | Not built — required for Layer-3 uncertainty escalation and action restriction |
 

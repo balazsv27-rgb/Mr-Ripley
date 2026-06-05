@@ -1,10 +1,14 @@
 {
   "artifact": "stage_gate_report",
-  "produced_by": "stage-gate-enforcement",
-  "session": "2229996d-df1c-438b-b14a-8388eefe4e59",
-  "timestamp": "2026-05-10T19:16:29.739353Z",
+  "produced_by": "stage-gate-check",
+  "session": "",
+  "timestamp": "2026-06-05T19:15:49.065364Z",
   "data": {
-    "produced_by": "stage-gate-enforcement",
-    "structural": true
+    "file_path": "C:\\Code\\Mr-Ripley\\verification_ledger.md",
+    "scanned": true,
+    "live_readiness_claim_detected": false,
+    "execution_capability_claim_detected": false,
+    "production_ready_claim_detected": false,
+    "violations": []
   }
 }
